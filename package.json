@@ -40,7 +40,7 @@
     "pretest": "node test/support/createdb.js",
     "test": "$(npm bin)/mocha -R spec --timeout 480000"
   },
-  "license": "MIT and BSD-3-Clause",
+  "license": "(MIT OR BSD-3-Clause)",
   "keywords": [
     "sql",
     "sqlite",
