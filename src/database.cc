@@ -1,4 +1,5 @@
 #include <string.h>
+
 #include "macros.h"
 #include "database.h"
 #include "statement.h"
