@@ -1,0 +1,36 @@
+in c++:
+
+
+
+startTransaction() API does:
+is the active_tranaction flag set? -> push to the db connection's transaction queue
+otherwise -> set active_tranaction flag to 1, and exec "BEGIN;"
+
+
+
+endTransaction() API does:
+-> set active_tranaction flag to 2, and exec "COMMIT;"
+-> flush up to, but not including, the next transaction
+
+
+
+when statement is about to be executed:
+is the active_tranaction flag 0 or 1? -> execute it
+otherwise:
+is the statement readonly? -> execute it
+otherwise -> push it to the transaction queue, which is associated with the database connection
+
+
+
+on commit hook AND on rollback hook:
+if there is something in the db connection's queue -> flush up to, and including, the next transaction
+otherwise -> set active_tranaction flag to 0
+
+
+
+should have:
+int sqlite3_busy_timeout(sqlite3*, 50000);
+
+optionally enable, together:
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = 1;
