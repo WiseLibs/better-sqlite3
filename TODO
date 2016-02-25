@@ -36,3 +36,31 @@ int sqlite3_busy_timeout(sqlite3*, 50000);
 optionally enable, together:
 PRAGMA journal_mode = WAL;
 PRAGMA synchronous = 1;
+
+
+
+---------- Automatic Atomic Transactions ----------
+on commit hook, check for error, and if there was an error, return 1
+the commit will then be converted into a rollback
+
+
+---------- Executable ----------
+all tables should have INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
+
+in order for foreign keys to be unconditionally enforced, the child column must have NOT NULL
+
+null values count as unique from eachother for UNIQUE constraints (and basically everything else)
+
+DEFAULT applies when no value is specified for an INSERT. Explicitly given nulls do not trigger DEFAULT
+
+foreign key REFERENCES <table> can be followed by ON DELETE and/or ON UPDATE:
+SET NULL = when the parent's column is updated or deleted, the child's column becomes null
+           (this still causes a violation if the child has NOT NULL)
+SET DEFAULT = when the parent's column is updated or deleted, the child's column becomes the DEFAULT
+              (this still causes a violation if the DEFAULT does not correspond with an actual parent)
+CASCADE = when the parent row is deleted, the child row is deleted
+          (for updates, the value propogates to all children)
+
+ALTER TABLE actions
+
+DROP TABLE actions
