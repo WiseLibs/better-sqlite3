@@ -17,7 +17,7 @@
 using namespace v8;
 using namespace node;
 
-namespace node_sqlite3 {
+namespace sqlite3_plus {
 
 namespace Values {
     struct Field {

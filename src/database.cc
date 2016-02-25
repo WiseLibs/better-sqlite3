@@ -4,7 +4,7 @@
 #include "database.h"
 #include "statement.h"
 
-using namespace node_sqlite3;
+using namespace sqlite3_plus;
 
 Nan::Persistent<FunctionTemplate> Database::constructor_template;
 

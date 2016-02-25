@@ -13,7 +13,7 @@
 
 using namespace v8;
 
-namespace node_sqlite3 {
+namespace sqlite3_plus {
 
 class Database;
 
