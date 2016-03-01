@@ -44,6 +44,10 @@ on commit hook, check for error, and if there was an error, return 1
 the commit will then be converted into a rollback
 
 
+---------- Package ----------
+deal with ./test/ and .travis.yml
+
+
 ---------- Executable ----------
 all tables should have INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
 

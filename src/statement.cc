@@ -71,7 +71,7 @@ template <class T> void Statement::Error(T* baton) {
 
     if (!cb.IsEmpty() && cb->IsFunction()) {
         Local<Value> argv[] = { exception };
-        TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+        Nan::MakeCallback(stmt->handle(), cb, 1, argv);
     }
     else {
         Local<Value> argv[] = { Nan::New("error").ToLocalChecked(), exception };
@@ -158,7 +158,7 @@ void Statement::Work_AfterPrepare(uv_work_t* req) {
         Local<Function> cb = Nan::New(baton->callback);
         if (!cb.IsEmpty() && cb->IsFunction()) {
             Local<Value> argv[] = { Nan::Null() };
-            TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+            Nan::MakeCallback(stmt->handle(), cb, 1, argv);
         }
     }
 
@@ -344,7 +344,7 @@ void Statement::Work_AfterBind(uv_work_t* req) {
         Local<Function> cb = Nan::New(baton->callback);
         if (!cb.IsEmpty() && cb->IsFunction()) {
             Local<Value> argv[] = { Nan::Null() };
-            TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+            Nan::MakeCallback(stmt->handle(), cb, 1, argv);
         }
     }
 
@@ -409,11 +409,11 @@ void Statement::Work_AfterGet(uv_work_t* req) {
             if (stmt->status == SQLITE_ROW) {
                 // Create the result array from the data we acquired.
                 Local<Value> argv[] = { Nan::Null(), RowToJS(&baton->row) };
-                TRY_CATCH_CALL(stmt->handle(), cb, 2, argv);
+                Nan::MakeCallback(stmt->handle(), cb, 2, argv);
             }
             else {
                 Local<Value> argv[] = { Nan::Null() };
-                TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+                Nan::MakeCallback(stmt->handle(), cb, 1, argv);
             }
         }
     }
@@ -480,7 +480,7 @@ void Statement::Work_AfterRun(uv_work_t* req) {
             Nan::Set(stmt->handle(), Nan::New("changes").ToLocalChecked(), Nan::New(baton->changes));
 
             Local<Value> argv[] = { Nan::Null() };
-            TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+            Nan::MakeCallback(stmt->handle(), cb, 1, argv);
         }
     }
 
@@ -553,7 +553,7 @@ void Statement::Work_AfterAll(uv_work_t* req) {
                 }
 
                 Local<Value> argv[] = { Nan::Null(), result };
-                TRY_CATCH_CALL(stmt->handle(), cb, 2, argv);
+                Nan::MakeCallback(stmt->handle(), cb, 2, argv);
             }
             else {
                 // There were no result rows.
@@ -561,7 +561,7 @@ void Statement::Work_AfterAll(uv_work_t* req) {
                     Nan::Null(),
                     Nan::New<Array>(0)
                 };
-                TRY_CATCH_CALL(stmt->handle(), cb, 2, argv);
+                Nan::MakeCallback(stmt->handle(), cb, 2, argv);
             }
         }
     }
@@ -677,7 +677,7 @@ void Statement::AsyncEach(uv_async_t* handle, int status) {
             for (int i = 0; it < end; ++it, i++) {
                 argv[1] = RowToJS(*it);
                 async->retrieved++;
-                TRY_CATCH_CALL(async->stmt->handle(), cb, 2, argv);
+                Nan::MakeCallback(async->stmt->handle(), cb, 2, argv);
                 delete *it;
             }
         }
@@ -691,7 +691,7 @@ void Statement::AsyncEach(uv_async_t* handle, int status) {
                 Nan::Null(),
                 Nan::New(async->retrieved)
             };
-            TRY_CATCH_CALL(async->stmt->handle(), cb, 2, argv);
+            Nan::MakeCallback(async->stmt->handle(), cb, 2, argv);
         }
         uv_close(reinterpret_cast<uv_handle_t*>(handle), CloseCallback);
     }
@@ -740,7 +740,7 @@ void Statement::Work_AfterReset(uv_work_t* req) {
     Local<Function> cb = Nan::New(baton->callback);
     if (!cb.IsEmpty() && cb->IsFunction()) {
         Local<Value> argv[] = { Nan::Null() };
-        TRY_CATCH_CALL(stmt->handle(), cb, 1, argv);
+        Nan::MakeCallback(stmt->handle(), cb, 1, argv);
     }
 
     STATEMENT_END();
@@ -778,7 +778,16 @@ Local<Object> Statement::RowToJS(Row* row) {
 
         Nan::Set(result, Nan::New(field->name.c_str()).ToLocalChecked(), value);
 
-        DELETE_FIELD(field);
+        if (field != NULL) {
+            switch (field->type) {
+                case SQLITE_INTEGER: delete (Values::Integer*)(field); break;
+                case SQLITE_FLOAT:   delete (Values::Float*)(field); break;
+                case SQLITE_TEXT:    delete (Values::Text*)(field); break;
+                case SQLITE_BLOB:    delete (Values::Blob*)(field); break;
+                case SQLITE_NULL:    delete (Values::Null*)(field); break;
+            }
+        }
+        
     }
 
     return scope.Escape(result);
@@ -834,7 +843,7 @@ void Statement::Finalize(Baton* baton) {
     // Fire callback in case there was one.
     Local<Function> cb = Nan::New(baton->callback);
     if (!cb.IsEmpty() && cb->IsFunction()) {
-        TRY_CATCH_CALL(baton->stmt->handle(), cb, 0, NULL);
+        Nan::MakeCallback(baton->stmt->handle(), cb, 0, NULL);
     }
 
     delete baton;
@@ -870,7 +879,7 @@ void Statement::CleanQueue() {
 
             if (prepared && !cb.IsEmpty() &&
                 cb->IsFunction()) {
-                TRY_CATCH_CALL(handle(), cb, 1, argv);
+                Nan::MakeCallback(handle(), cb, 1, argv);
                 called = true;
             }
 
