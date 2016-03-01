@@ -36,7 +36,7 @@
     "mocha": "~2.3.3"
   },
   "scripts": {
-    "install": "node-gyp rebuild",
+    "install": "make build",
     "pretest": "node test/support/createdb.js",
     "test": "$(npm bin)/mocha -R spec --timeout 480000"
   },
