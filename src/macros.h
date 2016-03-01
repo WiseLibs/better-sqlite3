@@ -1,7 +1,6 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
-#include <nan.h>
 const char* sqlite_code_string(int);
 
 #define REQUIRE_ARGUMENTS(n)                                                   \
@@ -27,12 +26,12 @@ const char* sqlite_code_string(int);
         if (!info[i]->IsFunction()) {                                          \
             return Nan::ThrowTypeError("Argument " #i " must be a function."); \
         }                                                                      \
-        var = Local<v8::Function>::Cast(info[i]);                              \
+        var = v8::Local<v8::Function>::Cast(info[i]);                          \
     }
 
 #define OPTIONAL_ARGUMENT_CALLBACK(i, var)                                     \
-    OPTIONAL_ARGUMENT_FUNCTION(i, var);                                        \
-    Nan::Callback var(var);
+    OPTIONAL_ARGUMENT_FUNCTION(i, _##var);                                     \
+    Nan::Callback var(_##var);
 
 #define EXCEPTION(msg, errno, name)                                            \
     v8::Local<v8::Value> name = v8::Exception::Error(                          \

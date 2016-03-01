@@ -1,12 +1,12 @@
 #include "database.h"
 
-static int writeMode = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
-static int readMode = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
+static int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+static int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
 
 NAN_MODULE_INIT(Database::Init) {
     Nan::HandleScope scope;
     
-    Local<FunctionTemplate> t = Nan::New<FunctionTemplate>(New);
+    v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
     
     t->InstanceTemplate()->SetInternalFieldCount(1);
     t->SetClassName(Nan::New("Database").ToLocalChecked());
@@ -30,7 +30,7 @@ NAN_METHOD(Database::New) {
         REQUIRE_ARGUMENT_STRING(0, filename);
         OPTIONAL_ARGUMENT_CALLBACK(1, callback);
         
-        v8::Local<v8::Value> args[1] = {info[0].ToLocalChecked()};
+        v8::Local<v8::Value> args[] = {info[0]};
         callback.Call(1, args);
         
         Database* db = new Database();
@@ -115,7 +115,7 @@ NAN_GETTER(Database::OpenGetter) {
 // }
 
 NAN_METHOD(Database::Close) {
-    Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+    // Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
     
     OPTIONAL_ARGUMENT_CALLBACK(0, callback);
     callback.Call(0, NULL);
