@@ -131,8 +131,8 @@ namespace DATABASE {
             return;
         }
         
-        sqlite3_busy_timeout(db->writeHandle, 5000);
-        sqlite3_busy_timeout(db->readHandle, 5000);
+        sqlite3_busy_timeout(db->writeHandle, 30000);
+        sqlite3_busy_timeout(db->readHandle, 30000);
     }
     void OpenWorker::HandleOKCallback() {
         Nan::HandleScope scope;
@@ -150,52 +150,6 @@ namespace DATABASE {
     }
     
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    // void Database::Work_AfterOpen(uv_work_t* req) {
-    //     Nan::HandleScope scope;
-
-    //     OpenBaton* baton = static_cast<OpenBaton*>(req->data);
-    //     Database* db = baton->db;
-
-    //     Local<Value> argv[1];
-    //     if (baton->status != SQLITE_OK) {
-    //         EXCEPTION(Nan::New(baton->message.c_str()).ToLocalChecked(), baton->status, exception);
-    //         argv[0] = exception;
-    //     }
-    //     else {
-    //         db->open = true;
-    //         argv[0] = Nan::Null();
-    //     }
-
-    //     Local<Function> cb = Nan::New(baton->callback);
-
-    //     if (!cb.IsEmpty() && cb->IsFunction()) {
-    //         Nan::MakeCallback(db->handle(), cb, 1, argv);
-    //     }
-    //     else if (!db->open) {
-    //         Local<Value> info[] = { Nan::New("error").ToLocalChecked(), argv[0] };
-    //         EMIT_EVENT(db->handle(), 2, info);
-    //     }
-
-    //     if (db->open) {
-    //         Local<Value> info[] = { Nan::New("open").ToLocalChecked() };
-    //         EMIT_EVENT(db->handle(), 1, info);
-    //         db->Process();
-    //     }
-
-    //     delete baton;
-    // }
     
     
     
