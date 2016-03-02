@@ -9,78 +9,143 @@ namespace DATABASE {
     
     class Database : public Nan::ObjectWrap {
         public:
-            Database() : Nan::ObjectWrap(),
-                readHandle(NULL),
-                writeHandle(NULL),
-                open(false) {}
-            ~Database() {
-                sqlite3_close(readHandle);
-                sqlite3_close(writeHandle);
-                readHandle = NULL;
-                writeHandle = NULL;
-                open = false;
-            }
-            static NAN_MODULE_INIT(Init) {
-                Nan::HandleScope scope;
-                
-                v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
-                t->InstanceTemplate()->SetInternalFieldCount(1);
-                t->SetClassName(Nan::New("Database").ToLocalChecked());
-                
-                Nan::SetPrototypeMethod(t, "close", Close);
-                Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), OpenGetter);
-                
-                constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
-                Nan::Set(target, Nan::New("Database").ToLocalChecked(),
-                    Nan::GetFunction(t).ToLocalChecked());
-            }
+            Database(char*);
+            ~Database();
+            static NAN_MODULE_INIT(Init);
             static CONSTRUCTOR(constructor);
             
+            char* GetFilename() {return filename;}
+            friend class OpenWorker;
+            
         private:
-            static NAN_METHOD(New) {
-                REQUIRE_ARGUMENTS(1);
-                if (!info.IsConstructCall()) {
-                    v8::Local<v8::Value> args[] = {info[0], Nan::Undefined()};
-                    if (info.Length() > 1) {args[1] = info[1];}
-                    v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-                    info.GetReturnValue().Set(cons->NewInstance(2, args));
-                } else {
-                    REQUIRE_ARGUMENT_STRING(0, filename);
-                    OPTIONAL_ARGUMENT_FUNCTION(1, callback);
-                    
-                    Database* db = new Database();
-                    db->Wrap(info.This());
-                    
-                    v8::Local<v8::Value> args[] = {info[0]};
-                    // Use Nan::MakeCallback() for I/O based callbacks (i.e., not synchronous from JS code)
-                    if (!callback.IsEmpty()) {
-                        callback->Call(info.This(), 1, args);
-                    }
-                    
-                    info.GetReturnValue().Set(info.This());
-                }
-            }
+            static NAN_METHOD(New);
             
-            static NAN_GETTER(OpenGetter) {
-                Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
-                info.GetReturnValue().Set(db->open);
-            }
-            static NAN_METHOD(Close) {
-                // Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
-                
-                OPTIONAL_ARGUMENT_FUNCTION(0, callback);
-                if (!callback.IsEmpty()) {
-                    callback->Call(info.This(), 0, NULL);
-                }
-                
-                info.GetReturnValue().Set(info.This());
-            }
+            static NAN_GETTER(OpenGetter);
+            static NAN_METHOD(Close);
             
+            char* filename;
             sqlite3* readHandle;
             sqlite3* writeHandle;
             bool open;
     };
+    
+    class OpenWorker : public Nan::AsyncWorker {
+        public:
+            OpenWorker(Nan::Callback*, Database*);
+            ~OpenWorker();
+            void Execute();
+            void HandleOKCallback();
+        private:
+            Database* db;
+            int status;
+    };
+    
+    
+    
+    
+    
+    Database::Database(char* filename) : Nan::ObjectWrap(),
+        filename(filename),
+        readHandle(NULL),
+        writeHandle(NULL),
+        open(false) {}
+    Database::~Database() {
+        sqlite3_close(readHandle);
+        sqlite3_close(writeHandle);
+        readHandle = NULL;
+        writeHandle = NULL;
+        open = false;
+        delete filename;
+        filename = NULL;
+    }
+    NAN_MODULE_INIT(Database::Init) {
+        Nan::HandleScope scope;
+        
+        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
+        t->InstanceTemplate()->SetInternalFieldCount(1);
+        t->SetClassName(Nan::New("Database").ToLocalChecked());
+        
+        Nan::SetPrototypeMethod(t, "close", Close);
+        Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
+        
+        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+        Nan::Set(target, Nan::New("Database").ToLocalChecked(),
+            Nan::GetFunction(t).ToLocalChecked());
+    }
     CONSTRUCTOR(Database::constructor);
+    NAN_METHOD(Database::New) {
+        REQUIRE_ARGUMENTS(1);
+        if (!info.IsConstructCall()) {
+            v8::Local<v8::Value> args[] = {info[0], Nan::Undefined()};
+            if (info.Length() > 1) {args[1] = info[1];}
+            v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
+            info.GetReturnValue().Set(cons->NewInstance(2, args));
+        } else {
+            REQUIRE_ARGUMENT_STRING(0, filename);
+            OPTIONAL_ARGUMENT_FUNCTION(1, fn);
+            
+            Database* db = new Database(*filename);
+            db->Wrap(info.This());
+            
+            Nan::Callback *callback;
+            if (fn.IsEmpty()) {
+                callback = new Nan::Callback();
+            } else {
+                callback = new Nan::Callback(fn);
+            }
+            AsyncQueueWorker(new OpenWorker(callback, db));
+            
+            info.GetReturnValue().Set(info.This());
+        }
+    }
+    NAN_GETTER(Database::OpenGetter) {
+        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        info.GetReturnValue().Set(db->open);
+    }
+    NAN_METHOD(Database::Close) {
+        // Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        
+        OPTIONAL_ARGUMENT_FUNCTION(0, callback);
+        if (!callback.IsEmpty()) {
+            callback->Call(info.This(), 0, NULL);
+        }
+        
+        info.GetReturnValue().Set(info.This());
+    }
+    
+    
+    
+    
+    
+    OpenWorker::OpenWorker(Nan::Callback* callback, Database* db)
+        : Nan::AsyncWorker(callback), db(db), status(0) {}
+    OpenWorker::~OpenWorker() {}
+    void OpenWorker::Execute() {
+        status = sqlite3_open_v2(db->GetFilename(), &db->writeHandle, WRITE_MODE, NULL);
+        if (status == SQLITE_OK) {
+            sqlite3_busy_timeout(db->writeHandle, 5000);
+        } else {
+            SetErrorMessage(sqlite3_errmsg(db->writeHandle));
+            sqlite3_close(db->writeHandle);
+            db->writeHandle = NULL;
+        }
+    }
+    void OpenWorker::HandleOKCallback() {
+        db->open = true;
+        callback->Call(0, NULL);
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     // void Database::Work_BeginOpen(Baton* baton) {
     //     int status = uv_queue_work(uv_default_loop(),
