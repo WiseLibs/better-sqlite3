@@ -1,6 +1,10 @@
 in c++:
 
 
+the current disconnect() implementation will fail if there are any pending requests.
+therefore, it should defer the actual CloseWorker until all pendings are clear. (writes AND reads)
+
+
 (because I can't disable read_uncomitted it own single database connection, perhaps have 1 connection for reads, and 1 for writes?)
 
 
