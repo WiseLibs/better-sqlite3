@@ -8,8 +8,6 @@ therefore, it should defer the actual CloseWorker until all pendings are clear. 
 remember to do db->Ref() and stmt->Ref() on every async operation, to protect from garbage collection
 
 
-(because I can't disable read_uncomitted it own single database connection, perhaps have 1 connection for reads, and 1 for writes?)
-
 
 startTransaction() API does:
 is the active_tranaction flag set? -> push to the db connection's transaction queue
@@ -36,9 +34,6 @@ if there is something in the db connection's queue -> flush up to, and including
 otherwise -> set active_tranaction flag to 0
 
 
-
-should have:
-int sqlite3_busy_timeout(sqlite3*, 30000);
 
 optionally enable, together:
 PRAGMA journal_mode = WAL;
