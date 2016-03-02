@@ -1,7 +1,8 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
-const char* sqlite_code_string(int);
+#include <nan.h>
+#include "sqlite3_plus.h"
 
 #define REQUIRE_ARGUMENTS(n)                                                   \
     if (info.Length() < (n)) {                                                 \
@@ -12,7 +13,7 @@ const char* sqlite_code_string(int);
     if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
         return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
     }                                                                          \
-    Local<v8::Function> var = Local<v8::Function>::Cast(info[i]);
+    Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
 
 #define REQUIRE_ARGUMENT_STRING(i, var)                                        \
     if (info.Length() <= (i) || !info[i]->IsString()) {                        \
@@ -29,15 +30,12 @@ const char* sqlite_code_string(int);
         var = v8::Local<v8::Function>::Cast(info[i]);                          \
     }
 
-#define OPTIONAL_ARGUMENT_CALLBACK(i, var)                                     \
-    OPTIONAL_ARGUMENT_FUNCTION(i, _##var);                                     \
-    Nan::Callback var(_##var);
-
 #define EXCEPTION(msg, errno, name)                                            \
     v8::Local<v8::Value> name = v8::Exception::Error(                          \
         v8::String::Concat(                                                    \
             v8::String::Concat(                                                \
-                Nan::New(sqlite_code_string(errno)).ToLocalChecked(),          \
+                Nan::New(SQLITE3_PLUS::sqlite_code_string(errno))              \
+                    .ToLocalChecked(),                                         \
                 Nan::New(": ").ToLocalChecked()                                \
             ),                                                                 \
             (msg)                                                              \
@@ -51,5 +49,8 @@ const char* sqlite_code_string(int);
             .ToLocalChecked().As<v8::Function>(),                              \
         argc, argv                                                             \
     );
+
+#define CONSTRUCTOR(name)                                                      \
+    Nan::Persistent<v8::Function> name;
 
 #endif
