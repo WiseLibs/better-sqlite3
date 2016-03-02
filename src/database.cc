@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
@@ -15,6 +16,7 @@ namespace DATABASE {
             static CONSTRUCTOR(constructor);
             
             friend class OpenWorker;
+            friend class CloseWorker;
             
         private:
             static NAN_METHOD(New);
@@ -25,6 +27,7 @@ namespace DATABASE {
             sqlite3* readHandle;
             sqlite3* writeHandle;
             bool open;
+            bool closed;
     };
     
     class OpenWorker : public Nan::AsyncWorker {
@@ -38,6 +41,18 @@ namespace DATABASE {
             Database* db;
     };
     
+    class CloseWorker : public Nan::AsyncWorker {
+        public:
+            CloseWorker(Database*, bool);
+            ~CloseWorker();
+            void Execute();
+            void HandleOKCallback();
+            void HandleErrorCallback();
+        private:
+            Database* db;
+            bool actuallyClose;
+    };
+    
     
     
     
@@ -46,14 +61,15 @@ namespace DATABASE {
         filename(filename),
         readHandle(NULL),
         writeHandle(NULL),
-        open(false) {}
+        open(false),
+        closed(false) {}
     Database::~Database() {
+        open = false;
         sqlite3_close(readHandle);
         sqlite3_close(writeHandle);
         readHandle = NULL;
         writeHandle = NULL;
-        open = false;
-        delete filename;
+        free(filename);
         filename = NULL;
     }
     NAN_MODULE_INIT(Database::Init) {
@@ -63,7 +79,7 @@ namespace DATABASE {
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(Nan::New("Database").ToLocalChecked());
         
-        Nan::SetPrototypeMethod(t, "close", Close);
+        Nan::SetPrototypeMethod(t, "disconnect", Close);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -80,7 +96,7 @@ namespace DATABASE {
         } else {
             REQUIRE_ARGUMENT_STRING(0, filename);
             
-            Database* db = new Database(*filename);
+            Database* db = new Database(RAW_STRING(filename));
             db->Wrap(info.This());
             
             AsyncQueueWorker(new OpenWorker(db));
@@ -93,11 +109,13 @@ namespace DATABASE {
         info.GetReturnValue().Set(db->open);
     }
     NAN_METHOD(Database::Close) {
-        // Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         
-        OPTIONAL_ARGUMENT_FUNCTION(0, callback);
-        if (!callback.IsEmpty()) {
-            callback->Call(info.This(), 0, NULL);
+        if (!db->closed) {
+            db->closed = true;
+            // This should wait in queue for all pending transactions to finish. (writes AND reads)
+            AsyncQueueWorker(new CloseWorker(db, db->open));
+            db->open = false;
         }
         
         info.GetReturnValue().Set(info.This());
@@ -136,11 +154,55 @@ namespace DATABASE {
     }
     void OpenWorker::HandleOKCallback() {
         Nan::HandleScope scope;
-        db->open = true;
-        v8::Local<v8::Value> args[1] = {Nan::New("connect").ToLocalChecked()};
-        EMIT_EVENT(db->handle(), 1, args);
+        if (db->closed) {
+            sqlite3_close(db->writeHandle);
+            sqlite3_close(db->readHandle);
+            db->writeHandle = NULL;
+            db->readHandle = NULL;
+        } else {
+            db->open = true;
+            v8::Local<v8::Value> args[1] = {Nan::New("connect").ToLocalChecked()};
+            EMIT_EVENT(db->handle(), 1, args);
+        }
     }
     void OpenWorker::HandleErrorCallback() {
+        Nan::HandleScope scope;
+        if (!db->closed) {
+            db->closed = true;
+            v8::Local<v8::Value> args[2] = {
+                Nan::New("disconnect").ToLocalChecked(),
+                v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
+            };
+            EMIT_EVENT(db->handle(), 2, args);
+        }
+    }
+    
+    
+    
+    
+    
+    CloseWorker::CloseWorker(Database* db, bool actuallyClose)
+        : Nan::AsyncWorker(NULL), db(db), actuallyClose(actuallyClose) {}
+    CloseWorker::~CloseWorker() {}
+    void CloseWorker::Execute() {
+        if (actuallyClose) {
+            int status1 = sqlite3_close(db->writeHandle);
+            int status2 = sqlite3_close(db->readHandle);
+            db->writeHandle = NULL;
+            db->readHandle = NULL;
+            if (status1 != SQLITE_OK) {
+                SetErrorMessage(sqlite3_errmsg(db->writeHandle));
+            } else if (status2 != SQLITE_OK) {
+                SetErrorMessage(sqlite3_errmsg(db->readHandle));
+            }
+        }
+    }
+    void CloseWorker::HandleOKCallback() {
+        Nan::HandleScope scope;
+        v8::Local<v8::Value> args[2] = {Nan::New("disconnect").ToLocalChecked(), Nan::Null()};
+        EMIT_EVENT(db->handle(), 2, args);
+    }
+    void CloseWorker::HandleErrorCallback() {
         Nan::HandleScope scope;
         v8::Local<v8::Value> args[2] = {
             Nan::New("disconnect").ToLocalChecked(),
@@ -152,70 +214,6 @@ namespace DATABASE {
     
     
     
-    
-    // void Database::Work_BeginClose(Baton* baton) {
-    //     assert(baton->db->locked);
-    //     assert(baton->db->open);
-    //     assert(baton->db->_handle);
-    //     assert(baton->db->pending == 0);
-
-    //     baton->db->RemoveCallbacks();
-    //     int status = uv_queue_work(uv_default_loop(),
-    //         &baton->request, Work_Close, (uv_after_work_cb)Work_AfterClose);
-    //     assert(status == 0);
-    // }
-    
-    // void Database::Work_Close(uv_work_t* req) {
-    //     Baton* baton = static_cast<Baton*>(req->data);
-    //     Database* db = baton->db;
-
-    //     baton->status = sqlite3_close(db->_handle);
-
-    //     if (baton->status != SQLITE_OK) {
-    //         baton->message = std::string(sqlite3_errmsg(db->_handle));
-    //     }
-    //     else {
-    //         db->_handle = NULL;
-    //     }
-    // }
-    
-    // void Database::Work_AfterClose(uv_work_t* req) {
-    //     Nan::HandleScope scope;
-
-    //     Baton* baton = static_cast<Baton*>(req->data);
-    //     Database* db = baton->db;
-
-    //     Local<Value> argv[1];
-    //     if (baton->status != SQLITE_OK) {
-    //         EXCEPTION(Nan::New(baton->message.c_str()).ToLocalChecked(), baton->status, exception);
-    //         argv[0] = exception;
-    //     }
-    //     else {
-    //         db->open = false;
-    //         // Leave db->locked to indicate that this db object has reached
-    //         // the end of its life.
-    //         argv[0] = Nan::Null();
-    //     }
-    
-    //     Local<Function> cb = Nan::New(baton->callback);
-    
-    //     // Fire callbacks.
-    //     if (!cb.IsEmpty() && cb->IsFunction()) {
-    //         Nan::MakeCallback(db->handle(), cb, 1, argv);
-    //     }
-    //     else if (db->open) {
-    //         Local<Value> info[] = { Nan::New("error").ToLocalChecked(), argv[0] };
-    //         EMIT_EVENT(db->handle(), 2, info);
-    //     }
-    
-    //     if (!db->open) {
-    //         Local<Value> info[] = { Nan::New("close").ToLocalChecked(), argv[0] };
-    //         EMIT_EVENT(db->handle(), 1, info);
-    //         db->Process();
-    //     }
-    
-    //     delete baton;
-    // }
     
     NAN_MODULE_INIT(InitDatabase) {
         Database::Init(target);
