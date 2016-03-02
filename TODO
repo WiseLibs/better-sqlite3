@@ -5,6 +5,9 @@ the current disconnect() implementation will fail if there are any pending reque
 therefore, it should defer the actual CloseWorker until all pendings are clear. (writes AND reads)
 
 
+remember to do db->Ref() and stmt->Ref() on every async operation, to protect from garbage collection
+
+
 (because I can't disable read_uncomitted it own single database connection, perhaps have 1 connection for reads, and 1 for writes?)
 
 
