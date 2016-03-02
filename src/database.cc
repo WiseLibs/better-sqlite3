@@ -14,12 +14,10 @@ namespace DATABASE {
             static NAN_MODULE_INIT(Init);
             static CONSTRUCTOR(constructor);
             
-            char* GetFilename() {return filename;}
             friend class OpenWorker;
             
         private:
             static NAN_METHOD(New);
-            
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
             
@@ -37,7 +35,6 @@ namespace DATABASE {
             void HandleOKCallback();
         private:
             Database* db;
-            int status;
     };
     
     
@@ -118,17 +115,31 @@ namespace DATABASE {
     
     
     OpenWorker::OpenWorker(Nan::Callback* callback, Database* db)
-        : Nan::AsyncWorker(callback), db(db), status(0) {}
+        : Nan::AsyncWorker(callback), db(db) {}
     OpenWorker::~OpenWorker() {}
     void OpenWorker::Execute() {
-        status = sqlite3_open_v2(db->GetFilename(), &db->writeHandle, WRITE_MODE, NULL);
-        if (status == SQLITE_OK) {
-            sqlite3_busy_timeout(db->writeHandle, 5000);
-        } else {
+        int status;
+        
+        status = sqlite3_open_v2(db->filename, &db->writeHandle, WRITE_MODE, NULL);
+        if (status != SQLITE_OK) {
             SetErrorMessage(sqlite3_errmsg(db->writeHandle));
             sqlite3_close(db->writeHandle);
             db->writeHandle = NULL;
+            return;
         }
+        
+        status = sqlite3_open_v2(db->filename, &db->readHandle, READ_MODE, NULL);
+        if (status != SQLITE_OK) {
+            SetErrorMessage(sqlite3_errmsg(db->readHandle));
+            sqlite3_close(db->writeHandle);
+            sqlite3_close(db->readHandle);
+            db->writeHandle = NULL;
+            db->readHandle = NULL;
+            return;
+        }
+        
+        sqlite3_busy_timeout(db->writeHandle, 5000);
+        sqlite3_busy_timeout(db->readHandle, 5000);
     }
     void OpenWorker::HandleOKCallback() {
         db->open = true;
