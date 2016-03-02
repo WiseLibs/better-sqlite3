@@ -99,6 +99,7 @@ namespace DATABASE {
             Database* db = new Database(RAW_STRING(filename));
             db->Wrap(info.This());
             
+            db->Ref();
             AsyncQueueWorker(new OpenWorker(db));
             
             info.GetReturnValue().Set(info.This());
@@ -114,6 +115,7 @@ namespace DATABASE {
         if (!db->closed) {
             db->closed = true;
             // This should wait in queue for all pending transactions to finish. (writes AND reads)
+            db->Ref();
             AsyncQueueWorker(new CloseWorker(db, db->open));
             db->open = false;
         }
@@ -164,6 +166,7 @@ namespace DATABASE {
             v8::Local<v8::Value> args[1] = {Nan::New("connect").ToLocalChecked()};
             EMIT_EVENT(db->handle(), 1, args);
         }
+        db->Unref();
     }
     void OpenWorker::HandleErrorCallback() {
         Nan::HandleScope scope;
@@ -175,6 +178,7 @@ namespace DATABASE {
             };
             EMIT_EVENT(db->handle(), 2, args);
         }
+        db->Unref();
     }
     
     
@@ -201,6 +205,7 @@ namespace DATABASE {
         Nan::HandleScope scope;
         v8::Local<v8::Value> args[2] = {Nan::New("disconnect").ToLocalChecked(), Nan::Null()};
         EMIT_EVENT(db->handle(), 2, args);
+        db->Unref();
     }
     void CloseWorker::HandleErrorCallback() {
         Nan::HandleScope scope;
@@ -209,6 +214,7 @@ namespace DATABASE {
             v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
         };
         EMIT_EVENT(db->handle(), 2, args);
+        db->Unref();
     }
     
     
