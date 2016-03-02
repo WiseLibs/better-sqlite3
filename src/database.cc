@@ -29,10 +29,11 @@ namespace DATABASE {
     
     class OpenWorker : public Nan::AsyncWorker {
         public:
-            OpenWorker(Nan::Callback*, Database*);
+            OpenWorker(Database*);
             ~OpenWorker();
             void Execute();
             void HandleOKCallback();
+            void HandleErrorCallback();
         private:
             Database* db;
     };
@@ -73,24 +74,16 @@ namespace DATABASE {
     NAN_METHOD(Database::New) {
         REQUIRE_ARGUMENTS(1);
         if (!info.IsConstructCall()) {
-            v8::Local<v8::Value> args[] = {info[0], Nan::Undefined()};
-            if (info.Length() > 1) {args[1] = info[1];}
+            v8::Local<v8::Value> args[1] = {info[0]};
             v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-            info.GetReturnValue().Set(cons->NewInstance(2, args));
+            info.GetReturnValue().Set(cons->NewInstance(1, args));
         } else {
             REQUIRE_ARGUMENT_STRING(0, filename);
-            OPTIONAL_ARGUMENT_FUNCTION(1, fn);
             
             Database* db = new Database(*filename);
             db->Wrap(info.This());
             
-            Nan::Callback *callback;
-            if (fn.IsEmpty()) {
-                callback = new Nan::Callback();
-            } else {
-                callback = new Nan::Callback(fn);
-            }
-            AsyncQueueWorker(new OpenWorker(callback, db));
+            AsyncQueueWorker(new OpenWorker(db));
             
             info.GetReturnValue().Set(info.This());
         }
@@ -114,8 +107,8 @@ namespace DATABASE {
     
     
     
-    OpenWorker::OpenWorker(Nan::Callback* callback, Database* db)
-        : Nan::AsyncWorker(callback), db(db) {}
+    OpenWorker::OpenWorker(Database* db)
+        : Nan::AsyncWorker(NULL), db(db) {}
     OpenWorker::~OpenWorker() {}
     void OpenWorker::Execute() {
         int status;
@@ -142,8 +135,18 @@ namespace DATABASE {
         sqlite3_busy_timeout(db->readHandle, 5000);
     }
     void OpenWorker::HandleOKCallback() {
+        Nan::HandleScope scope;
         db->open = true;
-        callback->Call(0, NULL);
+        v8::Local<v8::Value> args[1] = {Nan::New("connect").ToLocalChecked()};
+        EMIT_EVENT(db->handle(), 1, args);
+    }
+    void OpenWorker::HandleErrorCallback() {
+        Nan::HandleScope scope;
+        v8::Local<v8::Value> args[2] = {
+            Nan::New("disconnect").ToLocalChecked(),
+            v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
+        };
+        EMIT_EVENT(db->handle(), 2, args);
     }
     
     
@@ -158,33 +161,6 @@ namespace DATABASE {
     
     
     
-    // void Database::Work_BeginOpen(Baton* baton) {
-    //     int status = uv_queue_work(uv_default_loop(),
-    //         &baton->request, Work_Open, (uv_after_work_cb)Work_AfterOpen);
-    //     assert(status == 0);
-    // }
-    
-    // void Database::Work_Open(uv_work_t* req) {
-    //     OpenBaton* baton = static_cast<OpenBaton*>(req->data);
-    //     Database* db = baton->db;
-
-    //     baton->status = sqlite3_open_v2(
-    //         baton->filename.c_str(),
-    //         &db->_handle,
-    //         baton->mode,
-    //         NULL
-    //     );
-
-    //     if (baton->status != SQLITE_OK) {
-    //         baton->message = std::string(sqlite3_errmsg(db->_handle));
-    //         sqlite3_close(db->_handle);
-    //         db->_handle = NULL;
-    //     }
-    //     else {
-    //         // Set default database handle values.
-    //         sqlite3_busy_timeout(db->_handle, 1000);
-    //     }
-    // }
 
     // void Database::Work_AfterOpen(uv_work_t* req) {
     //     Nan::HandleScope scope;
