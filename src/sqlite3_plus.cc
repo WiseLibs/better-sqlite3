@@ -1,16 +1,13 @@
 #include <nan.h>
 #include <sqlite3.h>
 #include "database.h"
-// #include "statement.h"
 #include "sqlite3_plus.h"
 
-namespace SQLITE3_PLUS {
+namespace NODE_SQLITE3_PLUS {
     
     NAN_MODULE_INIT(RegisterModule) {
         Nan::HandleScope scope;
-        
-        DATABASE::InitDatabase(target);
-        // STATEMENT::InitStatement(target);
+        NODE_SQLITE3_PLUS_DATABASE::InitDatabase(target);
     }
     NODE_MODULE(sqlite3_plus, RegisterModule);
     

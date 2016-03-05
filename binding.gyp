@@ -9,8 +9,7 @@
       ],
       "sources": [
         "src/database.cc",
-        "src/sqlite3_plus.cc",
-        # "src/statement.cc"
+        "src/sqlite3_plus.cc"
       ]
     }
   ]
