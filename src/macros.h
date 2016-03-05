@@ -46,7 +46,7 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
     v8::Local<v8::Value> name = v8::Exception::Error(                          \
         v8::String::Concat(                                                    \
             v8::String::Concat(                                                \
-                Nan::New(SQLITE3_PLUS::sqlite_code_string(errno))              \
+                Nan::New(NODE_SQLITE3_PLUS::sqlite_code_string(errno))         \
                     .ToLocalChecked(),                                         \
                 Nan::New(": ").ToLocalChecked()                                \
             ),                                                                 \

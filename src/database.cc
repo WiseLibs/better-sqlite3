@@ -4,7 +4,7 @@
 #include "macros.h"
 #include "database.h"
 
-namespace DATABASE {
+namespace NODE_SQLITE3_PLUS_DATABASE {
     int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
     int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
     
@@ -114,9 +114,11 @@ namespace DATABASE {
         
         if (!db->closed) {
             db->closed = true;
+            // --
             // This should wait in queue for all pending transactions to finish. (writes AND reads)
             db->Ref();
             AsyncQueueWorker(new CloseWorker(db, db->open));
+            // --
             db->open = false;
         }
         

@@ -3,7 +3,7 @@
 
 #include <nan.h>
 
-namespace DATABASE {
+namespace NODE_SQLITE3_PLUS_DATABASE {
 	NAN_MODULE_INIT(InitDatabase);
 }
 
