@@ -9,6 +9,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
     v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
     bool CONSTRUCTING_STATEMENT = false;
+    enum STATE {CONNECTING, READY, DONE};
     
     class Database : public Nan::ObjectWrap {
         public:
@@ -29,8 +30,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             char* filename;
             sqlite3* readHandle;
             sqlite3* writeHandle;
-            bool open;
-            bool closed;
+            STATE state;
     };
     
     class Statement : public Nan::ObjectWrap {
@@ -69,7 +69,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             void HandleErrorCallback();
         private:
             Database* db;
-            bool actuallyClose;
+            bool doNothing;
     };
     
     
@@ -80,10 +80,9 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         filename(filename),
         readHandle(NULL),
         writeHandle(NULL),
-        open(false),
-        closed(false) {}
+        state(CONNECTING) {}
     Database::~Database() {
-        open = false;
+        state = DONE;
         sqlite3_close(readHandle);
         sqlite3_close(writeHandle);
         readHandle = NULL;
@@ -127,19 +126,22 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     }
     NAN_GETTER(Database::OpenGetter) {
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
-        info.GetReturnValue().Set(db->open);
+        info.GetReturnValue().Set(db->state == READY);
     }
     NAN_METHOD(Database::Close) {
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         
-        if (!db->closed) {
-            db->closed = true;
-            // --
-            // This should wait in queue for all pending transactions to finish. (writes AND reads)
+        if (db->state != DONE) {
             db->Ref();
-            AsyncQueueWorker(new CloseWorker(db, db->open));
             // --
-            db->open = false;
+            // This should wait in queue for all pending transactions to finish. (writes AND reads).
+            // This should be invoked right away if there are no pending transactions (which will)
+            // always be the case if it's still connecting. db->state == DONE simply means that it
+            // was READY when Close was invoked, and therefore should be treated equally, as shown
+            // below.
+            AsyncQueueWorker(new CloseWorker(db, db->state == CONNECTING));
+            // --
+            db->state = DONE;
         }
         
         info.GetReturnValue().Set(info.This());
@@ -222,13 +224,13 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     }
     void OpenWorker::HandleOKCallback() {
         Nan::HandleScope scope;
-        if (db->closed) {
+        if (db->state == DONE) {
             sqlite3_close(db->writeHandle);
             sqlite3_close(db->readHandle);
             db->writeHandle = NULL;
             db->readHandle = NULL;
         } else {
-            db->open = true;
+            db->state = READY;
             v8::Local<v8::Value> args[1] = {Nan::New("connect").ToLocalChecked()};
             EMIT_EVENT(db->handle(), 1, args);
         }
@@ -236,8 +238,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     }
     void OpenWorker::HandleErrorCallback() {
         Nan::HandleScope scope;
-        if (!db->closed) {
-            db->closed = true;
+        if (db->state != DONE) {
+            db->state = DONE;
             v8::Local<v8::Value> args[2] = {
                 Nan::New("disconnect").ToLocalChecked(),
                 v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
@@ -251,11 +253,11 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     
     
     
-    CloseWorker::CloseWorker(Database* db, bool actuallyClose)
-        : Nan::AsyncWorker(NULL), db(db), actuallyClose(actuallyClose) {}
+    CloseWorker::CloseWorker(Database* db, bool doNothing)
+        : Nan::AsyncWorker(NULL), db(db), doNothing(doNothing) {}
     CloseWorker::~CloseWorker() {}
     void CloseWorker::Execute() {
-        if (actuallyClose) {
+        if (!doNothing) {
             int status1 = sqlite3_close(db->writeHandle);
             int status2 = sqlite3_close(db->readHandle);
             db->writeHandle = NULL;
