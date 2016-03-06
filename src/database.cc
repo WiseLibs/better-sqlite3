@@ -8,8 +8,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
     int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
     v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
-    bool CONSTRUCTING_STATEMENT = false;
     enum STATE {CONNECTING, READY, DONE};
+    bool CONSTRUCTING_STATEMENT = false;
     
     class Database : public Nan::ObjectWrap {
         public:
