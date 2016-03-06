@@ -25,7 +25,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static NAN_METHOD(New);
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
-            static NAN_METHOD(Prepare);
+            static NAN_METHOD(PrepareTransaction);
             
             char* filename;
             sqlite3* readHandle;
@@ -97,7 +97,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         t->SetClassName(Nan::New("Database").ToLocalChecked());
         
         Nan::SetPrototypeMethod(t, "disconnect", Close);
-        Nan::SetPrototypeMethod(t, "prepare", Prepare);
+        Nan::SetPrototypeMethod(t, "begin", PrepareTransaction);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -145,8 +145,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         info.GetReturnValue().Set(info.This());
     }
-    NAN_METHOD(Database::Prepare) {
-        REQUIRE_ARGUMENT_STRING(0, source);
+    NAN_METHOD(Database::PrepareTransaction) {
+        OPTIONAL_ARGUMENT_STRING(0, source);
         v8::Local<v8::Function> cons = Nan::New<v8::Function>(Transaction::constructor);
         
         CONSTRUCTING_PRIVILEGES = true;
@@ -154,7 +154,10 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         CONSTRUCTING_PRIVILEGES = false;
         
         Nan::ForceSet(transaction, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
-        Nan::ForceSet(transaction, Nan::New("source").ToLocalChecked(), source, FROZEN);
+        
+        if (source->Length()) {
+            // Invoke .and() to append a statement.
+        }
         
         info.GetReturnValue().Set(transaction);
     }
@@ -180,7 +183,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     CONSTRUCTOR(Transaction::constructor);
     NAN_METHOD(Transaction::New) {
         if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowSyntaxError("Transactions can only be constructed by the db.prepare() method.");
+            return Nan::ThrowSyntaxError("Transactions can only be constructed by the db.begin() method.");
         }
         Transaction* trans = new Transaction();
         trans->Wrap(info.This());

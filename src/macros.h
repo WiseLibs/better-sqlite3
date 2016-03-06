@@ -42,6 +42,15 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
         var = v8::Local<v8::Function>::Cast(info[i]);                          \
     }
 
+#define OPTIONAL_ARGUMENT_STRING(i, var)                                       \
+    v8::Local<v8::String> var;                                                 \
+    if (info.Length() > i && !info[i]->IsUndefined()) {                        \
+        if (!info[i]->IsString()) {                                            \
+            return Nan::ThrowTypeError("Argument " #i " must be a string.");   \
+        }                                                                      \
+        var = v8::Local<v8::String>::Cast(info[i]);                            \
+    }
+
 #define EXCEPTION(msg, errno, name)                                            \
     v8::Local<v8::Value> name = v8::Exception::Error(                          \
         v8::String::Concat(                                                    \
