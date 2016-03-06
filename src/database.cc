@@ -26,6 +26,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
             static NAN_METHOD(PrepareTransaction);
+            static NAN_METHOD(PrepareReadQuery);
             
             char* filename;
             sqlite3* readHandle;
@@ -37,6 +38,21 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         public:
             Transaction();
             ~Transaction();
+            static void Init();
+            
+            friend class Database;
+            
+        private:
+            static CONSTRUCTOR(constructor);
+            static NAN_METHOD(New);
+            
+            bool dead;
+    };
+    
+    class ReadQuery : public Nan::ObjectWrap {
+        public:
+            ReadQuery();
+            ~ReadQuery();
             static void Init();
             
             friend class Database;
@@ -98,6 +114,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         Nan::SetPrototypeMethod(t, "disconnect", Close);
         Nan::SetPrototypeMethod(t, "begin", PrepareTransaction);
+        Nan::SetPrototypeMethod(t, "read", PrepareReadQuery);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -161,6 +178,19 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         info.GetReturnValue().Set(transaction);
     }
+    NAN_METHOD(Database::PrepareReadQuery) {
+        REQUIRE_ARGUMENT_STRING(0, source);
+        v8::Local<v8::Function> cons = Nan::New<v8::Function>(ReadQuery::constructor);
+        
+        CONSTRUCTING_PRIVILEGES = true;
+        v8::Local<v8::Object> readQuery = cons->NewInstance(0, NULL);
+        CONSTRUCTING_PRIVILEGES = false;
+        
+        Nan::ForceSet(readQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
+        Nan::ForceSet(readQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
+        
+        info.GetReturnValue().Set(readQuery);
+    }
     
     
     
@@ -187,6 +217,34 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         }
         Transaction* trans = new Transaction();
         trans->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+    }
+    
+    
+    
+    
+    
+    ReadQuery::ReadQuery() : Nan::ObjectWrap(),
+        dead(false) {}
+    ReadQuery::~ReadQuery() {
+        dead = true;
+    }
+    void ReadQuery::Init() {
+        Nan::HandleScope scope;
+        
+        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
+        t->InstanceTemplate()->SetInternalFieldCount(1);
+        t->SetClassName(Nan::New("ReadQuery").ToLocalChecked());
+        
+        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+    }
+    CONSTRUCTOR(ReadQuery::constructor);
+    NAN_METHOD(ReadQuery::New) {
+        if (!CONSTRUCTING_PRIVILEGES) {
+            return Nan::ThrowSyntaxError("ReadQuerys can only be constructed by the db.read() method.");
+        }
+        ReadQuery* readQuery = new ReadQuery();
+        readQuery->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
     
@@ -291,5 +349,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     NAN_MODULE_INIT(InitDatabase) {
         Database::Init(target);
         Transaction::Init();
+        ReadQuery::Init();
     }
 }
