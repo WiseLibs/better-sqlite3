@@ -7,27 +7,46 @@
 namespace NODE_SQLITE3_PLUS_DATABASE {
     int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
     int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
+    v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
+    bool CONSTRUCTING_STATEMENT = false;
     
     class Database : public Nan::ObjectWrap {
         public:
             Database(char*);
             ~Database();
             static NAN_MODULE_INIT(Init);
-            static CONSTRUCTOR(constructor);
             
             friend class OpenWorker;
             friend class CloseWorker;
             
         private:
+            static CONSTRUCTOR(constructor);
             static NAN_METHOD(New);
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
+            static NAN_METHOD(Prepare);
             
             char* filename;
             sqlite3* readHandle;
             sqlite3* writeHandle;
             bool open;
             bool closed;
+    };
+    
+    class Statement : public Nan::ObjectWrap {
+        public:
+            Statement();
+            ~Statement();
+            static void Init();
+            
+            friend class Database;
+            
+        private:
+            static CONSTRUCTOR(constructor);
+            static NAN_METHOD(New);
+            
+            sqlite3_stmt* handle;
+            bool dead;
     };
     
     class OpenWorker : public Nan::AsyncWorker {
@@ -80,6 +99,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         t->SetClassName(Nan::New("Database").ToLocalChecked());
         
         Nan::SetPrototypeMethod(t, "disconnect", Close);
+        Nan::SetPrototypeMethod(t, "prepare", Prepare);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -122,6 +142,50 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             db->open = false;
         }
         
+        info.GetReturnValue().Set(info.This());
+    }
+    NAN_METHOD(Database::Prepare) {
+        REQUIRE_ARGUMENT_STRING(0, source);
+        v8::Local<v8::Function> cons = Nan::New<v8::Function>(Statement::constructor);
+        
+        CONSTRUCTING_STATEMENT = true;
+        v8::Local<v8::Object> statement = cons->NewInstance(0, NULL);
+        CONSTRUCTING_STATEMENT = false;
+        
+        Nan::ForceSet(statement, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
+        Nan::ForceSet(statement, Nan::New("source").ToLocalChecked(), source, FROZEN);
+        
+        info.GetReturnValue().Set(statement);
+    }
+    
+    
+    
+    
+    
+    Statement::Statement() : Nan::ObjectWrap(),
+        handle(NULL),
+        dead(false) {}
+    Statement::~Statement() {
+        dead = true;
+        sqlite3_finalize(handle);
+        handle = NULL;
+    }
+    void Statement::Init() {
+        Nan::HandleScope scope;
+        
+        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
+        t->InstanceTemplate()->SetInternalFieldCount(1);
+        t->SetClassName(Nan::New("Statement").ToLocalChecked());
+        
+        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+    }
+    CONSTRUCTOR(Statement::constructor);
+    NAN_METHOD(Statement::New) {
+        if (!CONSTRUCTING_STATEMENT) {
+            return Nan::ThrowSyntaxError("Statements can only be constructed by the db.prepare() method.");
+        }
+        Statement* stmt = new Statement();
+        stmt->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
     
@@ -225,5 +289,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     
     NAN_MODULE_INIT(InitDatabase) {
         Database::Init(target);
+        Statement::Init();
     }
 }
