@@ -135,8 +135,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             db->Ref();
             // --
             // This should wait in queue for all pending transactions to finish. (writes AND reads).
-            // This should be invoked right away if there are no pending transactions (which will)
-            // always be the case if it's still connecting. db->state == DONE simply means that it
+            // This should be invoked right away if there are no pending transactions (which will
+            // always be the case if it's still connecting). db->state == DONE simply means that it
             // was READY when Close was invoked, and therefore should be treated equally, as shown
             // below.
             AsyncQueueWorker(new CloseWorker(db, db->state == CONNECTING));
