@@ -16,9 +16,9 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
     return str;
 }
 
-#define REQUIRE_ARGUMENTS(n)                                                   \
-    if (info.Length() < (n)) {                                                 \
-        return Nan::ThrowTypeError("Expected " #n "arguments.");               \
+#define REQUIRE_ARGUMENTS(n)                                                    \
+    if (info.Length() < (n)) {                                                  \
+        return Nan::ThrowTypeError("Expected " #n " arguments.");               \
     }
 
 #define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
