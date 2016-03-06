@@ -3,15 +3,10 @@ in c++:
 
 Two JavaScript APIs:
 - begin([string])
-This returns a transaction object, optionally starting with an SQL statement compiled from string. You can .add() to append statements into the transaction. These statements may be read-only or not. When finished adding statements, you can .end(cb) or .commit(cb) (which you can do multiple times) to execute the transaction. The callback argument cb does not supply data, but COULD supply an error.
-Possibly "run()" instead of "end()"/"commit()".
-Possibly "prepare()" instead of "begin()".
-Possibly "write()" instead of "begin()".
-There is a single-statement, immediately-executing shorthand on the database, called "run()".
-- query(string)
-This returns a reader object, which is like a single-statement, read-only transaction object. It can be executed with .get(cb), .all(cb), or .each(cb)/.forEach(cb), depending on how the user wishes to consume the data. An error may be supplied instead of data.
-Possibly "read()" instead of "query()".
-There are immediately-executing shorthands on the database, called "get()", "all()", and "each()"/"forEach()".
+This returns a Transaction object, optionally starting with an SQL statement compiled from string. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
+- read(string)
+This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/forEach(cb). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
+
 
 
 should sqlite3_statement be created synchronously? (does it not involve I/O operation?)
