@@ -2,10 +2,12 @@ in c++:
 
 
 Two JavaScript APIs:
-- begin([string])
-This returns a Transaction object, optionally starting with an SQL statement compiled from string. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
+- begin()
+This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
+- write(string)
+This returns a WriteQuery object. It can only have the single statement that is passed upon construction, and that statement MUST NOT be read-only. It can invoke .run() (possibly multiple times), which returns a promise that is either resolved with undefined, or rejected with an Error.
 - read(string)
-This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/forEach(cb). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
+This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/forEach(cb) (possibly many times). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
 
 
 

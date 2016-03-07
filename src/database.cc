@@ -26,6 +26,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
             static NAN_METHOD(PrepareTransaction);
+            static NAN_METHOD(PrepareWriteQuery);
             static NAN_METHOD(PrepareReadQuery);
             
             char* filename;
@@ -38,6 +39,21 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         public:
             Transaction();
             ~Transaction();
+            static void Init();
+            
+            friend class Database;
+            
+        private:
+            static CONSTRUCTOR(constructor);
+            static NAN_METHOD(New);
+            
+            bool dead;
+    };
+    
+    class WriteQuery : public Nan::ObjectWrap {
+        public:
+            WriteQuery();
+            ~WriteQuery();
             static void Init();
             
             friend class Database;
@@ -114,6 +130,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         Nan::SetPrototypeMethod(t, "disconnect", Close);
         Nan::SetPrototypeMethod(t, "begin", PrepareTransaction);
+        Nan::SetPrototypeMethod(t, "write", PrepareWriteQuery);
         Nan::SetPrototypeMethod(t, "read", PrepareReadQuery);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
@@ -163,7 +180,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         info.GetReturnValue().Set(info.This());
     }
     NAN_METHOD(Database::PrepareTransaction) {
-        OPTIONAL_ARGUMENT_STRING(0, source);
         v8::Local<v8::Function> cons = Nan::New<v8::Function>(Transaction::constructor);
         
         CONSTRUCTING_PRIVILEGES = true;
@@ -172,11 +188,20 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         Nan::ForceSet(transaction, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         
-        if (source->Length()) {
-            // Invoke .and() to append a statement.
-        }
-        
         info.GetReturnValue().Set(transaction);
+    }
+    NAN_METHOD(Database::PrepareWriteQuery) {
+        REQUIRE_ARGUMENT_STRING(0, source);
+        v8::Local<v8::Function> cons = Nan::New<v8::Function>(WriteQuery::constructor);
+        
+        CONSTRUCTING_PRIVILEGES = true;
+        v8::Local<v8::Object> writeQuery = cons->NewInstance(0, NULL);
+        CONSTRUCTING_PRIVILEGES = false;
+        
+        Nan::ForceSet(writeQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
+        Nan::ForceSet(writeQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
+        
+        info.GetReturnValue().Set(writeQuery);
     }
     NAN_METHOD(Database::PrepareReadQuery) {
         REQUIRE_ARGUMENT_STRING(0, source);
@@ -217,6 +242,34 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         }
         Transaction* trans = new Transaction();
         trans->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
+    }
+    
+    
+    
+    
+    
+    WriteQuery::WriteQuery() : Nan::ObjectWrap(),
+        dead(false) {}
+    WriteQuery::~WriteQuery() {
+        dead = true;
+    }
+    void WriteQuery::Init() {
+        Nan::HandleScope scope;
+        
+        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
+        t->InstanceTemplate()->SetInternalFieldCount(1);
+        t->SetClassName(Nan::New("WriteQuery").ToLocalChecked());
+        
+        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+    }
+    CONSTRUCTOR(WriteQuery::constructor);
+    NAN_METHOD(WriteQuery::New) {
+        if (!CONSTRUCTING_PRIVILEGES) {
+            return Nan::ThrowSyntaxError("WriteQuerys can only be constructed by the db.write() method.");
+        }
+        WriteQuery* writeQuery = new WriteQuery();
+        writeQuery->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
     
@@ -350,5 +403,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Database::Init(target);
         Transaction::Init();
         ReadQuery::Init();
+        WriteQuery::Init();
     }
 }
