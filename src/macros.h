@@ -4,7 +4,6 @@
 #include <cstring>
 #include <cstdlib>
 #include <nan.h>
-#include "sqlite3_plus.h"
 
 inline char* RAW_STRING(v8::Handle<v8::String> val) {
     v8::String::Utf8Value utf8(val);
@@ -51,16 +50,30 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
         var = v8::Local<v8::String>::Cast(info[i]);                            \
     }
 
-#define SQL_ERROR_STRING(var, errno, msg)                                      \
+#define CONCAT2(var, a, b)                                                     \
+    v8::Local<v8::String> var = v8::String::Concat(                            \
+        Nan::New(a).ToLocalChecked(),                                          \
+        Nan::New(b).ToLocalChecked()                                           \
+    );
+
+#define CONCAT3(var, a, b, c)                                                  \
     v8::Local<v8::String> var = v8::String::Concat(                            \
         v8::String::Concat(                                                    \
-            Nan::New(msg).ToLocalChecked(),                                    \
-            Nan::New(" (").ToLocalChecked()                                    \
+            Nan::New(a).ToLocalChecked(),                                      \
+            Nan::New(b).ToLocalChecked()                                       \
+        ),                                                                     \
+        Nan::New(c).ToLocalChecked()                                           \
+    );
+
+#define CONCAT4(var, a, b, c, d)                                               \
+    v8::Local<v8::String> var = v8::String::Concat(                            \
+        v8::String::Concat(                                                    \
+            Nan::New(a).ToLocalChecked(),                                      \
+            Nan::New(b).ToLocalChecked()                                       \
         ),                                                                     \
         v8::String::Concat(                                                    \
-            Nan::New(NODE_SQLITE3_PLUS::sqlite_code_string(errno))             \
-                .ToLocalChecked(),                                             \
-            Nan::New(")").ToLocalChecked()                                     \
+            Nan::New(c).ToLocalChecked(),                                      \
+            Nan::New(d).ToLocalChecked()                                       \
         )                                                                      \
     );
 
