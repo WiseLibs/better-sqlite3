@@ -16,9 +16,9 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
     return str;
 }
 
-#define REQUIRE_ARGUMENTS(n)                                                    \
-    if (info.Length() < (n)) {                                                  \
-        return Nan::ThrowTypeError("Expected " #n " arguments.");               \
+#define REQUIRE_ARGUMENTS(n)                                                   \
+    if (info.Length() < (n)) {                                                 \
+        return Nan::ThrowTypeError("Expected " #n " arguments.");              \
     }
 
 #define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
@@ -51,18 +51,18 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
         var = v8::Local<v8::String>::Cast(info[i]);                            \
     }
 
-#define EXCEPTION(msg, errno, name)                                            \
-    v8::Local<v8::Value> name = v8::Exception::Error(                          \
+#define SQL_ERROR_STRING(var, errno, msg)                                      \
+    v8::Local<v8::String> var = v8::String::Concat(                            \
         v8::String::Concat(                                                    \
-            v8::String::Concat(                                                \
-                Nan::New(NODE_SQLITE3_PLUS::sqlite_code_string(errno))         \
-                    .ToLocalChecked(),                                         \
-                Nan::New(": ").ToLocalChecked()                                \
-            ),                                                                 \
-            (msg)                                                              \
+            Nan::New(msg).ToLocalChecked(),                                    \
+            Nan::New(" (").ToLocalChecked()                                    \
+        ),                                                                     \
+        v8::String::Concat(                                                    \
+            Nan::New(NODE_SQLITE3_PLUS::sqlite_code_string(errno))             \
+                .ToLocalChecked(),                                             \
+            Nan::New(")").ToLocalChecked()                                     \
         )                                                                      \
-    );                                                                         \
-    v8::Local<v8::Object> name = name.As<v8::Object>();
+    );
 
 #define EMIT_EVENT(obj, argc, argv)                                            \
     Nan::MakeCallback((obj),                                                   \
