@@ -79,6 +79,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static CONSTRUCTOR(constructor);
             static NAN_METHOD(New);
             
+            sqlite3_stmt* handle;
             bool dead;
     };
     
@@ -233,6 +234,22 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Nan::ForceSet(readQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         Nan::ForceSet(readQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
         
+        v8::String::Utf8Value utf8(source);
+        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        ReadQuery* rquery = Nan::ObjectWrap::Unwrap<ReadQuery>(readQuery);
+        int status = sqlite3_prepare_v2(db->readHandle, *utf8, utf8.length(), &rquery->handle, NULL);
+        
+        if (status != SQLITE_OK) {
+            rquery->handle = NULL;
+            rquery->dead = true;
+            CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
+            return Nan::ThrowError(message);
+        }
+        if (rquery->handle == NULL) {
+            rquery->dead = true;
+            return Nan::ThrowError("The supplied SQL query contains no statements.");
+        }
+        
         info.GetReturnValue().Set(readQuery);
     }
     
@@ -302,6 +319,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         dead(false) {}
     ReadQuery::~ReadQuery() {
         dead = true;
+        sqlite3_finalize(handle);
+        handle = NULL;
     }
     void ReadQuery::Init() {
         Nan::HandleScope scope;
