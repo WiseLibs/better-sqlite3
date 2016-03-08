@@ -77,6 +77,20 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
         )                                                                      \
     );
 
+#define INVOKE_METHOD(var, obj, methodName, argc, argv)                        \
+    Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
+        Nan::Get(obj, Nan::New(methodName).ToLocalChecked());                  \
+    if (_maybeMethod.IsEmpty()) {return;}                                      \
+    v8::Local<v8::Value> _method = _maybeMethod.ToLocalChecked();              \
+    if (!_method->IsFunction()) {                                              \
+        return Nan::ThrowTypeError(                                            \
+            "" #obj "[" #methodName "]() is not a function");                  \
+    }                                                                          \
+    Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
+        Nan::Call(v8::Local<v8::Function>::Cast(_method), obj, argc, argv);    \
+    if (_maybeValue.IsEmpty()) {return;}                                       \
+    v8::Local<v8::Value> var = _maybeValue.ToLocalChecked();
+
 #define EMIT_EVENT(obj, argc, argv)                                            \
     Nan::MakeCallback((obj),                                                   \
         Nan::Get(obj, Nan::New("emit").ToLocalChecked())                       \

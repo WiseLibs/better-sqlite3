@@ -202,23 +202,40 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         v8::Local<v8::Object> writeQuery = cons->NewInstance(0, NULL);
         CONSTRUCTING_PRIVILEGES = false;
         
+        // Invokes String.prototype.trim on the input string.
+        v8::Local<v8::StringObject> str = Nan::New<v8::StringObject>(source);
+        INVOKE_METHOD(trimmedSource, str, "trim", 0, NULL);
+        if (!trimmedSource->IsString()) {
+            return Nan::ThrowTypeError("Expected String.prototype.trim to return a string.");
+        } else {
+            source = v8::Local<v8::String>::Cast(trimmedSource);
+        }
+        
         Nan::ForceSet(writeQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         Nan::ForceSet(writeQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
         
-        v8::String::Utf8Value utf8(source);
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         WriteQuery* wquery = Nan::ObjectWrap::Unwrap<WriteQuery>(writeQuery);
-        int status = sqlite3_prepare_v2(db->writeHandle, *utf8, utf8.length(), &wquery->handle, NULL);
+        
+        v8::String::Utf8Value utf8(source);
+        const char* utf8_value = *utf8;
+        const int utf8_len = utf8.length();
+        
+        const char* tail;
+        int status = sqlite3_prepare_v2(db->writeHandle, utf8_value, utf8_len, &wquery->handle, &tail);
         
         if (status != SQLITE_OK) {
-            wquery->handle = NULL;
-            wquery->dead = true;
             CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
             return Nan::ThrowError(message);
         }
         if (wquery->handle == NULL) {
-            wquery->dead = true;
             return Nan::ThrowError("The supplied SQL query contains no statements.");
+        }
+        if (tail != utf8_value + utf8_len) {
+            return Nan::ThrowError("The db.write() method only accepts a single SQL statement.");
+        }
+        if (sqlite3_stmt_readonly(wquery->handle)) {
+            return Nan::ThrowError("The db.write() method does not accept read-only SQL statements.");
         }
         
         info.GetReturnValue().Set(writeQuery);
@@ -231,23 +248,40 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         v8::Local<v8::Object> readQuery = cons->NewInstance(0, NULL);
         CONSTRUCTING_PRIVILEGES = false;
         
+        // Invokes String.prototype.trim on the input string.
+        v8::Local<v8::StringObject> str = Nan::New<v8::StringObject>(source);
+        INVOKE_METHOD(trimmedSource, str, "trim", 0, NULL);
+        if (!trimmedSource->IsString()) {
+            return Nan::ThrowTypeError("Expected String.prototype.trim to return a string.");
+        } else {
+            source = v8::Local<v8::String>::Cast(trimmedSource);
+        }
+        
         Nan::ForceSet(readQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         Nan::ForceSet(readQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
         
-        v8::String::Utf8Value utf8(source);
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         ReadQuery* rquery = Nan::ObjectWrap::Unwrap<ReadQuery>(readQuery);
-        int status = sqlite3_prepare_v2(db->readHandle, *utf8, utf8.length(), &rquery->handle, NULL);
+        
+        v8::String::Utf8Value utf8(source);
+        const char* utf8_value = *utf8;
+        const int utf8_len = utf8.length();
+        
+        const char* tail;
+        int status = sqlite3_prepare_v2(db->readHandle, utf8_value, utf8_len, &rquery->handle, &tail);
         
         if (status != SQLITE_OK) {
-            rquery->handle = NULL;
-            rquery->dead = true;
             CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
             return Nan::ThrowError(message);
         }
         if (rquery->handle == NULL) {
-            rquery->dead = true;
             return Nan::ThrowError("The supplied SQL query contains no statements.");
+        }
+        if (tail != utf8_value + utf8_len) {
+            return Nan::ThrowError("The db.read() method only accepts a single SQL statement.");
+        }
+        if (!sqlite3_stmt_readonly(rquery->handle)) {
+            return Nan::ThrowError("The db.read() method only accepts read-only SQL statements.");
         }
         
         info.GetReturnValue().Set(readQuery);
@@ -274,7 +308,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     CONSTRUCTOR(Transaction::constructor);
     NAN_METHOD(Transaction::New) {
         if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowSyntaxError("Transactions can only be constructed by the db.begin() method.");
+            return Nan::ThrowTypeError("Transactions can only be constructed by the db.begin() method.");
         }
         Transaction* trans = new Transaction();
         trans->Wrap(info.This());
@@ -304,7 +338,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     CONSTRUCTOR(WriteQuery::constructor);
     NAN_METHOD(WriteQuery::New) {
         if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowSyntaxError("WriteQuerys can only be constructed by the db.write() method.");
+            return Nan::ThrowTypeError("WriteQuerys can only be constructed by the db.write() method.");
         }
         WriteQuery* writeQuery = new WriteQuery();
         writeQuery->Wrap(info.This());
@@ -334,7 +368,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     CONSTRUCTOR(ReadQuery::constructor);
     NAN_METHOD(ReadQuery::New) {
         if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowSyntaxError("ReadQuerys can only be constructed by the db.read() method.");
+            return Nan::ThrowTypeError("ReadQuerys can only be constructed by the db.read() method.");
         }
         ReadQuery* readQuery = new ReadQuery();
         readQuery->Wrap(info.This());
