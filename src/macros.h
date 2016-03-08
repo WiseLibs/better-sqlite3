@@ -6,7 +6,7 @@
 #include <nan.h>
 
 inline char* RAW_STRING(v8::Handle<v8::String> val) {
-    v8::String::Utf8Value utf8(val);
+    Nan::Utf8String utf8(val);
     
     int len = utf8.length() + 1;
     char* str = (char*) calloc(sizeof(char), len);

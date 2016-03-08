@@ -48,6 +48,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static NAN_METHOD(New);
             
             sqlite3_stmt* handle;
+            // int bound;
             bool dead;
     };
     
@@ -188,7 +189,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);
         
-        v8::String::Utf8Value utf8(source);
+        Nan::Utf8String utf8(source);
         const char* utf8_value = *utf8;
         const int utf8_len = utf8.length();
         
@@ -237,6 +238,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     
     
     Statement::Statement() : Nan::ObjectWrap(),
+        // bound(0),
         dead(false) {}
     Statement::~Statement() {
         dead = true;
@@ -261,6 +263,29 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         statement->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
+    // bool Statement::Bind(int argc, v8::Local<v8::Value>* argv[]) {
+    //     Nan::HandleScope scope;
+    //     if (argc == 0) {
+    //         return true;
+    //     }
+    //     if (bound == 2) {
+    //         Nan::ThrowTypeError("Cannot pass parameters to a statement that was constructed with bound parameters.");
+    //         return false;
+    //     }
+    //     if (bound == 1) {
+    //         // Is this safe for statements that are being run?
+    //         sqlite3_reset(handle);
+    //         sqlite3_clear_bindings(handle);
+    //     }
+        
+    //     // bind here
+    //     // return false if throwing an error
+        
+    //     if (bound == 0) {
+    //         bound = 1;
+    //     }
+    //     return true;
+    // }
     
     
     
