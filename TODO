@@ -7,11 +7,8 @@ This returns a Transaction object. You can use .and() to append statements into 
 - write(string)
 This returns a WriteQuery object. It can only have the single statement that is passed upon construction, and that statement MUST NOT be read-only. It can invoke .run() (possibly multiple times), which returns a promise that is either resolved with undefined, or rejected with an Error.
 - read(string)
-This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/forEach(cb) (possibly many times). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
+This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/.forEach(cb) (possibly many times). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
 
-
-
-should sqlite3_statement be created synchronously? (does it not involve I/O operation?)
 
 
 the current disconnect() implementation will fail if there are any pending requests.
