@@ -208,11 +208,12 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         WriteQuery* wquery = Nan::ObjectWrap::Unwrap<WriteQuery>(writeQuery);
         int status = sqlite3_prepare_v2(db->writeHandle, *utf8, utf8.length(), &wquery->handle, NULL);
+        
         if (status != SQLITE_OK) {
             wquery->handle = NULL;
             wquery->dead = true;
-            SQL_ERROR_STRING(msg, status, "An error occured while trying to construct the SQLite3 statement.");
-            return Nan::ThrowError(msg);
+            CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
+            return Nan::ThrowError(message);
         }
         if (wquery->handle == NULL) {
             wquery->dead = true;
