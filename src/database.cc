@@ -5,9 +5,9 @@
 #include "database.h"
 
 namespace NODE_SQLITE3_PLUS_DATABASE {
-    int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
-    int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX;
-    v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
+    const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
+    const int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
+    const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
     enum STATE {CONNECTING, READY, DONE};
     bool CONSTRUCTING_PRIVILEGES = false;
     
@@ -26,14 +26,29 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static NAN_GETTER(OpenGetter);
             static NAN_METHOD(Close);
             static NAN_METHOD(PrepareTransaction);
-            static NAN_METHOD(PrepareWriteQuery);
-            static NAN_METHOD(PrepareReadQuery);
+            static NAN_METHOD(PrepareStatement);
             
             char* filename;
             sqlite3* readHandle;
             sqlite3* writeHandle;
             STATE state;
             unsigned int pendings;
+    };
+    
+    class Statement : public Nan::ObjectWrap {
+        public:
+            Statement();
+            ~Statement();
+            static void Init();
+            
+            friend class Database;
+            
+        private:
+            static CONSTRUCTOR(constructor);
+            static NAN_METHOD(New);
+            
+            sqlite3_stmt* handle;
+            bool dead;
     };
     
     class Transaction : public Nan::ObjectWrap {
@@ -48,38 +63,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static CONSTRUCTOR(constructor);
             static NAN_METHOD(New);
             
-            bool dead;
-    };
-    
-    class WriteQuery : public Nan::ObjectWrap {
-        public:
-            WriteQuery();
-            ~WriteQuery();
-            static void Init();
-            
-            friend class Database;
-            
-        private:
-            static CONSTRUCTOR(constructor);
-            static NAN_METHOD(New);
-            
-            sqlite3_stmt* handle;
-            bool dead;
-    };
-    
-    class ReadQuery : public Nan::ObjectWrap {
-        public:
-            ReadQuery();
-            ~ReadQuery();
-            static void Init();
-            
-            friend class Database;
-            
-        private:
-            static CONSTRUCTOR(constructor);
-            static NAN_METHOD(New);
-            
-            sqlite3_stmt* handle;
             bool dead;
     };
     
@@ -133,9 +116,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         t->SetClassName(Nan::New("Database").ToLocalChecked());
         
         Nan::SetPrototypeMethod(t, "disconnect", Close);
+        Nan::SetPrototypeMethod(t, "prepare", PrepareStatement);
         Nan::SetPrototypeMethod(t, "begin", PrepareTransaction);
-        Nan::SetPrototypeMethod(t, "write", PrepareWriteQuery);
-        Nan::SetPrototypeMethod(t, "read", PrepareReadQuery);
         Nan::SetAccessor(t->InstanceTemplate(), Nan::New("connected").ToLocalChecked(), OpenGetter);
         
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -183,6 +165,61 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         info.GetReturnValue().Set(info.This());
     }
+    NAN_METHOD(Database::PrepareStatement) {
+        REQUIRE_ARGUMENT_STRING(0, source);
+        v8::Local<v8::Function> cons = Nan::New<v8::Function>(Statement::constructor);
+        
+        CONSTRUCTING_PRIVILEGES = true;
+        v8::Local<v8::Object> statement = cons->NewInstance(0, NULL);
+        CONSTRUCTING_PRIVILEGES = false;
+        
+        // Invokes String.prototype.trim on the input string.
+        v8::Local<v8::StringObject> str = Nan::New<v8::StringObject>(source);
+        INVOKE_METHOD(trimmedSource, str, "trim", 0, NULL);
+        if (!trimmedSource->IsString()) {
+            return Nan::ThrowTypeError("Expected String.prototype.trim to return a string.");
+        } else {
+            source = v8::Local<v8::String>::Cast(trimmedSource);
+        }
+        
+        Nan::ForceSet(statement, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
+        Nan::ForceSet(statement, Nan::New("source").ToLocalChecked(), source, FROZEN);
+        
+        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);
+        
+        v8::String::Utf8Value utf8(source);
+        const char* utf8_value = *utf8;
+        const int utf8_len = utf8.length();
+        
+        const char* tail;
+        int status = sqlite3_prepare_v2(db->readHandle, utf8_value, utf8_len, &stmt->handle, &tail);
+        
+        if (status != SQLITE_OK) {
+            CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
+            return Nan::ThrowError(message);
+        }
+        if (stmt->handle == NULL) {
+            return Nan::ThrowError("The supplied SQL query contains no statements.");
+        }
+        if (tail != utf8_value + utf8_len) {
+            return Nan::ThrowError("The db.prepare() method only accepts a single SQL statement.");
+        }
+        
+        if (!sqlite3_stmt_readonly(stmt->handle)) {
+            sqlite3_finalize(stmt->handle);
+            status = sqlite3_prepare_v2(db->writeHandle, utf8_value, utf8_len, &stmt->handle, NULL);
+            if (status != SQLITE_OK) {
+                CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
+                return Nan::ThrowError(message);
+            }
+            Nan::ForceSet(statement, Nan::New("readonly").ToLocalChecked(), Nan::False(), FROZEN);
+        } else {
+            Nan::ForceSet(statement, Nan::New("readonly").ToLocalChecked(), Nan::True(), FROZEN);
+        }
+        
+        info.GetReturnValue().Set(statement);
+    }
     NAN_METHOD(Database::PrepareTransaction) {
         v8::Local<v8::Function> cons = Nan::New<v8::Function>(Transaction::constructor);
         
@@ -194,97 +231,35 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         
         info.GetReturnValue().Set(transaction);
     }
-    NAN_METHOD(Database::PrepareWriteQuery) {
-        REQUIRE_ARGUMENT_STRING(0, source);
-        v8::Local<v8::Function> cons = Nan::New<v8::Function>(WriteQuery::constructor);
-        
-        CONSTRUCTING_PRIVILEGES = true;
-        v8::Local<v8::Object> writeQuery = cons->NewInstance(0, NULL);
-        CONSTRUCTING_PRIVILEGES = false;
-        
-        // Invokes String.prototype.trim on the input string.
-        v8::Local<v8::StringObject> str = Nan::New<v8::StringObject>(source);
-        INVOKE_METHOD(trimmedSource, str, "trim", 0, NULL);
-        if (!trimmedSource->IsString()) {
-            return Nan::ThrowTypeError("Expected String.prototype.trim to return a string.");
-        } else {
-            source = v8::Local<v8::String>::Cast(trimmedSource);
-        }
-        
-        Nan::ForceSet(writeQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
-        Nan::ForceSet(writeQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
-        
-        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
-        WriteQuery* wquery = Nan::ObjectWrap::Unwrap<WriteQuery>(writeQuery);
-        
-        v8::String::Utf8Value utf8(source);
-        const char* utf8_value = *utf8;
-        const int utf8_len = utf8.length();
-        
-        const char* tail;
-        int status = sqlite3_prepare_v2(db->writeHandle, utf8_value, utf8_len, &wquery->handle, &tail);
-        
-        if (status != SQLITE_OK) {
-            CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
-            return Nan::ThrowError(message);
-        }
-        if (wquery->handle == NULL) {
-            return Nan::ThrowError("The supplied SQL query contains no statements.");
-        }
-        if (tail != utf8_value + utf8_len) {
-            return Nan::ThrowError("The db.write() method only accepts a single SQL statement.");
-        }
-        if (sqlite3_stmt_readonly(wquery->handle)) {
-            return Nan::ThrowError("The db.write() method does not accept read-only SQL statements.");
-        }
-        
-        info.GetReturnValue().Set(writeQuery);
+    
+    
+    
+    
+    
+    Statement::Statement() : Nan::ObjectWrap(),
+        dead(false) {}
+    Statement::~Statement() {
+        dead = true;
+        sqlite3_finalize(handle);
+        handle = NULL;
     }
-    NAN_METHOD(Database::PrepareReadQuery) {
-        REQUIRE_ARGUMENT_STRING(0, source);
-        v8::Local<v8::Function> cons = Nan::New<v8::Function>(ReadQuery::constructor);
+    void Statement::Init() {
+        Nan::HandleScope scope;
         
-        CONSTRUCTING_PRIVILEGES = true;
-        v8::Local<v8::Object> readQuery = cons->NewInstance(0, NULL);
-        CONSTRUCTING_PRIVILEGES = false;
+        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
+        t->InstanceTemplate()->SetInternalFieldCount(1);
+        t->SetClassName(Nan::New("Statement").ToLocalChecked());
         
-        // Invokes String.prototype.trim on the input string.
-        v8::Local<v8::StringObject> str = Nan::New<v8::StringObject>(source);
-        INVOKE_METHOD(trimmedSource, str, "trim", 0, NULL);
-        if (!trimmedSource->IsString()) {
-            return Nan::ThrowTypeError("Expected String.prototype.trim to return a string.");
-        } else {
-            source = v8::Local<v8::String>::Cast(trimmedSource);
+        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+    }
+    CONSTRUCTOR(Statement::constructor);
+    NAN_METHOD(Statement::New) {
+        if (!CONSTRUCTING_PRIVILEGES) {
+            return Nan::ThrowTypeError("Statements can only be constructed by the db.prepare() method.");
         }
-        
-        Nan::ForceSet(readQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
-        Nan::ForceSet(readQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
-        
-        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
-        ReadQuery* rquery = Nan::ObjectWrap::Unwrap<ReadQuery>(readQuery);
-        
-        v8::String::Utf8Value utf8(source);
-        const char* utf8_value = *utf8;
-        const int utf8_len = utf8.length();
-        
-        const char* tail;
-        int status = sqlite3_prepare_v2(db->readHandle, utf8_value, utf8_len, &rquery->handle, &tail);
-        
-        if (status != SQLITE_OK) {
-            CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
-            return Nan::ThrowError(message);
-        }
-        if (rquery->handle == NULL) {
-            return Nan::ThrowError("The supplied SQL query contains no statements.");
-        }
-        if (tail != utf8_value + utf8_len) {
-            return Nan::ThrowError("The db.read() method only accepts a single SQL statement.");
-        }
-        if (!sqlite3_stmt_readonly(rquery->handle)) {
-            return Nan::ThrowError("The db.read() method only accepts read-only SQL statements.");
-        }
-        
-        info.GetReturnValue().Set(readQuery);
+        Statement* statement = new Statement();
+        statement->Wrap(info.This());
+        info.GetReturnValue().Set(info.This());
     }
     
     
@@ -312,66 +287,6 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         }
         Transaction* trans = new Transaction();
         trans->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-    }
-    
-    
-    
-    
-    
-    WriteQuery::WriteQuery() : Nan::ObjectWrap(),
-        dead(false) {}
-    WriteQuery::~WriteQuery() {
-        dead = true;
-        sqlite3_finalize(handle);
-        handle = NULL;
-    }
-    void WriteQuery::Init() {
-        Nan::HandleScope scope;
-        
-        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
-        t->InstanceTemplate()->SetInternalFieldCount(1);
-        t->SetClassName(Nan::New("WriteQuery").ToLocalChecked());
-        
-        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
-    }
-    CONSTRUCTOR(WriteQuery::constructor);
-    NAN_METHOD(WriteQuery::New) {
-        if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowTypeError("WriteQuerys can only be constructed by the db.write() method.");
-        }
-        WriteQuery* writeQuery = new WriteQuery();
-        writeQuery->Wrap(info.This());
-        info.GetReturnValue().Set(info.This());
-    }
-    
-    
-    
-    
-    
-    ReadQuery::ReadQuery() : Nan::ObjectWrap(),
-        dead(false) {}
-    ReadQuery::~ReadQuery() {
-        dead = true;
-        sqlite3_finalize(handle);
-        handle = NULL;
-    }
-    void ReadQuery::Init() {
-        Nan::HandleScope scope;
-        
-        v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
-        t->InstanceTemplate()->SetInternalFieldCount(1);
-        t->SetClassName(Nan::New("ReadQuery").ToLocalChecked());
-        
-        constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
-    }
-    CONSTRUCTOR(ReadQuery::constructor);
-    NAN_METHOD(ReadQuery::New) {
-        if (!CONSTRUCTING_PRIVILEGES) {
-            return Nan::ThrowTypeError("ReadQuerys can only be constructed by the db.read() method.");
-        }
-        ReadQuery* readQuery = new ReadQuery();
-        readQuery->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
     }
     
@@ -475,8 +390,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     
     NAN_MODULE_INIT(InitDatabase) {
         Database::Init(target);
+        Statement::Init();
         Transaction::Init();
-        ReadQuery::Init();
-        WriteQuery::Init();
     }
 }

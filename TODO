@@ -4,11 +4,18 @@ in c++:
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
-- write(string)
-This returns a WriteQuery object. It can only have the single statement that is passed upon construction, and that statement MUST NOT be read-only. It can invoke .run() (possibly multiple times), which returns a promise that is either resolved with undefined, or rejected with an Error.
-- read(string)
-This returns a ReadQuery object. It can only have the single statement that is passed upon construction, and that statement MUST be read-only. It can invoke .get(), .all(), and .each(cb)/.forEach(cb) (possibly many times). The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but als returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called, if possible in this case?).
+- prepare(string source, [Array boundValues])
+This returns a Statement object. It can only consist of the single SQL statement that is passed upon construction. Depending on whether the statement is read-only, a different API is used for executing the statement (possibly many times). If boundValues are given, they are permanently bound to the statement, and attempting to bind values via .get(), .all(), .each()/.forEach(), or .run(), will throw an Error.
+	- readonly === true
+		The .get(bv), .all(bv), and .each(bv, cb)/.forEach(bv, cb) methods can be used. The first two return promises which are resolved with values, or rejected with Errors. The third accepts a callback which is invoked for each result row, but also returns a promise which is resolved with undefined when all callbacks have returned, or rejects with an Error (no callbacks should be called in this case, if possible?). Each of these methods accepts an optional array argument bv, which are the values to bind to the statement for this execution.
+	- readonly === false
+		The .run(bv) method can be used, which returns a promise that is either resolved with undefined, or rejected with an Error. This method accepts an optional array argument bv, which are the values to bind to the statement for this execution.
 
+
+assure that shared cache and in-memory databases work properly
+
+
+settings pragmas will currently only affect the writeHandle connection; there should be an API for this
 
 
 the current disconnect() implementation will fail if there are any pending requests.
