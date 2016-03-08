@@ -33,6 +33,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             sqlite3* readHandle;
             sqlite3* writeHandle;
             STATE state;
+            unsigned int pendings;
     };
     
     class Transaction : public Nan::ObjectWrap {
@@ -62,6 +63,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static CONSTRUCTOR(constructor);
             static NAN_METHOD(New);
             
+            sqlite3_stmt* handle;
             bool dead;
     };
     
@@ -111,7 +113,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         filename(filename),
         readHandle(NULL),
         writeHandle(NULL),
-        state(CONNECTING) {}
+        state(CONNECTING),
+        pendings(0) {}
     Database::~Database() {
         state = DONE;
         sqlite3_close(readHandle);
@@ -201,6 +204,21 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Nan::ForceSet(writeQuery, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         Nan::ForceSet(writeQuery, Nan::New("source").ToLocalChecked(), source, FROZEN);
         
+        v8::String::Utf8Value utf8(source);
+        Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+        WriteQuery* wquery = Nan::ObjectWrap::Unwrap<WriteQuery>(writeQuery);
+        int status = sqlite3_prepare_v2(db->writeHandle, *utf8, utf8.length(), &wquery->handle, NULL);
+        if (status != SQLITE_OK) {
+            wquery->handle = NULL;
+            wquery->dead = true;
+            SQL_ERROR_STRING(msg, status, "An error occured while trying to construct the SQLite3 statement.");
+            return Nan::ThrowError(msg);
+        }
+        if (wquery->handle == NULL) {
+            wquery->dead = true;
+            return Nan::ThrowError("The supplied SQL query contains no statements.");
+        }
+        
         info.GetReturnValue().Set(writeQuery);
     }
     NAN_METHOD(Database::PrepareReadQuery) {
@@ -253,6 +271,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         dead(false) {}
     WriteQuery::~WriteQuery() {
         dead = true;
+        sqlite3_finalize(handle);
+        handle = NULL;
     }
     void WriteQuery::Init() {
         Nan::HandleScope scope;
