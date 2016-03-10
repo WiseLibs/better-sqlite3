@@ -32,6 +32,12 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
     }                                                                          \
     v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[i]);
 
+#define REQUIRE_ARGUMENT_NUMBER(i, var)                                        \
+    if (info.Length() <= (i) || !info[i]->IsNumber()) {                        \
+        return Nan::ThrowTypeError("Argument " #i " must be a number.");       \
+    }                                                                          \
+    v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[i]);
+
 #define OPTIONAL_ARGUMENT_FUNCTION(i, var)                                     \
     v8::Local<v8::Function> var;                                               \
     if (info.Length() > i && !info[i]->IsUndefined()) {                        \
