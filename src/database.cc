@@ -11,6 +11,12 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     enum STATE {CONNECTING, READY, DONE};
     bool CONSTRUCTING_PRIVILEGES = false;
     
+    typedef struct StatementBlueprint {
+        char* source;
+        int length;
+        sqlite3* db;
+    } StatementBlueprint;
+    
     class Database : public Nan::ObjectWrap {
         public:
             Database(char*);
@@ -42,12 +48,17 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             static void Init();
             
             friend class Database;
+            friend class RunWorker;
             
         private:
             static CONSTRUCTOR(constructor);
             static NAN_METHOD(New);
+            static NAN_METHOD(Run);
             
             sqlite3_stmt* handle;
+            StatementBlueprint blueprint;
+            bool readonly;
+            bool running;
             // int bound;
             bool dead;
     };
@@ -90,6 +101,18 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             bool doNothing;
     };
     
+    class RunWorker : public Nan::AsyncWorker {
+        public:
+            RunWorker(Statement*);
+            ~RunWorker();
+            void Execute();
+            void HandleOKCallback();
+            void HandleErrorCallback();
+        private:
+            Statement* stmt;
+            int changes;
+            sqlite3_int64 id;
+    };
     
     
     
@@ -183,9 +206,11 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             source = v8::Local<v8::String>::Cast(trimmedSource);
         }
         
+        // Exposes public properties.
         Nan::ForceSet(statement, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
         Nan::ForceSet(statement, Nan::New("source").ToLocalChecked(), source, FROZEN);
         
+        // Builds actual sqlite3_stmt.
         Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
         Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);
         
@@ -196,6 +221,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         const char* tail;
         int status = sqlite3_prepare_v2(db->readHandle, utf8_value, utf8_len, &stmt->handle, &tail);
         
+        // Validates the sqlite3_stmt.
         if (status != SQLITE_OK) {
             CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
             return Nan::ThrowError(message);
@@ -207,6 +233,14 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
             return Nan::ThrowError("The db.prepare() method only accepts a single SQL statement.");
         }
         
+        // Stores a blueprint of the sqlite3_stmt.
+        stmt->blueprint = (StatementBlueprint) {
+            .source = const_cast<char*>(utf8_value),
+            .length = utf8_len,
+            .db = db->readHandle
+        };
+        
+        // If the sqlite3_stmt is not read-only, replaces the handle with a proper one.
         if (!sqlite3_stmt_readonly(stmt->handle)) {
             sqlite3_finalize(stmt->handle);
             status = sqlite3_prepare_v2(db->writeHandle, utf8_value, utf8_len, &stmt->handle, NULL);
@@ -214,8 +248,13 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
                 CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
                 return Nan::ThrowError(message);
             }
+            stmt->blueprint.db = db->writeHandle;
+            
+            // Exposes whether the statement is read-only or not.
+            stmt->readonly = false;
             Nan::ForceSet(statement, Nan::New("readonly").ToLocalChecked(), Nan::False(), FROZEN);
         } else {
+            stmt->readonly = true;
             Nan::ForceSet(statement, Nan::New("readonly").ToLocalChecked(), Nan::True(), FROZEN);
         }
         
@@ -238,6 +277,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     
     
     Statement::Statement() : Nan::ObjectWrap(),
+        running(false),
         // bound(0),
         dead(false) {}
     Statement::~Statement() {
@@ -252,6 +292,8 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(Nan::New("Statement").ToLocalChecked());
         
+        Nan::SetPrototypeMethod(t, "run", Run);
+        
         constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
     }
     CONSTRUCTOR(Statement::constructor);
@@ -262,6 +304,30 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         Statement* statement = new Statement();
         statement->Wrap(info.This());
         info.GetReturnValue().Set(info.This());
+    }
+    NAN_METHOD(Statement::Run) {
+        Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+        if (stmt->readonly) {
+            return Nan::ThrowTypeError("This Statement is readonly. Use get(), all(), or forEach() instead.");
+        }
+        if (stmt->running) {
+            return Nan::ThrowError("This statement is already running.");
+        }
+        
+        v8::MaybeLocal<v8::Promise::Resolver> maybeResolver = v8::Promise::Resolver::New(Nan::GetCurrentContext());
+        if (maybeResolver.IsEmpty()) {
+            return Nan::ThrowError("Failed to create a Promise.");
+        }
+        v8::Local<v8::Promise::Resolver> resolver = maybeResolver.ToLocalChecked();
+        
+        RunWorker* worker = new RunWorker(stmt);
+        worker->SaveToPersistent((uint32_t)0, resolver);
+        
+        stmt->running = true;
+        stmt->Ref();
+        AsyncQueueWorker(worker);
+        
+        info.GetReturnValue().Set(resolver->GetPromise());
     }
     // bool Statement::Bind(int argc, v8::Local<v8::Value>* argv[]) {
     //     Nan::HandleScope scope;
@@ -382,6 +448,7 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
     CloseWorker::~CloseWorker() {}
     void CloseWorker::Execute() {
         if (!doNothing) {
+            // Finalize all statements (sqlite3_next_stmt?)
             int status1 = sqlite3_close(db->writeHandle);
             int status2 = sqlite3_close(db->readHandle);
             db->writeHandle = NULL;
@@ -407,6 +474,46 @@ namespace NODE_SQLITE3_PLUS_DATABASE {
         };
         EMIT_EVENT(db->handle(), 2, args);
         db->Unref();
+    }
+    
+    
+    
+    
+    
+    RunWorker::RunWorker(Statement* stmt)
+        : Nan::AsyncWorker(NULL), stmt(stmt) {}
+    RunWorker::~RunWorker() {}
+    void RunWorker::Execute() {
+        int status = sqlite3_step(stmt->handle);
+        if (status == SQLITE_DONE) {
+            changes = sqlite3_changes(stmt->blueprint.db);
+            id = sqlite3_last_insert_rowid(stmt->blueprint.db);
+        } else {
+            SetErrorMessage(sqlite3_errmsg(stmt->blueprint.db));
+        }
+        sqlite3_reset(stmt->handle);
+    }
+    void RunWorker::HandleOKCallback() {
+        Nan::HandleScope scope;
+        stmt->running = false;
+        
+        v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+        Nan::ForceSet(obj, Nan::New("changes").ToLocalChecked(), Nan::New<v8::Number>((double)changes));
+        Nan::ForceSet(obj, Nan::New("id").ToLocalChecked(), Nan::New<v8::Number>((double)id));
+        
+        v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+        resolver->Resolve(Nan::GetCurrentContext(), obj);
+        stmt->Unref();
+    }
+    void RunWorker::HandleErrorCallback() {
+        Nan::HandleScope scope;
+        stmt->running = false;
+        
+        CONCAT2(message, "SQLite: ", ErrorMessage());
+        
+        v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+        resolver->Reject(Nan::GetCurrentContext(), v8::Exception::Error(message));
+        stmt->Unref();
     }
     
     
