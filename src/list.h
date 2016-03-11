@@ -8,7 +8,7 @@ class List {
 		~List();
 		void Add(T*);
 		void Remove(T*);
-		void Each(void (*fn)(T*));
+		void Flush(void (*fn)(T*));
 		
 	private:
 		typedef struct Node {

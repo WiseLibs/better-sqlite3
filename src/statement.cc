@@ -36,8 +36,8 @@ Statement::Statement() : Nan::ObjectWrap(),
 	requests(0) {}
 Statement::~Statement() {
 	if (!closed) {
-		closed = true;
-		FreeHandles();
+        db->stmts.Remove(this);
+        CloseStatement(this);
 	}
 	free(source_string);
 }
@@ -147,6 +147,10 @@ NAN_METHOD(Statement::Run) {
     
     info.GetReturnValue().Set(resolver->GetPromise());
 }
+void Statement::CloseStatement(Statement* stmt) {
+    stmt->closed = true;
+    stmt->FreeHandles();
+}
 void Statement::FreeHandles() {
 	int len = handle_count;
 	for (int i=0; i<len; i++) {
@@ -188,12 +192,8 @@ void RunWorker::FinishRequest() {
 	}
 	if (stmt->requests == 0) {
 		stmt->Unref();
-		if (stmt->db->state == DB_DONE) {
-			stmt->FreeHandles();
-			stmt->closed = true;
-			if (stmt->db->requests == 0) {
-				stmt->db->ActuallyClose();
-			}
+		if (stmt->db->state == DB_DONE && stmt->db->requests == 0) {
+			stmt->db->ActuallyClose();
 		}
 	}
 }

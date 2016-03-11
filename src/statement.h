@@ -4,13 +4,14 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
-#include "database.h"
+class Database;
 
 class Statement : public Nan::ObjectWrap {
     public:
         Statement();
         ~Statement();
         static void Init();
+        static void CloseStatement(Statement*);
         
         friend class Database;
         friend class RunWorker;

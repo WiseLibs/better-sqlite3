@@ -2,11 +2,16 @@
 #include "list.h"
 
 template <class T>
-List<T>::List<T>() : front(NULL), end(NULL) {}
+List<T>::List() : front(NULL), end(NULL) {}
 
 template <class T>
-List<T>::~List<T>() {
-	// destruct here
+List<T>::~List() {
+	Node* node = front;
+	while (node != NULL) {
+		Node* temp = node->prev;
+		free(node);
+		node = temp;
+	}
 }
 
 template <class T>
@@ -16,10 +21,10 @@ void List<T>::Add(T* item) {
 	new_node->prev = NULL;
 	if (end == NULL) {
 		front = end = new_node;
-		return;
+	} else {
+		end->prev = new_node;
+		end = new_node;
 	}
-	end->prev = new_node;
-	end = new_node;
 }
 
 template <class T>
@@ -27,23 +32,45 @@ void List<T>::Remove(T* item) {
 	if (front == NULL) {return;}
 	
 	if (front->item == item) {
-		Node* prev = front->prev;
+		Node* temp = front->prev;
 		free(front);
-		front = prev;
+		front = temp;
+		if (front == NULL) {
+			end = NULL;
+		}
 		return;
 	}
 	
-	Node* temp = front;
-	while (temp->prev != NULL) {
-		if (temp->prev->item == item) {
-			if (temp->prev == end) {
-				end = temp;
+	Node* node = front;
+	while (node->prev != NULL) {
+		if (node->prev->item == item) {
+			if (node->prev == end) {
+				end = node;
 			}
-			Node* prev = temp->prev->prev;
-			free(temp->prev);
-			temp->prev = prev;
+			Node* temp = node->prev->prev;
+			free(node->prev);
+			node->prev = temp;
 			break;
 		}
-		temp = temp->prev;
+		node = node->prev;
 	}
 }
+
+template <class T>
+void List<T>::Flush(void (*fn)(T*)) {
+	Node* node = front;
+	while (node != NULL) {
+		fn(node->item);
+		Node* temp = node->prev;
+		free(node);
+		node = temp;
+	}
+	front = NULL;
+	end = NULL;
+}
+
+
+// Explicit instantiations.
+class Statement;
+template class List<Statement>;
+

@@ -1,8 +1,5 @@
 in c++:
 
-if sqlite3_next_stmt only loops through unfinalized statements, or if I can somehow determine which ones are unfinalized, I can simply let the CloseWorker start when there are no pending requests (current behavior), and before closing the database, finalize all left-over statements. This will allow the database to actually close. To prevent double-finalization upon garbage collection, I can set a flag on the db object, which statements see to know not to finalize handles during destruction (but still delete arrays). As long as the statements are guaranteed to be destructed before the db, it's okay.
-
-
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
@@ -20,10 +17,6 @@ use mutexes where appropriate
 
 
 settings pragmas will currently only affect the writeHandle connection; there should be an API for this
-
-
-the current disconnect() implementation will fail if there are any pending requests.
-therefore, it should defer the actual CloseWorker until all pendings are clear. (writes AND reads)
 
 
 remember to do db->Ref() and stmt->Ref() on every async operation, to protect from garbage collection
@@ -44,8 +37,6 @@ endTransaction() API does:
 
 when statement is about to be executed:
 is the active_tranaction flag 0 or 1? -> execute it
-otherwise:
-is the statement readonly? -> execute it
 otherwise -> push it to the transaction queue, which is associated with the database connection
 
 
