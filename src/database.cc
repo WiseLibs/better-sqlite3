@@ -44,7 +44,8 @@ Database::Database() : Nan::ObjectWrap(),
     writeHandle(NULL),
     state(DB_CONNECTING),
     requests(0),
-    workers(0) {}
+    workers(0),
+    stmts(NULL) {}
 Database::~Database() {
     state = DB_DONE;
     sqlite3_close_v2(readHandle);
@@ -184,6 +185,12 @@ NAN_METHOD(Database::PrepareStatement) {
     } else {
         stmt->db_handle = db->readHandle;
         stmt->readonly = true;
+    }
+    
+    // Push onto stmts list.
+    if (db->stmts == NULL) {
+        db->stmts = (StatementNode*) malloc(sizeof(StatementNode));
+        
     }
     
     info.GetReturnValue().Set(statement);
