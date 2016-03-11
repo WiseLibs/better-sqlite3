@@ -1,5 +1,7 @@
 in c++:
 
+if sqlite3_next_stmt only loops through unfinalized statements, or if I can somehow determine which ones are unfinalized, I can simply let the CloseWorker start when there are no pending requests (current behavior), and before closing the database, finalize all left-over statements. This will allow the database to actually close. To prevent double-finalization upon garbage collection, I can set a flag on the db object, which statements see to know not to finalize handles during destruction (but still delete arrays). As long as the statements are guaranteed to be destructed before the db, it's okay.
+
 
 Two JavaScript APIs:
 - begin()
@@ -13,6 +15,8 @@ This returns a Statement object. It can only consist of the single SQL statement
 
 
 assure that shared cache and in-memory databases work properly
+
+use mutexes where appropriate
 
 
 settings pragmas will currently only affect the writeHandle connection; there should be an API for this
