@@ -45,9 +45,10 @@ Database::Database() : Nan::ObjectWrap(),
     state(DB_CONNECTING),
     requests(0),
     workers(0),
-    stmts(NULL) {}
+    stmts() {}
 Database::~Database() {
     state = DB_DONE;
+    stmts.Flush(Statement::CloseStatement);
     sqlite3_close_v2(readHandle);
     sqlite3_close_v2(writeHandle);
 }
@@ -98,9 +99,6 @@ NAN_METHOD(Database::Close) {
         db->state = DB_DONE;
         db->Ref();
         db->workers += 1;
-        
-        // TODO: On all statements that have no active requests,
-        // invoke stmt->FreeHandles() and set stmt->closed = true.
         
         if (db->requests == 0) {
             db->ActuallyClose();
@@ -188,10 +186,7 @@ NAN_METHOD(Database::PrepareStatement) {
     }
     
     // Push onto stmts list.
-    if (db->stmts == NULL) {
-        db->stmts = (StatementNode*) malloc(sizeof(StatementNode));
-        
-    }
+    db->stmts.Add(stmt);
     
     info.GetReturnValue().Set(statement);
 }
@@ -278,6 +273,7 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting)
 CloseWorker::~CloseWorker() {}
 void CloseWorker::Execute() {
     if (!still_connecting) {
+        db->stmts.Flush(Statement::CloseStatement);
         int status1 = sqlite3_close(db->writeHandle);
         int status2 = sqlite3_close(db->readHandle);
         db->writeHandle = NULL;

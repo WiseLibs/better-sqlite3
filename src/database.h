@@ -4,7 +4,8 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
-#include "statement.h"
+#include "list.h"
+class Statement;
 
 extern bool CONSTRUCTING_PRIVILEGES;
 
@@ -35,7 +36,7 @@ class Database : public Nan::ObjectWrap {
         DB_STATE state;
         unsigned int requests;
         unsigned int workers;
-        StatementNode* stmts;
+        List<Statement> stmts;
 };
 
 #endif
