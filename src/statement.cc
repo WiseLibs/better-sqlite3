@@ -26,6 +26,7 @@ class RunWorker : public Nan::AsyncWorker {
 
 
 Statement::Statement() : Nan::ObjectWrap(),
+    db(NULL),
 	source_string(NULL),
 	closed(false),
 	handles(NULL),
@@ -36,7 +37,7 @@ Statement::Statement() : Nan::ObjectWrap(),
 	requests(0) {}
 Statement::~Statement() {
 	if (!closed) {
-        db->stmts.Remove(this);
+        db && db->stmts.Remove(this);
         CloseStatement(this);
 	}
 	free(source_string);
