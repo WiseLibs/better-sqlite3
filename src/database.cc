@@ -293,8 +293,7 @@ void CloseWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
     v8::Local<v8::Object> database = db->handle();
     
-    db->workers -= 1;
-    if (db->workers == 0) {db->Unref();}
+    if (--db->workers == 0) {db->Unref();}
     
 	v8::Local<v8::Value> args[2] = {Nan::New("close").ToLocalChecked(), Nan::Null()};
 	EMIT_EVENT_ASYNC(database, 2, args);
@@ -303,8 +302,7 @@ void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
     v8::Local<v8::Object> database = db->handle();
     
-    db->workers -= 1;
-    if (db->workers == 0) {db->Unref();}
+    if (--db->workers == 0) {db->Unref();}
     
 	v8::Local<v8::Value> args[2] = {
 		Nan::New("close").ToLocalChecked(),
