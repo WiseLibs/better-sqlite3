@@ -237,6 +237,11 @@ void OpenWorker::Execute() {
 }
 void OpenWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
+    v8::Local<v8::Object> database = db->handle();
+    
+    db->workers -= 1;
+    if (db->workers == 0) {db->Unref();}
+    
 	if (db->state == DB_DONE) {
 		sqlite3_close(db->writeHandle);
 		sqlite3_close(db->readHandle);
@@ -245,23 +250,24 @@ void OpenWorker::HandleOKCallback() {
 	} else {
 		db->state = DB_READY;
 		v8::Local<v8::Value> args[1] = {Nan::New("open").ToLocalChecked()};
-		EMIT_EVENT(db->handle(), 1, args);
+		EMIT_EVENT(database, 1, args);
 	}
-	db->workers -= 1;
-	if (db->workers == 0) {db->Unref();}
 }
 void OpenWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
+    v8::Local<v8::Object> database = db->handle();
+    
+    db->workers -= 1;
+    if (db->workers == 0) {db->Unref();}
+    
 	if (db->state != DB_DONE) {
 		db->state = DB_DONE;
 		v8::Local<v8::Value> args[2] = {
 			Nan::New("close").ToLocalChecked(),
 			v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
 		};
-		EMIT_EVENT(db->handle(), 2, args);
+		EMIT_EVENT(database, 2, args);
 	}
-	db->workers -= 1;
-	if (db->workers == 0) {db->Unref();}
 }
 
 
@@ -287,18 +293,24 @@ void CloseWorker::Execute() {
 }
 void CloseWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
+    v8::Local<v8::Object> database = db->handle();
+    
+    db->workers -= 1;
+    if (db->workers == 0) {db->Unref();}
+    
 	v8::Local<v8::Value> args[2] = {Nan::New("close").ToLocalChecked(), Nan::Null()};
-	EMIT_EVENT(db->handle(), 2, args);
-	db->workers -= 1;
-	if (db->workers == 0) {db->Unref();}
+	EMIT_EVENT_ASYNC(database, 2, args);
 }
 void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
+    v8::Local<v8::Object> database = db->handle();
+    
+    db->workers -= 1;
+    if (db->workers == 0) {db->Unref();}
+    
 	v8::Local<v8::Value> args[2] = {
 		Nan::New("close").ToLocalChecked(),
 		v8::Exception::Error(Nan::New<v8::String>(ErrorMessage()).ToLocalChecked())
 	};
-	EMIT_EVENT(db->handle(), 2, args);
-	db->workers -= 1;
-	if (db->workers == 0) {db->Unref();}
+	EMIT_EVENT_ASYNC(database, 2, args);
 }
