@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cmath>
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
@@ -78,8 +79,12 @@ NAN_METHOD(Statement::Cache) {
 		return Nan::ThrowError("A Statement's cache cannot be altered after it has been executed.");
 	}
 	
-	int len = (int)number->Value();
-	if (len < 1) {len = 1;}
+	double numberValue = number->Value();
+	if (!std::isfinite(numberValue) || numberValue < 1) {
+		return Nan::ThrowError("Argument 0 must be a positive, finite number.");
+	}
+	
+	int len = (int)numberValue;
 	sqlite3_stmt** handles = new sqlite3_stmt* [len];
 	
 	for (int i=0; i<len; i++) {
