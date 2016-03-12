@@ -109,6 +109,49 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 	GET_METHOD(_method, obj, "emitAsync");                                     \
 	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
+// TODO: Use bluebird library instead.
+#define STATEMENT_START(stmt, Worker)                                          \
+	if (stmt->db->state != DB_READY) {                                         \
+		return Nan::ThrowError(                                                \
+			"The associated database connection is closed.");                  \
+	}                                                                          \
+	if (!stmt->cache_locked) {stmt->cache_locked = true;}                      \
+	                                                                           \
+	v8::MaybeLocal<v8::Promise::Resolver> _maybeResolver                       \
+		= v8::Promise::Resolver::New(Nan::GetCurrentContext());                \
+	if (_maybeResolver.IsEmpty()) {                                            \
+		return Nan::ThrowError("Failed to create a Promise.");                 \
+	}                                                                          \
+	v8::Local<v8::Promise::Resolver> _resolver                                 \
+		= _maybeResolver.ToLocalChecked();                                     \
+	                                                                           \
+	sqlite3_stmt* _handle;                                                     \
+	int _i = stmt->next_handle;                                                \
+	if (!stmt->handle_states[_i]) {                                            \
+		stmt->handle_states[_i] = true;                                        \
+		_handle = stmt->handles[_i];                                           \
+		if (++stmt->next_handle >= stmt->handle_count) {                       \
+			stmt->next_handle = 0;                                             \
+		}                                                                      \
+	} else {                                                                   \
+		_handle = stmt->NewHandle();                                           \
+		if (_handle == NULL) {                                                 \
+			CONCAT2(_message, "SQLite: ", sqlite3_errmsg(stmt->db_handle));    \
+			sqlite3_finalize(_handle);                                         \
+			return Nan::ThrowError(_message);                                  \
+		}                                                                      \
+		_i = -1;                                                               \
+	}                                                                          \
+	Worker* _worker = new Worker(stmt, _handle, _i);                           \
+	_worker->SaveToPersistent((uint32_t)0, _resolver);                         \
+	                                                                           \
+	stmt->requests += 1;                                                       \
+	stmt->db->requests += 1;                                                   \
+	stmt->Ref();                                                               \
+	Nan::AsyncQueueWorker(_worker);                                            \
+	                                                                           \
+	info.GetReturnValue().Set(_resolver->GetPromise());
+
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
 
