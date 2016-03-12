@@ -1,7 +1,5 @@
 in c++:
 
-make close event wait for setImmediate
-
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with undefined or rejects with an Error.
