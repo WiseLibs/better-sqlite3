@@ -239,8 +239,7 @@ void OpenWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
     v8::Local<v8::Object> database = db->handle();
     
-    db->workers -= 1;
-    if (db->workers == 0) {db->Unref();}
+    if (--db->workers == 0) {db->Unref();}
     
 	if (db->state == DB_DONE) {
 		sqlite3_close(db->writeHandle);
@@ -257,8 +256,7 @@ void OpenWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
     v8::Local<v8::Object> database = db->handle();
     
-    db->workers -= 1;
-    if (db->workers == 0) {db->Unref();}
+    if (--db->workers == 0) {db->Unref();}
     
 	if (db->state != DB_DONE) {
 		db->state = DB_DONE;
