@@ -83,26 +83,31 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 		)                                                                      \
 	);
 
-#define INVOKE_METHOD(var, obj, methodName, argc, argv)                        \
+#define GET_METHOD(var, obj, methodName)                                       \
 	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
 		Nan::Get(obj, Nan::New(methodName).ToLocalChecked());                  \
 	if (_maybeMethod.IsEmpty()) {return;}                                      \
-	v8::Local<v8::Value> _method = _maybeMethod.ToLocalChecked();              \
-	if (!_method->IsFunction()) {                                              \
+	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
+	if (!_localMethod->IsFunction()) {                                         \
 		return Nan::ThrowTypeError(                                            \
 			"" #obj "[" #methodName "]() is not a function");                  \
 	}                                                                          \
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(_localMethod); \
+
+#define INVOKE_METHOD(var, obj, methodName, argc, argv)                        \
+	GET_METHOD(_method, obj, methodName);                                      \
 	Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
-		Nan::Call(v8::Local<v8::Function>::Cast(_method), obj, argc, argv);    \
+		Nan::Call(_method, obj, argc, argv);                                   \
 	if (_maybeValue.IsEmpty()) {return;}                                       \
 	v8::Local<v8::Value> var = _maybeValue.ToLocalChecked();
 
 #define EMIT_EVENT(obj, argc, argv)                                            \
-	Nan::MakeCallback((obj),                                                   \
-		Nan::Get(obj, Nan::New("emit").ToLocalChecked())                       \
-			.ToLocalChecked().As<v8::Function>(),                              \
-		argc, argv                                                             \
-	);
+	GET_METHOD(_method, obj, "emit");                                          \
+	Nan::MakeCallback(obj, _method, argc, argv);                               \
+
+#define EMIT_EVENT_ASYNC(obj, argc, argv)                                      \
+	GET_METHOD(_method, obj, "emitAsync");                                     \
+	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
