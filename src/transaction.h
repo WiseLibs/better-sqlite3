@@ -5,18 +5,18 @@
 #include "macros.h"
 
 class Transaction : public Nan::ObjectWrap {
-    public:
-        Transaction();
-        ~Transaction();
-        static void Init();
-        
-        friend class Database;
-        
-    private:
-        static CONSTRUCTOR(constructor);
-        static NAN_METHOD(New);
-        
-        bool closed;
+	public:
+		Transaction();
+		~Transaction();
+		static void Init();
+		
+		friend class Database;
+		
+	private:
+		static CONSTRUCTOR(constructor);
+		static NAN_METHOD(New);
+		
+		bool closed;
 };
 
 #endif
