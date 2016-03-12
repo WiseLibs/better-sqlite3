@@ -6,20 +6,36 @@
 #include "database.h"
 #include "statement.h"
 
-class RunWorker : public Nan::AsyncWorker {
+class StatementWorker : public Nan::AsyncWorker {
 	public:
-		RunWorker(Statement*, sqlite3_stmt*, int);
-		~RunWorker();
-		void Execute();
-		void HandleOKCallback();
+		StatementWorker(Statement*, sqlite3_stmt*, int);
 		void HandleErrorCallback();
-		void FinishRequest();
+	protected:
+		void Resolve(v8::Local<v8::Value>);
+		void Reject(v8::Local<v8::Value>);
+		sqlite3_stmt* handle;
+		sqlite3* db_handle;
 	private:
 		Statement* stmt;
-		sqlite3_stmt* handle;
 		int handle_index;
+		void FinishRequest();
+};
+
+class RunWorker : public StatementWorker {
+	public:
+		RunWorker(Statement*, sqlite3_stmt*, int);
+		void Execute();
+		void HandleOKCallback();
+	private:
 		int changes;
 		sqlite3_int64 id;
+};
+
+class GetWorker : public StatementWorker {
+	public:
+		GetWorker(Statement*, sqlite3_stmt*, int);
+		void Execute();
+		void HandleOKCallback();
 };
 
 
@@ -52,6 +68,7 @@ void Statement::Init() {
 	
 	Nan::SetPrototypeMethod(t, "cache", Cache);
 	Nan::SetPrototypeMethod(t, "run", Run);
+	Nan::SetPrototypeMethod(t, "get", Get);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), ReadonlyGetter);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -113,6 +130,13 @@ NAN_METHOD(Statement::Run) {
 	}
 	STATEMENT_START(stmt, RunWorker);
 }
+NAN_METHOD(Statement::Get) {
+	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (!stmt->readonly) {
+		return Nan::ThrowTypeError("This Statement is not read-only. Use run() instead.");
+	}
+	STATEMENT_START(stmt, GetWorker);
+}
 void Statement::CloseStatement(Statement* stmt) {
 	stmt->closed = true;
 	stmt->FreeHandles();
@@ -135,19 +159,19 @@ sqlite3_stmt* Statement::NewHandle() {
 
 
 
-RunWorker::RunWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
-	: Nan::AsyncWorker(NULL), stmt(stmt), handle(handle), handle_index(handle_index) {}
-RunWorker::~RunWorker() {}
-void RunWorker::Execute() {
-	int status = sqlite3_step(handle);
-	if (status == SQLITE_DONE || status == SQLITE_ROW) {
-		changes = sqlite3_changes(stmt->db_handle);
-		id = sqlite3_last_insert_rowid(stmt->db_handle);
-	} else {
-		SetErrorMessage(sqlite3_errmsg(stmt->db_handle));
-	}
+StatementWorker::StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
+	: Nan::AsyncWorker(NULL), handle(handle), db_handle(stmt->db_handle), stmt(stmt), handle_index(handle_index) {}
+void StatementWorker::Resolve(v8::Local<v8::Value> value) {
+	FinishRequest();
+	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+	resolver->Resolve(Nan::GetCurrentContext(), value);
 }
-void RunWorker::FinishRequest() {
+void StatementWorker::Reject(v8::Local<v8::Value> value) {
+	FinishRequest();
+	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+	resolver->Reject(Nan::GetCurrentContext(), value);
+}
+void StatementWorker::FinishRequest() {
 	stmt->requests -= 1;
 	stmt->db->requests -= 1;
 	if (handle_index == -1) {
@@ -163,23 +187,57 @@ void RunWorker::FinishRequest() {
 		}
 	}
 }
+void StatementWorker::HandleErrorCallback() {
+	Nan::HandleScope scope;
+	CONCAT2(message, "SQLite: ", ErrorMessage());
+	Reject(v8::Exception::Error(message));
+}
+
+
+
+
+
+RunWorker::RunWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
+	: StatementWorker(stmt, handle, handle_index) {}
+void RunWorker::Execute() {
+	int status = sqlite3_step(handle);
+	if (status == SQLITE_DONE || status == SQLITE_ROW) {
+		changes = sqlite3_changes(db_handle);
+		id = sqlite3_last_insert_rowid(db_handle);
+	} else {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+	}
+}
 void RunWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-	FinishRequest();
 	
 	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 	Nan::ForceSet(obj, Nan::New("changes").ToLocalChecked(), Nan::New<v8::Number>((double)changes));
 	Nan::ForceSet(obj, Nan::New("id").ToLocalChecked(), Nan::New<v8::Number>((double)id));
 	
-	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
-	resolver->Resolve(Nan::GetCurrentContext(), obj);
+	Resolve(obj);
 }
-void RunWorker::HandleErrorCallback() {
+
+
+
+
+
+GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
+	: StatementWorker(stmt, handle, handle_index) {}
+void GetWorker::Execute() {
+	// int status = sqlite3_step(handle);
+	// if (status == SQLITE_DONE || status == SQLITE_ROW) {
+	// 	changes = sqlite3_changes(db_handle);
+	// 	id = sqlite3_last_insert_rowid(db_handle);
+	// } else {
+	// 	SetErrorMessage(sqlite3_errmsg(db_handle));
+	// }
+}
+void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-	FinishRequest();
 	
-	CONCAT2(message, "SQLite: ", ErrorMessage());
+	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	Nan::ForceSet(obj, Nan::New("foo").ToLocalChecked(), Nan::New<v8::Number>(123));
 	
-	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
-	resolver->Reject(Nan::GetCurrentContext(), v8::Exception::Error(message));
+	Resolve(obj);
 }
