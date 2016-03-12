@@ -128,11 +128,13 @@ NAN_METHOD(Statement::Run) {
 	
 	
 	sqlite3_stmt* handle;
-	// TODO: Actually use cached handles.
-	int i = 0;
+	int i = next_handle;
 	if (!stmt->handle_states[i]) {
 		stmt->handle_states[i] = true;
 		handle = stmt->handles[i];
+		if (++next_handle >= handle_count) {
+			next_handle = 0;
+		}
 	} else {
 		handle = stmt->NewHandle();
 		if (handle == NULL) {
