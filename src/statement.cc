@@ -111,49 +111,7 @@ NAN_METHOD(Statement::Run) {
 	if (stmt->readonly) {
 		return Nan::ThrowTypeError("This Statement is read-only. Use get(), all(), or each() instead.");
 	}
-	if (stmt->db->state != DB_READY) {
-		return Nan::ThrowError("The associated database connection is closed.");
-	}
-	if (!stmt->cache_locked) {
-		stmt->cache_locked = true;
-	}
-	
-	// TODO: Use bluebird library instead.
-	v8::MaybeLocal<v8::Promise::Resolver> maybeResolver = v8::Promise::Resolver::New(Nan::GetCurrentContext());
-	if (maybeResolver.IsEmpty()) {
-		return Nan::ThrowError("Failed to create a Promise.");
-	}
-	v8::Local<v8::Promise::Resolver> resolver = maybeResolver.ToLocalChecked();
-	
-	
-	
-	sqlite3_stmt* handle;
-	int i = stmt->next_handle;
-	if (!stmt->handle_states[i]) {
-		stmt->handle_states[i] = true;
-		handle = stmt->handles[i];
-		if (++stmt->next_handle >= stmt->handle_count) {
-			stmt->next_handle = 0;
-		}
-	} else {
-		handle = stmt->NewHandle();
-		if (handle == NULL) {
-			CONCAT2(message, "SQLite: ", sqlite3_errmsg(stmt->db_handle));
-			sqlite3_finalize(handle);
-			return Nan::ThrowError(message);
-		}
-		i = -1;
-	}
-	
-	RunWorker* worker = new RunWorker(stmt, handle, i);
-	worker->SaveToPersistent((uint32_t)0, resolver);
-	
-	stmt->requests += 1;
-	stmt->db->requests += 1;
-	stmt->Ref();
-	Nan::AsyncQueueWorker(worker);
-	
-	info.GetReturnValue().Set(resolver->GetPromise());
+	STATEMENT_START(stmt, RunWorker);
 }
 void Statement::CloseStatement(Statement* stmt) {
 	stmt->closed = true;
