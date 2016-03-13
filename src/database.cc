@@ -133,8 +133,8 @@ NAN_METHOD(Database::PrepareStatement) {
 	
 	// Allocates source string.
 	Nan::Utf8String utf8(source);
-	int utf8_len = utf8.length();
-	char* utf8_value = (char*) calloc(sizeof(char), utf8_len);
+	int utf8_len = utf8.length() + 1;
+	char* utf8_value = (char*) malloc(utf8_len);
 	strncpy(utf8_value, *utf8, utf8_len);
 	
 	// Initializes object properties.
@@ -163,7 +163,7 @@ NAN_METHOD(Database::PrepareStatement) {
 	if (handle == NULL) {
 		return Nan::ThrowError("The supplied SQL query contains no statements.");
 	}
-	if (tail != utf8_value + utf8_len) {
+	if (tail != utf8_value + utf8_len - 1) {
 		return Nan::ThrowError("The db.prepare() method only accepts a single SQL statement.");
 	}
 	
