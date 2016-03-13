@@ -3,6 +3,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
+#include "data.h"
 #include "database.h"
 #include "statement.h"
 
@@ -36,6 +37,8 @@ class GetWorker : public StatementWorker {
 		GetWorker(Statement*, sqlite3_stmt*, int);
 		void Execute();
 		void HandleOKCallback();
+	private:
+		Data::Row row;
 };
 
 
@@ -142,8 +145,7 @@ void Statement::CloseStatement(Statement* stmt) {
 	stmt->FreeHandles();
 }
 void Statement::FreeHandles() {
-	int len = handle_count;
-	for (int i=0; i<len; i++) {
+	for (int i=0; i<handle_count; i++) {
 		sqlite3_finalize(handles[i]);
 	}
 	delete[] handles;
@@ -225,19 +227,46 @@ void RunWorker::HandleOKCallback() {
 GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
 	: StatementWorker(stmt, handle, handle_index) {}
 void GetWorker::Execute() {
-	// int status = sqlite3_step(handle);
-	// if (status == SQLITE_DONE || status == SQLITE_ROW) {
-	// 	changes = sqlite3_changes(db_handle);
-	// 	id = sqlite3_last_insert_rowid(db_handle);
-	// } else {
-	// 	SetErrorMessage(sqlite3_errmsg(db_handle));
-	// }
+	int status = sqlite3_step(handle);
+	if (status == SQLITE_ROW) {
+		int len = sqlite3_column_count(handle);
+		row.Init(len);
+		for (int i=0; i<len; i++) {
+			int type = sqlite3_column_type(handle, i);
+			switch (type) {
+				case SQLITE_INTEGER:
+					row.Add(new Data::Integer(sqlite3_column_int64(handle, i)));
+					break;
+				case SQLITE_FLOAT:
+					row.Add(new Data::Float(sqlite3_column_double(handle, i)));
+					break;
+				case SQLITE_TEXT:
+					row.Add(new Data::Text(sqlite3_column_text(handle, i), sqlite3_column_bytes(handle, i)));
+					break;
+				case SQLITE_BLOB:
+					row.Add(new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i)));
+					break;
+				case SQLITE_NULL:
+					row.Add(new Data::Null());
+					break;
+				default:
+					SetErrorMessage("SQLite returned an unrecognized data type.");
+					return;
+			}
+		}
+	} else if (status != SQLITE_DONE) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+	}
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
 	
 	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-	Nan::ForceSet(obj, Nan::New("foo").ToLocalChecked(), Nan::New<v8::Number>(123));
+	for (int i=0; i<row.column_count; i++) {
+		Nan::ForceSet(obj,
+			Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked(),
+			row.values[i]->ToJS());
+	}
 	
 	Resolve(obj);
 }
