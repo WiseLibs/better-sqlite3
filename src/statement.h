@@ -11,7 +11,12 @@ class Statement : public Nan::ObjectWrap {
 		Statement();
 		~Statement();
 		static void Init();
-		static void CloseStatement(Statement*);
+		class CloseStatementFunction { public:
+		    void operator()(Statement* stmt) const {
+		        stmt->closed = true;
+		    	stmt->FreeHandles();
+		    }
+		};
 		
 		friend class Database;
 		friend class StatementWorker;
@@ -24,6 +29,7 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);
 		static NAN_METHOD(Get);
+		static NAN_METHOD(All);
 		void FreeHandles();
 		sqlite3_stmt* NewHandle(); // This should only be invoked while db.state == DB_READY
 		
