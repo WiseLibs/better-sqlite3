@@ -1,8 +1,5 @@
 in c++:
 
-An all() that returns no result rows corrected returns an empty array.
-However, a get() that returns no result rows incorrectly returns an empty object (a row with no columns). What are the implications of changing this to null or undefined?
-
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with an object describing the changes, or rejects with an Error.
@@ -15,6 +12,7 @@ This returns a Statement object. It can only consist of the single SQL statement
 
 
 assure that shared cache and in-memory databases work properly
+
 
 use mutexes where appropriate
 

@@ -41,6 +41,7 @@ class GetWorker : public StatementWorker {
 		void HandleOKCallback();
 	private:
 		int pluck_column;
+		bool has_row;
 		Data::Row row;
 };
 
@@ -308,11 +309,12 @@ void RunWorker::HandleOKCallback() {
 
 
 GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
-	: StatementWorker(stmt, handle, handle_index), pluck_column(pluck_column) {}
+	: StatementWorker(stmt, handle, handle_index), pluck_column(pluck_column), has_row(false) {}
 void GetWorker::Execute() {
 	GET_ROW_RANGE(start, end);
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_ROW) {
+		has_row = true;
 		if (Data::Row::Fill(&row, handle, start, end)) {
 			SetErrorMessage("SQLite returned an unrecognized data type.");
 		}
@@ -322,6 +324,10 @@ void GetWorker::Execute() {
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
+	
+	if (!has_row) {
+		return Resolve(Nan::Undefined());
+	}
 	
 	if (pluck_column >= 0) {
 		return Resolve(row.values[0]->ToJS());
