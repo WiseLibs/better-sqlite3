@@ -21,6 +21,8 @@ var sql = require('sqlite3-plus').verbose();
 var db = new sql.Database(':memory:');
 ```
 
+The `statement.pluck()` method will return the wrong data if the specified column's position in the table changes (by dropping and recreating the table).
+
 ## Features
 
  - Elegant promise-based interface
