@@ -9,7 +9,7 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 	Nan::Utf8String utf8(val);
 	
 	int len = utf8.length() + 1;
-	char* str = (char*) calloc(sizeof(char), len);
+	char* str = (char*) malloc(len);
 	strncpy(str, *utf8, len);
 	
 	return str;
