@@ -6,6 +6,7 @@
 namespace Data {
 
 class Value { public:
+	Value() {}
 	virtual ~Value() {}
 	virtual v8::Local<v8::Value> ToJS() {return Nan::Undefined();}
 };

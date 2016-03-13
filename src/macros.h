@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <cmath>
 #include <nan.h>
 
 inline char* RAW_STRING(v8::Handle<v8::String> val) {
@@ -13,6 +14,10 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 	strncpy(str, *utf8, len);
 	
 	return str;
+}
+
+inline bool IS_POSITIVE_INTEGER(double num) {
+	return std::isfinite(num) && num >= 0 && floor(num) == num;
 }
 
 #define REQUIRE_ARGUMENTS(n)                                                   \
@@ -110,7 +115,7 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
 // TODO: Use bluebird library instead.
-#define STATEMENT_START(stmt, Worker)                                          \
+#define STATEMENT_START(stmt)                                                  \
 	if (stmt->db->state != DB_READY) {                                         \
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
@@ -141,14 +146,15 @@ inline char* RAW_STRING(v8::Handle<v8::String> val) {
 			return Nan::ThrowError(_message);                                  \
 		}                                                                      \
 		_i = -1;                                                               \
-	}                                                                          \
-	Worker* _worker = new Worker(stmt, _handle, _i);                           \
-	_worker->SaveToPersistent((uint32_t)0, _resolver);                         \
+	}
+
+#define STATEMENT_END(stmt, worker)                                            \
+	worker->SaveToPersistent((uint32_t)0, _resolver);                          \
 	                                                                           \
 	stmt->requests += 1;                                                       \
 	stmt->db->requests += 1;                                                   \
 	stmt->Ref();                                                               \
-	Nan::AsyncQueueWorker(_worker);                                            \
+	Nan::AsyncQueueWorker(worker);                                             \
 	                                                                           \
 	info.GetReturnValue().Set(_resolver->GetPromise());
 

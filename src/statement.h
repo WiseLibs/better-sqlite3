@@ -21,6 +21,7 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(New);
 		static NAN_GETTER(ReadonlyGetter);
 		static NAN_METHOD(Cache);
+		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);
 		static NAN_METHOD(Get);
 		void FreeHandles();
@@ -31,6 +32,7 @@ class Statement : public Nan::ObjectWrap {
 		char* source_string;
 		int source_length;
 		bool readonly;
+		int pluck_column;
 		bool closed; // Whether the statement's handles have been freed before garbage collection, by Database::Close()
 		
 		sqlite3_stmt** handles;
