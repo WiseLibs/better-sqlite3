@@ -8,7 +8,6 @@
         "deps/sqlite3.gyp:sqlite3"
       ],
       "sources": [
-        "src/list.cc",
         "src/database.cc",
         "src/statement.cc",
         "src/transaction.cc",

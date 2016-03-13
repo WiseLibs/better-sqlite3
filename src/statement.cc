@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
+#include "list.h"
 #include "data.h"
 #include "database.h"
 #include "statement.h"
@@ -43,6 +44,19 @@ class GetWorker : public StatementWorker {
 		Data::Row row;
 };
 
+class AllWorker : public StatementWorker {
+	public:
+		AllWorker(Statement*, sqlite3_stmt*, int, int);
+		~AllWorker();
+		void Execute();
+		void HandleOKCallback();
+	private:
+		int pluck_column;
+		int column_end;
+		int row_count;
+		List<Data::Row> rows;
+};
+
 
 
 
@@ -61,7 +75,7 @@ Statement::Statement() : Nan::ObjectWrap(),
 Statement::~Statement() {
 	if (!closed) {
 		if (db) {db->stmts.Remove(this);}
-		CloseStatement(this);
+		CloseStatementFunction()(this);
 	}
 	free(source_string);
 }
@@ -76,6 +90,7 @@ void Statement::Init() {
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	Nan::SetPrototypeMethod(t, "run", Run);
 	Nan::SetPrototypeMethod(t, "get", Get);
+	Nan::SetPrototypeMethod(t, "all", All);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), ReadonlyGetter);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
@@ -203,9 +218,14 @@ NAN_METHOD(Statement::Get) {
 	GetWorker* worker = new GetWorker(stmt, _handle, _i, stmt->pluck_column);
 	STATEMENT_END(stmt, worker);
 }
-void Statement::CloseStatement(Statement* stmt) {
-	stmt->closed = true;
-	stmt->FreeHandles();
+NAN_METHOD(Statement::All) {
+	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (!stmt->readonly) {
+		return Nan::ThrowTypeError("This statement is not read-only. Use run() instead.");
+	}
+	STATEMENT_START(stmt);
+	AllWorker* worker = new AllWorker(stmt, _handle, _i, stmt->pluck_column);
+	STATEMENT_END(stmt, worker);
 }
 void Statement::FreeHandles() {
 	for (int i=0; i<handle_count; i++) {
@@ -290,43 +310,11 @@ void RunWorker::HandleOKCallback() {
 GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
 	: StatementWorker(stmt, handle, handle_index), pluck_column(pluck_column) {}
 void GetWorker::Execute() {
+	GET_ROW_RANGE(start, end);
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_ROW) {
-		int i;
-		int len = sqlite3_column_count(handle);
-		if (pluck_column >= 0) {
-			if (pluck_column < len) {
-				i = pluck_column;
-				len = pluck_column + 1;
-				row.Init(1);
-			} else {
-				return SetErrorMessage("The plucked column no longer exists.");
-			}
-		} else {
-			i = 0;
-			row.Init(len);
-		}
-		for (; i<len; i++) {
-			int type = sqlite3_column_type(handle, i);
-			switch (type) {
-				case SQLITE_INTEGER:
-					row.Add(new Data::Integer(sqlite3_column_int64(handle, i)));
-					break;
-				case SQLITE_FLOAT:
-					row.Add(new Data::Float(sqlite3_column_double(handle, i)));
-					break;
-				case SQLITE_TEXT:
-					row.Add(new Data::Text(sqlite3_column_text(handle, i), sqlite3_column_bytes(handle, i)));
-					break;
-				case SQLITE_BLOB:
-					row.Add(new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i)));
-					break;
-				case SQLITE_NULL:
-					row.Add(new Data::Null());
-					break;
-				default:
-					return SetErrorMessage("SQLite returned an unrecognized data type.");
-			}
+		if (Data::Row::Fill(&row, handle, start, end)) {
+			SetErrorMessage("SQLite returned an unrecognized data type.");
 		}
 	} else if (status != SQLITE_DONE) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
@@ -347,4 +335,59 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	Resolve(obj);
+}
+
+
+
+
+
+AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
+	: StatementWorker(stmt, handle, handle_index), pluck_column(pluck_column), row_count(0) {}
+AllWorker::~AllWorker() {
+	rows.Flush([] (Data::Row* row) {
+		delete row;
+	});
+}
+void AllWorker::Execute() {
+	GET_ROW_RANGE(start, end);
+	column_end = end;
+	int status;
+	while ((status = sqlite3_step(handle)) == SQLITE_ROW) {
+		row_count++;
+		Data::Row* row = new Data::Row();
+		rows.Add(row);
+		if (Data::Row::Fill(row, handle, start, end)) {
+			return SetErrorMessage("SQLite returned an unrecognized data type.");
+		}
+	}
+	if (status != SQLITE_DONE) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+	}
+}
+void AllWorker::HandleOKCallback() {
+	Nan::HandleScope scope;
+	v8::Local<v8::Array> arr = Nan::New<v8::Array>(row_count);
+	
+	if (row_count > 0) {
+		int i = 0;
+		if (pluck_column >= 0) {
+			rows.Each([&arr, &i] (Data::Row* row) {
+				Nan::Set(arr, i++, row->values[0]->ToJS());
+			});
+		} else {
+			const char* names[column_end];
+			for (int j=0; j<column_end; j++) {
+				names[j] = sqlite3_column_name(handle, j);
+			}
+			rows.Each([&arr, &i, &names] (Data::Row* row) {
+				v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+				for (int j=0; j<row->column_count; j++) {
+					Nan::ForceSet(obj, Nan::New(names[j]).ToLocalChecked(), row->values[j]->ToJS());
+				}
+				Nan::Set(arr, i++, obj);
+			});
+		}
+	}
+	
+	Resolve(arr);
 }

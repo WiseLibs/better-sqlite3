@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
+#include <sqlite3.h>
 #include <nan.h>
 
 inline char* RAW_STRING(v8::Handle<v8::String> val) {
@@ -157,6 +158,20 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	Nan::AsyncQueueWorker(worker);                                             \
 	                                                                           \
 	info.GetReturnValue().Set(_resolver->GetPromise());
+
+#define GET_ROW_RANGE(i, len)                                                  \
+	int i;                                                                     \
+	int len = sqlite3_column_count(handle);                                    \
+	if (pluck_column >= 0) {                                                   \
+		if (pluck_column < len) {                                              \
+			i = pluck_column;                                                  \
+			len = pluck_column + 1;                                            \
+		} else {                                                               \
+			return SetErrorMessage("The plucked column no longer exists.");    \
+		}                                                                      \
+	} else {                                                                   \
+		i = 0;                                                                 \
+	}
 
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;

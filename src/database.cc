@@ -44,11 +44,10 @@ Database::Database() : Nan::ObjectWrap(),
 	writeHandle(NULL),
 	state(DB_CONNECTING),
 	requests(0),
-	workers(0),
-	stmts() {}
+	workers(0) {}
 Database::~Database() {
 	state = DB_DONE;
-	stmts.Flush(Statement::CloseStatement);
+	stmts.Flush(Statement::CloseStatementFunction());
 	sqlite3_close_v2(readHandle);
 	sqlite3_close_v2(writeHandle);
 }
@@ -277,7 +276,7 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting)
 CloseWorker::~CloseWorker() {}
 void CloseWorker::Execute() {
 	if (!still_connecting) {
-		db->stmts.Flush(Statement::CloseStatement);
+		db->stmts.Flush(Statement::CloseStatementFunction());
 		int status1 = sqlite3_close(db->writeHandle);
 		int status2 = sqlite3_close(db->readHandle);
 		db->writeHandle = NULL;
