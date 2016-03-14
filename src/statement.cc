@@ -85,7 +85,7 @@ Statement::Statement() : Nan::ObjectWrap(),
 	handle_states(NULL),
 	handle_count(0),
 	next_handle(0),
-	cache_locked(false),
+	config_locked(false),
 	requests(0) {}
 Statement::~Statement() {
 	if (!closed) {
@@ -128,11 +128,11 @@ NAN_GETTER(Statement::ReadonlyGetter) {
 NAN_METHOD(Statement::Cache) {
 	REQUIRE_ARGUMENT_NUMBER(0, number);
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (stmt->config_locked) {
+		return Nan::ThrowError("A statement's cache cannot be altered after it has been executed.");
+	}
 	if (stmt->db->state != DB_READY) {
 		return Nan::ThrowError("The associated database connection is closed.");
-	}
-	if (stmt->cache_locked) {
-		return Nan::ThrowError("A statement's cache cannot be altered after it has been executed.");
 	}
 	
 	double numberValue = number->Value();
@@ -170,10 +170,13 @@ NAN_METHOD(Statement::Pluck) {
 	if (!stmt->readonly) {
 		return Nan::ThrowTypeError("The pluck() method can only be used by read-only statements.");
 	}
-	if (stmt->db->state == DB_DONE) {
-		return info.GetReturnValue().Set(info.This());
-	}
 	REQUIRE_ARGUMENTS(1);
+	if (stmt->config_locked) {
+		return Nan::ThrowError("A statement's pluck setting cannot be altered after it has been executed.");
+	}
+	if (stmt->db->state != DB_READY) {
+		return Nan::ThrowError("The associated database connection is closed.");
+	}
 	v8::Local<v8::Value> arg = info[0];
 	
 	if (arg->IsFalse()) {
