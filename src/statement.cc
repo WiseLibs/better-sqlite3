@@ -61,13 +61,15 @@ class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 
 class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 	public:
-		EachWorker(Statement*, sqlite3_stmt*, int, int);
+		EachWorker(Statement*, sqlite3_stmt*, int, int, Nan::Callback*);
+		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
 		void HandleProgressCallback(const char* data, size_t size);
 		void HandleOKCallback();
 	private:
 		int pluck_column;
 		Data::Row row;
+		Nan::Callback* func;
 };
 
 
@@ -249,8 +251,7 @@ NAN_METHOD(Statement::Each) {
 	}
 	REQUIRE_ARGUMENT_FUNCTION(0, func);
 	STATEMENT_START(stmt);
-	EachWorker* worker = new EachWorker(stmt, _handle, _i, stmt->pluck_column);
-	worker->SaveToPersistent((uint32_t)1, func);
+	EachWorker* worker = new EachWorker(stmt, _handle, _i, stmt->pluck_column, new Nan::Callback(func));
 	STATEMENT_END(stmt, worker);
 }
 void Statement::FreeHandles() {
@@ -339,7 +340,8 @@ void RunWorker::HandleOKCallback() {
 
 
 GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index), pluck_column(pluck_column), has_row(false) {}
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
+	pluck_column(pluck_column), has_row(false) {}
 void GetWorker::Execute() {
 	GET_ROW_RANGE(start, end);
 	int status = sqlite3_step(handle);
@@ -378,7 +380,8 @@ void GetWorker::HandleOKCallback() {
 
 
 AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index), pluck_column(pluck_column), row_count(0) {}
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
+	pluck_column(pluck_column), row_count(0) {}
 AllWorker::~AllWorker() {
 	rows.Flush([] (Data::Row* row) {
 		delete row;
@@ -432,17 +435,22 @@ void AllWorker::HandleOKCallback() {
 
 
 
-EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
-	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index), pluck_column(pluck_column) {}
+EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* func)
+	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
+	pluck_column(pluck_column), func(func) {
+		callback = new Nan::Callback();
+	}
+EachWorker::~EachWorker() {
+	delete func;
+}
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
-	progress.Send("hello there", 12);
-	progress.Send("foo bar baz quux", 17);
+	progress.Send("", 1);
+	progress.Send("", 1);
 }
 void EachWorker::HandleProgressCallback(const char* data, size_t size) {
 	Nan::HandleScope scope;
-	v8::Local<v8::Function> func = v8::Local<v8::Function>::Cast(GetFromPersistent((uint32_t)1));
 	v8::Local<v8::Value> args[1] = {Nan::New<v8::String>(data, size).ToLocalChecked()};
-	Nan::Call(func, Nan::GetCurrentContext()->Global(), 1, args);
+	func->Call(1, args);
 }
 void EachWorker::HandleOKCallback() {
 	Nan::HandleScope scope;

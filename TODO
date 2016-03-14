@@ -1,5 +1,9 @@
 in c++:
 
+Do I need "Nan::HandleScope scope;" in some constructors and destructors?
+
+Wait for Nan pull request
+
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with an object describing the changes, or rejects with an Error.
