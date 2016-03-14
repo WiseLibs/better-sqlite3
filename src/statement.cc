@@ -460,7 +460,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 	Nan::HandleScope scope;
 	// Flush queue and invoke func with each row in the queue
 	// Make sure the queue is protected by a mutex
-	v8::Local<v8::Value> args[1] = {Nan::New<v8::String>(data, size).ToLocalChecked()};
+	v8::Local<v8::Value> args[1] = {Nan::New("foobar").ToLocalChecked()};
 	func->Call(1, args);
 }
 void EachWorker::HandleOKCallback() {
