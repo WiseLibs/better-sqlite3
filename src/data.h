@@ -97,7 +97,7 @@ class Null : public Data::Value { public:
 // passed to Init() must never be less than 1.
 class Row {
 	public:
-		Row() : init(false), column_count(0) {}
+		Row() : column_count(0), init(false) {}
 		~Row() {
 			if (init) {
 				for (int i=0; i<column_count; i++) {delete values[i];}
