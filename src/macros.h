@@ -170,6 +170,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 			return SetErrorMessage("The plucked column no longer exists.");    \
 		}                                                                      \
 	} else {                                                                   \
+		if (len < 1) {                                                         \
+			return SetErrorMessage("The statement returns no result columns.");\
+		}                                                                      \
 		i = 0;                                                                 \
 	}
 

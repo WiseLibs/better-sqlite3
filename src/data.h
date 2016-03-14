@@ -93,13 +93,11 @@ class Null : public Data::Value { public:
 // than the maximum, and column_count will always reflect the actual number of
 // rows that have been added. However, you must promise never to add more than n
 // number of rows, or else the behavior is undefined. It is an error to invoke
-// Init() on a row more than once, and the behavior is undefined.
+// Init() on a row more than once, and the behavior is undefined. The integer
+// passed to Init() must never be less than 1.
 class Row {
 	public:
-		Row() {
-			init = false;
-			column_count = 0;
-		}
+		Row() : init(false), column_count(0) {}
 		~Row() {
 			if (init) {
 				for (int i=0; i<column_count; i++) {delete values[i];}
@@ -140,13 +138,16 @@ class Row {
 			return 0;
 		}
 		
+		// max_columns must never be less than 1.
 		inline void Init(int max_columns) {
 			init = true;
-			values = max_columns > 0 ? new Data::Value* [max_columns] : NULL;
+			values = new Data::Value* [max_columns];
 		}
+		
 		inline void Add(Data::Value* value) {
 			values[column_count++] = value;
 		}
+		
 		int column_count;
 		Data::Value** values;
 	private:
