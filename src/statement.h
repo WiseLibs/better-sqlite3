@@ -19,7 +19,7 @@ class Statement : public Nan::ObjectWrap {
 		};
 		
 		friend class Database;
-		friend class StatementWorker;
+		template <class T> friend class StatementWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
@@ -30,6 +30,7 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(Run);
 		static NAN_METHOD(Get);
 		static NAN_METHOD(All);
+		static NAN_METHOD(Each);
 		void FreeHandles();
 		sqlite3_stmt* NewHandle(); // This should only be invoked while db.state == DB_READY
 		
