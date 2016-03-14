@@ -1,7 +1,5 @@
 in c++:
 
-Do I need "Nan::HandleScope scope;" in some constructors and destructors?
-
 Wait for Nan pull request
 
 Two JavaScript APIs:
