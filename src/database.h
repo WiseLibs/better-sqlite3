@@ -20,7 +20,7 @@ class Database : public Nan::ObjectWrap {
 		friend class OpenWorker;
 		friend class CloseWorker;
 		friend class Statement;
-		friend class StatementWorker;
+		template <class T> friend class StatementWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
