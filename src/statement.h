@@ -46,7 +46,7 @@ class Statement : public Nan::ObjectWrap {
 		bool* handle_states;
 		int handle_count;
 		int next_handle;
-		bool cache_locked;
+		bool config_locked;
 		unsigned int requests;
 };
 

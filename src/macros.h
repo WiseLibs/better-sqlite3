@@ -121,7 +121,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (!stmt->cache_locked) {stmt->cache_locked = true;}                      \
+	if (!stmt->config_locked) {stmt->config_locked = true;}                    \
 	                                                                           \
 	v8::MaybeLocal<v8::Promise::Resolver> _maybeResolver                       \
 		= v8::Promise::Resolver::New(Nan::GetCurrentContext());                \
