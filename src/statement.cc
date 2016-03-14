@@ -444,15 +444,21 @@ EachWorker::~EachWorker() {
 	delete func;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
+	// First determine if there will be any errors
+	// Then do actual row steps, pushing rows to queue and invoking progress.Send() after each one
+	// Make sure the queue is protected by a mutex
 	progress.Send("", 1);
 	progress.Send("", 1);
 }
-void EachWorker::HandleProgressCallback(const char* data, size_t size) {
+void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
+	// Flush queue and invoke func with each row in the queue
+	// Make sure the queue is protected by a mutex
 	v8::Local<v8::Value> args[1] = {Nan::New<v8::String>(data, size).ToLocalChecked()};
 	func->Call(1, args);
 }
 void EachWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
+	// Flush queue and invoke func with each row in the queue
 	Resolve(Nan::Undefined());
 }
