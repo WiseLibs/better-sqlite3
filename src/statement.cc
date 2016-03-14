@@ -68,7 +68,7 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 		void HandleOKCallback();
 	private:
 		int pluck_column;
-		Data::Row row;
+		List<Data::Row> rows;
 		Nan::Callback* func;
 };
 
@@ -441,6 +441,9 @@ EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, 
 		callback = new Nan::Callback();
 	}
 EachWorker::~EachWorker() {
+	rows.Flush([] (Data::Row* row) {
+		delete row;
+	});
 	delete func;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
