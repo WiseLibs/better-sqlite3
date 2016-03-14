@@ -1,6 +1,12 @@
 in c++:
 
 Implement actual EachWorker functionality
+Learn how to use mutexes, to implement above
+	- uv_mutex_t async_lock;
+	- uv_mutex_init(&async_lock);
+	- uv_mutex_destroy(&async_lock);
+	- uv_mutex_lock(&async_lock);
+	- uv_mutex_unlock(&async_lock);
 Wait for Nan pull request
 
 Two JavaScript APIs:
