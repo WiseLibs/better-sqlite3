@@ -1,7 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-// #include <unistd.h>
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
@@ -437,9 +436,7 @@ EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, 
 	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index), pluck_column(pluck_column) {}
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
 	progress.Send("hello there", 12);
-	// usleep(1000000);
 	progress.Send("foo bar baz quux", 17);
-	// usleep(1000000);
 }
 void EachWorker::HandleProgressCallback(const char* data, size_t size) {
 	Nan::HandleScope scope;
