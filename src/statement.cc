@@ -41,7 +41,7 @@ class GetWorker : public StatementWorker<Nan::AsyncWorker> {
 		void Execute();
 		void HandleOKCallback();
 	private:
-		int pluck_column;
+		const int pluck_column;
 		Data::Row row;
 };
 
@@ -51,7 +51,7 @@ class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 		void Execute();
 		void HandleOKCallback();
 	private:
-		int pluck_column;
+		const int pluck_column;
 		int column_end;
 		int row_count;
 		List<Data::Row> rows;
@@ -65,7 +65,7 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 		void HandleProgressCallback(const char* data, size_t size);
 		void HandleOKCallback();
 	private:
-		int pluck_column;
+		const int pluck_column;
 		int column_count;
 		char** column_names;
 		List<Data::Row> rows;
