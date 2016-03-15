@@ -1,14 +1,16 @@
 in c++:
 
+optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
+
 Replace all places with strncpy with strlcpy (or create a FixedList class for holding strings)
 
 Wait for Nan pull request
 
 Make sure that SQLITE_ERROR cannot happen after SQLITE_ROW. If it CAN, then change workers to behave accordingly.
 
-Maybe optimize column name and count checking by caching in stmt object, and doing dirty checking (would require mutexes)
-
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
+
+assure that all places that use int as a sizer are checked for maximum values
 
 
 Two JavaScript APIs:
