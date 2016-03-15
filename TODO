@@ -2,7 +2,7 @@ in c++:
 
 optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
 
-Replace all places with strncpy with strlcpy (or create a FixedList class for holding strings)
+Replace all places with strncpy with strlcpy
 
 Wait for Nan pull request
 
