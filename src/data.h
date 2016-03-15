@@ -37,16 +37,16 @@ class Float : public Data::Value { public:
 class Text : public Data::Value { public:
 	Text(const unsigned char* str, int len) {
 		length = len;
-		value = (char*) malloc(len + 1);
+		value = new char[len + 1];
 		strncpy(value, (const char*)str, len + 1);
 	}
 	Text(v8::Local<v8::String> str) {
 		Nan::Utf8String utf8(str);
 		length = utf8.length();
-		value = (char*) malloc(length + 1);
+		value = new char[length + 1];
 		strncpy(value, *utf8, length + 1);
 	}
-	~Text() {free(value);}
+	~Text() {delete value;}
 	v8::Local<v8::Value> ToJS() {return Nan::New<v8::String>(value, length).ToLocalChecked();}
 	char* value; // Is NUL-terminated.
 	int length; // Does not include the NUL terminator.
@@ -60,21 +60,21 @@ class Blob : public Data::Value { public:
 	Blob(const void* data, int len) {
 		transferred = false;
 		length = len;
-		value = malloc(len);
+		value = new char[len];
 		memcpy(value, data, len);
 	}
 	Blob(v8::Local<v8::Object> buffer) {
 		transferred = false;
 		length = node::Buffer::Length(buffer);
-		value = malloc(length);
+		value = new char[length];
 		memcpy(value, node::Buffer::Data(buffer), length);
 	}
-	~Blob() {if (!transferred) {free(value);}}
+	~Blob() {if (!transferred) {delete value;}}
 	v8::Local<v8::Value> ToJS() {
 		transferred = true;
-		return Nan::NewBuffer((char*)value, length).ToLocalChecked();
+		return Nan::NewBuffer(value, length).ToLocalChecked();
 	}
-	void* value;
+	char* value;
 	int length;
 	bool transferred;
 };

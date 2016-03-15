@@ -12,22 +12,36 @@ class List {
 		} Node;
 		Node* front;
 		Node* end;
-	public:
-		List() : front(NULL), end(NULL) {}
 		
-		// This is not enough if the items in the list are stored in the heap.
+	public:
+		List() : front(NULL), end(NULL), owner(true) {}
+		
+		// Unless `owner` is false when destruction occurs, items that were
+		// added to the list are automatically `delete`d. This is not
+		// appropriate if the item's memory must be freed with free() or
+		// delete[]. In such cases, `owner` should be set to false and manual
+		// deallocation is required.
 		~List() {
 			Node* node = front;
-			while (node != NULL) {
-				Node* temp = node->prev;
-				free(node);
-				node = temp;
+			if (owner) {
+				while (node != NULL) {
+					Node* temp = node->prev;
+					delete node->item;
+					delete node;
+					node = temp;
+				}
+			} else {
+				while (node != NULL) {
+					Node* temp = node->prev;
+					delete node;
+					node = temp;
+				}
 			}
 		}
 		
 		// Pushes an item onto the list.
 		void Add(T* item) {
-			Node* new_node = (Node*) malloc(sizeof(Node));
+			Node* new_node = new Node;
 			new_node->item = item;
 			new_node->prev = NULL;
 			if (end == NULL) {
@@ -40,13 +54,14 @@ class List {
 		
 		// Removes the given item from the list, if found. If the item exists in
 		// the list multiple times, only the first instance (first added) is
-		// removed.
+		// removed. Unless `owner` is false, the removed item is `delete`d.
 		void Remove(T* item) {
 			if (front == NULL) {return;}
 			
 			if (front->item == item) {
 				Node* temp = front->prev;
-				free(front);
+				if (owner) {delete item;}
+				delete front;
 				front = temp;
 				if (front == NULL) {
 					end = NULL;
@@ -61,7 +76,8 @@ class List {
 						end = node;
 					}
 					Node* temp = node->prev->prev;
-					free(node->prev);
+					if (owner) {delete item;}
+					delete node->prev;
 					node->prev = temp;
 					break;
 				}
@@ -69,32 +85,34 @@ class List {
 			}
 		}
 		
-		// Executes a function for each item in the list.
-		// The passed function must not modify the list.
-		template <class F> void Each(F fn) {
-			Node* node = front;
-			while (node != NULL) {
-				fn(node->item);
-				node = node->prev;
-			}
-		}
-		
 		// Executes a function for each item in the list, and removes them all
 		// from the list. The passed function must not modify the list.
-		// This should be used in the destructor of the owner object, as items
-		// in this list are usually dynamically allocated and require their own
-		// destruction.
+		// The execution order goes from first-added to last-added.
+		// Unless `owner` is false, each item is `delete`d after their callback
+		// function returns.
 		template <class F> void Flush(F fn) {
 			Node* node = front;
-			while (node != NULL) {
-				fn(node->item);
-				Node* temp = node->prev;
-				free(node);
-				node = temp;
+			if (owner) {
+				while (node != NULL) {
+					fn(node->item);
+					Node* temp = node->prev;
+					delete node->item;
+					delete node;
+					node = temp;
+				}
+			} else {
+				while (node != NULL) {
+					fn(node->item);
+					Node* temp = node->prev;
+					delete node;
+					node = temp;
+				}
 			}
 			front = NULL;
 			end = NULL;
 		}
+		
+		bool owner;
 };
 
 #endif
