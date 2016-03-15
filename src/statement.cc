@@ -432,7 +432,7 @@ EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, 
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
-	column_end = end
+	column_end = end;
 	
 	if (status != SQLITE_ROW) {
 		if (status != SQLITE_DONE) {
