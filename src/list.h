@@ -1,8 +1,6 @@
 #ifndef NODE_SQLITE3_PLUS_LIST_H
 #define NODE_SQLITE3_PLUS_LIST_H
 
-#include <cstdlib>
-
 template <class T>
 class List {
 	private:

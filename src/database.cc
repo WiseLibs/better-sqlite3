@@ -1,4 +1,3 @@
-#include <cstdlib>
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
@@ -210,7 +209,7 @@ NAN_METHOD(Database::PrepareTransaction) {
 OpenWorker::OpenWorker(Database* db, char* filename)
 	: Nan::AsyncWorker(NULL), db(db), filename(filename) {}
 OpenWorker::~OpenWorker() {
-	delete filename;
+	delete[] filename;
 }
 void OpenWorker::Execute() {
 	int status;

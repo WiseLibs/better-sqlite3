@@ -1,5 +1,4 @@
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
@@ -438,7 +437,7 @@ EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, 
 	}
 EachWorker::~EachWorker() {
 	for (int i=0; i<column_count; i++) {
-		delete column_names[i];
+		delete[] column_names[i];
 	}
 	delete[] column_names;
 	delete func;
