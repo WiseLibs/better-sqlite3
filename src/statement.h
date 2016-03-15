@@ -36,8 +36,8 @@ class Statement : public Nan::ObjectWrap {
 		
 		Database* db;
 		sqlite3* db_handle;
-		char* source_string;
-		int source_length;
+		char* source_string; // NUL-terminated
+		int source_length; // DOES include the NUL terminator
 		bool readonly;
 		int pluck_column;
 		bool closed; // Whether the statement's handles have been freed before garbage collection, by Database::Close()
