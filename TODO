@@ -20,7 +20,7 @@ Make sure that SQLITE_ERROR cannot happen after SQLITE_ROW. If it CAN, then chan
 
 Maybe optimize column name and count checking by caching in stmt object, and doing dirty checking (would require mutexes)
 
-
+use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 
 Two JavaScript APIs:

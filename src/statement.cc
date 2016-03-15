@@ -59,16 +59,14 @@ class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 	public:
 		EachWorker(Statement*, sqlite3_stmt*, int, int, Nan::Callback*);
-		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
 		void HandleProgressCallback(const char* data, size_t size);
 		void HandleOKCallback();
 	private:
 		const int pluck_column;
-		int column_count;
-		char** column_names;
+		int column_end;
+		bool cached_names;
 		List<Data::Row> rows;
-		Nan::Callback* func;
 };
 
 
@@ -400,26 +398,26 @@ void AllWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
 	v8::Local<v8::Array> arr = Nan::New<v8::Array>(row_count);
 	
-	if (row_count > 0) {
-		int i = 0;
-		if (pluck_column >= 0) {
-			rows.Flush([&arr, &i] (Data::Row* row) {
-				Nan::Set(arr, i++, row->values[0]->ToJS());
-			});
-		} else {
-			const char* names[column_end];
-			for (int j=0; j<column_end; j++) {
-				names[j] = sqlite3_column_name(handle, j);
-			}
-			rows.Flush([&arr, &i, &names] (Data::Row* row) {
-				v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-				for (int j=0; j<row->column_count; j++) {
-					Nan::ForceSet(obj, Nan::New(names[j]).ToLocalChecked(), row->values[j]->ToJS());
-				}
-				Nan::Set(arr, i++, obj);
-			});
-		}
-	}
+	// if (row_count > 0) {
+	// 	int i = 0;
+	// 	if (pluck_column >= 0) {
+	// 		rows.Flush([&arr, &i] (Data::Row* row) {
+	// 			Nan::Set(arr, i++, row->values[0]->ToJS());
+	// 		});
+	// 	} else {
+	// 		const char* names[column_end];
+	// 		for (int j=0; j<column_end; j++) {
+	// 			names[j] = sqlite3_column_name(handle, j);
+	// 		}
+	// 		rows.Flush([&arr, &i, &names] (Data::Row* row) {
+	// 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	// 			for (int j=0; j<row->column_count; j++) {
+	// 				Nan::ForceSet(obj, Nan::New(names[j]).ToLocalChecked(), row->values[j]->ToJS());
+	// 			}
+	// 			Nan::Set(arr, i++, obj);
+	// 		});
+	// 	}
+	// }
 	
 	Resolve(arr);
 }
@@ -428,40 +426,19 @@ void AllWorker::HandleOKCallback() {
 
 
 
-EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* func)
+EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* cb)
 	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
-	pluck_column(pluck_column), column_count(0), column_names(NULL), func(func) {
-		// This is a hack required because AsyncProgressWorker will not send
-		// progress if callback is NULL (it thinks the worker is done).
-		callback = new Nan::Callback();
-	}
-EachWorker::~EachWorker() {
-	for (int i=0; i<column_count; i++) {
-		delete[] column_names[i];
-	}
-	delete[] column_names;
-	delete func;
-}
+	pluck_column(pluck_column), cached_names(false) {callback = cb;}
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
+	column_end = end
 	
 	if (status != SQLITE_ROW) {
 		if (status != SQLITE_DONE) {
 			SetErrorMessage(sqlite3_errmsg(db_handle));
 		}
 		return;
-	}
-	
-	if (pluck_column == -1) {
-		column_count = end;
-		column_names = new char* [column_count];
-		for (int i=0; i<column_count; i++) {
-			const char* name = sqlite3_column_name(handle, i);
-			size_t len = strlen(name) + 1;
-			column_names[i] = new char[len];
-			strncpy(column_names[i], name, len);
-		}
 	}
 	
 	while (status == SQLITE_ROW) {
@@ -477,16 +454,27 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 	if (pluck_column >= 0) {
 		rows.Flush([this] (Data::Row* row) {
 			v8::Local<v8::Value> args[1] = {row->values[0]->ToJS()};
-			func->Call(1, args);
+			callback->Call(1, args);
 		});
 	} else {
+		v8::Local<v8::Array> columnNames;
+		if (cached_names) {
+			columnNames = GetFromPersistent((uint32_t)1);
+		} else {
+			cached_names = true;
+			columnNames = Nan::New<v8::Array>(column_end);
+			for (int i=0; i<column_end; i++) {
+				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked());
+			}
+			SaveToPersistent((uint32_t)1, columnNames);
+		}
 		rows.Flush([this] (Data::Row* row) {
 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; i++) {
-				Nan::ForceSet(obj, Nan::New(column_names[i]).ToLocalChecked(), row->values[i]->ToJS());
+				Nan::ForceSet(obj, Nan::Get(columnNames, i), row->values[i]->ToJS());
 			}
 			v8::Local<v8::Value> args[1] = {obj};
-			func->Call(1, args);
+			callback->Call(1, args);
 		});
 	}
 }
