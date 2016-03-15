@@ -1,17 +1,5 @@
 in c++:
 
-Implement actual EachWorker functionality
-Learn how to use mutexes, to implement above
-	- uv_mutex_t async_lock;
-	- uv_mutex_init(&async_lock);
-	- uv_mutex_destroy(&async_lock);
-	- uv_mutex_lock(&async_lock);
-	- uv_mutex_unlock(&async_lock);
-Postential conflicts:
-	- getting any information from db handle (errors, last row id, changes) (not just in workers)
-	- pushing and flushing data in EachWorker
-	
-
 Replace all places with strncpy with strlcpy (or create a FixedList class for holding strings)
 
 Wait for Nan pull request

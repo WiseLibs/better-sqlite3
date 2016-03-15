@@ -141,9 +141,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	} else {                                                                   \
 		_handle = stmt->NewHandle();                                           \
 		if (_handle == NULL) {                                                 \
-			CONCAT2(_message, "SQLite: ", sqlite3_errmsg(stmt->db_handle));    \
 			sqlite3_finalize(_handle);                                         \
-			return Nan::ThrowError(_message);                                  \
+			return Nan::ThrowError(                                            \
+				"SQLite failed to create a prepared statement");               \
 		}                                                                      \
 		_i = -1;                                                               \
 	}
@@ -177,5 +177,11 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
+
+#define LOCK_DB(db_handle)                                                     \
+	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle));
+
+#define UNLOCK_DB(db_handle)                                                   \
+	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle));
 
 #endif

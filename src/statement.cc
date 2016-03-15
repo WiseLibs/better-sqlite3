@@ -59,10 +59,13 @@ class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 	public:
 		EachWorker(Statement*, sqlite3_stmt*, int, int, Nan::Callback*);
+		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
 		void HandleProgressCallback(const char* data, size_t size);
 		void HandleOKCallback();
 	private:
+		sqlite3_mutex* data_mutex;
+		sqlite3_mutex* handle_mutex;
 		const int pluck_column;
 		int column_end;
 		bool cached_names;
@@ -146,12 +149,11 @@ NAN_METHOD(Statement::Cache) {
 	for (int i=0; i<len; i++) {
 		handles[i] = stmt->NewHandle();
 		if (handles[i] == NULL) {
-			CONCAT2(message, "SQLite: ", sqlite3_errmsg(stmt->db_handle));
 			for (; i>=0; i--) {
 				sqlite3_finalize(handles[i]);
 			}
 			delete[] handles;
-			return Nan::ThrowError(message);
+			return Nan::ThrowError("SQLite failed to create a prepared statement.");
 		}
 	}
 	
@@ -317,6 +319,7 @@ void StatementWorker<T>::HandleErrorCallback() {
 RunWorker::RunWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index) {}
 void RunWorker::Execute() {
+	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_DONE || status == SQLITE_ROW) {
 		changes = sqlite3_changes(db_handle);
@@ -324,6 +327,7 @@ void RunWorker::Execute() {
 	} else {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	UNLOCK_DB(db_handle);
 }
 void RunWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -343,6 +347,7 @@ GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, in
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
 	pluck_column(pluck_column) {}
 void GetWorker::Execute() {
+	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
 	if (status == SQLITE_ROW) {
@@ -350,6 +355,7 @@ void GetWorker::Execute() {
 	} else if (status != SQLITE_DONE) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	UNLOCK_DB(db_handle);
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -380,6 +386,7 @@ AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, in
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
 	pluck_column(pluck_column), row_count(0) {}
 void AllWorker::Execute() {
+	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
 	column_end = end;
@@ -393,6 +400,7 @@ void AllWorker::Execute() {
 	if (status != SQLITE_DONE) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	UNLOCK_DB(db_handle);
 }
 void AllWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -405,14 +413,14 @@ void AllWorker::HandleOKCallback() {
 	// 			Nan::Set(arr, i++, row->values[0]->ToJS());
 	// 		});
 	// 	} else {
-	// 		const char* names[column_end];
+	// 		v8::Local<v8::Array> columnNames = Nan::New<v8::Array>(column_end);
 	// 		for (int j=0; j<column_end; j++) {
-	// 			names[j] = sqlite3_column_name(handle, j);
+	// 			Nan::Set(columnNames, j, Nan::New(sqlite3_column_name(handle, j)).ToLocalChecked());
 	// 		}
-	// 		rows.Flush([&arr, &i, &names] (Data::Row* row) {
+	// 		rows.Flush([&arr, &i, &columnNames] (Data::Row* row) {
 	// 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 	// 			for (int j=0; j<row->column_count; j++) {
-	// 				Nan::ForceSet(obj, Nan::New(names[j]).ToLocalChecked(), row->values[j]->ToJS());
+	// 				Nan::ForceSet(obj, Nan::Get(columnNames, i), row->values[j]->ToJS());
 	// 			}
 	// 			Nan::Set(arr, i++, obj);
 	// 		});
@@ -428,8 +436,22 @@ void AllWorker::HandleOKCallback() {
 
 EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* cb)
 	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
-	pluck_column(pluck_column), cached_names(false) {callback = cb;}
+	data_mutex(NULL), handle_mutex(NULL), pluck_column(pluck_column), cached_names(false) {callback = cb;}
+EachWorker::~EachWorker() {
+	sqlite3_mutex_free(data_mutex);
+	sqlite3_mutex_free(handle_mutex);
+}
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
+	LOCK_DB(db_handle);
+	data_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
+	if (data_mutex == NULL) {
+		return SetErrorMessage("Out of memory.");
+	}
+	handle_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
+	if (handle_mutex == NULL) {
+		return SetErrorMessage("Out of memory.");
+	}
+	
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
 	column_end = end;
@@ -443,19 +465,35 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 	
 	while (status == SQLITE_ROW) {
 		Data::Row* row = new Data::Row();
+		
+		sqlite3_mutex_enter(data_mutex);
 		rows.Add(row);
 		Data::Row::Fill(row, handle, start, end);
+		sqlite3_mutex_leave(data_mutex);
+		
 		progress.Send("", 1);
+		
+		sqlite3_mutex_enter(handle_mutex);
 		status = sqlite3_step(handle);
+		sqlite3_mutex_leave(handle_mutex);
 	}
+	UNLOCK_DB(db_handle);
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
 	if (pluck_column >= 0) {
+		
+		sqlite3_mutex_enter(data_mutex);
 		rows.Flush([this] (Data::Row* row) {
 			v8::Local<v8::Value> args[1] = {row->values[0]->ToJS()};
+			
+			sqlite3_mutex_leave(data_mutex);
 			callback->Call(1, args);
+			sqlite3_mutex_enter(data_mutex);
+			
 		});
+		sqlite3_mutex_leave(data_mutex);
+		
 	} else {
 		v8::Local<v8::Array> columnNames;
 		if (cached_names) {
@@ -463,19 +501,30 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		} else {
 			cached_names = true;
 			columnNames = Nan::New<v8::Array>(column_end);
+			
+			sqlite3_mutex_enter(handle_mutex);
 			for (int i=0; i<column_end; i++) {
 				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked());
 			}
+			sqlite3_mutex_leave(handle_mutex);
+			
 			SaveToPersistent((uint32_t)1, columnNames);
 		}
-		rows.Flush([this] (Data::Row* row) {
+		
+		sqlite3_mutex_enter(data_mutex);
+		rows.Flush([this, &columnNames] (Data::Row* row) {
 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-			for (int i=0; i<row->column_count; i++) {
+			for (int i=0; i<row->column_end; i++) {
 				Nan::ForceSet(obj, Nan::Get(columnNames, i), row->values[i]->ToJS());
 			}
+			
+			sqlite3_mutex_leave(data_mutex);
 			v8::Local<v8::Value> args[1] = {obj};
 			callback->Call(1, args);
+			sqlite3_mutex_enter(data_mutex);
+			
 		});
+		sqlite3_mutex_leave(data_mutex);
 	}
 }
 void EachWorker::HandleOKCallback() {

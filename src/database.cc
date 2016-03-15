@@ -157,8 +157,7 @@ NAN_METHOD(Database::PrepareStatement) {
 	
 	// Validates the sqlite3_stmt.
 	if (status != SQLITE_OK) {
-		CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->readHandle), ")");
-		return Nan::ThrowError(message);
+		return Nan::ThrowError("Failed to construct the SQL statement.");
 	}
 	if (handle == NULL) {
 		return Nan::ThrowError("The supplied SQL query contains no statements.");
@@ -174,8 +173,7 @@ NAN_METHOD(Database::PrepareStatement) {
 		stmt->handles[0] = handle;
 		
 		if (status != SQLITE_OK) {
-			CONCAT3(message, "Failed to construct the SQL statement. (", sqlite3_errmsg(db->writeHandle), ")");
-			return Nan::ThrowError(message);
+			return Nan::ThrowError("Failed to construct the SQL statement.");
 		}
 		
 		stmt->db_handle = db->writeHandle;
