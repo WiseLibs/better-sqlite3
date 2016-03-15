@@ -2,7 +2,6 @@
 #define NODE_SQLITE3_PLUS_MACROS_H
 
 #include <cstring>
-#include <cstdlib>
 #include <cmath>
 #include <sqlite3.h>
 #include <nan.h>

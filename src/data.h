@@ -46,7 +46,7 @@ class Text : public Data::Value { public:
 		value = new char[length + 1];
 		strncpy(value, *utf8, length + 1);
 	}
-	~Text() {delete value;}
+	~Text() {delete[] value;}
 	v8::Local<v8::Value> ToJS() {return Nan::New<v8::String>(value, length).ToLocalChecked();}
 	char* value; // Is NUL-terminated.
 	int length; // Does not include the NUL terminator.
@@ -69,7 +69,7 @@ class Blob : public Data::Value { public:
 		value = new char[length];
 		memcpy(value, node::Buffer::Data(buffer), length);
 	}
-	~Blob() {if (!transferred) {delete value;}}
+	~Blob() {if (!transferred) {delete[] value;}}
 	v8::Local<v8::Value> ToJS() {
 		transferred = true;
 		return Nan::NewBuffer(value, length).ToLocalChecked();
