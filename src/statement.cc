@@ -48,7 +48,6 @@ class GetWorker : public StatementWorker<Nan::AsyncWorker> {
 class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
 		AllWorker(Statement*, sqlite3_stmt*, int, int);
-		~AllWorker();
 		void Execute();
 		void HandleOKCallback();
 	private:
@@ -383,11 +382,6 @@ void GetWorker::HandleOKCallback() {
 AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
 	pluck_column(pluck_column), row_count(0) {}
-AllWorker::~AllWorker() {
-	rows.Flush([] (Data::Row* row) {
-		delete row;
-	});
-}
 void AllWorker::Execute() {
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
@@ -412,7 +406,7 @@ void AllWorker::HandleOKCallback() {
 	if (row_count > 0) {
 		int i = 0;
 		if (pluck_column >= 0) {
-			rows.Each([&arr, &i] (Data::Row* row) {
+			rows.Flush([&arr, &i] (Data::Row* row) {
 				Nan::Set(arr, i++, row->values[0]->ToJS());
 			});
 		} else {
@@ -420,7 +414,7 @@ void AllWorker::HandleOKCallback() {
 			for (int j=0; j<column_end; j++) {
 				names[j] = sqlite3_column_name(handle, j);
 			}
-			rows.Each([&arr, &i, &names] (Data::Row* row) {
+			rows.Flush([&arr, &i, &names] (Data::Row* row) {
 				v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 				for (int j=0; j<row->column_count; j++) {
 					Nan::ForceSet(obj, Nan::New(names[j]).ToLocalChecked(), row->values[j]->ToJS());
@@ -443,9 +437,6 @@ EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, 
 		callback = new Nan::Callback();
 	}
 EachWorker::~EachWorker() {
-	rows.Flush([] (Data::Row* row) {
-		delete row;
-	});
 	delete func;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {

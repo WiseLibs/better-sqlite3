@@ -44,7 +44,9 @@ Database::Database() : Nan::ObjectWrap(),
 	writeHandle(NULL),
 	state(DB_CONNECTING),
 	requests(0),
-	workers(0) {}
+	workers(0) {
+		stmts.owner = false;
+	}
 Database::~Database() {
 	state = DB_DONE;
 	stmts.Flush(Statement::CloseStatementFunction());
@@ -133,7 +135,7 @@ NAN_METHOD(Database::PrepareStatement) {
 	// Allocates source string.
 	Nan::Utf8String utf8(source);
 	int utf8_len = utf8.length() + 1;
-	char* utf8_value = (char*) malloc(utf8_len);
+	char* utf8_value = new char[utf8_len];
 	strncpy(utf8_value, *utf8, utf8_len);
 	
 	// Initializes object properties.
@@ -208,7 +210,7 @@ NAN_METHOD(Database::PrepareTransaction) {
 OpenWorker::OpenWorker(Database* db, char* filename)
 	: Nan::AsyncWorker(NULL), db(db), filename(filename) {}
 OpenWorker::~OpenWorker() {
-	free(filename);
+	delete filename;
 }
 void OpenWorker::Execute() {
 	int status;
