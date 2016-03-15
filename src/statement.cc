@@ -66,6 +66,8 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 		void HandleOKCallback();
 	private:
 		int pluck_column;
+		int column_count;
+		char** column_names;
 		List<Data::Row> rows;
 		Nan::Callback* func;
 };
@@ -347,9 +349,7 @@ void GetWorker::Execute() {
 	int status = sqlite3_step(handle);
 	GET_ROW_RANGE(start, end);
 	if (status == SQLITE_ROW) {
-		if (Data::Row::Fill(&row, handle, start, end)) {
-			SetErrorMessage("SQLite returned an unrecognized data type.");
-		}
+		Data::Row::Fill(&row, handle, start, end);
 	} else if (status != SQLITE_DONE) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
@@ -390,9 +390,7 @@ void AllWorker::Execute() {
 		row_count++;
 		Data::Row* row = new Data::Row();
 		rows.Add(row);
-		if (Data::Row::Fill(row, handle, start, end)) {
-			return SetErrorMessage("SQLite returned an unrecognized data type.");
-		}
+		Data::Row::Fill(row, handle, start, end);
 		status = sqlite3_step(handle);
 	}
 	if (status != SQLITE_DONE) {
@@ -433,28 +431,68 @@ void AllWorker::HandleOKCallback() {
 
 EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* func)
 	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
-	pluck_column(pluck_column), func(func) {
+	pluck_column(pluck_column), column_count(0), column_names(NULL), func(func) {
+		// This is a hack required because AsyncProgressWorker will not send
+		// progress if callback is NULL (it thinks the worker is done).
 		callback = new Nan::Callback();
 	}
 EachWorker::~EachWorker() {
+	for (int i=0; i<column_count; i++) {
+		delete column_names[i];
+	}
+	delete[] column_names;
 	delete func;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
-	// First determine if there will be any errors
-	// Then do actual row steps, pushing rows to queue and invoking progress.Send() after each one
-	// Make sure the queue is protected by a mutex
-	progress.Send("", 1);
-	progress.Send("", 1);
+	int status = sqlite3_step(handle);
+	GET_ROW_RANGE(start, end);
+	
+	if (status != SQLITE_ROW) {
+		if (status != SQLITE_DONE) {
+			SetErrorMessage(sqlite3_errmsg(db_handle));
+		}
+		return;
+	}
+	
+	if (pluck_column == -1) {
+		column_count = end;
+		column_names = new char* [column_count];
+		for (int i=0; i<column_count; i++) {
+			const char* name = sqlite3_column_name(handle, i);
+			size_t len = strlen(name) + 1;
+			column_names[i] = new char[len];
+			strncpy(column_names[i], name, len);
+		}
+	}
+	
+	while (status == SQLITE_ROW) {
+		Data::Row* row = new Data::Row();
+		rows.Add(row);
+		Data::Row::Fill(row, handle, start, end);
+		progress.Send("", 1);
+		status = sqlite3_step(handle);
+	}
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
-	// Flush queue and invoke func with each row in the queue
-	// Make sure the queue is protected by a mutex
-	v8::Local<v8::Value> args[1] = {Nan::New("foobar").ToLocalChecked()};
-	func->Call(1, args);
+	if (pluck_column >= 0) {
+		rows.Flush([this] (Data::Row* row) {
+			v8::Local<v8::Value> args[1] = {row->values[0]->ToJS()};
+			func->Call(1, args);
+		});
+	} else {
+		rows.Flush([this] (Data::Row* row) {
+			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+			for (int i=0; i<row->column_count; i++) {
+				Nan::ForceSet(obj, Nan::New(column_names[i]).ToLocalChecked(), row->values[i]->ToJS());
+			}
+			v8::Local<v8::Value> args[1] = {obj};
+			func->Call(1, args);
+		});
+	}
 }
 void EachWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-	// Flush queue and invoke func with each row in the queue
+	HandleProgressCallback(NULL, 0);
 	Resolve(Nan::Undefined());
 }
