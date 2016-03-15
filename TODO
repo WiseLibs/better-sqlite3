@@ -9,9 +9,19 @@ Learn how to use mutexes, to implement above
 	- uv_mutex_unlock(&async_lock);
 Postential conflicts:
 	- getting any information from db handle (errors, last row id, changes) (not just in workers)
+	- pushing and flushing data in EachWorker
 	
-	
+
+Replace all places with strncpy with strlcpy (or create a FixedList class for holding strings)
+
 Wait for Nan pull request
+
+Make sure that SQLITE_ERROR cannot happen after SQLITE_ROW. If it CAN, then change workers to behave accordingly.
+
+Maybe optimize column name and count checking by caching in stmt object, and doing dirty checking (would require mutexes)
+
+
+
 
 Two JavaScript APIs:
 - begin()

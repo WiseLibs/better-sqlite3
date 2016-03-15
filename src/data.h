@@ -107,11 +107,8 @@ class Row {
 		
 		// Given a row that has not yet been initialized, an sqlite3_stmt
 		// handle, and a valid slice of columns for an avilable result row,
-		// fills the row with the values given by the sqlite3_stmt. An error
-		// code of 1 is returned if an unrecognized data type is found. If this
-		// occurs, the row will be left arbitrarily incomplete, and should
-		// generally not be used.
-		static inline int Fill(Row* row, sqlite3_stmt* handle, int i, int len) {
+		// fills the row with the values given by the sqlite3_stmt.
+		static inline void Fill(Row* row, sqlite3_stmt* handle, int i, int len) {
 			row->Init(len - i);
 			for (; i<len; i++) {
 				int type = sqlite3_column_type(handle, i);
@@ -128,14 +125,10 @@ class Row {
 					case SQLITE_BLOB:
 						row->Add(new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i)));
 						break;
-					case SQLITE_NULL:
+					default: // SQLITE_NULL
 						row->Add(new Data::Null());
-						break;
-					default:
-						return 1;
 				}
 			}
-			return 0;
 		}
 		
 		// max_columns must never be less than 1.
