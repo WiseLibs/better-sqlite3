@@ -185,7 +185,7 @@ NAN_METHOD(Database::PrepareStatement) {
 		stmt->readonly = true;
 	}
 	
-	// Push onto stmts list.
+	// Pushes onto stmts list.
 	db->stmts.Add(stmt);
 	
 	info.GetReturnValue().Set(statement);
