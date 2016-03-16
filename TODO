@@ -27,6 +27,11 @@ remember to do db->Ref() and stmt->Ref() on every async operation, to protect fr
 
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
+In final module.export, inherit from c++ Database, and validate input string:
+	- trim()
+	- make sure it's not /^file:/i or /^(:memory:)?$/i
+	- if the "memory" option is truthy,
+		turn filename to ("file:" + filename + "?mode=memory&cache=shared")
 
 
 startTransaction() API does:
