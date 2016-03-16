@@ -61,7 +61,7 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 		EachWorker(Statement*, sqlite3_stmt*, int, int, Nan::Callback*);
 		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
-		void HandleProgressCallback(const char* data, size_t size);
+		void HandleProgressCallback(const char*, size_t);
 		void HandleOKCallback();
 	private:
 		sqlite3_mutex* data_mutex;
