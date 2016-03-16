@@ -12,7 +12,7 @@ class Statement : public Nan::ObjectWrap {
 		~Statement();
 		static void Init();
 		class CloseStatementFunction { public:
-		    void operator()(Statement* stmt, int i) const {
+		    void operator()(Statement* stmt, int i = 0) const {
 		        stmt->closed = true;
 		    	stmt->FreeHandles();
 		    }

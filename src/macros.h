@@ -1,17 +1,17 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
-#include <cstring>
 #include <cmath>
 #include <sqlite3.h>
 #include <nan.h>
+#include "strlcpy.h"
 
 inline char* RAW_STRING(v8::Handle<v8::String> val) {
 	Nan::Utf8String utf8(val);
 	
 	int len = utf8.length() + 1;
 	char* str = new char[len];
-	strncpy(str, *utf8, len);
+	strlcpy(str, *utf8, len);
 	
 	return str;
 }
