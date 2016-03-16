@@ -3,7 +3,8 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
-#include "list.h"
+#include "util/handle_manager.h"
+#include "util/list.h"
 #include "data.h"
 #include "database.h"
 #include "statement.h"
@@ -78,21 +79,13 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 
 Statement::Statement() : Nan::ObjectWrap(),
 	db(NULL),
-	source_string(NULL),
-	pluck_column(-1),
-	closed(false),
-	handles(NULL),
-	handle_states(NULL),
-	handle_count(0),
-	next_handle(0),
 	config_locked(false),
-	requests(0) {}
+	requests(0),
+	pluck_column(-1) {}
 Statement::~Statement() {
-	if (!closed) {
-		if (db) {db->stmts.Remove(this);}
-		CloseStatementFunction()(this);
+	if (handles.Close() && db != NULL) {
+		db->stmts.Remove(this);
 	}
-	free(source_string);
 }
 void Statement::Init() {
 	Nan::HandleScope scope;
@@ -144,23 +137,14 @@ NAN_METHOD(Statement::Cache) {
 	}
 	
 	int len = (int)numberValue;
-	sqlite3_stmt** handles = new sqlite3_stmt* [len];
+	HandleManager handles = HandleManager(stmt, len);
 	
-	for (int i=0; i<len; i++) {
-		handles[i] = stmt->NewHandle();
-		if (handles[i] == NULL) {
-			for (; i>=0; i--) {
-				sqlite3_finalize(handles[i]);
-			}
-			delete[] handles;
-			return Nan::ThrowError("SQLite failed to create a prepared statement.");
-		}
+	if (handles.Fill([&stmt] {return stmt->NewHandle();})) {
+		return Nan::ThrowError("SQLite failed to create a prepared statement.");
 	}
 	
-	stmt->FreeHandles();
 	stmt->handles = handles;
-	stmt->handle_states = new bool [len]();
-	stmt->handle_count = len;
+	handles.owner = false;
 	
 	info.GetReturnValue().Set(info.This());
 }
@@ -181,7 +165,7 @@ NAN_METHOD(Statement::Pluck) {
 	if (arg->IsFalse()) {
 		stmt->pluck_column = -1;
 	} else {
-		sqlite3_stmt* handle = stmt->handles[0];
+		sqlite3_stmt* handle = stmt->handles.First();
 		int column_count = sqlite3_column_count(handle);
 		
 		if (arg->IsTrue()) {
@@ -256,16 +240,9 @@ NAN_METHOD(Statement::Each) {
 	EachWorker* worker = new EachWorker(stmt, _handle, _i, stmt->pluck_column, new Nan::Callback(func));
 	STATEMENT_END(stmt, worker);
 }
-void Statement::FreeHandles() {
-	for (int i=0; i<handle_count; i++) {
-		sqlite3_finalize(handles[i]);
-	}
-	delete[] handles;
-	delete[] handle_states;
-}
 sqlite3_stmt* Statement::NewHandle() {
 	sqlite3_stmt* handle;
-	sqlite3_prepare_v2(db_handle, source_string, source_length, &handle, NULL);
+	sqlite3_prepare_v2(db_handle, source.data, source.length, &handle, NULL);
 	return handle;
 }
 
@@ -292,12 +269,7 @@ template <class T>
 void StatementWorker<T>::FinishRequest() {
 	stmt->requests -= 1;
 	stmt->db->requests -= 1;
-	if (handle_index == -1) {
-		sqlite3_finalize(handle);
-	} else {
-		stmt->handle_states[handle_index] = false;
-		sqlite3_reset(handle);
-	}
+	stmt->handles.Release(handle_index, handle);
 	if (stmt->requests == 0) {
 		stmt->Unref();
 		if (stmt->db->state == DB_DONE && stmt->db->requests == 0) {
@@ -309,7 +281,7 @@ template <class T>
 void StatementWorker<T>::HandleErrorCallback() {
 	Nan::HandleScope scope;
 	CONCAT2(message, "SQLite: ", T::ErrorMessage());
-	Reject(v8::Exception::Error(message));
+	Reject(Nan::Error(message));
 }
 
 

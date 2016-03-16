@@ -2,7 +2,7 @@
 #define NODE_SQLITE3_PLUS_DATA_H
 #include <sqlite3.h>
 #include <nan.h>
-#include "strlcpy.h"
+#include "util/strlcpy.h"
 
 namespace Data {
 

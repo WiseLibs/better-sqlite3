@@ -4,6 +4,8 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "macros.h"
+#include "util/frozen-buffer.h"
+#include "util/handle-manager.h"
 class Database;
 
 class Statement : public Nan::ObjectWrap {
@@ -11,12 +13,6 @@ class Statement : public Nan::ObjectWrap {
 		Statement();
 		~Statement();
 		static void Init();
-		class CloseStatementFunction { public:
-		    void operator()(Statement* stmt, int i = 0) const {
-		        stmt->closed = true;
-		    	stmt->FreeHandles();
-		    }
-		};
 		
 		friend class Database;
 		template <class T> friend class StatementWorker;
@@ -31,23 +27,21 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(Get);
 		static NAN_METHOD(All);
 		static NAN_METHOD(Each);
-		void FreeHandles();
 		sqlite3_stmt* NewHandle(); // This should only be invoked while db.state == DB_READY
 		
+		// Sqlite3 interfacing
 		Database* db;
 		sqlite3* db_handle;
-		char* source_string; // NUL-terminated
-		int source_length; // DOES include the NUL terminator
-		bool readonly;
-		int pluck_column;
-		bool closed; // Whether the statement's handles have been freed before garbage collection, by Database::Close()
+		HandleManager handles;
 		
-		sqlite3_stmt** handles;
-		bool* handle_states;
-		int handle_count;
-		int next_handle;
+		// State
 		bool config_locked;
 		unsigned int requests;
+		
+		// Config
+		FrozenBuffer source;
+		bool readonly;
+		int pluck_column;
 };
 
 #endif
