@@ -457,14 +457,6 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 	GET_ROW_RANGE(start, end);
 	column_end = end;
 	
-	if (status != SQLITE_ROW) {
-		if (status != SQLITE_DONE) {
-			SetErrorMessage(sqlite3_errmsg(db_handle));
-		}
-		UNLOCK_DB(db_handle);
-		return;
-	}
-	
 	while (status == SQLITE_ROW) {
 		Data::Row* row = new Data::Row();
 		
@@ -479,6 +471,11 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 		status = sqlite3_step(handle);
 		sqlite3_mutex_leave(handle_mutex);
 	}
+	
+	if (status != SQLITE_DONE) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+	}
+	
 	UNLOCK_DB(db_handle);
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {

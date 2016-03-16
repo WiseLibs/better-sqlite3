@@ -1,5 +1,6 @@
 #include <sqlite3.h>
 #include <nan.h>
+#include "strlcpy.h"
 #include "macros.h"
 #include "statement.h"
 #include "transaction.h"
@@ -135,7 +136,7 @@ NAN_METHOD(Database::PrepareStatement) {
 	Nan::Utf8String utf8(source);
 	int utf8_len = utf8.length() + 1;
 	char* utf8_value = new char[utf8_len];
-	strncpy(utf8_value, *utf8, utf8_len);
+	strlcpy(utf8_value, *utf8, utf8_len);
 	
 	// Initializes object properties.
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);

@@ -2,6 +2,7 @@
 #define NODE_SQLITE3_PLUS_DATA_H
 #include <sqlite3.h>
 #include <nan.h>
+#include "strlcpy.h"
 
 namespace Data {
 
@@ -38,13 +39,13 @@ class Text : public Data::Value { public:
 	Text(const unsigned char* str, int len) {
 		length = len;
 		value = new char[len + 1];
-		strncpy(value, (const char*)str, len + 1);
+		strlcpy(value, (const char*)str, len + 1);
 	}
 	Text(v8::Local<v8::String> str) {
 		Nan::Utf8String utf8(str);
 		length = utf8.length();
 		value = new char[length + 1];
-		strncpy(value, *utf8, length + 1);
+		strlcpy(value, *utf8, length + 1);
 	}
 	~Text() {delete[] value;}
 	v8::Local<v8::Value> ToJS() {return Nan::New<v8::String>(value, length).ToLocalChecked();}

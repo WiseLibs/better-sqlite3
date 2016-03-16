@@ -1,18 +1,5 @@
 in c++:
 
-optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
-
-Replace all places with strncpy with strlcpy
-
-Wait for Nan pull request
-
-Make sure that SQLITE_ERROR cannot happen after SQLITE_ROW. If it CAN, then change workers to behave accordingly.
-
-use SQLITE_ENABLE_API_ARMOR compilation option while developing
-
-assure that all places that use int as a sizer are checked for maximum values
-
-
 Two JavaScript APIs:
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with an object describing the changes, or rejects with an Error.
@@ -26,14 +13,19 @@ This returns a Statement object. It can only consist of the single SQL statement
 
 assure that shared cache and in-memory databases work properly
 
+assure that all places that use int as a sizer are checked for maximum values
+
+Wait for Nan pull request
+
+optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
 
 use mutexes where appropriate
 
-
 settings pragmas will currently only affect the writeHandle connection; there should be an API for this
 
-
 remember to do db->Ref() and stmt->Ref() on every async operation, to protect from garbage collection
+
+use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 
 
