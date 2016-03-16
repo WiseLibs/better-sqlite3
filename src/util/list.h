@@ -10,9 +10,10 @@ class List {
 		} Node;
 		Node* front;
 		Node* end;
+		bool owner;
 		
 	public:
-		List() : front(NULL), end(NULL), owner(true) {}
+		List(bool owner = true) : front(NULL), end(NULL), owner(owner) {}
 		
 		// Unless `owner` is false when destruction occurs, items that were
 		// added to the list are automatically `delete`d. This is not
@@ -110,8 +111,6 @@ class List {
 			front = NULL;
 			end = NULL;
 		}
-		
-		bool owner;
 };
 
 #endif

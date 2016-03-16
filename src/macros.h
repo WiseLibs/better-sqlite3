@@ -1,20 +1,115 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
-#include <cmath>
+// #include <cmath>
+#include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
-#include "strlcpy.h"
+#include "util/strlcpy.h"
 
-inline char* RAW_STRING(v8::Handle<v8::String> val) {
-	Nan::Utf8String utf8(val);
+// Given a v8::String, returns a pointer to a heap-allocated C-String clone.
+inline char* C_STRING(v8::Local<v8::String> string) {
+	Nan::Utf8String utf8(string);
 	
-	int len = utf8.length() + 1;
-	char* str = new char[len];
-	strlcpy(str, *utf8, len);
+	size_t len = utf8.length() + 1;
+	char* str = new char[size_t];
+	strlcpy(str, *utf8, size_t);
 	
 	return str;
 }
+
+// Creates a stack-allocated buffer of the concatenation of 2 well-formed
+// C-strings.
+#define CONCAT2(result, a, b)                                                  \
+	char* result = char[strlen(a) + strlen(b) + 1];                            \
+	strcpy(result, a);                                                         \
+	strcat(result, b);
+
+// Creates a stack-allocated buffer of the concatenation of 3 well-formed
+// C-strings.
+#define CONCAT3(result, a, b, c)                                               \
+	char* result = char[strlen(a) + strlen(b) + strlen(c) + 1];                \
+	strcpy(result, a);                                                         \
+	strcat(result, b);                                                         \
+	strcat(result, c);
+
+// Given a v8::Object and a C-string method name, retrieves the v8::Function
+// representing that method. If the getter throws, or if the property is not a
+// function, an error is thrown and the caller returns.
+#define GET_METHOD(result, obj, methodName)                                    \
+	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
+		Nan::Get(obj, Nan::New(methodName).ToLocalChecked());                  \
+	if (_maybeMethod.IsEmpty()) {return;}                                      \
+	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
+	if (!_localMethod->IsFunction()) {                                         \
+		return Nan::ThrowTypeError(                                            \
+			"" #obj "[" #methodName "]() is not a function");                  \
+	}                                                                          \
+	v8::Local<v8::Function> result =                                           \
+		v8::Local<v8::Function>::Cast(_localMethod);
+
+// Invokes the `emit` method on the given v8::Object, with the given args.
+// If the `emit` method cannot be retrieved, an error is thrown and the caller
+// returns. This should ONLY be invoked in a libuv async callback.
+#define EMIT_EVENT(obj, argc, argv)                                            \
+	GET_METHOD(_method, obj, "emit");                                          \
+	Nan::MakeCallback(obj, _method, argc, argv);                               \
+
+// Invokes the `emitAsync` method on the given v8::Object, with the given args.
+// If the `emitAsync` method cannot be retrieved, an error is thrown and the
+// caller returns. This should ONLY be invoked in a libuv async callback.
+#define EMIT_EVENT_ASYNC(obj, argc, argv)                                      \
+	GET_METHOD(_method, obj, "emitAsync");                                     \
+	Nan::MakeCallback(obj, _method, argc, argv);                               \
+
+// If the argument of the given index is not a string, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::String and made available
+// at the given variable name.
+#define REQUIRE_ARGUMENT_STRING(index, var)                                    \
+	if (info.Length() <= (index) || !info[index]->IsString()) {                \
+		return Nan::ThrowTypeError("Argument " #index " must be a string.");   \
+	}                                                                          \
+	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[index]);
+
+// Given a v8::Object and a C-string method name, retrieves the v8::Function
+// representing that method, and invokes it with the given args. If the getter
+// throws, if the property is not a function, or if the method throws, an error
+// is thrown and the caller returns.
+#define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
+	GET_METHOD(_method, obj, methodName);                                      \
+	Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
+		Nan::Call(_method, obj, argc, argv);                                   \
+	if (_maybeValue.IsEmpty()) {return;}                                       \
+	v8::Local<v8::Value> var = _maybeValue.ToLocalChecked();
+
+// Given a v8::String, replaces it with a version that has been trimmed by
+// String.prototype.trim. If any part of the process throws, or if the result
+// of String.prototype.trim is not a string, an error is thrown and the caller
+// returns.
+#define TRIM_STRING(string)                                                    \
+	v8::Local<v8::StringObject> _stringObject =                                \
+		Nan::New<v8::StringObject>(string);                                    \
+	INVOKE_METHOD(_trimmedString, _stringObject, "trim", 0, NULL);             \
+	if (!_trimmedString->IsString()) {                                         \
+		return Nan::ThrowTypeError(                                            \
+			"Expected String.prototype.trim to return a string.");             \
+	} else {                                                                   \
+		string = v8::Local<v8::String>::Cast(_trimmedString);                  \
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 inline bool IS_POSITIVE_INTEGER(double num) {
 	return std::isfinite(num) && num >= 0 && floor(num) == num;
@@ -31,11 +126,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
 
-#define REQUIRE_ARGUMENT_STRING(i, var)                                        \
-	if (info.Length() <= (i) || !info[i]->IsString()) {                        \
-		return Nan::ThrowTypeError("Argument " #i " must be a string.");       \
-	}                                                                          \
-	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[i]);
 
 #define REQUIRE_ARGUMENT_NUMBER(i, var)                                        \
 	if (info.Length() <= (i) || !info[i]->IsNumber()) {                        \
@@ -61,58 +151,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		var = v8::Local<v8::String>::Cast(info[i]);                            \
 	}
 
-#define CONCAT2(var, a, b)                                                     \
-	v8::Local<v8::String> var = v8::String::Concat(                            \
-		Nan::New(a).ToLocalChecked(),                                          \
-		Nan::New(b).ToLocalChecked()                                           \
-	);
 
-#define CONCAT3(var, a, b, c)                                                  \
-	v8::Local<v8::String> var = v8::String::Concat(                            \
-		v8::String::Concat(                                                    \
-			Nan::New(a).ToLocalChecked(),                                      \
-			Nan::New(b).ToLocalChecked()                                       \
-		),                                                                     \
-		Nan::New(c).ToLocalChecked()                                           \
-	);
-
-#define CONCAT4(var, a, b, c, d)                                               \
-	v8::Local<v8::String> var = v8::String::Concat(                            \
-		v8::String::Concat(                                                    \
-			Nan::New(a).ToLocalChecked(),                                      \
-			Nan::New(b).ToLocalChecked()                                       \
-		),                                                                     \
-		v8::String::Concat(                                                    \
-			Nan::New(c).ToLocalChecked(),                                      \
-			Nan::New(d).ToLocalChecked()                                       \
-		)                                                                      \
-	);
-
-#define GET_METHOD(var, obj, methodName)                                       \
-	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
-		Nan::Get(obj, Nan::New(methodName).ToLocalChecked());                  \
-	if (_maybeMethod.IsEmpty()) {return;}                                      \
-	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
-	if (!_localMethod->IsFunction()) {                                         \
-		return Nan::ThrowTypeError(                                            \
-			"" #obj "[" #methodName "]() is not a function");                  \
-	}                                                                          \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(_localMethod); \
-
-#define INVOKE_METHOD(var, obj, methodName, argc, argv)                        \
-	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
-		Nan::Call(_method, obj, argc, argv);                                   \
-	if (_maybeValue.IsEmpty()) {return;}                                       \
-	v8::Local<v8::Value> var = _maybeValue.ToLocalChecked();
-
-#define EMIT_EVENT(obj, argc, argv)                                            \
-	GET_METHOD(_method, obj, "emit");                                          \
-	Nan::MakeCallback(obj, _method, argc, argv);                               \
-
-#define EMIT_EVENT_ASYNC(obj, argc, argv)                                      \
-	GET_METHOD(_method, obj, "emitAsync");                                     \
-	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
 // TODO: Use bluebird library instead.
 #define STATEMENT_START(stmt)                                                  \
@@ -131,21 +170,10 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		= _maybeResolver.ToLocalChecked();                                     \
 	                                                                           \
 	sqlite3_stmt* _handle;                                                     \
-	int _i = stmt->next_handle;                                                \
-	if (!stmt->handle_states[_i]) {                                            \
-		stmt->handle_states[_i] = true;                                        \
-		_handle = stmt->handles[_i];                                           \
-		if (++stmt->next_handle >= stmt->handle_count) {                       \
-			stmt->next_handle = 0;                                             \
-		}                                                                      \
-	} else {                                                                   \
-		_handle = stmt->NewHandle();                                           \
-		if (_handle == NULL) {                                                 \
-			sqlite3_finalize(_handle);                                         \
-			return Nan::ThrowError(                                            \
-				"SQLite failed to create a prepared statement");               \
-		}                                                                      \
-		_i = -1;                                                               \
+	int _i = stmt->handles.Request(&_handle);                                  \
+	if (_handle == NULL) {                                                     \
+		return Nan::ThrowError(                                                \
+			"SQLite failed to create a prepared statement");                   \
 	}
 
 #define STATEMENT_END(stmt, worker)                                            \
