@@ -1,3 +1,6 @@
+#ifndef NODE_SQLITE3_PLUS_STRLCPY_H
+#define NODE_SQLITE3_PLUS_STRLCPY_H
+
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>
  * All rights reserved.
@@ -59,5 +62,7 @@ size_t strlcpy(char* dst, const char* src, size_t siz) {
 
 	return(s - src - 1);    /* count does not include NUL */
 }
+
+#endif
 
 #endif

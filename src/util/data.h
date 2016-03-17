@@ -1,8 +1,9 @@
 #ifndef NODE_SQLITE3_PLUS_DATA_H
 #define NODE_SQLITE3_PLUS_DATA_H
+#include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
-#include "util/strlcpy.h"
+#include "strlcpy.h"
 
 namespace Data {
 
@@ -36,10 +37,9 @@ class Float : public Data::Value { public:
 // NUL-terminated string, and len should be the number of bytes in the string,
 // not including the NUL terminator.
 class Text : public Data::Value { public:
-	Text(const unsigned char* str, int len) {
-		length = len;
-		value = new char[len + 1];
-		strlcpy(value, (const char*)str, len + 1);
+	Text(const unsigned char* str, int len) : length(len) {
+		value = new char[length + 1];
+		strlcpy(value, (const char*)str, length + 1);
 	}
 	Text(v8::Local<v8::String> str) {
 		Nan::Utf8String utf8(str);
@@ -58,14 +58,11 @@ class Text : public Data::Value { public:
 // include. The len argument is the number of bytes. Invoking ToJS() multiple
 // times returns Buffers that all point to the same underlying memory.
 class Blob : public Data::Value { public:
-	Blob(const void* data, int len) {
-		transferred = false;
-		length = len;
-		value = new char[len];
-		memcpy(value, data, len);
+	Blob(const void* data, int len) : transferred(false), length(len) {
+		value = new char[length];
+		memcpy(value, data, length);
 	}
-	Blob(v8::Local<v8::Object> buffer) {
-		transferred = false;
+	Blob(v8::Local<v8::Object> buffer) : transferred(false) {
 		length = node::Buffer::Length(buffer);
 		value = new char[length];
 		memcpy(value, node::Buffer::Data(buffer), length);
@@ -77,6 +74,8 @@ class Blob : public Data::Value { public:
 	}
 	char* value;
 	int length;
+	
+private:
 	bool transferred;
 };
 
@@ -98,9 +97,9 @@ class Null : public Data::Value { public:
 // passed to Init() must never be less than 1.
 class Row {
 	public:
-		Row() : column_count(0), init(false) {}
+		Row() : column_count(0), values(NULL) {}
 		~Row() {
-			if (init) {
+			if (values) {
 				for (int i=0; i<column_count; i++) {delete values[i];}
 				delete[] values;
 			}
@@ -134,7 +133,6 @@ class Row {
 		
 		// max_columns must never be less than 1.
 		inline void Init(int max_columns) {
-			init = true;
 			values = new Data::Value* [max_columns];
 		}
 		
@@ -144,8 +142,6 @@ class Row {
 		
 		int column_count;
 		Data::Value** values;
-	private:
-		bool init;
 };
 
 }

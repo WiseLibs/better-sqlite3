@@ -1,8 +1,8 @@
 #include <sqlite3.h>
 #include <nan.h>
-#include "../macros.h"
-#include "../statement.h"
 #include "close.h"
+#include "../objects/statement/statement.h"
+#include "../util/macros.h"
 
 CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker(NULL),
 	db(db),

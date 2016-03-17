@@ -4,8 +4,8 @@
 // Dependencies
 #include <sqlite3.h>
 #include <nan.h>
-#include "macros.h"
-#include "util/list.h"
+#include "../../util/macros.h"
+#include "../../util/list.h"
 class Statement;
 
 // Globals

@@ -2,7 +2,7 @@
 #define NODE_SQLITE3_PLUS_HANDLE_MANAGER_H
 
 #include <sqlite3.h>
-#include "../statement.h"
+#include "../objects/statement/statement.h"
 
 // This is used by Statements to manage their cache of sqlite3_stmt handles.
 // Use the Request() method to get a reference to an available handle. If a
