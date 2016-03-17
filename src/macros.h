@@ -1,7 +1,7 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
-// #include <cmath>
+#include <cmath>
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
@@ -16,6 +16,12 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 	strlcpy(str, *utf8, size_t);
 	
 	return str;
+}
+
+// Given a double, returns whether the number is non-negative, finite, and
+// an integer.
+inline bool IS_POSITIVE_INTEGER(double num) {
+	return std::isfinite(num) && num >= 0 && floor(num) == num;
 }
 
 // Creates a stack-allocated buffer of the concatenation of 2 well-formed
@@ -111,9 +117,7 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 
 
 
-inline bool IS_POSITIVE_INTEGER(double num) {
-	return std::isfinite(num) && num >= 0 && floor(num) == num;
-}
+
 
 #define REQUIRE_ARGUMENTS(n)                                                   \
 	if (info.Length() < (n)) {                                                 \
@@ -170,7 +174,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		= _maybeResolver.ToLocalChecked();                                     \
 	                                                                           \
 	sqlite3_stmt* _handle;                                                     \
-	int _i = stmt->handles.Request(&_handle);                                  \
+	int _i = stmt->handles->Request(&_handle);                                 \
 	if (_handle == NULL) {                                                     \
 		return Nan::ThrowError(                                                \
 			"SQLite failed to create a prepared statement");                   \

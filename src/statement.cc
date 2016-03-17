@@ -79,13 +79,17 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 
 Statement::Statement() : Nan::ObjectWrap(),
 	db(NULL),
+	handles(NULL),
+	source(NULL),
 	config_locked(false),
 	requests(0),
 	pluck_column(-1) {}
 Statement::~Statement() {
-	if (handles.Close() && db != NULL) {
+	if (handles && db) {
 		db->stmts.Remove(this);
 	}
+	delete handles;
+	delete source;
 }
 void Statement::Init() {
 	Nan::HandleScope scope;
@@ -136,15 +140,15 @@ NAN_METHOD(Statement::Cache) {
 		numberValue = 1;
 	}
 	
-	int len = (int)numberValue;
-	HandleManager handles = HandleManager(stmt, len);
+	HandleManager* handles = new HandleManager(stmt, (int)numberValue);
 	
-	if (handles.Fill([&stmt] {return stmt->NewHandle();})) {
+	if (handles->Fill([&stmt] {return stmt->NewHandle();})) {
+		delete handles;
 		return Nan::ThrowError("SQLite failed to create a prepared statement.");
 	}
 	
+	delete stmt->handles;
 	stmt->handles = handles;
-	handles.owner = false;
 	
 	info.GetReturnValue().Set(info.This());
 }
@@ -165,7 +169,7 @@ NAN_METHOD(Statement::Pluck) {
 	if (arg->IsFalse()) {
 		stmt->pluck_column = -1;
 	} else {
-		sqlite3_stmt* handle = stmt->handles.First();
+		sqlite3_stmt* handle = stmt->handles->GetFirst();
 		int column_count = sqlite3_column_count(handle);
 		
 		if (arg->IsTrue()) {
@@ -242,7 +246,7 @@ NAN_METHOD(Statement::Each) {
 }
 sqlite3_stmt* Statement::NewHandle() {
 	sqlite3_stmt* handle;
-	sqlite3_prepare_v2(db_handle, source.data, source.length, &handle, NULL);
+	sqlite3_prepare_v2(db_handle, source->data, source->length, &handle, NULL);
 	return handle;
 }
 
@@ -269,7 +273,7 @@ template <class T>
 void StatementWorker<T>::FinishRequest() {
 	stmt->requests -= 1;
 	stmt->db->requests -= 1;
-	stmt->handles.Release(handle_index, handle);
+	stmt->handles->Release(handle_index, handle);
 	if (stmt->requests == 0) {
 		stmt->Unref();
 		if (stmt->db->state == DB_DONE && stmt->db->requests == 0) {

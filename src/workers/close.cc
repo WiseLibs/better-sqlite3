@@ -9,10 +9,10 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker
 	still_connecting(still_connecting) {}
 void CloseWorker::Execute() {
 	if (!still_connecting) {
-		// Close and free any associated statements that have not been
-		// garbage-collected.
+		// Close and free any associated statements.
 		db->stmts.Flush([] (Statement* stmt) {
-			stmt->handles.Close();
+			delete stmt->handles;
+			stmt->handles = NULL;
 		});
 		
 		int status1 = sqlite3_close(db->writeHandle);
