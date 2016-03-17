@@ -139,25 +139,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[i]);
 
-#define OPTIONAL_ARGUMENT_FUNCTION(i, var)                                     \
-	v8::Local<v8::Function> var;                                               \
-	if (info.Length() > i && !info[i]->IsUndefined()) {                        \
-		if (!info[i]->IsFunction()) {                                          \
-			return Nan::ThrowTypeError("Argument " #i " must be a function."); \
-		}                                                                      \
-		var = v8::Local<v8::Function>::Cast(info[i]);                          \
-	}
-
-#define OPTIONAL_ARGUMENT_STRING(i, var)                                       \
-	v8::Local<v8::String> var;                                                 \
-	if (info.Length() > i && !info[i]->IsUndefined()) {                        \
-		if (!info[i]->IsString()) {                                            \
-			return Nan::ThrowTypeError("Argument " #i " must be a string.");   \
-		}                                                                      \
-		var = v8::Local<v8::String>::Cast(info[i]);                            \
-	}
-
-
 
 // TODO: Use bluebird library instead.
 #define STATEMENT_START(stmt)                                                  \
