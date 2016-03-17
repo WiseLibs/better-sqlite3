@@ -5,7 +5,7 @@
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
-#include "util/strlcpy.h"
+#include "strlcpy.h"
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
@@ -103,7 +103,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		string = v8::Local<v8::String>::Cast(_trimmedString);                  \
 	}
 
-
+// Defines a persistent v8::function, used for constructors.
+#define CONSTRUCTOR(name)                                                      \
+	Nan::Persistent<v8::Function> name;
 
 
 
@@ -206,9 +208,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		}                                                                      \
 		i = 0;                                                                 \
 	}
-
-#define CONSTRUCTOR(name)                                                      \
-	Nan::Persistent<v8::Function> name;
 
 #define LOCK_DB(db_handle)                                                     \
 	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle));

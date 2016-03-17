@@ -1,7 +1,7 @@
 #include <nan.h>
-#include "database.h"
-#include "statement.h"
-#include "transaction.h"
+#include "objects/database/database.h"
+#include "objects/statement/statement.h"
+#include "objects/transaction/transaction.h"
 
 NAN_MODULE_INIT(RegisterModule) {
 	Nan::HandleScope scope;

@@ -2,7 +2,7 @@
 #define NODE_SQLITE3_PLUS_TRANSACTION_H
 
 #include <nan.h>
-#include "macros.h"
+#include "../../util/macros.h"
 
 class Transaction : public Nan::ObjectWrap {
 	public:
@@ -15,8 +15,6 @@ class Transaction : public Nan::ObjectWrap {
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		
-		bool closed;
 };
 
 #endif

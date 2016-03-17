@@ -1,22 +1,22 @@
 #include <sqlite3.h>
 #include <nan.h>
-#include "macros.h"
-#include "util/frozen-buffer.h"
-#include "util/handle-manager.h"
-#include "workers/open.h"
-#include "workers/close.h"
-#include "statement.h"
-#include "transaction.h"
 #include "database.h"
+#include "../statement/statement.h"
+#include "../transaction/transaction.h"
+#include "../../workers/open.h"
+#include "../../workers/close.h"
+#include "../../util/macros.h"
+#include "../../util/frozen-buffer.h"
+#include "../../util/handle-manager.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 bool CONSTRUCTING_PRIVILEGES = false;
 
-#include "database/new.cc"
-#include "database/open.cc"
-#include "database/close.cc"
-#include "database/prepare.cc"
-#include "database/begin.cc"
+#include "new.cc"
+#include "open.cc"
+#include "close.cc"
+#include "prepare.cc"
+#include "begin.cc"
 
 Database::Database() : Nan::ObjectWrap(),
 	read_handle(NULL),
