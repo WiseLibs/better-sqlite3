@@ -28,10 +28,14 @@ Database::Database() : Nan::ObjectWrap(),
 Database::~Database() {
 	state = DB_DONE;
 	
-	// Assures that any not-closed, not-garbage-collected statements, are closed and freed.
-	// When a statement is closed somehwere else, or garbage collected, they won't be in this list.
+	// This is necessary in the case that a database and its statements are
+	// garbage collected at the same time. The database might be destroyed
+	// first, so it needs to tell all of its statements "hey, I don't exist
+	// anymore". By the same nature, statements must remove themselves from a
+	// database's list when they are garbage collected first.
 	stmts.Flush([] (Statement* stmt) {
-		stmt->handles.Close();
+		delete stmt->handles;
+		stmt->handles = NULL;
 	});
 	
 	// These handles must be set to NULL if they are closed somewhere else.

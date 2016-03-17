@@ -32,14 +32,14 @@ class Statement : public Nan::ObjectWrap {
 		// Sqlite3 interfacing
 		Database* db;
 		sqlite3* db_handle;
-		HandleManager handles;
+		HandleManager* handles;
+		FrozenBuffer* source;
 		
 		// State
 		bool config_locked;
 		unsigned int requests;
 		
 		// Config
-		FrozenBuffer source;
 		bool readonly;
 		int pluck_column;
 };

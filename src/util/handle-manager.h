@@ -15,33 +15,29 @@
 // function whose return values are the handles to fill the HandleManager with.
 // If Fill() returns non-zero, it's because one of the handles was NULL, and
 // therefore the HandleManager should be considered unusable.
-// 
-// Close() returns true if it was a successful close (it was not closed before).
 class HandleManager {
 	public:
-		HandleManager() : closed(true) {}
 		HandleManager(Statement* stmt, int count)
-		: owner(true)
 		, count(count)
 		, stmt(stmt)
-		, next_handle(0)
-		, closed(false) {
+		, next_handle(0) {
 			handles = new sqlite3_stmt* [count]();
 			handle_states = new bool [count]();
 		}
 		~HandleManager() {
-			Close();
-		}
-		bool Close() {
-			if (!closed && owner) {
-				for (int i=0; i<count; i++) {
-					sqlite3_finalize(handles[i]);
-				}
-				delete[] handles;
-				delete[] handle_states;
-				return (closed = true);
+			for (int i=0; i<count; i++) {
+				sqlite3_finalize(handles[i]);
 			}
-			return false;
+			delete[] handles;
+			delete[] handle_states;
+		}
+		template <class F> int Fill(F fn) {
+			for (int i=0; i<count; i++) {
+				if ((handles[i] = fn()) == NULL) {
+					return 1;
+				}
+			}
+			return 0;
 		}
 		int Request(sqlite3_stmt** handle) {
 			if (!handle_states[next_handle]) {
@@ -64,25 +60,18 @@ class HandleManager {
 				sqlite3_reset(handle);
 			}
 		}
-		template <class F> int Fill(F fn) {
-			for (int i=0; i<count; i++) {
-				if ((handles[i] = fn()) == NULL) {
-					return 1;
-				}
-			}
-			return 0;
-		}
-		sqlite3_stmt* First() {
+		sqlite3_stmt* GetFirst() {
 			return handles[0];
 		}
+		void SetFirst(sqlite3_stmt* handle) {
+			return handles[0] = handle;
+		}
 		
-		bool owner;
 		const int count;
 		
 	private:
 		Statement* stmt;
 		int next_handle;
-		bool closed;
 		sqlite3_stmt** handles;
 		bool* handle_states;
 };
