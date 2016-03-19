@@ -4,7 +4,8 @@ NAN_METHOD(Database::New) {
 	REQUIRE_ARGUMENT_STRING(0, filename);
 	if (!info.IsConstructCall()) {
 		v8::Local<v8::Function> cons = Nan::New<v8::Function>(constructor);
-		info.GetReturnValue().Set(cons->NewInstance(1, {filename}));
+		v8::Local<v8::Value> args[1] = {filename};
+		info.GetReturnValue().Set(cons->NewInstance(1, args));
 	} else {
 		Database* db = new Database();
 		db->Wrap(info.This());

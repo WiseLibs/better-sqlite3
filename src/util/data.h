@@ -1,5 +1,6 @@
 #ifndef NODE_SQLITE3_PLUS_DATA_H
 #define NODE_SQLITE3_PLUS_DATA_H
+
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
@@ -58,7 +59,7 @@ class Text : public Data::Value { public:
 // include. The len argument is the number of bytes. Invoking ToJS() multiple
 // times returns Buffers that all point to the same underlying memory.
 class Blob : public Data::Value { public:
-	Blob(const void* data, int len) : transferred(false), length(len) {
+	Blob(const void* data, int len) : length(len), transferred(false) {
 		value = new char[length];
 		memcpy(value, data, length);
 	}
@@ -145,4 +146,5 @@ class Row {
 };
 
 }
+
 #endif

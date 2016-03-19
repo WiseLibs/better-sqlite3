@@ -8,9 +8,15 @@
         "deps/sqlite3.gyp:sqlite3"
       ],
       "sources": [
-        "src/database.cc",
-        "src/statement.cc",
-        "src/transaction.cc",
+        "src/objects/database/database.cc",
+        "src/objects/statement/statement.cc",
+        "src/objects/transaction/transaction.cc",
+        "src/workers/open.cc",
+        "src/workers/close.cc",
+        "src/workers/run.cc",
+        "src/workers/get.cc",
+        "src/workers/all.cc",
+        "src/workers/each.cc",
         "src/sqlite3_plus.cc"
       ]
     }
