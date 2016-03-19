@@ -1,26 +1,36 @@
 #ifndef NODE_SQLITE3_PLUS_STATEMENT_H
 #define NODE_SQLITE3_PLUS_STATEMENT_H
 
+// Dependencies
 #include <sqlite3.h>
 #include <nan.h>
-#include "macros.h"
-#include "util/frozen-buffer.h"
-#include "util/handle-manager.h"
+#include "../../util/macros.h"
 class Database;
+class HandleManager;
+class FrozenBuffer;
 
+// Class Declaration
 class Statement : public Nan::ObjectWrap {
 	public:
 		Statement();
 		~Statement();
 		static void Init();
 		
+		class DeleteHandles { public:
+			void operator() (Statement*);
+		};
+
+		
+		// Friends
+		friend class DeleteHandles;
 		friend class Database;
+		friend class HandleManager;
 		template <class T> friend class StatementWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		static NAN_GETTER(ReadonlyGetter);
+		static NAN_GETTER(Readonly);
 		static NAN_METHOD(Cache);
 		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);

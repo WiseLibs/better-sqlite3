@@ -1,6 +1,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "close.h"
+#include "../objects/database/database.h"
 #include "../objects/statement/statement.h"
 #include "../util/macros.h"
 
@@ -10,20 +11,17 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker
 void CloseWorker::Execute() {
 	if (!still_connecting) {
 		// Close and free any associated statements.
-		db->stmts.Flush([] (Statement* stmt) {
-			delete stmt->handles;
-			stmt->handles = NULL;
-		});
+		db->stmts.Flush(Statement::DeleteHandles());
 		
-		int status1 = sqlite3_close(db->writeHandle);
-		int status2 = sqlite3_close(db->readHandle);
-		db->writeHandle = NULL;
-		db->readHandle = NULL;
+		int status1 = sqlite3_close(db->write_handle);
+		int status2 = sqlite3_close(db->read_handle);
+		db->write_handle = NULL;
+		db->read_handle = NULL;
 		
 		if (status1 != SQLITE_OK) {
-			SetErrorMessage(sqlite3_errmsg(db->writeHandle));
+			SetErrorMessage(sqlite3_errmsg(db->write_handle));
 		} else if (status2 != SQLITE_OK) {
-			SetErrorMessage(sqlite3_errmsg(db->readHandle));
+			SetErrorMessage(sqlite3_errmsg(db->read_handle));
 		}
 	}
 }
@@ -33,10 +31,12 @@ void CloseWorker::HandleOKCallback() {
     
     if (--db->workers == 0) {db->Unref();}
     
-	EMIT_EVENT_ASYNC(database, 2, {
-		Nan::New("close").ToLocalChecked(),
-		Nan::Null()
-	});
+    v8::Local<v8::Value> args[2] = {
+    	Nan::New("close").ToLocalChecked(),
+    	Nan::Null()
+    };
+    
+	EMIT_EVENT_ASYNC(database, 2, args);
 }
 void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
@@ -45,8 +45,10 @@ void CloseWorker::HandleErrorCallback() {
     if (--db->workers == 0) {db->Unref();}
     
     CONCAT2(message, "SQLite: ", ErrorMessage());
-	EMIT_EVENT_ASYNC(database, 2, {
-		Nan::New("close").ToLocalChecked(),
-		Nan::Error(message)
-	});
+    v8::Local<v8::Value> args[2] = {
+    	Nan::New("close").ToLocalChecked(),
+    	Nan::Error(message)
+    };
+    
+	EMIT_EVENT_ASYNC(database, 2, args);
 }

@@ -1,6 +1,7 @@
 #ifndef NODE_SQLITE3_PLUS_MACROS_H
 #define NODE_SQLITE3_PLUS_MACROS_H
 
+#include <sys/types.h>
 #include <cmath>
 #include <cstring>
 #include <sqlite3.h>
@@ -12,8 +13,8 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 	Nan::Utf8String utf8(string);
 	
 	size_t len = utf8.length() + 1;
-	char* str = new char[size_t];
-	strlcpy(str, *utf8, size_t);
+	char* str = new char[len];
+	strlcpy(str, *utf8, len);
 	
 	return str;
 }
@@ -27,14 +28,14 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Creates a stack-allocated buffer of the concatenation of 2 well-formed
 // C-strings.
 #define CONCAT2(result, a, b)                                                  \
-	char* result = char[strlen(a) + strlen(b) + 1];                            \
+	char result[strlen(a) + strlen(b) + 1];                                    \
 	strcpy(result, a);                                                         \
 	strcat(result, b);
 
 // Creates a stack-allocated buffer of the concatenation of 3 well-formed
 // C-strings.
 #define CONCAT3(result, a, b, c)                                               \
-	char* result = char[strlen(a) + strlen(b) + strlen(c) + 1];                \
+	char result[strlen(a) + strlen(b) + strlen(c) + 1];                        \
 	strcpy(result, a);                                                         \
 	strcat(result, b);                                                         \
 	strcat(result, c);
@@ -68,6 +69,13 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	GET_METHOD(_method, obj, "emitAsync");                                     \
 	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
+// If there are less than the given number of arguments, an error is thrown and
+// the caller returns.
+#define REQUIRE_ARGUMENTS(n)                                                   \
+	if (info.Length() < (n)) {                                                 \
+		return Nan::ThrowTypeError("Expected " #n " arguments.");              \
+	}
+
 // If the argument of the given index is not a string, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::String and made available
 // at the given variable name.
@@ -76,6 +84,24 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		return Nan::ThrowTypeError("Argument " #index " must be a string.");   \
 	}                                                                          \
 	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[index]);
+
+// If the argument of the given index is not a number, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::Number and made available
+// at the given variable name.
+#define REQUIRE_ARGUMENT_NUMBER(i, var)                                        \
+	if (info.Length() <= (i) || !info[i]->IsNumber()) {                        \
+		return Nan::ThrowTypeError("Argument " #i " must be a number.");       \
+	}                                                                          \
+	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[i]);
+
+// If the argument of the given index is not a function, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::Function and made
+// available at the given variable name.
+#define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
+	if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
+		return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
+	}                                                                          \
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
@@ -86,7 +112,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
 		Nan::Call(_method, obj, argc, argv);                                   \
 	if (_maybeValue.IsEmpty()) {return;}                                       \
-	v8::Local<v8::Value> var = _maybeValue.ToLocalChecked();
+	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
 
 // Given a v8::String, replaces it with a version that has been trimmed by
 // String.prototype.trim. If any part of the process throws, or if the result
@@ -107,40 +133,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#define REQUIRE_ARGUMENTS(n)                                                   \
-	if (info.Length() < (n)) {                                                 \
-		return Nan::ThrowTypeError("Expected " #n " arguments.");              \
-	}
-
-#define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
-	if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
-		return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
-	}                                                                          \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
-
-
-#define REQUIRE_ARGUMENT_NUMBER(i, var)                                        \
-	if (info.Length() <= (i) || !info[i]->IsNumber()) {                        \
-		return Nan::ThrowTypeError("Argument " #i " must be a number.");       \
-	}                                                                          \
-	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[i]);
-
-
-// TODO: Use bluebird library instead.
+// The first macro-instruction for setting up an asynchronous SQLite request.
+// _i is the index returned by HandleManager#Request.
+// _handle if the handle set given by HandleManager#Request.
 #define STATEMENT_START(stmt)                                                  \
 	if (stmt->db->state != DB_READY) {                                         \
 		return Nan::ThrowError(                                                \
@@ -163,6 +158,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 			"SQLite failed to create a prepared statement");                   \
 	}
 
+// The second macro-instruction for setting up an asynchronous SQLite request.
+// Returns a Promise object representing the request.
 #define STATEMENT_END(stmt, worker)                                            \
 	worker->SaveToPersistent((uint32_t)0, _resolver);                          \
 	                                                                           \
@@ -173,7 +170,17 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	                                                                           \
 	info.GetReturnValue().Set(_resolver->GetPromise());
 
-#define GET_ROW_RANGE(i, len)                                                  \
+// Enters the mutex for the sqlite3 database handle.
+#define LOCK_DB(db_handle)                                                     \
+	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle));
+
+// Exits the mutex for the sqlite3 database handle.
+#define UNLOCK_DB(db_handle)                                                   \
+	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle));
+
+// When used in a StatementWorker, gives the proper slice range of columns to
+// return, based on the sqlite3_stmt handle and the pluck_column setting.
+#define GET_COLUMN_RANGE(i, len)                                               \
 	int i;                                                                     \
 	int len = sqlite3_column_count(handle);                                    \
 	if (pluck_column >= 0) {                                                   \
@@ -181,19 +188,15 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 			i = pluck_column;                                                  \
 			len = pluck_column + 1;                                            \
 		} else {                                                               \
+			UNLOCK_DB(db_handle);                                              \
 			return SetErrorMessage("The plucked column no longer exists.");    \
 		}                                                                      \
 	} else {                                                                   \
 		if (len < 1) {                                                         \
+			UNLOCK_DB(db_handle);                                              \
 			return SetErrorMessage("The statement returns no result columns.");\
 		}                                                                      \
 		i = 0;                                                                 \
 	}
-
-#define LOCK_DB(db_handle)                                                     \
-	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle));
-
-#define UNLOCK_DB(db_handle)                                                   \
-	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle));
 
 #endif

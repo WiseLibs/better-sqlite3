@@ -18,7 +18,7 @@
 class HandleManager {
 	public:
 		HandleManager(Statement* stmt, int count)
-		, count(count)
+		: count(count)
 		, stmt(stmt)
 		, next_handle(0) {
 			handles = new sqlite3_stmt* [count]();
@@ -64,7 +64,7 @@ class HandleManager {
 			return handles[0];
 		}
 		void SetFirst(sqlite3_stmt* handle) {
-			return handles[0] = handle;
+			handles[0] = handle;
 		}
 		
 		const int count;

@@ -91,10 +91,9 @@ class List {
 		// function returns.
 		template <class F> void Flush(F fn) {
 			Node* node = front;
-			int i = 0;
 			if (owner) {
 				while (node != NULL) {
-					fn(node->item, i++);
+					fn(node->item);
 					Node* temp = node->prev;
 					delete node->item;
 					delete node;
@@ -102,7 +101,7 @@ class List {
 				}
 			} else {
 				while (node != NULL) {
-					fn(node->item, i++);
+					fn(node->item);
 					Node* temp = node->prev;
 					delete node;
 					node = temp;

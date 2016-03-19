@@ -33,10 +33,7 @@ Database::~Database() {
 	// first, so it needs to tell all of its statements "hey, I don't exist
 	// anymore". By the same nature, statements must remove themselves from a
 	// database's list when they are garbage collected first.
-	stmts.Flush([] (Statement* stmt) {
-		delete stmt->handles;
-		stmt->handles = NULL;
-	});
+	stmts.Flush(Statement::DeleteHandles());
 	
 	// These handles must be set to NULL if they are closed somewhere else.
 	sqlite3_close_v2(read_handle);
