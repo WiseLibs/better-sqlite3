@@ -8,9 +8,9 @@
 #include "../util/data.h"
 #include "../util/list.h"
 
-EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column, Nan::Callback* cb)
+EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
 	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
-	data_mutex(NULL), handle_mutex(NULL), pluck_column(pluck_column), cached_names(false) {
+	data_mutex(NULL), handle_mutex(NULL), cached_names(false) {
 		callback = cb;
 	}
 EachWorker::~EachWorker() {
@@ -32,16 +32,12 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 	
 	// Retreive first row, and validated statement result columns.
 	int status = sqlite3_step(handle);
-	GET_COLUMN_RANGE(start, end);
-	column_end = end;
+	GET_COLUMN_COUNT(column_count);
 	
 	// Retrieve and save rows.
 	while (status == SQLITE_ROW) {
-		Data::Row* row = new Data::Row();
-		
 		sqlite3_mutex_enter(data_mutex);
-		rows.Add(row);
-		Data::Row::Fill(row, handle, start, end);
+		rows.Add(new Data::Row(handle, column_count));
 		sqlite3_mutex_leave(data_mutex);
 		
 		progress.Send("", 1);
@@ -59,7 +55,8 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
-	if (pluck_column >= 0) {
+	
+	if (GetPluckColumn()) {
 		// Flush rows of plucked columns.
 		
 		sqlite3_mutex_enter(data_mutex);
@@ -80,21 +77,22 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		if (cached_names) {
 			columnNames = v8::Local<v8::Array>::Cast(GetFromPersistent((uint32_t)1));
 		} else {
-			cached_names = true;
-			columnNames = Nan::New<v8::Array>(column_end);
+			columnNames = Nan::New<v8::Array>(column_count);
 			
 			sqlite3_mutex_enter(handle_mutex);
-			for (int i=0; i<column_end; i++) {
+			for (int i=0; i<column_count; i++) {
 				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked());
 			}
 			sqlite3_mutex_leave(handle_mutex);
 			
 			SaveToPersistent((uint32_t)1, columnNames);
+			cached_names = true;
 		}
 		
 		// Flush rows.
 		sqlite3_mutex_enter(data_mutex);
 		rows.Flush([this, &columnNames] (Data::Row* row) {
+			
 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; i++) {
 				Nan::ForceSet(obj, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());

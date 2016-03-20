@@ -6,18 +6,21 @@
 #include "../util/macros.h"
 #include "../util/data.h"
 
-GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, int pluck_column)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
-	pluck_column(pluck_column) {}
+GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index) {}
 void GetWorker::Execute() {
 	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);
-	GET_COLUMN_RANGE(start, end);
+	int column_count;
+	
+	GET_COLUMN_COUNT(column_count);
+	
 	if (status == SQLITE_ROW) {
-		Data::Row::Fill(&row, handle, start, end);
+		row.Fill(handle, column_count);
 	} else if (status != SQLITE_DONE) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	
 	UNLOCK_DB(db_handle);
 }
 void GetWorker::HandleOKCallback() {
@@ -29,7 +32,7 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	// Resolve with the plucked column.
-	if (pluck_column >= 0) {
+	if (GetPluckColumn()) {
 		return Resolve(row.values[0]->ToJS());
 	}
 	

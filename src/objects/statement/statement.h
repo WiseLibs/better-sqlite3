@@ -51,7 +51,7 @@ class Statement : public Nan::ObjectWrap {
 		
 		// Config
 		bool readonly;
-		int pluck_column;
+		bool pluck_column;
 };
 
 #endif

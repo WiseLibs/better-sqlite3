@@ -12,7 +12,11 @@ template <class T>
 class StatementWorker : public T {
 	public:
 		StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
-			: T(NULL), handle(handle), db_handle(stmt->db_handle), stmt(stmt), handle_index(handle_index) {}
+			: T(NULL),
+			handle(handle),
+			db_handle(stmt->db_handle),
+			stmt(stmt),
+			handle_index(handle_index) {}
 			
 		void HandleErrorCallback() {
 			Nan::HandleScope scope;
@@ -31,13 +35,16 @@ class StatementWorker : public T {
 			v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(T::GetFromPersistent((uint32_t)0));
 			resolver->Reject(Nan::GetCurrentContext(), value);
 		}
+		inline bool GetPluckColumn() {
+			return stmt->pluck_column;
+		}
 		
-		sqlite3_stmt* handle;
-		sqlite3* db_handle;
+		sqlite3_stmt* const handle;
+		sqlite3* const db_handle;
 		
 	private:
-		Statement* stmt;
-		int handle_index;
+		Statement* const stmt;
+		int const handle_index;
 		
 		void FinishRequest() {
 			stmt->requests -= 1;

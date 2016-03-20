@@ -7,6 +7,6 @@ NAN_METHOD(Statement::Each) {
 	}
 	REQUIRE_ARGUMENT_FUNCTION(0, func);
 	STATEMENT_START(stmt);
-	EachWorker* worker = new EachWorker(stmt, _handle, _i, stmt->pluck_column, new Nan::Callback(func));
+	EachWorker* worker = new EachWorker(stmt, _handle, _i, new Nan::Callback(func));
 	STATEMENT_END(stmt, worker);
 }

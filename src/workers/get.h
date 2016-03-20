@@ -9,11 +9,10 @@ class Statement;
 
 class GetWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
-		GetWorker(Statement*, sqlite3_stmt*, int, int);
+		GetWorker(Statement*, sqlite3_stmt*, int);
 		void Execute();
 		void HandleOKCallback();
 	private:
-		const int pluck_column;
 		Data::Row row;
 };
 
