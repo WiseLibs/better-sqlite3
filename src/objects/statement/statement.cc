@@ -1,5 +1,3 @@
-#include <cstdio>
-#include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement.h"
@@ -29,7 +27,7 @@ Statement::Statement() : Nan::ObjectWrap(),
 	source(NULL),
 	config_locked(false),
 	requests(0),
-	pluck_column(-1) {}
+	pluck_column(false) {}
 Statement::~Statement() {
 	if (handles && db) {
 		db->stmts.Remove(this);

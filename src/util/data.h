@@ -89,16 +89,15 @@ class Null : public Data::Value { public:
 // A list of SQLite3 values.
 // Values that are added to a row are automatically destroyed when the row is
 // destroyed. You should NOT manually destroy values that you add to a row.
-// Before adding values, a row must be initialized with Init(n), where n is the
-// maximum number of values that can be added to the row. It's okay to add less
-// than the maximum, and column_count will always reflect the actual number of
-// rows that have been added. However, you must promise never to add more than n
-// number of rows, or else the behavior is undefined. It is an error to invoke
-// Init() on a row more than once, and the behavior is undefined. The integer
-// passed to Init() must never be less than 1.
+// Values should only be added by the constructor or by Fill(). It is an error
+// to invoke Fill() on a row more than once. The integer passed to Fill() or the
+// constructor must never be less than 1.
 class Row {
 	public:
 		Row() : column_count(0), values(NULL) {}
+		Row(sqlite3_stmt* handle, int len) {
+			this->Fill(handle, len);
+		}
 		~Row() {
 			if (values) {
 				for (int i=0; i<column_count; i++) {delete values[i];}
@@ -106,39 +105,33 @@ class Row {
 			}
 		}
 		
-		// Given a row that has not yet been initialized, an sqlite3_stmt
-		// handle, and a valid slice of columns for an avilable result row,
-		// fills the row with the values given by the sqlite3_stmt.
-		static inline void Fill(Row* row, sqlite3_stmt* handle, int i, int len) {
-			row->Init(len - i);
-			for (; i<len; i++) {
+		// Given an sqlite3_stmt handle and the number of columns in the
+		// available result row, fills the row with the values given by the
+		// sqlite3_stmt.
+		// The number of columns must never be less than 1.
+		// This must only be used on a row with no values in it.
+		inline void Fill(sqlite3_stmt* handle, int len) {
+			column_count = len;
+			values = new Data::Value* [len];
+			for (int i=0; i<len; i++) {
 				int type = sqlite3_column_type(handle, i);
 				switch (type) {
 					case SQLITE_INTEGER:
-						row->Add(new Data::Integer(sqlite3_column_int64(handle, i)));
+						values[i] = new Data::Integer(sqlite3_column_int64(handle, i));
 						break;
 					case SQLITE_FLOAT:
-						row->Add(new Data::Float(sqlite3_column_double(handle, i)));
+						values[i] = new Data::Float(sqlite3_column_double(handle, i));
 						break;
 					case SQLITE_TEXT:
-						row->Add(new Data::Text(sqlite3_column_text(handle, i), sqlite3_column_bytes(handle, i)));
+						values[i] = new Data::Text(sqlite3_column_text(handle, i), sqlite3_column_bytes(handle, i));
 						break;
 					case SQLITE_BLOB:
-						row->Add(new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i)));
+						values[i] = new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i));
 						break;
 					default: // SQLITE_NULL
-						row->Add(new Data::Null());
+						values[i] = new Data::Null();
 				}
 			}
-		}
-		
-		// max_columns must never be less than 1.
-		inline void Init(int max_columns) {
-			values = new Data::Value* [max_columns];
-		}
-		
-		inline void Add(Data::Value* value) {
-			values[column_count++] = value;
 		}
 		
 		int column_count;

@@ -69,12 +69,14 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	GET_METHOD(_method, obj, "emitAsync");                                     \
 	Nan::MakeCallback(obj, _method, argc, argv);                               \
 
-// If there are less than the given number of arguments, an error is thrown and
-// the caller returns.
-#define REQUIRE_ARGUMENTS(n)                                                   \
-	if (info.Length() < (n)) {                                                 \
-		return Nan::ThrowTypeError("Expected " #n " arguments.");              \
-	}
+// If the argument of the given index is not a boolean, an error is thrown and
+// the caller returns. Otherwise, it is cast to a c++ bool and made available
+// at the given variable name.
+#define REQUIRE_ARGUMENT_BOOLEAN(index, var)                                   \
+	if (info.Length() <= (index) || !info[index]->IsBoolean()) {               \
+		return Nan::ThrowTypeError("Argument " #index " must be a boolean.");  \
+	}                                                                          \
+	bool var = v8::Local<v8::Boolean>::Cast(info[index])->Value();
 
 // If the argument of the given index is not a string, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::String and made available
@@ -88,20 +90,20 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // If the argument of the given index is not a number, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::Number and made available
 // at the given variable name.
-#define REQUIRE_ARGUMENT_NUMBER(i, var)                                        \
-	if (info.Length() <= (i) || !info[i]->IsNumber()) {                        \
-		return Nan::ThrowTypeError("Argument " #i " must be a number.");       \
+#define REQUIRE_ARGUMENT_NUMBER(index, var)                                    \
+	if (info.Length() <= (index) || !info[index]->IsNumber()) {                \
+		return Nan::ThrowTypeError("Argument " #index " must be a number.");   \
 	}                                                                          \
-	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[i]);
+	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
 
 // If the argument of the given index is not a function, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::Function and made
 // available at the given variable name.
-#define REQUIRE_ARGUMENT_FUNCTION(i, var)                                      \
-	if (info.Length() <= (i) || !info[i]->IsFunction()) {                      \
-		return Nan::ThrowTypeError("Argument " #i " must be a function.");     \
+#define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
+	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
+		return Nan::ThrowTypeError("Argument " #index " must be a function."); \
 	}                                                                          \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[i]);
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
@@ -178,25 +180,16 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define UNLOCK_DB(db_handle)                                                   \
 	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle));
 
-// When used in a StatementWorker, gives the proper slice range of columns to
-// return, based on the sqlite3_stmt handle and the pluck_column setting.
-#define GET_COLUMN_RANGE(i, len)                                               \
-	int i;                                                                     \
-	int len = sqlite3_column_count(handle);                                    \
-	if (pluck_column >= 0) {                                                   \
-		if (pluck_column < len) {                                              \
-			i = pluck_column;                                                  \
-			len = pluck_column + 1;                                            \
-		} else {                                                               \
-			UNLOCK_DB(db_handle);                                              \
-			return SetErrorMessage("The plucked column no longer exists.");    \
-		}                                                                      \
-	} else {                                                                   \
-		if (len < 1) {                                                         \
-			UNLOCK_DB(db_handle);                                              \
-			return SetErrorMessage("The statement returns no result columns.");\
-		}                                                                      \
-		i = 0;                                                                 \
+// When used in a StatementWorker, gives the number of columns that the
+// statement returns, based on the sqlite3_stmt handle and pluck_column.
+#define GET_COLUMN_COUNT(len)                                                  \
+	len = sqlite3_column_count(handle);                                        \
+	if (len < 1) {                                                             \
+		UNLOCK_DB(db_handle);                                                  \
+		return SetErrorMessage("This statement returns no result columns.");   \
+	}                                                                          \
+	if (GetPluckColumn()) {                                                    \
+		len = 1;                                                               \
 	}
 
 #endif

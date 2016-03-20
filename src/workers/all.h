@@ -10,12 +10,11 @@ class Statement;
 
 class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
-		AllWorker(Statement*, sqlite3_stmt*, int, int);
+		AllWorker(Statement*, sqlite3_stmt*, int);
 		void Execute();
 		void HandleOKCallback();
 	private:
-		const int pluck_column;
-		int column_end;
+		int column_count;
 		int row_count;
 		List<Data::Row> rows;
 };

@@ -6,6 +6,6 @@ NAN_METHOD(Statement::All) {
 		return Nan::ThrowTypeError("This statement is not read-only. Use run() instead.");
 	}
 	STATEMENT_START(stmt);
-	AllWorker* worker = new AllWorker(stmt, _handle, _i, stmt->pluck_column);
+	AllWorker* worker = new AllWorker(stmt, _handle, _i);
 	STATEMENT_END(stmt, worker);
 }
