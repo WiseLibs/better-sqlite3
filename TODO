@@ -28,11 +28,6 @@ use bluebird instead of native promises
 
 Polish the changes/last_row_id API of .run()
 
-In final module.export, inherit from c++ Database, and validate input string:
-	- trim()
-	- make sure it's not /^file:/i or /^(:memory:)?$/i
-	- if the "memory" option is truthy,
-		turn filename to ("file:" + filename + "?mode=memory&cache=shared")
 
 
 startTransaction() API does:

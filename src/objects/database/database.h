@@ -26,7 +26,6 @@ class Database : public Nan::ObjectWrap {
 		template <class T> friend class StatementWorker;
 		
 	private:
-		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
 		static NAN_GETTER(Open);
 		static NAN_METHOD(Close);

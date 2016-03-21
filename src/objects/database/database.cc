@@ -51,8 +51,6 @@ NAN_MODULE_INIT(Database::Init) {
 	Nan::SetPrototypeMethod(t, "begin", Begin);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
-	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 	Nan::Set(target, Nan::New("Database").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
 }
-CONSTRUCTOR(Database::constructor);
