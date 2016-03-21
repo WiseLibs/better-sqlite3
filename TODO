@@ -11,23 +11,6 @@ This returns a Statement object. It can only consist of the single SQL statement
 		The .run(bv) method can be used, which returns a promise that is either resolved with an object describing the changes, or rejected with an Error. This method accepts an optional array argument bv, which are the values to bind to the statement for this execution.
 
 
-assure that shared cache and in-memory databases work properly
-
-assure that all places that use int as a sizer are checked for maximum values
-
-Wait for Nan pull request
-
-optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
-Maybe dont lock readers during production, for better performance?
-
-settings pragmas will currently only affect the writeHandle connection; there should be an API for this
-
-use SQLITE_ENABLE_API_ARMOR compilation option while developing
-
-use bluebird instead of native promises
-
-Polish the changes/last_row_id API of .run()
-
 
 
 startTransaction() API does:
@@ -54,10 +37,17 @@ otherwise -> set active_tranaction flag to 0
 
 
 
-optionally enable, together:
-PRAGMA journal_mode = WAL;
-PRAGMA synchronous = 1;
+---------- Polish ----------
+Wait for Nan pull request
 
+optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
+Maybe dont lock readers during production, for better performance?
+
+use SQLITE_ENABLE_API_ARMOR compilation option while developing
+
+use bluebird instead of native promises
+
+Polish the changes/last_row_id API of .run()
 
 
 ---------- Automatic Atomic Transactions ----------

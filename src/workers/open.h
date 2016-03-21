@@ -6,7 +6,7 @@ class Database;
 
 class OpenWorker : public Nan::AsyncWorker {
 	public:
-		OpenWorker(Database*, char*);
+		OpenWorker(Database*, char*, bool);
 		~OpenWorker();
 		void Execute();
 		void HandleOKCallback();
@@ -14,6 +14,7 @@ class OpenWorker : public Nan::AsyncWorker {
 	private:
 		Database* const db;
 		const char* const filename;
+		bool const wal;
 };
 
 #endif

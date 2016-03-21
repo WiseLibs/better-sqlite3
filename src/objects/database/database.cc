@@ -6,8 +6,8 @@
 #include "../../workers/open.h"
 #include "../../workers/close.h"
 #include "../../util/macros.h"
-#include "../../util/frozen-buffer.h"
 #include "../../util/handle-manager.h"
+#include "../../util/frozen-buffer.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 bool CONSTRUCTING_PRIVILEGES = false;
@@ -35,9 +35,7 @@ Database::~Database() {
 	// database's list when they are garbage collected first.
 	stmts.Flush(Statement::DeleteHandles());
 	
-	// These handles must be set to NULL if they are closed somewhere else.
-	sqlite3_close_v2(read_handle);
-	sqlite3_close_v2(write_handle);
+	CloseHandles(this);
 }
 NAN_MODULE_INIT(Database::Init) {
 	Nan::HandleScope scope;
@@ -53,4 +51,12 @@ NAN_MODULE_INIT(Database::Init) {
 	
 	Nan::Set(target, Nan::New("Database").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
+}
+
+// These handles must be set to NULL if they are closed somewhere else.
+void Database::CloseHandles(Database* db) {
+	sqlite3_close(db->read_handle);
+	sqlite3_close(db->write_handle);
+	db->read_handle = NULL;
+	db->write_handle = NULL;
 }

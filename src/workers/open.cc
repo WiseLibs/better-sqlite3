@@ -7,9 +7,10 @@
 const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
 const int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
 
-OpenWorker::OpenWorker(Database* db, char* filename) : Nan::AsyncWorker(NULL),
+OpenWorker::OpenWorker(Database* db, char* filename, bool wal) : Nan::AsyncWorker(NULL),
 	db(db),
-	filename(filename) {}
+	filename(filename),
+	wal(wal) {}
 OpenWorker::~OpenWorker() {
 	delete[] filename;
 }
@@ -19,23 +20,42 @@ void OpenWorker::Execute() {
 	status = sqlite3_open_v2(filename, &db->write_handle, WRITE_MODE, NULL);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->write_handle));
-		sqlite3_close(db->write_handle);
-		db->write_handle = NULL;
+		Database::CloseHandles(db);
 		return;
 	}
 	
 	status = sqlite3_open_v2(filename, &db->read_handle, READ_MODE, NULL);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->read_handle));
-		sqlite3_close(db->write_handle);
-		sqlite3_close(db->read_handle);
-		db->write_handle = NULL;
-		db->read_handle = NULL;
+		Database::CloseHandles(db);
 		return;
 	}
 	
 	sqlite3_busy_timeout(db->write_handle, 30000);
 	sqlite3_busy_timeout(db->read_handle, 30000);
+	
+	if (wal) {
+		
+		char* err;
+		status = sqlite3_exec(db->write_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
+		if (status != SQLITE_OK) {
+			SetErrorMessage(err);
+			Database::CloseHandles(db);
+			sqlite3_free(err);
+			return;
+		}
+		
+		sqlite3_free(err);
+		status = sqlite3_exec(db->read_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
+		if (status != SQLITE_OK) {
+			SetErrorMessage(err);
+			Database::CloseHandles(db);
+			sqlite3_free(err);
+			return;
+		}
+		
+		sqlite3_free(err);
+	}
 }
 void OpenWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -44,10 +64,7 @@ void OpenWorker::HandleOKCallback() {
     if (--db->workers == 0) {db->Unref();}
     
 	if (db->state == DB_DONE) {
-		sqlite3_close(db->write_handle);
-		sqlite3_close(db->read_handle);
-		db->write_handle = NULL;
-		db->read_handle = NULL;
+		Database::CloseHandles(db);
 	} else {
 		db->state = DB_READY;
 		v8::Local<v8::Value> args[1] = {Nan::New("open").ToLocalChecked()};
