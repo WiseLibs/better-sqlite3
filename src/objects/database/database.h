@@ -31,6 +31,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Close);
 		static NAN_METHOD(Prepare);
 		static NAN_METHOD(Begin);
+		static void CloseHandles(Database*);
 		void ActuallyClose();
 		
 		// Sqlite3 interfacing
