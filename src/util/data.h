@@ -134,6 +134,37 @@ class Row {
 			}
 		}
 		
+		// Given a v8 Array, fills the row with the values in that array.
+		// The array's length must never be less than 1.
+		// This must only be used on a row with no values in it.
+		// If the return value is -1, an error was thrown.
+		// If the return value is 1, an unrecognized type was given.
+		inline int Fill(v8::Local<v8::Array> arr) {
+			column_count = arr->Length();
+			values = new Data::Value* [column_count];
+			for (int i=0; i<column_count; i++) {
+				Nan::MaybeLocal<v8::Value> maybeItem = Nan::Get(arr, i);
+				if (maybeItem.IsEmpty()) {
+					for (; i<column_count; i++) {values[i] = NULL;}
+					return -1;
+				}
+				v8::Local<v8::Value> item = maybeItem.ToLocalChecked();
+				if (item->IsNumber()) {
+					values[i] = new Data::Float(v8::Local<v8::Number>::Cast(item));
+				} else if (item->IsString()) {
+					values[i] = new Data::String(v8::Local<v8::String>::Cast(item));
+				} else if (node::Buffer::HasInstance(item)) {
+					values[i] = new Data::Blob(v8::Local<v8::Object>::Cast(item));
+				} else if (item->IsNull() || item->IsUndefined()) {
+					values[i] = new Data::Null();
+				} else {
+					for (; i<column_count; i++) {values[i] = NULL;}
+					return 1;
+				}
+			}
+			return 0;
+		}
+		
 		int column_count;
 		Data::Value** values;
 };
