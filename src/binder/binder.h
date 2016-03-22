@@ -6,22 +6,33 @@
 class Binder {
 	public:
 		Binder(sqlite3_stmt*);
+		~Binder();
+		unsigned int Bind(Nan::NAN_METHOD_ARGS_TYPE, unsigned int); // This should only be invoked once
+		void Unbind();
+		char const* const GetError();
 		
 	private:
-		void AdvanceAnonIndex();
+		unsigned int NextAnonIndex();
 		void SetBindingError(int);
-		void BindNumber(v8::Local<v8::Number>, int);
-		void BindString(v8::Local<v8::String>, int);
-		void BindBuffer(v8::Local<v8::Object>, int);
-		void BindNull(int);
-		void BindValue(v8::Local<v8::Value>, int);
+		void BindNumber(v8::Local<v8::Number>, unsigned int);
+		void BindString(v8::Local<v8::String>, unsigned int);
+		void BindBuffer(v8::Local<v8::Object>, unsigned int);
+		void BindNull(unsigned int);
+		void BindValue(v8::Local<v8::Value>, unsigned int);
+		
+		unsigned int BindArray(v8::Local<v8::Array>);
+		unsigned int BindArrayLike(v8::Local<v8::Object>);
+		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
+		
+		double GetArrayLikeLength(v8::Local<v8::Object>);
 		
 		sqlite3_stmt* const handle;
-		int const param_count;
+		unsigned int const param_count;
 		
-		int bound_args;
-		int anon_index;
+		unsigned int anon_index; // This value should only be used by NextAnonIndex()
 		const char* error;
+		char* error_extra;
+		char const* const * error_full;
 };
 
 #endif
