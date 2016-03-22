@@ -4,6 +4,7 @@
 #include <nan.h>
 #include "binder.h"
 #include "../util/strlcpy.h"
+#include "../util/macros.h"
 
 #include "next-anon-index.cc"
 #include "get-array-like-length.cc"

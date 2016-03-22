@@ -11,7 +11,7 @@ double Binder::GetArrayLikeLength(v8::Local<v8::Object> obj) {
 	v8::Local<v8::Value> length = maybeLength.ToLocalChecked();
 	
 	if (length->IsNumber()) {
-		double value = length->Value();
+		double value = v8::Local<v8::Number>::Cast(length)->Value();
 		return IS_POSITIVE_INTEGER(value) ? value : -1;
 	}
 	return -1;
