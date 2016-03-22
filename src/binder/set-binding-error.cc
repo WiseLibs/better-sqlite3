@@ -1,3 +1,6 @@
+// Given the int return value of an sqlite3_bind_* function, possibly sets
+// error to an appropriately descriptive string.
+
 void Binder::SetBindingError(int status) {
 	if (status != SQLITE_OK) {
 		switch (status) {
