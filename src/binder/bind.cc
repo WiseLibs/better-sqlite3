@@ -20,7 +20,7 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int i) {
 		} else if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			
-			double array_like_length = GetArrayLikeLength(obj));
+			double array_like_length = GetArrayLikeLength(obj);
 			if (error) {
 				return;
 			}

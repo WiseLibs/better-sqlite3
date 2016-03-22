@@ -7,7 +7,7 @@ class Binder {
 	public:
 		Binder(sqlite3_stmt*);
 		~Binder();
-		unsigned int Bind(Nan::NAN_METHOD_ARGS_TYPE, unsigned int); // This should only be invoked once
+		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int); // This should only be invoked once
 		void Unbind();
 		const char* GetError();
 		
@@ -21,7 +21,7 @@ class Binder {
 		void BindValue(v8::Local<v8::Value>, unsigned int);
 		
 		unsigned int BindArray(v8::Local<v8::Array>);
-		unsigned int BindArrayLike(v8::Local<v8::Object>);
+		unsigned int BindArrayLike(v8::Local<v8::Object>, unsigned int);
 		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
 		
 		double GetArrayLikeLength(v8::Local<v8::Object>);
