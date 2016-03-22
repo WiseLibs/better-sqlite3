@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
 #include "binder.h"
@@ -6,6 +8,7 @@
 #include "next-anon-index.cc"
 #include "get-array-like-length.cc"
 #include "set-binding-error.cc"
+#include "get-error.cc"
 #include "bind-number.cc"
 #include "bind-string.cc"
 #include "bind-buffer.cc"
