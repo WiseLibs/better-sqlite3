@@ -9,7 +9,7 @@ class Binder {
 		~Binder();
 		unsigned int Bind(Nan::NAN_METHOD_ARGS_TYPE, unsigned int); // This should only be invoked once
 		void Unbind();
-		char const* const GetError();
+		const char* GetError();
 		
 	private:
 		unsigned int NextAnonIndex();
@@ -32,7 +32,7 @@ class Binder {
 		unsigned int anon_index; // This value should only be used by NextAnonIndex()
 		const char* error;
 		char* error_extra;
-		char const* const * error_full;
+		const char* error_full;
 };
 
 #endif
