@@ -22,7 +22,7 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 // Given a double, returns whether the number is non-negative, finite, and
 // an integer.
 inline bool IS_POSITIVE_INTEGER(double num) {
-	return std::isfinite(num) && num >= 0 && floor(num) == num;
+	return std::isfinite(num) && num >= 0 && num % 1 == 0;
 }
 
 // Creates a stack-allocated buffer of the concatenation of 2 well-formed
