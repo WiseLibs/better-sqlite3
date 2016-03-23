@@ -1,13 +1,12 @@
-// Given the arguments to a JS function, and the first index of the arguments
-// which we want bind, binds all values given.
+// Given the arguments to a JS function, and the length of arguments to loop
+// through, binds all values given.
 // If an error occurs, error is set to an appropriately descriptive string.
 
-void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int i) {
-	int len = info.Length();
+void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 	bool bound_object = false;
 	unsigned int count = 0;
 	
-	for (; i<len; i++) {
+	for (int i=0; i<len; i++) {
 		v8::Local<v8::Value> arg = info[i];
 		
 		if (arg->IsArray()) {

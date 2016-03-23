@@ -99,11 +99,12 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // If the argument of the given index is not a function, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::Function and made
 // available at the given variable name.
-#define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
-	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
-		return Nan::ThrowTypeError("Argument " #index " must be a function."); \
+#define REQUIRE_LAST_ARGUMENT_FUNCTION(indexOut, var)                          \
+	int indexOut = info.Length() - 1;                                          \
+	if (indexOut < 0 || !info[indexOut]->IsFunction()) {                       \
+		return Nan::ThrowTypeError("The final argument must be a function.");  \
 	}                                                                          \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[indexOut]);
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
@@ -158,6 +159,15 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	if (_handle == NULL) {                                                     \
 		return Nan::ThrowError(                                                \
 			"SQLite failed to create a prepared statement");                   \
+	}
+
+#define STATEMENT_BIND(info_length)                                            \
+	Binder _binder(_handle);                                                   \
+	_binder.Bind(info, info_length);                                           \
+	const char* err = _binder.GetError();                                      \
+	if (err) {                                                                 \
+		stmt->handles->Release(_i, _handle);                                   \
+		return Nan::ThrowError(err);                                           \
 	}
 
 // The second macro-instruction for setting up an asynchronous SQLite request.

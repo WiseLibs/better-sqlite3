@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_WORKER_STATEMENT_WORKER_H
-#define NODE_SQLITE3_PLUS_WORKER_STATEMENT_WORKER_H
+#ifndef NODE_SQLITE3_PLUS_BINDER_H
+#define NODE_SQLITE3_PLUS_BINDER_H
 
 #include <sqlite3.h>
 
@@ -8,7 +8,6 @@ class Binder {
 		Binder(sqlite3_stmt*);
 		~Binder();
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int); // This should only be invoked once
-		void Unbind();
 		const char* GetError();
 		
 	private:

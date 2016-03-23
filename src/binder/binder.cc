@@ -32,7 +32,3 @@ Binder::~Binder() {
 	delete[] error_extra;
 	delete[] error_full;
 }
-
-void Binder::Unbind() {
-	sqlite3_clear_bindings(handle);
-}

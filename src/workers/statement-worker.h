@@ -7,7 +7,6 @@
 #include "../objects/statement/statement.h"
 #include "../util/macros.h"
 #include "../util/handle-manager.h"
-#include "../binder/binder.h"
 
 template <class T>
 class StatementWorker : public T {
