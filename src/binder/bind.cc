@@ -9,14 +9,17 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 	for (int i=0; i<len; i++) {
 		v8::Local<v8::Value> arg = info[i];
 		
+		// Arrays
 		if (arg->IsArray()) {
-			
 			count += BindArray(v8::Local<v8::Array>::Cast(arg));
 			if (error) {
 				return;
 			}
-			
-		} else if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
+			continue;
+		}
+		
+		// Objects
+		if (arg->IsObject() && !arg->IsFunction() && !arg->IsArrayBufferView()) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			
 			double array_like_length = GetArrayLikeLength(obj);
@@ -24,12 +27,17 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 				return;
 			}
 			
+			// Array-like objects
 			if (array_like_length >= 0) {
 				count += BindArrayLike(obj, (unsigned int)array_like_length);
 				if (error) {
 					return;
 				}
-			} else {
+				continue;
+			}
+			
+			// Plain objects
+			if (IsPlainObject(obj)) {
 				if (bound_object) {
 					error = "You cannot specify named parameters in two different objects.";
 					return;
@@ -40,17 +48,17 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 				if (error) {
 					return;
 				}
+				continue;
 			}
-			
-		} else {
-			
-			BindValue(arg);
-			if (error) {
-				return;
-			}
-			count += 1;
-			
-		} // if else if ...
+		}
+		
+		// All other values
+		BindValue(arg);
+		if (error) {
+			return;
+		}
+		count += 1;
+		
 	} // for
 	
 	if (count != param_count) {

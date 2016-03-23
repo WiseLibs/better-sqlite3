@@ -6,8 +6,8 @@ const char* Binder::GetError() {
 	if (!error_extra) {return error;}
 	if (error_full) {return error_full;}
 	
-	int len = strlen(error) + strlen(error_extra) - 2;
-	error_full = new char[len + 1];
+	int len = strlen(error) + strlen(error_extra) - 1;
+	error_full = new char[len];
 	snprintf(const_cast<char*>(error_full), len, error, error_extra);
 	
 	return error_full;

@@ -24,6 +24,7 @@ class Binder {
 		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
 		
 		double GetArrayLikeLength(v8::Local<v8::Object>);
+		static bool IsPlainObject(v8::Local<v8::Object>);
 		
 		sqlite3_stmt* const handle;
 		unsigned int const param_count;
