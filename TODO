@@ -44,6 +44,8 @@ use bluebird instead of native promises
 
 Polish the changes/last_row_id API of .run()
 
+reduce the number of memory copies
+
 
 ---------- Automatic Atomic Transactions ----------
 on commit hook, check for error, and if there was an error, return 1
