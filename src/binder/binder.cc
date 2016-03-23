@@ -8,6 +8,7 @@
 
 #include "next-anon-index.cc"
 #include "get-array-like-length.cc"
+#include "is-plain-object.cc"
 #include "set-binding-error.cc"
 #include "get-error.cc"
 #include "bind-number.cc"
