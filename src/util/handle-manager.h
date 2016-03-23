@@ -57,6 +57,7 @@ class HandleManager {
 				sqlite3_finalize(handle);
 			} else {
 				handle_states[index] = false;
+				sqlite3_clear_bindings(handle);
 				sqlite3_reset(handle);
 			}
 		}

@@ -9,6 +9,7 @@
 #include "../../util/macros.h"
 #include "../../util/handle-manager.h"
 #include "../../util/frozen-buffer.h"
+#include "../../binder/binder.h"
 
 #include "new.cc"
 #include "readonly.cc"

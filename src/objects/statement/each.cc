@@ -5,8 +5,9 @@ NAN_METHOD(Statement::Each) {
 	if (!stmt->readonly) {
 		return Nan::ThrowTypeError("This statement is not read-only. Use run() instead.");
 	}
-	REQUIRE_ARGUMENT_FUNCTION(0, func);
+	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, func);
 	STATEMENT_START(stmt);
+	STATEMENT_BIND(func_index);
 	EachWorker* worker = new EachWorker(stmt, _handle, _i, new Nan::Callback(func));
 	STATEMENT_END(stmt, worker);
 }
