@@ -23,6 +23,7 @@ class Binder {
 		unsigned int BindArrayLike(v8::Local<v8::Object>, unsigned int);
 		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
 		
+		int GetNamedParameterIndex(const char*, int);
 		double GetArrayLikeLength(v8::Local<v8::Object>);
 		static bool IsPlainObject(v8::Local<v8::Object>);
 		

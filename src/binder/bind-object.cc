@@ -36,7 +36,7 @@ unsigned int Binder::BindObject(v8::Local<v8::Object> obj) {
 		
 		// Get the parameter index of the current named parameter.
 		Nan::Utf8String utf8(key);
-		int index = sqlite3_bind_parameter_index(handle, *utf8);
+		int index = GetNamedParameterIndex(*utf8, utf8.length());
 		if (!index) {
 			error = "The named parameter \"%s\" does not exist.";
 			error_extra = new char[utf8.length() + 1];
