@@ -1,5 +1,8 @@
 // Given the arguments to a JS function, and the length of arguments to loop
 // through, binds all values given.
+// Named parameters are given by objects (key-value pairs).
+// Anonymous parameters are either directly in the arguments object, or in an
+// Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
 
 void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
