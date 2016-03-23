@@ -161,13 +161,18 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 			"SQLite failed to create a prepared statement");                   \
 	}
 
-#define STATEMENT_BIND(info_length)                                            \
-	Binder _binder(_handle);                                                   \
-	_binder.Bind(info, info_length);                                           \
-	const char* err = _binder.GetError();                                      \
-	if (err) {                                                                 \
+#define STATEMENT_BIND(stmt, info_length)                                      \
+	if (!stmt->bound) {                                                        \
+		Binder _binder(_handle);                                               \
+		_binder.Bind(info, info_length);                                       \
+		const char* err = _binder.GetError();                                  \
+		if (err) {                                                             \
+			stmt->handles->Release(_i, _handle);                               \
+			return Nan::ThrowError(err);                                       \
+		}                                                                      \
+	} else if (info_length > 0) {                                              \
 		stmt->handles->Release(_i, _handle);                                   \
-		return Nan::ThrowError(err);                                           \
+		return Nan::ThrowError("This statement already has bound parameters.");\
 	}
 
 // The second macro-instruction for setting up an asynchronous SQLite request.

@@ -14,6 +14,7 @@
 #include "new.cc"
 #include "readonly.cc"
 #include "cache.cc"
+#include "bind.cc"
 #include "pluck.cc"
 #include "run.cc"
 #include "get.cc"
@@ -27,6 +28,7 @@ Statement::Statement() : Nan::ObjectWrap(),
 	handles(NULL),
 	source(NULL),
 	config_locked(false),
+	bound(false),
 	requests(0),
 	pluck_column(false) {}
 Statement::~Statement() {
@@ -44,6 +46,7 @@ void Statement::Init() {
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
 	Nan::SetPrototypeMethod(t, "cache", Cache);
+	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	Nan::SetPrototypeMethod(t, "run", Run);
 	Nan::SetPrototypeMethod(t, "get", Get);

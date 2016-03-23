@@ -6,7 +6,7 @@ NAN_METHOD(Statement::Run) {
 		return Nan::ThrowTypeError("This statement is read-only. Use get(), all(), or each() instead.");
 	}
 	STATEMENT_START(stmt);
-	STATEMENT_BIND(info.Length());
+	STATEMENT_BIND(stmt, info.Length());
 	RunWorker* worker = new RunWorker(stmt, _handle, _i);
 	STATEMENT_END(stmt, worker);
 }
