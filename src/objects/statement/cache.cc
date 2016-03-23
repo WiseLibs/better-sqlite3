@@ -6,6 +6,9 @@ NAN_METHOD(Statement::Cache) {
 	if (stmt->config_locked) {
 		return Nan::ThrowError("A statement's cache cannot be altered after it has been executed.");
 	}
+	if (stmt->bound) {
+		return Nan::ThrowError("A statement's cache cannot be altered after parameters have been bound.");
+	}
 	if (stmt->db->state != DB_READY) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}

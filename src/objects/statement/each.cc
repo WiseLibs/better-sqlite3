@@ -7,7 +7,7 @@ NAN_METHOD(Statement::Each) {
 	}
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, func);
 	STATEMENT_START(stmt);
-	STATEMENT_BIND(func_index);
+	STATEMENT_BIND(stmt, func_index);
 	EachWorker* worker = new EachWorker(stmt, _handle, _i, new Nan::Callback(func));
 	STATEMENT_END(stmt, worker);
 }

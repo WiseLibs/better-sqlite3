@@ -56,8 +56,10 @@ class HandleManager {
 			if (index == -1) {
 				sqlite3_finalize(handle);
 			} else {
+				if (!stmt->bound) {
+					sqlite3_clear_bindings(handle);
+				}
 				handle_states[index] = false;
-				sqlite3_clear_bindings(handle);
 				sqlite3_reset(handle);
 			}
 		}
@@ -66,6 +68,9 @@ class HandleManager {
 		}
 		void SetFirst(sqlite3_stmt* handle) {
 			handles[0] = handle;
+		}
+		sqlite3_stmt* Get(int i) {
+			return handles[i];
 		}
 		
 		const int count;

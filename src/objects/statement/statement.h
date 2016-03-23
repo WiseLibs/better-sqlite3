@@ -32,6 +32,7 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(New);
 		static NAN_GETTER(Readonly);
 		static NAN_METHOD(Cache);
+		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);
 		static NAN_METHOD(Get);
@@ -47,6 +48,7 @@ class Statement : public Nan::ObjectWrap {
 		
 		// State
 		bool config_locked;
+		bool bound;
 		unsigned int requests;
 		
 		// Config
