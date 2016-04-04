@@ -15,7 +15,7 @@ NAN_METHOD(Statement::Cache) {
 	
 	double numberValue = number->Value();
 	if (!IS_POSITIVE_INTEGER(numberValue)) {
-		return Nan::ThrowError("Argument 0 must be a positive, finite integer.");
+		return Nan::ThrowRangeError("Argument 0 must be a positive, finite integer.");
 	}
 	if (numberValue < 1) {
 		numberValue = 1;
