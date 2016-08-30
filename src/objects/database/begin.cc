@@ -7,7 +7,7 @@ NAN_METHOD(Database::Begin) {
 	v8::Local<v8::Object> transaction = cons->NewInstance(0, NULL);
 	CONSTRUCTING_PRIVILEGES = false;
 	
-	Nan::ForceSet(transaction, Nan::New("database").ToLocalChecked(), info.This(), FROZEN);
+	transaction->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
 	
 	info.GetReturnValue().Set(transaction);
 }

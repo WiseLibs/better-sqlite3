@@ -56,7 +56,7 @@ NAN_METHOD(Database::Prepare) {
 		if (status != SQLITE_OK) {
 			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->write_handle), ").");
 			UNLOCK_DB(db->write_handle);
-			return Nan::ThrowError("Failed to construct the SQL statement.");
+			return Nan::ThrowError(message);
 		}
 		UNLOCK_DB(db->write_handle);
 		
