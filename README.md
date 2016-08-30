@@ -25,7 +25,6 @@ The `statement.pluck()` method will return the wrong data if the specified colum
 
 ## Features
 
- - Elegant promise-based interface
  - Full transaction support
  - Full Buffer/Blob support
  - Big test suite

@@ -11,8 +11,8 @@
 template <class T>
 class StatementWorker : public T {
 	public:
-		StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
-			: T(NULL),
+		StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
+			: T(cb),
 			handle(handle),
 			db_handle(stmt->db_handle),
 			stmt(stmt),
@@ -27,13 +27,13 @@ class StatementWorker : public T {
 	protected:
 		void Resolve(v8::Local<v8::Value> value) {
 			FinishRequest();
-			v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(T::GetFromPersistent((uint32_t)0));
-			resolver->Resolve(Nan::GetCurrentContext(), value);
+			v8::Local<v8::Value> args[2] = {Nan::Null(), value};
+			T::callback->Call(2, args);
 		}
 		void Reject(v8::Local<v8::Value> value) {
 			FinishRequest();
-			v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(T::GetFromPersistent((uint32_t)0));
-			resolver->Reject(Nan::GetCurrentContext(), value);
+			v8::Local<v8::Value> args[1] = {value};
+			T::callback->Call(1, args);
 		}
 		inline bool GetPluckColumn() {
 			return stmt->pluck_column;

@@ -8,14 +8,15 @@
 #include "../util/data.h"
 #include "../util/list.h"
 
-EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
-	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index),
+EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb, Nan::Callback* progressCb)
+	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index, cb),
 	data_mutex(NULL), handle_mutex(NULL), cached_names(false) {
-		callback = cb;
+		progressCallback = progressCb;
 	}
 EachWorker::~EachWorker() {
 	sqlite3_mutex_free(data_mutex);
 	sqlite3_mutex_free(handle_mutex);
+	delete progressCallback;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
 	// Allocated mutexes.
@@ -64,7 +65,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			v8::Local<v8::Value> args[1] = {row->values[0]->ToJS()};
 			
 			sqlite3_mutex_leave(data_mutex);
-			callback->Call(1, args);
+			progressCallback->Call(1, args);
 			sqlite3_mutex_enter(data_mutex);
 			
 		});
@@ -75,7 +76,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		// Cache columns names, or get the already cached column names.
 		v8::Local<v8::Array> columnNames;
 		if (cached_names) {
-			columnNames = v8::Local<v8::Array>::Cast(GetFromPersistent((uint32_t)1));
+			columnNames = v8::Local<v8::Array>::Cast(GetFromPersistent((uint32_t)0));
 		} else {
 			columnNames = Nan::New<v8::Array>(column_count);
 			
@@ -85,7 +86,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			}
 			sqlite3_mutex_leave(handle_mutex);
 			
-			SaveToPersistent((uint32_t)1, columnNames);
+			SaveToPersistent((uint32_t)0, columnNames);
 			cached_names = true;
 		}
 		
@@ -100,7 +101,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			
 			sqlite3_mutex_leave(data_mutex);
 			v8::Local<v8::Value> args[1] = {obj};
-			callback->Call(1, args);
+			progressCallback->Call(1, args);
 			sqlite3_mutex_enter(data_mutex);
 			
 		});

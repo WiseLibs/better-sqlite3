@@ -10,7 +10,7 @@ class Statement;
 
 class AllWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
-		AllWorker(Statement*, sqlite3_stmt*, int);
+		AllWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
 		void Execute();
 		void HandleOKCallback();
 	private:
