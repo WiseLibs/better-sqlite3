@@ -11,7 +11,7 @@ class Statement;
 
 class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 	public:
-		EachWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
+		EachWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*, Nan::Callback*);
 		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
 		void HandleProgressCallback(const char*, size_t);
@@ -22,6 +22,7 @@ class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
 		int column_count;
 		bool cached_names;
 		List<Data::Row> rows;
+		Nan::Callback* progressCallback;
 };
 
 #endif

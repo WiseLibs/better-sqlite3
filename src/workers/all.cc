@@ -7,8 +7,8 @@
 #include "../util/data.h"
 #include "../util/list.h"
 
-AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index),
+AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb),
 	row_count(0) {}
 void AllWorker::Execute() {
 	LOCK_DB(db_handle);

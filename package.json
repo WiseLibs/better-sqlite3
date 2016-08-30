@@ -1,6 +1,6 @@
 {
   "name": "sqlite3-plus",
-  "description": "Expressive, promise-based SQLite3 bindings for Node.js, with full transaction support.",
+  "description": "Simple and expressive SQLite3 bindings for Node.js, with full transaction support.",
   "version": "4.0.0",
   "homepage": "http://github.com/JoshuaWise/node-sqlite3-plus",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
@@ -47,7 +47,6 @@
     "sqlite",
     "sqlite3",
     "database",
-    "promise",
     "transactions"
   ],
   "main": "./lib/sqlite3-plus.js"

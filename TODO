@@ -33,14 +33,10 @@ otherwise -> set active_tranaction flag to 0
 
 
 ---------- Polish ----------
-Wait for Nan pull request
-
 optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
 Maybe dont lock readers during production, for better performance?
 
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
-
-use bluebird instead of native promises
 
 Polish the changes/last_row_id API of .run()
 

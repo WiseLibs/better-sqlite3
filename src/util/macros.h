@@ -74,7 +74,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // at the given variable name.
 #define REQUIRE_ARGUMENT_BOOLEAN(index, var)                                   \
 	if (info.Length() <= (index) || !info[index]->IsBoolean()) {               \
-		return Nan::ThrowTypeError("Argument " #index " must be a boolean.");  \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a boolean.");                  \
 	}                                                                          \
 	bool var = v8::Local<v8::Boolean>::Cast(info[index])->Value();
 
@@ -83,7 +84,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // at the given variable name.
 #define REQUIRE_ARGUMENT_STRING(index, var)                                    \
 	if (info.Length() <= (index) || !info[index]->IsString()) {                \
-		return Nan::ThrowTypeError("Argument " #index " must be a string.");   \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a string.");                   \
 	}                                                                          \
 	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[index]);
 
@@ -92,19 +94,36 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // at the given variable name.
 #define REQUIRE_ARGUMENT_NUMBER(index, var)                                    \
 	if (info.Length() <= (index) || !info[index]->IsNumber()) {                \
-		return Nan::ThrowTypeError("Argument " #index " must be a number.");   \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a number.");                   \
 	}                                                                          \
 	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
 
-// If the argument of the given index is not a function, an error is thrown and
-// the caller returns. Otherwise, it is cast to a v8::Function and made
-// available at the given variable name.
+// If the last argument is not a function, an error is thrown and the caller
+// returns. Otherwise, it is cast to a v8::Function and made available at the
+// given variable name.
 #define REQUIRE_LAST_ARGUMENT_FUNCTION(indexOut, var)                          \
 	int indexOut = info.Length() - 1;                                          \
 	if (indexOut < 0 || !info[indexOut]->IsFunction()) {                       \
-		return Nan::ThrowTypeError("The final argument must be a function.");  \
+		return Nan::ThrowTypeError(                                            \
+			"Expected the final argument to be a function.");                  \
 	}                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[indexOut]);
+
+// If the last two arguments are not both functions, an error is thrown and the
+// caller returns. Otherwise, they are cast to v8::Functions and made available
+// at the given variable names.
+#define REQUIRE_LAST_TWO_ARGUMENTS_FUNCTIONS(indexOut, var1, var2)             \
+	int indexOut = info.Length() - 2;                                          \
+	if (indexOut < 0 || !info[indexOut]->IsFunction()                          \
+	                 || !info[indexOut + 1]->IsFunction()) {                   \
+		return Nan::ThrowTypeError(                                            \
+			"Expected the final two arguments to both be functions.");         \
+	}                                                                          \
+	v8::Local<v8::Function> var1 =                                             \
+		v8::Local<v8::Function>::Cast(info[indexOut]);                         \
+	v8::Local<v8::Function> var2 =                                             \
+		v8::Local<v8::Function>::Cast(info[indexOut + 1]);                     \
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
@@ -146,14 +165,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	if (!stmt->config_locked) {stmt->config_locked = true;}                    \
 	                                                                           \
-	v8::MaybeLocal<v8::Promise::Resolver> _maybeResolver                       \
-		= v8::Promise::Resolver::New(Nan::GetCurrentContext());                \
-	if (_maybeResolver.IsEmpty()) {                                            \
-		return Nan::ThrowError("Failed to create a Promise.");                 \
-	}                                                                          \
-	v8::Local<v8::Promise::Resolver> _resolver                                 \
-		= _maybeResolver.ToLocalChecked();                                     \
-	                                                                           \
 	sqlite3_stmt* _handle;                                                     \
 	int _i = stmt->handles->Request(&_handle);                                 \
 	if (_handle == NULL) {                                                     \
@@ -176,16 +187,14 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}
 
 // The second macro-instruction for setting up an asynchronous SQLite request.
-// Returns a Promise object representing the request.
+// Returns the statement object making the request.
 #define STATEMENT_END(stmt, worker)                                            \
-	worker->SaveToPersistent((uint32_t)0, _resolver);                          \
-	                                                                           \
 	stmt->requests += 1;                                                       \
 	stmt->db->requests += 1;                                                   \
 	stmt->Ref();                                                               \
 	Nan::AsyncQueueWorker(worker);                                             \
 	                                                                           \
-	info.GetReturnValue().Set(_resolver->GetPromise());
+	info.GetReturnValue().Set(info.This());
 
 // Enters the mutex for the sqlite3 database handle.
 #define LOCK_DB(db_handle)                                                     \

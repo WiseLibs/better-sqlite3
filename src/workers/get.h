@@ -9,7 +9,7 @@ class Statement;
 
 class GetWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
-		GetWorker(Statement*, sqlite3_stmt*, int);
+		GetWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
 		void Execute();
 		void HandleOKCallback();
 	private:

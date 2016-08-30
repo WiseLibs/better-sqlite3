@@ -6,8 +6,8 @@
 #include "../util/macros.h"
 #include "../util/data.h"
 
-GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index) {}
+GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb) {}
 void GetWorker::Execute() {
 	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);

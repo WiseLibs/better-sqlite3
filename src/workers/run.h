@@ -8,7 +8,7 @@ class Statement;
 
 class RunWorker : public StatementWorker<Nan::AsyncWorker> {
 	public:
-		RunWorker(Statement*, sqlite3_stmt*, int);
+		RunWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
 		void Execute();
 		void HandleOKCallback();
 	private:
