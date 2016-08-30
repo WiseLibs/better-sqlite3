@@ -40,7 +40,7 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 		rows.Add(new Data::Row(handle, column_count));
 		sqlite3_mutex_leave(data_mutex);
 		
-		progress.Send("", 1);
+		progress.Signal();
 		
 		sqlite3_mutex_enter(handle_mutex);
 		status = sqlite3_step(handle);

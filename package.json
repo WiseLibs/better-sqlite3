@@ -3,7 +3,7 @@
   "description": "Expressive, promise-based SQLite3 bindings for Node.js, with full transaction support.",
   "version": "4.0.0",
   "homepage": "http://github.com/JoshuaWise/node-sqlite3-plus",
-  "author": "Joshua Wise <josh@joshuawise.ninja> (www.joshuawise.ninja)",
+  "author": "Joshua Wise <joshuathomaswise@gmail.com>",
   "contributors": [
     "MapBox",
     "Konstantin Käfer <mail@kkaefer.com>",
