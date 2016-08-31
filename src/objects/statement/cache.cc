@@ -17,6 +17,9 @@ NAN_METHOD(Statement::Cache) {
 	if (!IS_POSITIVE_INTEGER(numberValue)) {
 		return Nan::ThrowRangeError("Argument 0 must be a positive, finite integer.");
 	}
+	if (numberValue > 0x7ffffffe) {
+		return Nan::ThrowRangeError("The specified cache size is too large.");
+	}
 	if (numberValue < 1) {
 		numberValue = 1;
 	}
