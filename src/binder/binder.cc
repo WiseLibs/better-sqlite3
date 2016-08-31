@@ -21,10 +21,20 @@
 #include "bind-array-like.cc"
 #include "bind-object.cc"
 #include "bind.cc"
+#include "bind-multi.cc"
 
 Binder::Binder(sqlite3_stmt* handle)
 	: handle(handle)
 	, param_count(sqlite3_bind_parameter_count(handle))
+	, anon_index(0)
+	, error(NULL)
+	, error_extra(NULL)
+	, error_full(NULL) {}
+
+Binder::Binder(sqlite3_stmt** handles, unsigned int handle_count)
+	: handles(handles)
+	, handle_count(handle_count)
+	, param_count(CountParams())
 	, anon_index(0)
 	, error(NULL)
 	, error_extra(NULL)
