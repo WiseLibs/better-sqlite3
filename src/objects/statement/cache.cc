@@ -4,10 +4,10 @@ NAN_METHOD(Statement::Cache) {
 	REQUIRE_ARGUMENT_NUMBER(0, number);
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (stmt->config_locked) {
-		return Nan::ThrowError("A statement's cache cannot be altered after it has been executed.");
+		return Nan::ThrowTypeError("A statement's cache cannot be altered after it has been executed.");
 	}
 	if (stmt->bound) {
-		return Nan::ThrowError("A statement's cache cannot be altered after parameters have been bound.");
+		return Nan::ThrowTypeError("A statement's cache cannot be altered after parameters have been bound.");
 	}
 	if (stmt->db->state != DB_READY) {
 		return Nan::ThrowError("The associated database connection is closed.");
