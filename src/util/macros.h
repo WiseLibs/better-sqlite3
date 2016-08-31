@@ -125,6 +125,16 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	v8::Local<v8::Function> var2 =                                             \
 		v8::Local<v8::Function>::Cast(info[indexOut + 1]);                     \
 
+// If the argument of the given index is not an array, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::Array and made available
+// at the given variable name.
+#define REQUIRE_ARGUMENT_ARRAY(index, var)                                     \
+	if (info.Length() <= (index) || !info[index]->IsArray()) {                 \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be an array.");                   \
+	}                                                                          \
+	v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[index]);
+
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
 // throws, if the property is not a function, or if the method throws, an error

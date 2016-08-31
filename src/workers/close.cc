@@ -3,6 +3,7 @@
 #include "close.h"
 #include "../objects/database/database.h"
 #include "../objects/statement/statement.h"
+#include "../objects/transaction/transaction.h"
 #include "../util/macros.h"
 
 CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker(NULL),
@@ -12,6 +13,7 @@ void CloseWorker::Execute() {
 	if (!still_connecting) {
 		// Close and free any associated statements.
 		db->stmts.Flush(Statement::DeleteHandles());
+		db->transs.Flush(Transaction::DeleteHandles());
 		
 		int status1 = sqlite3_close(db->write_handle);
 		int status2 = sqlite3_close(db->read_handle);

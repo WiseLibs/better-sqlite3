@@ -70,6 +70,7 @@ NAN_METHOD(Database::Prepare) {
 			return Nan::ThrowTypeError("This read-only SQL statement returns no result columns.");
 		}
 	}
+	Nan::ForceSet(statement, Nan::New("readonly").ToLocalChecked(), stmt->readonly ? Nan::True() : Nan::False(), FROZEN);
 	
 	// Pushes onto stmts list.
 	db->stmts.Add(stmt);

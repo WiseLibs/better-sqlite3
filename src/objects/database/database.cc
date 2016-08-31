@@ -16,7 +16,7 @@ bool CONSTRUCTING_PRIVILEGES = false;
 #include "open.cc"
 #include "close.cc"
 #include "prepare.cc"
-#include "begin.cc"
+#include "create-transaction.cc"
 
 Database::Database() : Nan::ObjectWrap(),
 	read_handle(NULL),
@@ -24,7 +24,8 @@ Database::Database() : Nan::ObjectWrap(),
 	state(DB_CONNECTING),
 	requests(0),
 	workers(0),
-	stmts(false) {}
+	stmts(false),
+	transs(false) {}
 Database::~Database() {
 	state = DB_DONE;
 	
@@ -34,6 +35,7 @@ Database::~Database() {
 	// anymore". By the same nature, statements must remove themselves from a
 	// database's list when they are garbage collected first.
 	stmts.Flush(Statement::DeleteHandles());
+	transs.Flush(Transaction::DeleteHandles());
 	
 	CloseHandles(this);
 }
@@ -46,7 +48,7 @@ NAN_MODULE_INIT(Database::Init) {
 	
 	Nan::SetPrototypeMethod(t, "close", Close);
 	Nan::SetPrototypeMethod(t, "prepare", Prepare);
-	Nan::SetPrototypeMethod(t, "begin", Begin);
+	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
 	Nan::Set(target, Nan::New("Database").ToLocalChecked(),

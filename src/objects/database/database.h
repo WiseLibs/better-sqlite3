@@ -7,6 +7,7 @@
 #include "../../util/macros.h"
 #include "../../util/list.h"
 class Statement;
+class Transaction;
 
 // Globals
 extern bool CONSTRUCTING_PRIVILEGES;
@@ -23,6 +24,7 @@ class Database : public Nan::ObjectWrap {
 		friend class OpenWorker;
 		friend class CloseWorker;
 		friend class Statement;
+		friend class Transaction;
 		template <class T> friend class StatementWorker;
 		
 	private:
@@ -30,7 +32,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_GETTER(Open);
 		static NAN_METHOD(Close);
 		static NAN_METHOD(Prepare);
-		static NAN_METHOD(Begin);
+		static NAN_METHOD(CreateTransaction);
 		static void CloseHandles(Database*);
 		void ActuallyClose();
 		
@@ -43,8 +45,9 @@ class Database : public Nan::ObjectWrap {
 		unsigned int requests;
 		unsigned int workers;
 		
-		// Associated Statements
+		// Associated Statements and Transactions
 		List<Statement> stmts;
+		List<Transaction> transs;
 };
 
 #endif

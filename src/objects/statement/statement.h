@@ -30,7 +30,6 @@ class Statement : public Nan::ObjectWrap {
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		static NAN_GETTER(Readonly);
 		static NAN_METHOD(Cache);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);

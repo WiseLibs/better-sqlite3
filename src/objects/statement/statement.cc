@@ -12,7 +12,6 @@
 #include "../../binder/binder.h"
 
 #include "new.cc"
-#include "readonly.cc"
 #include "cache.cc"
 #include "bind.cc"
 #include "pluck.cc"
@@ -52,7 +51,6 @@ void Statement::Init() {
 	Nan::SetPrototypeMethod(t, "get", Get);
 	Nan::SetPrototypeMethod(t, "all", All);
 	Nan::SetPrototypeMethod(t, "each", Each);
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), Readonly);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 }

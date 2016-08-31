@@ -4,9 +4,22 @@
 #include "../database/database.h"
 
 #include "new.cc"
+#include "delete-handles.cc"
 
-Transaction::Transaction() : Nan::ObjectWrap() {}
-Transaction::~Transaction() {}
+Transaction::Transaction() : Nan::ObjectWrap(),
+	db(NULL),
+	handles(NULL),
+	config_locked(false),
+	bound(false),
+	busy(false),
+	readonly(true),
+	pluck_column(false) {}
+Transaction::~Transaction() {
+	if (handles && db) {
+		db->transs.Remove(this);
+	}
+	DeleteHandles()(this);
+}
 void Transaction::Init() {
 	Nan::HandleScope scope;
 	
