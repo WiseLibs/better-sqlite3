@@ -4,6 +4,7 @@
 #include "../database/database.h"
 
 #include "new.cc"
+#include "bind.cc"
 #include "pluck.cc"
 #include "delete-handles.cc"
 
@@ -27,6 +28,7 @@ void Transaction::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
 	
+	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());

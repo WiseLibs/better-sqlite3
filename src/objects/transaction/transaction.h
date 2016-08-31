@@ -24,6 +24,7 @@ class Transaction : public Nan::ObjectWrap {
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
+		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
 		
 		// Sqlite3 interfacing
