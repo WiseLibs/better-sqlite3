@@ -3,10 +3,10 @@
 NAN_METHOD(Statement::Bind) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (stmt->config_locked) {
-		return Nan::ThrowError("Cannot bind parameters after the statement has been executed.");
+		return Nan::ThrowTypeError("Cannot bind parameters after the statement has been executed.");
 	}
 	if (stmt->bound) {
-		return Nan::ThrowError("The bind() method can only be invoked once per statement object.");
+		return Nan::ThrowTypeError("The bind() method can only be invoked once per statement object.");
 	}
 	if (stmt->db->state != DB_READY) {
 		return Nan::ThrowError("The associated database connection is closed.");

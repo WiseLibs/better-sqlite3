@@ -12,7 +12,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	v8::Local<v8::Array> trimmedSources = Nan::New<v8::Array>(len);
 	
 	if (!(len > 0)) {
-		return Nan::ThrowError("No SQL statements were provided.");
+		return Nan::ThrowTypeError("No SQL statements were provided.");
 	}
 	
 	// Validate and trim source strings.
@@ -61,6 +61,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	trans->handle_count = len;
 	trans->handles = new sqlite3_stmt* [len]();
 	trans->handle_types = new bool [len]();
+	bool readonly = true;
 	
 	// Create statement handles from each source string.
 	for (unsigned int i=0; i<len; i++) {
@@ -78,20 +79,28 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 		UNLOCK_DB(db->write_handle);
 		if (trans->handles[i] == NULL) {
-			return Nan::ThrowError("One of the supplied SQL queries contains no statements.");
+			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
 		if (tail != *utf8 + utf8.length()) {
-			return Nan::ThrowError("Each provided string must only contain a single SQL statement.");
+			return Nan::ThrowTypeError("Each provided string may only contain a single SQL statement.");
 		}
 		if ((trans->handle_types[i] = (sqlite3_stmt_readonly(trans->handles[i]) ? false : true))) {
-			trans->readonly = false;
+			readonly = false;
+		} else if (sqlite3_column_count(trans->handles[i]) < 1) {
+			return Nan::ThrowTypeError("You gave a read-only SQL statement that returns no result columns.");
 		}
 	}
+	
+	if (readonly) {
+		return Nan::ThrowTypeError("Transactions cannot be read-only (use prepared statements instead).");
+	}
+	
+	trans->returns_data = !trans->handle_types[len - 1];
 	
 	// Initializes JavaScript object properties.
 	transaction->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
 	Nan::ForceSet(transaction, Nan::New("source").ToLocalChecked(), joinedSource, FROZEN);
-	Nan::ForceSet(transaction, Nan::New("readonly").ToLocalChecked(), trans->readonly ? Nan::True() : Nan::False(), FROZEN);
+	Nan::ForceSet(transaction, Nan::New("returnsData").ToLocalChecked(), trans->returns_data ? Nan::True() : Nan::False(), FROZEN);
 	
 	// Pushes onto transs list.
 	db->transs.Add(trans);

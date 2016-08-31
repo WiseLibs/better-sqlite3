@@ -7,7 +7,7 @@ NAN_METHOD(Statement::Pluck) {
 	}
 	REQUIRE_ARGUMENT_BOOLEAN(0, value);
 	if (stmt->config_locked) {
-		return Nan::ThrowError("A statement's pluck setting cannot be altered after it has been executed.");
+		return Nan::ThrowTypeError("A statement's pluck setting cannot be altered after execution.");
 	}
 	if (stmt->db->state != DB_READY) {
 		return Nan::ThrowError("The associated database connection is closed.");

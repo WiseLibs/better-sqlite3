@@ -193,7 +193,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		}                                                                      \
 	} else if (info_length > 0) {                                              \
 		stmt->handles->Release(_i, _handle);                                   \
-		return Nan::ThrowError("This statement already has bound parameters.");\
+		return Nan::ThrowTypeError(                                            \
+			"This statement already has bound parameters.");                   \
 	}
 
 // The second macro-instruction for setting up an asynchronous SQLite request.

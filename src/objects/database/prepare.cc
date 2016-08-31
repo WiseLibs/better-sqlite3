@@ -40,10 +40,10 @@ NAN_METHOD(Database::Prepare) {
 	}
 	UNLOCK_DB(db->read_handle);
 	if (handle == NULL) {
-		return Nan::ThrowError("The supplied SQL query contains no statements.");
+		return Nan::ThrowTypeError("The supplied SQL string contains no statements.");
 	}
 	if (tail != stmt->source->data + stmt->source->length - 1) {
-		return Nan::ThrowError("The db.prepare() method only accepts a single SQL statement.");
+		return Nan::ThrowTypeError("The db.prepare() method only accepts a single SQL statement.");
 	}
 	
 	// If the sqlite3_stmt is not read-only, replaces the handle with a proper one.

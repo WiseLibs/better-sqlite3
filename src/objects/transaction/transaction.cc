@@ -4,6 +4,7 @@
 #include "../database/database.h"
 
 #include "new.cc"
+#include "pluck.cc"
 #include "delete-handles.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
@@ -12,7 +13,6 @@ Transaction::Transaction() : Nan::ObjectWrap(),
 	config_locked(false),
 	bound(false),
 	busy(false),
-	readonly(true),
 	pluck_column(false) {}
 Transaction::~Transaction() {
 	if (handles && db) {
@@ -26,6 +26,8 @@ void Transaction::Init() {
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
+	
+	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 }
