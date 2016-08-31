@@ -13,9 +13,10 @@ NAN_METHOD(Transaction::Bind) {
 	}
 	
 	// int info_length = info.Length();
-	// int len = trans->handles->count;
-	// for (int i=0; i<len; i++) {
-	// 	sqlite3_stmt* handle = trans->handles->Get(i);
+	// unsigned int len = trans->handle_count;
+	
+	// for (unsigned int i=0; i<len; i++) {
+	// 	sqlite3_stmt* handle = trans->handles[i];
 	// 	Binder binder(handle);
 	// 	binder.Bind(info, info_length);
 	// 	const char* err = binder.GetError();

@@ -7,7 +7,9 @@ class Binder {
 	public:
 		Binder(sqlite3_stmt*);
 		~Binder();
-		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int); // This should only be invoked once
+		// Either Bind or BindMulti should be used, NOT both, and only once
+		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
+		void BindMulti(Nan::NAN_METHOD_ARGS_TYPE, int);
 		const char* GetError();
 		
 	private:
@@ -27,13 +29,27 @@ class Binder {
 		double GetArrayLikeLength(v8::Local<v8::Object>);
 		static bool IsPlainObject(v8::Local<v8::Object>);
 		
+		// For multi-handle usage
+		sqlite3_stmt** const handles;
+		unsigned int const handle_count;
+		
+		// For single-handle usage
 		sqlite3_stmt* const handle;
+		
 		unsigned int const param_count;
 		
 		unsigned int anon_index; // This value should only be used by NextAnonIndex()
 		const char* error;
 		char* error_extra;
 		const char* error_full;
+		
+		static unsigned int CountParams() {
+			unsigned int total = 0;
+			for (unsigned int i=0; i<handle_count; i++) {
+				total += sqlite3_bind_parameter_count(handles[i]);
+			}
+			return total;
+		}
 };
 
 #endif
