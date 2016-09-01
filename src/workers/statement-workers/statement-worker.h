@@ -3,10 +3,10 @@
 
 #include <sqlite3.h>
 #include <nan.h>
-#include "../objects/database/database.h"
-#include "../objects/statement/statement.h"
-#include "../util/macros.h"
-#include "../util/handle-manager.h"
+#include "../../objects/database/database.h"
+#include "../../objects/statement/statement.h"
+#include "../../util/macros.h"
+#include "../../util/handle-manager.h"
 
 template <class T>
 class StatementWorker : public T {

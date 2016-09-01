@@ -2,10 +2,10 @@
 #include <nan.h>
 #include "all.h"
 #include "statement-worker.h"
-#include "../objects/statement/statement.h"
-#include "../util/macros.h"
-#include "../util/data.h"
-#include "../util/list.h"
+#include "../../objects/statement/statement.h"
+#include "../../util/macros.h"
+#include "../../util/data.h"
+#include "../../util/list.h"
 
 AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb),
