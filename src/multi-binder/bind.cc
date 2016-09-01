@@ -66,8 +66,12 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 		
 	} // for
 	
-	if (handle_index != handle_count - 1 || count != param_count_sum) {
-		if (handle_index < handle_count - 1 || count < param_count_sum) {
+	while (handle_index + 1 < handle_count) {
+		param_count_sum += sqlite3_bind_parameter_count(handles[++handle_index]);
+	}
+	
+	if (count != param_count_sum) {
+		if (count < param_count_sum) {
 			error = "Too few parameter values were given.";
 		} else {
 			error = "Too many parameter values were given.";
