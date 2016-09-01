@@ -6,6 +6,7 @@
 class Binder {
 	public:
 		Binder(sqlite3_stmt*);
+		Binder(sqlite3_stmt**, unsigned int);
 		~Binder();
 		// Either Bind or BindMulti should be used, NOT both, and only once
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
@@ -43,7 +44,7 @@ class Binder {
 		char* error_extra;
 		const char* error_full;
 		
-		static unsigned int CountParams() {
+		unsigned int CountParams() {
 			unsigned int total = 0;
 			for (unsigned int i=0; i<handle_count; ++i) {
 				total += sqlite3_bind_parameter_count(handles[i]);
