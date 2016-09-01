@@ -6,7 +6,7 @@
 // If an error occurs, error is set to an appropriately descriptive string.
 
 void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
-	// bool bound_object = false;
+	bool bound_object = false;
 	unsigned int count = 0;
 	
 	for (int i=0; i<len; ++i) {
@@ -41,19 +41,17 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 			
 			// Plain objects
 			if (IsPlainObject(obj)) {
-				error = "Named parameters are not yet supported in transactions.";
-				return;
-				// if (bound_object) {
-				// 	error = "You cannot specify named parameters in two different objects.";
-				// 	return;
-				// }
-				// bound_object = true;
+				if (bound_object) {
+					error = "You cannot specify named parameters in two different objects.";
+					return;
+				}
+				bound_object = true;
 				
-				// count += BindObject(v8::Local<v8::Object>::Cast(arg));
-				// if (error) {
-				// 	return;
-				// }
-				// continue;
+				count += BindObject(obj);
+				if (error) {
+					return;
+				}
+				continue;
 			}
 		}
 		

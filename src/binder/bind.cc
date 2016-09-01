@@ -47,7 +47,7 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 				}
 				bound_object = true;
 				
-				count += BindObject(v8::Local<v8::Object>::Cast(arg));
+				count += BindObject(obj);
 				if (error) {
 					return;
 				}
