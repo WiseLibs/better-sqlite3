@@ -18,7 +18,7 @@ unsigned int Binder::BindObject(v8::Local<v8::Object> obj) {
 	unsigned int symbol_count = 0;
 	
 	// Loop through each property.
-	for (unsigned int i=0; i<len; i++) {
+	for (unsigned int i=0; i<len; ++i) {
 		
 		// Get current property name.
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);

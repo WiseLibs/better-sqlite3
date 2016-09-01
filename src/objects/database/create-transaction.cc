@@ -17,7 +17,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	// Validate and trim source strings.
 	v8::Local<v8::String> semicolon = Nan::New(";").ToLocalChecked();
-	for (unsigned int i=0; i<len; i++) {
+	for (unsigned int i=0; i<len; ++i) {
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(sources, i);
 		if (maybeValue.IsEmpty()) {
 			return;
@@ -64,7 +64,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	bool readonly = true;
 	
 	// Create statement handles from each source string.
-	for (unsigned int i=0; i<len; i++) {
+	for (unsigned int i=0; i<len; ++i) {
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(Nan::Get(trimmedSources, i).ToLocalChecked());
 		Nan::Utf8String utf8(source);
 		const char* tail;

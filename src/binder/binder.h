@@ -45,7 +45,7 @@ class Binder {
 		
 		static unsigned int CountParams() {
 			unsigned int total = 0;
-			for (unsigned int i=0; i<handle_count; i++) {
+			for (unsigned int i=0; i<handle_count; ++i) {
 				total += sqlite3_bind_parameter_count(handles[i]);
 			}
 			return total;

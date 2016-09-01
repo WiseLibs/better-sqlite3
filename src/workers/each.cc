@@ -81,7 +81,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			columnNames = Nan::New<v8::Array>(column_count);
 			
 			sqlite3_mutex_enter(handle_mutex);
-			for (int i=0; i<column_count; i++) {
+			for (int i=0; i<column_count; ++i) {
 				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked());
 			}
 			sqlite3_mutex_leave(handle_mutex);
@@ -95,7 +95,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		rows.Flush([this, &columnNames] (Data::Row* row) {
 			
 			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-			for (int i=0; i<row->column_count; i++) {
+			for (int i=0; i<row->column_count; ++i) {
 				Nan::ForceSet(obj, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
 			}
 			

@@ -9,7 +9,7 @@ void Binder::BindMulti(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 	bool bound_object = false;
 	unsigned int count = 0;
 	
-	for (int i=0; i<len; i++) {
+	for (int i=0; i<len; ++i) {
 		v8::Local<v8::Value> arg = info[i];
 		
 		// Arrays
