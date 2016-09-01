@@ -2,7 +2,7 @@
 // If no index is given, the next anonymous index is used.
 // If an error occurs, error is set to an appropriately descriptive string.
 
-void Binder::BindValue(v8::Local<v8::Value> value, unsigned int index = 0) {
+void Binder::BindValue(v8::Local<v8::Value> value, unsigned int index) {
 	if (value->IsNumber()) {
 		BindNumber(v8::Local<v8::Number>::Cast(value), index);
 	} else if (value->IsString()) {

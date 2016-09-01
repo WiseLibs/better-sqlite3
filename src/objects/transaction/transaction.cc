@@ -2,6 +2,7 @@
 #include <nan.h>
 #include "transaction.h"
 #include "../database/database.h"
+#include "../../multi-binder/multi-binder.h"
 
 #include "new.cc"
 #include "bind.cc"
