@@ -4,7 +4,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement-worker.h"
-#include "../util/data.h"
+#include "../../util/data.h"
 class Statement;
 
 class GetWorker : public StatementWorker<Nan::AsyncWorker> {

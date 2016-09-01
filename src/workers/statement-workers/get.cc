@@ -2,9 +2,9 @@
 #include <nan.h>
 #include "get.h"
 #include "statement-worker.h"
-#include "../objects/statement/statement.h"
-#include "../util/macros.h"
-#include "../util/data.h"
+#include "../../objects/statement/statement.h"
+#include "../../util/macros.h"
+#include "../../util/data.h"
 
 GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
 	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb) {}

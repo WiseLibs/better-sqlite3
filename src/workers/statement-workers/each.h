@@ -5,8 +5,8 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement-worker.h"
-#include "../util/data.h"
-#include "../util/list.h"
+#include "../../util/data.h"
+#include "../../util/list.h"
 class Statement;
 
 class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {

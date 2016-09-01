@@ -1,8 +1,8 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "open.h"
-#include "../objects/database/database.h"
-#include "../util/macros.h"
+#include "../../objects/database/database.h"
+#include "../../util/macros.h"
 
 const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
 const int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
