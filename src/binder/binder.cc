@@ -24,7 +24,9 @@
 #include "bind-multi.cc"
 
 Binder::Binder(sqlite3_stmt* handle)
-	: handle(handle)
+	: handles(NULL)
+	, handle_count(0)
+	, handle(handle)
 	, param_count(sqlite3_bind_parameter_count(handle))
 	, anon_index(0)
 	, error(NULL)
@@ -34,6 +36,7 @@ Binder::Binder(sqlite3_stmt* handle)
 Binder::Binder(sqlite3_stmt** handles, unsigned int handle_count)
 	: handles(handles)
 	, handle_count(handle_count)
+	, handle(NULL)
 	, param_count(CountParams())
 	, anon_index(0)
 	, error(NULL)
