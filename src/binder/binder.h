@@ -2,6 +2,7 @@
 #define NODE_SQLITE3_PLUS_BINDER_H
 
 #include <sqlite3.h>
+#include <nan.h>
 
 class Binder {
 	public:
@@ -10,14 +11,14 @@ class Binder {
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
 		const char* GetError();
 		
-	private:
+	protected:
 		unsigned int NextAnonIndex();
 		void SetBindingError(int);
-		void BindNumber(v8::Local<v8::Number>, unsigned int);
-		void BindString(v8::Local<v8::String>, unsigned int);
-		void BindBuffer(v8::Local<v8::Object>, unsigned int);
-		void BindNull(unsigned int);
-		void BindValue(v8::Local<v8::Value>, unsigned int);
+		void BindNumber(v8::Local<v8::Number>, unsigned int = 0);
+		void BindString(v8::Local<v8::String>, unsigned int = 0);
+		void BindBuffer(v8::Local<v8::Object>, unsigned int = 0);
+		void BindNull(unsigned int = 0);
+		void BindValue(v8::Local<v8::Value>, unsigned int = 0);
 		
 		unsigned int BindArray(v8::Local<v8::Array>);
 		unsigned int BindArrayLike(v8::Local<v8::Object>, unsigned int);

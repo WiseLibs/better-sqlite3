@@ -18,6 +18,7 @@
         "src/workers/all.cc",
         "src/workers/each.cc",
         "src/binder/binder.cc",
+        "src/multi-binder/multi-binder.cc",
         "src/sqlite3_plus.cc"
       ]
     }
