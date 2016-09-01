@@ -100,7 +100,7 @@ class Row {
 		}
 		~Row() {
 			if (values) {
-				for (int i=0; i<column_count; i++) {delete values[i];}
+				for (int i=0; i<column_count; ++i) {delete values[i];}
 				delete[] values;
 			}
 		}
@@ -113,7 +113,7 @@ class Row {
 		inline void Fill(sqlite3_stmt* handle, int len) {
 			column_count = len;
 			values = new Data::Value* [len];
-			for (int i=0; i<len; i++) {
+			for (int i=0; i<len; ++i) {
 				int type = sqlite3_column_type(handle, i);
 				switch (type) {
 					case SQLITE_INTEGER:

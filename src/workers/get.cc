@@ -38,7 +38,7 @@ void GetWorker::HandleOKCallback() {
 	
 	// Resolve with every column.
 	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-	for (int i=0; i<row.column_count; i++) {
+	for (int i=0; i<row.column_count; ++i) {
 		Nan::ForceSet(obj,
 			Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked(),
 			row.values[i]->ToJS());

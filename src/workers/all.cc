@@ -17,7 +17,7 @@ void AllWorker::Execute() {
 	GET_COLUMN_COUNT(column_count);
 	
 	while (status == SQLITE_ROW) {
-		row_count++;
+		++row_count;
 		rows.Add(new Data::Row(handle, column_count));
 		status = sqlite3_step(handle);
 	}
@@ -38,23 +38,23 @@ void AllWorker::HandleOKCallback() {
 		if (GetPluckColumn()) {
 			// Fill array with plucked columns.
 			rows.Flush([&arr, &i] (Data::Row* row) {
-				Nan::Set(arr, i++, row->values[0]->ToJS());
+				Nan::Set(arr, ++i, row->values[0]->ToJS());
 			});
 		} else {
 			
 			// Temporarily Cache column names.
 			v8::Local<v8::Array> columnNames = Nan::New<v8::Array>(column_count);
-			for (int j=0; j<column_count; j++) {
+			for (int j=0; j<column_count; ++j) {
 				Nan::Set(columnNames, j, Nan::New(sqlite3_column_name(handle, j)).ToLocalChecked());
 			}
 			
 			// Fill array with row objects.
 			rows.Flush([&arr, &i, &columnNames] (Data::Row* row) {
 				v8::Local<v8::Object> obj = Nan::New<v8::Object>();
-				for (int j=0; j<row->column_count; j++) {
+				for (int j=0; j<row->column_count; ++j) {
 					Nan::ForceSet(obj, Nan::Get(columnNames, j).ToLocalChecked(), row->values[j]->ToJS());
 				}
-				Nan::Set(arr, i++, obj);
+				Nan::Set(arr, ++i, obj);
 			});
 		}
 	}

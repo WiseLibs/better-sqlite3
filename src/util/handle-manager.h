@@ -25,14 +25,14 @@ class HandleManager {
 			handle_states = new bool [count]();
 		}
 		~HandleManager() {
-			for (int i=0; i<count; i++) {
+			for (int i=0; i<count; ++i) {
 				sqlite3_finalize(handles[i]);
 			}
 			delete[] handles;
 			delete[] handle_states;
 		}
 		template <class F> int Fill(F fn) {
-			for (int i=0; i<count; i++) {
+			for (int i=0; i<count; ++i) {
 				if ((handles[i] = fn()) == NULL) {
 					return 1;
 				}
