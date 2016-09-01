@@ -2,7 +2,8 @@
 // is considered to be named.
 // If an error occurs, error is set to an appropriately descriptive string.
 // Regardless of whether an error occurs, the return value is the number of
-// parameters that were bound.
+// parameters that were bound. Unlike the normal Binder, this will bind
+// parameters to all handles, not just the current one.
 
 unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 	// Get array of properties.
@@ -15,7 +16,10 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 	
 	// Get property count.
 	unsigned int len = keys->Length();
-	unsigned int symbol_count = 0;
+	unsigned int bound_count = 0;
+	
+	// Save current handle.
+	sqlite3_stmt* current_handle = handle;
 	
 	// Loop through each property.
 	for (unsigned int i=0; i<len; ++i) {
@@ -24,39 +28,64 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);
 		if (maybeKey.IsEmpty()) {
 			error = "An error was thrown while trying to get the property names of the given object.";
-			return i - symbol_count;
+			return bound_count;
 		}
 		v8::Local<v8::Value> key = maybeKey.ToLocalChecked();
 		
 		// If this property is a symbol, ignore it.
 		if (key->IsSymbol()) {
-			++symbol_count;
 			continue;
-		}
-		
-		// Get the parameter index of the current named parameter.
-		Nan::Utf8String utf8(key);
-		int index = GetNamedParameterIndex(*utf8, utf8.length());
-		if (!index) {
-			error = "The named parameter \"%s\" does not exist.";
-			error_extra = new char[utf8.length() + 1];
-			strlcpy(error_extra, *utf8, utf8.length() + 1);
-			return i - symbol_count;
 		}
 		
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
 		if (maybeValue.IsEmpty()) {
 			error = "An error was thrown while trying to get property values of the given object.";
-			return i - symbol_count;
+			return bound_count;
+		}
+		v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
+		
+		// Dissect the property name.
+		Nan::Utf8String utf8(key);
+		const char* utf8_value = *utf8;
+		int utf8_length = utf8.length();
+		
+		
+		bool someoneHadNamedParameter = false;
+		
+		
+		// Loop through each handle.
+		for (unsigned int h=0; h<handle_count; ++h) {
+			handle = handles[h];
+			
+			// Get the parameter index of the current named parameter.
+			unsigned int index = GetNamedParameterIndex(utf8_value, utf8_length);
+			if (index) {
+				
+				// Bind value.
+				BindValue(value, index);
+				if (error) {
+					return bound_count;
+				}
+				++bound_count;
+				
+				if (!someoneHadNamedParameter) {
+					someoneHadNamedParameter = true;
+				}
+			}
+			
 		}
 		
-		// Bind value.
-		BindValue(maybeValue.ToLocalChecked(), (unsigned int)index);
-		if (error) {
-			return i - symbol_count;
+		
+		// If no handles had this named parameter, provide an error.
+		if (!someoneHadNamedParameter) {
+			error = "The named parameter \"%s\" does not exist.";
+			error_extra = new char[utf8_length + 1];
+			strlcpy(error_extra, utf8_value, utf8_length + 1);
+			return bound_count;
 		}
 	}
 	
-	return len - symbol_count;
+	handle = current_handle;
+	return bound_count;
 }

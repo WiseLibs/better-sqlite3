@@ -3,6 +3,7 @@
 // Binder, this also loops through all handles.
 
 unsigned int MultiBinder::NextAnonIndex() {
+startloop:
 	while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
 	if (anon_index > param_count && handle_index + 1 < handle_count) {
 		do {
@@ -11,6 +12,9 @@ unsigned int MultiBinder::NextAnonIndex() {
 		} while (param_count == 0 && handle_index + 1 < handle_count);
 		anon_index = 1;
 		param_count_sum += param_count;
+		if (sqlite3_bind_parameter_name(handle, anon_index) != NULL) {
+			goto startloop;
+		}
 	}
 	return anon_index;
 }

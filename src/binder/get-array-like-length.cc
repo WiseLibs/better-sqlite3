@@ -12,7 +12,7 @@ double Binder::GetArrayLikeLength(v8::Local<v8::Object> obj) {
 	
 	if (length->IsNumber()) {
 		double value = v8::Local<v8::Number>::Cast(length)->Value();
-		return IS_POSITIVE_INTEGER(value) ? value : -1;
+		return (IS_POSITIVE_INTEGER(value) && value <= (double)0xffffffff) ? value : -1;
 	}
 	return -1;
 }
