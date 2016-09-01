@@ -2,12 +2,12 @@
 #define NODE_SQLITE3_PLUS_MULTIBINDER_H
 
 #include <sqlite3.h>
+#include <nan.h>
 #include "../binder/binder.h"
 
 class MultiBinder : public Binder {
 	public:
 		MultiBinder(sqlite3_stmt**, unsigned int);
-		~MultiBinder();
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
 		
 	protected:
