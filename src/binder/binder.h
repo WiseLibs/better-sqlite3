@@ -8,11 +8,11 @@ class Binder {
 	public:
 		Binder(sqlite3_stmt*);
 		~Binder();
-		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
+		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
 		const char* GetError();
 		
 	protected:
-		unsigned int NextAnonIndex();
+		virtual unsigned int NextAnonIndex();
 		void SetBindingError(int);
 		void BindNumber(v8::Local<v8::Number>, unsigned int = 0);
 		void BindString(v8::Local<v8::String>, unsigned int = 0);
@@ -22,7 +22,7 @@ class Binder {
 		
 		unsigned int BindArray(v8::Local<v8::Array>);
 		unsigned int BindArrayLike(v8::Local<v8::Object>, unsigned int);
-		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
+		virtual unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once
 		
 		int GetNamedParameterIndex(const char*, int);
 		double GetArrayLikeLength(v8::Local<v8::Object>);
