@@ -20,6 +20,7 @@ NAN_METHOD(Database::Prepare) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);
 	stmt->db = db;
 	stmt->source = new FrozenBuffer(*utf8, utf8.length() + 1);
+	stmt->handles = new HandleManager(stmt, 1);
 	statement->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
 	Nan::ForceSet(statement, Nan::New("source").ToLocalChecked(), source, FROZEN);
 	
@@ -28,8 +29,6 @@ NAN_METHOD(Database::Prepare) {
 	sqlite3_stmt* handle;
 	LOCK_DB(db->read_handle);
 	int status = sqlite3_prepare_v2(db->read_handle, stmt->source->data, stmt->source->length, &handle, &tail);
-	
-	stmt->handles = new HandleManager(stmt, 1);
 	stmt->handles->SetFirst(handle);
 	
 	// Validates the sqlite3_stmt.
