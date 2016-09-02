@@ -6,16 +6,35 @@
 #include "../util/macros.h"
 
 TransactionWorker::TransactionWorker(Transaction* trans, Nan::Callback* cb)
-	: Nan::AsyncWorker(cb), trans(trans) {}
+	: Nan::AsyncWorker(cb), trans(trans), changes(0) {}
 void TransactionWorker::Execute() {
 	LOCK_DB(trans->db->write_handle);
-	// int status = sqlite3_step(handle);
-	// if (status == SQLITE_DONE || status == SQLITE_ROW) {
-	// 	changes = sqlite3_changes(trans->db->write_handle);
-	// 	id = sqlite3_last_insert_rowid(trans->db->write_handle);
-	// } else {
-	// 	SetErrorMessage(sqlite3_errmsg(trans->db->write_handle));
-	// }
+	
+	// Begin
+	
+	unsigned int i = 0;
+	for (; i<trans->handle_count; ++i) {
+		int status = sqlite3_step(trans->handles[i]);
+		
+		if (status == SQLITE_DONE) {
+			changes += sqlite3_changes(trans->db->write_handle);
+		} else if (status != SQLITE_ROW) {
+			SetErrorMessage(sqlite3_errmsg(trans->db->write_handle));
+			// Rollback
+			UNLOCK_DB(trans->db->write_handle);
+			return;
+		} else {
+			SetErrorMessage("Unexpected data returned by a write transaction.");
+			// Rollback
+			UNLOCK_DB(trans->db->write_handle);
+			return;
+		}
+	}
+	
+	// Commit
+	
+	id = sqlite3_last_insert_rowid(trans->db->write_handle);
+	
 	UNLOCK_DB(trans->db->write_handle);
 }
 void TransactionWorker::HandleOKCallback() {

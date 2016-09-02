@@ -10,11 +10,13 @@ RunWorker::RunWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Na
 void RunWorker::Execute() {
 	LOCK_DB(db_handle);
 	int status = sqlite3_step(handle);
-	if (status == SQLITE_DONE || status == SQLITE_ROW) {
+	if (status == SQLITE_DONE) {
 		changes = sqlite3_changes(db_handle);
 		id = sqlite3_last_insert_rowid(db_handle);
-	} else {
+	} else if (status != SQLITE_ROW) {
 		SetErrorMessage(sqlite3_errmsg(db_handle));
+	} else {
+		SetErrorMessage("Unexpected data returned by a write transaction.");
 	}
 	UNLOCK_DB(db_handle);
 }
