@@ -4,9 +4,10 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement-worker.h"
+#include "../write-worker.h"
 class Statement;
 
-class RunWorker : public StatementWorker<Nan::AsyncWorker> {
+class RunWorker : public StatementWorker<WriteWorker> {
 	public:
 		RunWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
 		void Execute();

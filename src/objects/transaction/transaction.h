@@ -20,12 +20,14 @@ class Transaction : public Nan::ObjectWrap {
 		// Friends
 		friend class DeleteHandles;
 		friend class Database;
+		friend class TransactionWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
+		static NAN_GETTER(Busy);
 		static NAN_METHOD(Bind);
-		static NAN_METHOD(Pluck);
+		static NAN_METHOD(Run);
 		
 		// Sqlite3 interfacing
 		Database* db;

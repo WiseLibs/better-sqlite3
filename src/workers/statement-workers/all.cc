@@ -8,7 +8,7 @@
 #include "../../util/list.h"
 
 AllWorker::AllWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb),
+	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb, false),
 	row_count(0) {}
 void AllWorker::Execute() {
 	LOCK_DB(db_handle);
@@ -38,7 +38,7 @@ void AllWorker::HandleOKCallback() {
 		if (GetPluckColumn()) {
 			// Fill array with plucked columns.
 			rows.Flush([&arr, &i] (Data::Row* row) {
-				Nan::Set(arr, ++i, row->values[0]->ToJS());
+				Nan::Set(arr, i++, row->values[0]->ToJS());
 			});
 		} else {
 			
@@ -54,7 +54,7 @@ void AllWorker::HandleOKCallback() {
 				for (int j=0; j<row->column_count; ++j) {
 					Nan::ForceSet(obj, Nan::Get(columnNames, j).ToLocalChecked(), row->values[j]->ToJS());
 				}
-				Nan::Set(arr, ++i, obj);
+				Nan::Set(arr, i++, obj);
 			});
 		}
 	}

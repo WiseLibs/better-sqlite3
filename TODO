@@ -40,7 +40,10 @@ use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 Polish the changes/last_row_id API of .run()
 
-reduce the number of memory copies
+reduce the number of memory copies:
+- when binding strings, I can use SQLITE_TRANSIENT if I make the string temporarily persistent
+- when binding blobs, I can do the same thing as above, as long as I'm not scared of the user changing the buffer's underlying memory mid-execution
+- use ExternalStringResource and sqlite3_column_text16 and sqlite3_column_bytes16 to prevent a copying of data in Data::Text (similar to Data::Blob)
 
 optimize binding by creating bind maps when statements and transactions are
 created. This way, we can eliminate overhead caused by the NextAnonIndex()
@@ -48,9 +51,6 @@ and GetNamedParameterIndex() functions
 
 if we promisify run(), get(), all(), or each(), their performance will suffer
 if more than 3 arguments are passed (more than 2 bound arguments for each())
-
-prevent caching of non-read-only statements? Does caching these improve
-performance?
 
 ---------- Automatic Atomic Transactions ----------
 on commit hook, check for error, and if there was an error, return 1

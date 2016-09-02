@@ -199,13 +199,36 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 
 // The second macro-instruction for setting up an asynchronous SQLite request.
 // Returns the statement object making the request.
-#define STATEMENT_END(stmt, worker)                                            \
+#define STATEMENT_READER_END(stmt, worker)                                     \
 	stmt->requests += 1;                                                       \
 	stmt->db->requests += 1;                                                   \
 	stmt->Ref();                                                               \
 	Nan::AsyncQueueWorker(worker);                                             \
-	                                                                           \
 	info.GetReturnValue().Set(info.This());
+
+// Same as above, but for non-read-only statements.
+#define STATEMENT_WRITER_END(stmt, worker)                                     \
+	stmt->requests += 1;                                                       \
+	stmt->db->requests += 1;                                                   \
+	stmt->Ref();                                                               \
+	if (stmt->db->write_lock == 0) {                                           \
+		stmt->db->pending_write_statements += 1;                               \
+		Nan::AsyncQueueWorker(worker);                                         \
+	}                                                                          \
+	else {stmt->db->write_queue.Add(worker);}                                  \
+	info.GetReturnValue().Set(info.This());
+
+// Common bind logic for transactions.
+#define TRANSACTION_BIND(trans, info, info_length)                             \
+	MultiBinder _binder(trans->handles, trans->handle_count);                  \
+	_binder.Bind(info, info_length);                                           \
+	const char* _err = _binder.GetError();                                     \
+	if (_err) {                                                                \
+		for (unsigned int i=0; i<trans->handle_count; ++i) {                   \
+			sqlite3_clear_bindings(trans->handles[i]);                         \
+		}                                                                      \
+		return Nan::ThrowError(_err);                                          \
+	}
 
 // Enters the mutex for the sqlite3 database handle.
 #define LOCK_DB(db_handle)                                                     \

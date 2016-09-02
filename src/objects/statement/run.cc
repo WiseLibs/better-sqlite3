@@ -9,5 +9,5 @@ NAN_METHOD(Statement::Run) {
 	STATEMENT_START(stmt);
 	STATEMENT_BIND(stmt, func_index);
 	RunWorker* worker = new RunWorker(stmt, _handle, _i, new Nan::Callback(func));
-	STATEMENT_END(stmt, worker);
+	STATEMENT_WRITER_END(stmt, worker);
 }
