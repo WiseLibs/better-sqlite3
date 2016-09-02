@@ -12,16 +12,7 @@ NAN_METHOD(Transaction::Bind) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	
-	MultiBinder binder(trans->handles, trans->handle_count);
-	binder.Bind(info, info.Length());
-	
-	const char* err = binder.GetError();
-	if (err) {
-		for (unsigned int i=0; i<trans->handle_count; ++i) {
-			sqlite3_clear_bindings(trans->handles[i]);
-		}
-		return Nan::ThrowError(err);
-	}
+	TRANSACTION_BIND(trans, info, info.Length());
 	
 	trans->bound = true;
 	info.GetReturnValue().Set(info.This());

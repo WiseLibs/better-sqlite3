@@ -17,6 +17,7 @@
         "src/workers/statement-workers/get.cc",
         "src/workers/statement-workers/all.cc",
         "src/workers/statement-workers/each.cc",
+        "src/workers/transaction-worker.cc",
         "src/binder/binder.cc",
         "src/multi-binder/multi-binder.cc",
         "src/sqlite3_plus.cc"

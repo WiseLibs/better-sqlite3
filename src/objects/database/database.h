@@ -6,6 +6,7 @@
 #include <nan.h>
 #include "../../util/macros.h"
 #include "../../util/list.h"
+#include "../../workers/write-worker.h"
 class Statement;
 class Transaction;
 
@@ -26,6 +27,7 @@ class Database : public Nan::ObjectWrap {
 		friend class Statement;
 		friend class Transaction;
 		template <class T> friend class StatementWorker;
+		friend class TransactionWorker;
 		
 	private:
 		static NAN_METHOD(New);
@@ -44,10 +46,15 @@ class Database : public Nan::ObjectWrap {
 		DB_STATE state;
 		unsigned int requests;
 		unsigned int workers;
+		unsigned int pending_write_statements;
+		int write_lock; // 0 = free, 1 = waiting for statements to finish, 2 = doing transaction
 		
 		// Associated Statements and Transactions
 		List<Statement> stmts;
 		List<Transaction> transs;
+		
+		// Write Queues
+		List<WriteWorker> write_queue;
 };
 
 #endif

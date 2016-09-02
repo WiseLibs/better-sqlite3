@@ -38,6 +38,27 @@ class List {
 			}
 		}
 		
+		// Returns whether the list is empty.
+		bool isEmpty() {
+			return front == NULL;
+		}
+		
+		// Shifts the first item from the list, and returns it.
+		// This can only be used if owner == false.
+		T* Shift() {
+			if (owner == true || front == NULL) {
+				return NULL;
+			}
+			T* item = front->item;
+			Node* temp = front->prev;
+			delete front;
+			front = temp;
+			if (front == NULL) {
+				end = NULL;
+			}
+			return item;
+		}
+		
 		// Pushes an item onto the list.
 		void Add(T* item) {
 			Node* new_node = new Node;
@@ -94,21 +115,44 @@ class List {
 			if (owner) {
 				while (node != NULL) {
 					fn(node->item);
-					Node* temp = node->prev;
+					front = node->prev;
 					delete node->item;
 					delete node;
-					node = temp;
+					node = front;
 				}
 			} else {
 				while (node != NULL) {
 					fn(node->item);
-					Node* temp = node->prev;
+					front = node->prev;
 					delete node;
-					node = temp;
+					node = front;
 				}
 			}
-			front = NULL;
 			end = NULL;
+		}
+		
+		// Same as Flush(), but the callback should return a boolean.
+		// If it returns true, that item will be removed from the list, and
+		// iteration will continue. If it returns false, iteration stops.
+		template <class F> void FlushSome(F fn) {
+			Node* node = front;
+			if (owner) {
+				while (node != NULL && fn(node->item) == true) {
+					front = node->prev;
+					delete node->item;
+					delete node;
+					node = front;
+				}
+			} else {
+				while (node != NULL && fn(node->item) == true) {
+					front = node->prev;
+					delete node;
+					node = front;
+				}
+			}
+			if (front == NULL) {
+				end = NULL;
+			}
 		}
 };
 
