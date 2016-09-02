@@ -60,8 +60,6 @@ NAN_METHOD(Database::CreateTransaction) {
 	trans->db = db;
 	trans->handle_count = len;
 	trans->handles = new sqlite3_stmt* [len]();
-	trans->handle_types = new bool [len]();
-	bool readonly = true;
 	
 	// Create statement handles from each source string.
 	for (unsigned int i=0; i<len; ++i) {
@@ -84,23 +82,14 @@ NAN_METHOD(Database::CreateTransaction) {
 		if (tail != *utf8 + utf8.length()) {
 			return Nan::ThrowTypeError("Each provided string may only contain a single SQL statement.");
 		}
-		if ((trans->handle_types[i] = (sqlite3_stmt_readonly(trans->handles[i]) ? false : true))) {
-			readonly = false;
-		} else if (sqlite3_column_count(trans->handles[i]) < 1) {
-			return Nan::ThrowTypeError("You gave a read-only SQL statement that returns no result columns.");
+		if (sqlite3_stmt_readonly(trans->handles[i])) {
+			return Nan::ThrowTypeError("Transactions cannot contain read-only statements.");
 		}
 	}
-	
-	if (readonly) {
-		return Nan::ThrowTypeError("Transactions cannot be read-only (use prepared statements instead).");
-	}
-	
-	trans->returns_data = !trans->handle_types[len - 1];
 	
 	// Initializes JavaScript object properties.
 	transaction->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
 	Nan::ForceSet(transaction, Nan::New("source").ToLocalChecked(), joinedSource, FROZEN);
-	Nan::ForceSet(transaction, Nan::New("returnsData").ToLocalChecked(), trans->returns_data ? Nan::True() : Nan::False(), FROZEN);
 	
 	// Pushes onto transs list.
 	db->transs.Add(trans);

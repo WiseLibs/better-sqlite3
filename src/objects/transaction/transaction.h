@@ -31,16 +31,11 @@ class Transaction : public Nan::ObjectWrap {
 		Database* db;
 		unsigned int handle_count;
 		sqlite3_stmt** handles;
-		bool* handle_types; // True means writer, false means readonly.
 		
 		// State
 		bool config_locked;
 		bool bound;
 		bool busy;
-		
-		// Config
-		bool returns_data;
-		bool pluck_column;
 };
 
 #endif
