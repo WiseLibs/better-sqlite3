@@ -34,7 +34,9 @@ otherwise -> set active_tranaction flag to 0
 
 ---------- Polish ----------
 optmize DB_LOCK/DB_UNLOCK by making them only surround from sqlite3_step to error check
-Maybe dont lock readers during production, for better performance?
+Maybe dont lock readers, for better performance? Remember that locks also occur in the
+GET_COLUMN_COUNT macro. Also, implement transaction thread concurrency (like NewHandle()),
+and maybe even transaction handle caching.
 
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
