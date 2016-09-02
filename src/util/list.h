@@ -38,11 +38,6 @@ class List {
 			}
 		}
 		
-		// Returns whether the list is empty.
-		bool isEmpty() {
-			return front == NULL;
-		}
-		
 		// Shifts the first item from the list, and returns it.
 		// This can only be used if owner == false.
 		T* Shift() {

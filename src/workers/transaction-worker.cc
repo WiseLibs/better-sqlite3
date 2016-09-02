@@ -53,19 +53,17 @@ void TransactionWorker::FinishRequest() {
 		trans->db->ActuallyClose();
 	} else {
 		trans->db->write_lock = 0;
-		if (!trans->db->write_queue.isEmpty()) {
-			trans->db->write_queue.FlushSome([this] (WriteWorker* worker) -> bool {
-				if (worker->is_transaction) {
-					trans->db->write_lock = trans->db->pending_write_statements == 0 ? 2 : 1;
-					return false;
-				}
-				trans->db->pending_write_statements += 1;
-				Nan::AsyncQueueWorker(worker);
-				return true;
-			});
-			if (trans->db->write_lock == 2) {
-				Nan::AsyncQueueWorker(trans->db->write_queue.Shift());
+		trans->db->write_queue.FlushSome([this] (WriteWorker* worker) -> bool {
+			if (worker->is_transaction) {
+				trans->db->write_lock = trans->db->pending_write_statements == 0 ? 2 : 1;
+				return false;
 			}
+			trans->db->pending_write_statements += 1;
+			Nan::AsyncQueueWorker(worker);
+			return true;
+		});
+		if (trans->db->write_lock == 2) {
+			Nan::AsyncQueueWorker(trans->db->write_queue.Shift());
 		}
 	}
 }
