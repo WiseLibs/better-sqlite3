@@ -6,7 +6,6 @@
 
 #include "new.cc"
 #include "bind.cc"
-#include "pluck.cc"
 #include "delete-handles.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
@@ -14,8 +13,7 @@ Transaction::Transaction() : Nan::ObjectWrap(),
 	handles(NULL),
 	config_locked(false),
 	bound(false),
-	busy(false),
-	pluck_column(false) {}
+	busy(false) {}
 Transaction::~Transaction() {
 	if (handles && db) {
 		db->transs.Remove(this);
@@ -30,7 +28,6 @@ void Transaction::Init() {
 	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
 	
 	Nan::SetPrototypeMethod(t, "bind", Bind);
-	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 }

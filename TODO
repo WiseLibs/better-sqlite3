@@ -49,6 +49,8 @@ and GetNamedParameterIndex() functions
 if we promisify run(), get(), all(), or each(), their performance will suffer
 if more than 3 arguments are passed (more than 2 bound arguments for each())
 
+prevent caching of non-read-only statements? Does caching these improve
+performance?
 
 ---------- Automatic Atomic Transactions ----------
 on commit hook, check for error, and if there was an error, return 1
