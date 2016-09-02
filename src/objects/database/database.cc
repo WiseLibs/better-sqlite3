@@ -24,11 +24,8 @@ Database::Database() : Nan::ObjectWrap(),
 	state(DB_CONNECTING),
 	requests(0),
 	workers(0),
-	pending_write_statements(0),
-	write_lock(0),
 	stmts(false),
-	transs(false),
-	write_queue(false) {}
+	transs(false) {}
 Database::~Database() {
 	state = DB_DONE;
 	

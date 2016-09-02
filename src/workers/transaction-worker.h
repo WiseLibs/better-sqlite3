@@ -3,10 +3,9 @@
 
 #include <sqlite3.h>
 #include <nan.h>
-#include "write-worker.h"
 class Transaction;
 
-class TransactionWorker : public WriteWorker {
+class TransactionWorker : public Nan::AsyncWorker {
 	public:
 		TransactionWorker(Transaction*, Nan::Callback*);
 		void Execute();

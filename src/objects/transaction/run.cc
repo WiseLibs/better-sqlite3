@@ -26,17 +26,7 @@ NAN_METHOD(Transaction::Run) {
 	trans->busy = true;
 	trans->db->requests += 1;
 	trans->Ref();
-	if (trans->db->write_lock == 0) {
-		if (trans->db->pending_write_statements == 0) {
-			trans->db->write_lock = 2;
-			Nan::AsyncQueueWorker(worker);
-		} else {
-			trans->db->write_lock = 1;
-			trans->db->write_queue.Add(worker);
-		}
-	} else {
-		trans->db->write_queue.Add(worker);
-	}
+	Nan::AsyncQueueWorker(worker);
 	
 	info.GetReturnValue().Set(info.This());
 }

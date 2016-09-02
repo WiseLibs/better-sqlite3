@@ -9,7 +9,7 @@
 #include "../../util/list.h"
 
 EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb, Nan::Callback* progressCb)
-	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index, cb, false),
+	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index, cb),
 	data_mutex(NULL), handle_mutex(NULL), cached_names(false) {
 		progressCallback = progressCb;
 	}

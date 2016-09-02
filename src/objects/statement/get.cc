@@ -9,5 +9,5 @@ NAN_METHOD(Statement::Get) {
 	STATEMENT_START(stmt);
 	STATEMENT_BIND(stmt, func_index);
 	GetWorker* worker = new GetWorker(stmt, _handle, _i, new Nan::Callback(func));
-	STATEMENT_READER_END(stmt, worker);
+	STATEMENT_END(stmt, worker);
 }
