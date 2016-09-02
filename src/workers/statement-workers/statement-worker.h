@@ -11,13 +11,12 @@
 template <class T>
 class StatementWorker : public T {
 	public:
-		StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb, bool writer)
+		StatementWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
 			: T(cb),
 			handle(handle),
 			db_handle(stmt->db_handle),
 			stmt(stmt),
-			handle_index(handle_index),
-			writer(writer) {}
+			handle_index(handle_index) {}
 			
 		void HandleErrorCallback() {
 			Nan::HandleScope scope;
@@ -46,7 +45,6 @@ class StatementWorker : public T {
 	private:
 		Statement* const stmt;
 		int const handle_index;
-		bool const writer;
 		
 		void FinishRequest() {
 			stmt->requests -= 1;
@@ -57,10 +55,6 @@ class StatementWorker : public T {
 				if (stmt->db->state == DB_DONE && stmt->db->requests == 0) {
 					stmt->db->ActuallyClose();
 				}
-			}
-			if (writer && --stmt->db->pending_write_statements == 0 && stmt->db->write_lock == 1) {
-				stmt->db->write_lock = 2;
-				Nan::AsyncQueueWorker(stmt->db->write_queue.Shift());
 			}
 		}
 };

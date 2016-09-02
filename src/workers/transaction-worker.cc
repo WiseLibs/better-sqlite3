@@ -1,23 +1,22 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "transaction-worker.h"
-#include "write-worker.h"
 #include "../objects/database/database.h"
 #include "../objects/transaction/transaction.h"
 #include "../util/macros.h"
 
 TransactionWorker::TransactionWorker(Transaction* trans, Nan::Callback* cb)
-	: WriteWorker(cb, true), trans(trans) {}
+	: Nan::AsyncWorker(cb), trans(trans) {}
 void TransactionWorker::Execute() {
-	// LOCK_DB(db_handle);
+	LOCK_DB(trans->db->write_handle);
 	// int status = sqlite3_step(handle);
 	// if (status == SQLITE_DONE || status == SQLITE_ROW) {
-	// 	changes = sqlite3_changes(db_handle);
-	// 	id = sqlite3_last_insert_rowid(db_handle);
+	// 	changes = sqlite3_changes(trans->db->write_handle);
+	// 	id = sqlite3_last_insert_rowid(trans->db->write_handle);
 	// } else {
-	// 	SetErrorMessage(sqlite3_errmsg(db_handle));
+	// 	SetErrorMessage(sqlite3_errmsg(trans->db->write_handle));
 	// }
-	// UNLOCK_DB(db_handle);
+	UNLOCK_DB(trans->db->write_handle);
 }
 void TransactionWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -51,19 +50,5 @@ void TransactionWorker::FinishRequest() {
 	}
 	if (trans->db->state == DB_DONE && trans->db->requests == 0) {
 		trans->db->ActuallyClose();
-	} else {
-		trans->db->write_lock = 0;
-		trans->db->write_queue.FlushSome([this] (WriteWorker* worker) -> bool {
-			if (worker->is_transaction) {
-				trans->db->write_lock = trans->db->pending_write_statements == 0 ? 2 : 1;
-				return false;
-			}
-			trans->db->pending_write_statements += 1;
-			Nan::AsyncQueueWorker(worker);
-			return true;
-		});
-		if (trans->db->write_lock == 2) {
-			Nan::AsyncQueueWorker(trans->db->write_queue.Shift());
-		}
 	}
 }

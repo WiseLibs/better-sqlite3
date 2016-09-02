@@ -9,5 +9,5 @@ NAN_METHOD(Statement::Each) {
 	STATEMENT_START(stmt);
 	STATEMENT_BIND(stmt, func_index);
 	EachWorker* worker = new EachWorker(stmt, _handle, _i, new Nan::Callback(func2), new Nan::Callback(func1));
-	STATEMENT_READER_END(stmt, worker);
+	STATEMENT_END(stmt, worker);
 }
