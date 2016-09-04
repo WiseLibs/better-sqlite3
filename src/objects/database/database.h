@@ -40,6 +40,7 @@ class Database : public Nan::ObjectWrap {
 		// Sqlite3 interfacing
 		sqlite3* read_handle;
 		sqlite3* write_handle;
+		TransactionHandles* t_handles;
 		
 		// State
 		DB_STATE state;

@@ -9,7 +9,7 @@
 #include "busy.cc"
 #include "bind.cc"
 #include "run.cc"
-#include "delete-handles.cc"
+#include "close-handles.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
 	db(NULL),
@@ -21,7 +21,7 @@ Transaction::~Transaction() {
 	if (handles && db) {
 		db->transs.Remove(this);
 	}
-	DeleteHandles()(this);
+	CloseHandles()(this);
 }
 void Transaction::Init() {
 	Nan::HandleScope scope;

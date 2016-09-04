@@ -16,13 +16,13 @@ class Statement : public Nan::ObjectWrap {
 		~Statement();
 		static void Init();
 		
-		class DeleteHandles { public:
+		class CloseHandles { public:
 			void operator() (Statement*);
 		};
 
 		
 		// Friends
-		friend class DeleteHandles;
+		friend class CloseHandles;
 		friend class Database;
 		friend class HandleManager;
 		template <class T> friend class StatementWorker;
