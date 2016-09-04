@@ -20,7 +20,7 @@
 #include "all.cc"
 #include "each.cc"
 #include "new-handle.cc"
-#include "delete-handles.cc"
+#include "close-handles.cc"
 
 Statement::Statement() : Nan::ObjectWrap(),
 	db(NULL),

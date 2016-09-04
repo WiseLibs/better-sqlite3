@@ -13,12 +13,12 @@ class Transaction : public Nan::ObjectWrap {
 		~Transaction();
 		static void Init();
 		
-		class DeleteHandles { public:
+		class CloseHandles { public:
 			void operator() (Transaction*);
 		};
 		
 		// Friends
-		friend class DeleteHandles;
+		friend class CloseHandles;
 		friend class Database;
 		friend class TransactionWorker;
 		

@@ -11,19 +11,8 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker
 	still_connecting(still_connecting) {}
 void CloseWorker::Execute() {
 	if (!still_connecting) {
-		// Close and free any associated statements.
-		db->stmts.Flush(Statement::DeleteHandles());
-		db->transs.Flush(Transaction::DeleteHandles());
-		
-		int status1 = sqlite3_close(db->write_handle);
-		int status2 = sqlite3_close(db->read_handle);
-		db->write_handle = NULL;
-		db->read_handle = NULL;
-		
-		if (status1 != SQLITE_OK) {
-			SetErrorMessage(sqlite3_errmsg(db->write_handle));
-		} else if (status2 != SQLITE_OK) {
-			SetErrorMessage(sqlite3_errmsg(db->read_handle));
+		if (Database::CloseHandles(db) != SQLITE_OK) {
+			SetErrorMessage("Failed to successfully close the database connection.");
 		}
 	}
 }

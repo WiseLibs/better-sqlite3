@@ -24,16 +24,16 @@ class List {
 			Node* node = front;
 			if (owner) {
 				while (node != NULL) {
-					Node* temp = node->prev;
+					front = node->prev;
 					delete node->item;
 					delete node;
-					node = temp;
+					node = front;
 				}
 			} else {
 				while (node != NULL) {
-					Node* temp = node->prev;
+					front = node->prev;
 					delete node;
-					node = temp;
+					node = front;
 				}
 			}
 		}
