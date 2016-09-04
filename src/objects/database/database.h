@@ -6,6 +6,7 @@
 #include <nan.h>
 #include "../../util/macros.h"
 #include "../../util/list.h"
+#include "../../util/transaction-handles.h"
 class Statement;
 class Transaction;
 
@@ -34,7 +35,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Close);
 		static NAN_METHOD(Prepare);
 		static NAN_METHOD(CreateTransaction);
-		static void CloseHandles(Database*);
+		static int CloseHandles(Database*);
 		void ActuallyClose();
 		
 		// Sqlite3 interfacing
