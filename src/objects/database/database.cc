@@ -8,6 +8,7 @@
 #include "../../util/macros.h"
 #include "../../util/handle-manager.h"
 #include "../../util/frozen-buffer.h"
+#include "../../util/transaction-handles.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 bool CONSTRUCTING_PRIVILEGES = false;

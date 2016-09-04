@@ -1,3 +1,11 @@
+TODO SHORTLIST
+
+review statement reset policy (write statements dont commit until reset?)
+transaction concurrency
+better transaction destruction/CloseHandles
+
+--------------------------------------------------------------------------------
+
 in c++:
 
 Two JavaScript APIs:

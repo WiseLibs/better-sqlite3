@@ -6,36 +6,59 @@
 #include "../util/macros.h"
 
 TransactionWorker::TransactionWorker(Transaction* trans, Nan::Callback* cb)
-	: Nan::AsyncWorker(cb), trans(trans), changes(0) {}
+	: Nan::AsyncWorker(cb), trans(trans) {}
 void TransactionWorker::Execute() {
-	LOCK_DB(trans->db->write_handle);
+	sqlite3* db_handle = trans->db->write_handle;
+	TransactionHandles* t_handles = trans->db->t_handles;
 	
-	// Begin
+	int status;
+	LOCK_DB(db_handle);
+	int total_changes_before = sqlite3_total_changes(db_handle);
 	
-	unsigned int i = 0;
-	for (; i<trans->handle_count; ++i) {
-		int status = sqlite3_step(trans->handles[i]);
-		
-		if (status == SQLITE_DONE) {
-			changes += sqlite3_changes(trans->db->write_handle);
-		} else if (status != SQLITE_ROW) {
-			SetErrorMessage(sqlite3_errmsg(trans->db->write_handle));
-			// Rollback
-			UNLOCK_DB(trans->db->write_handle);
-			return;
-		} else {
-			SetErrorMessage("Unexpected data returned by a write transaction.");
-			// Rollback
-			UNLOCK_DB(trans->db->write_handle);
+	// Begin Transaction
+	status = sqlite3_step(t_handles->begin);
+	if (status != SQLITE_DONE) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+		sqlite3_reset(t_handles->begin);
+		UNLOCK_DB(db_handle);
+		return;
+	}
+	sqlite3_reset(t_handles->begin);
+	
+	// Execute statements
+	for (unsigned int i=0; i<trans->handle_count; ++i) {
+		status = sqlite3_step(trans->handles[i]);
+		if (status != SQLITE_DONE) {
+			if (status != SQLITE_ROW) {
+				SetErrorMessage(sqlite3_errmsg(db_handle));
+			} else {
+				SetErrorMessage("Unexpected data returned by a write transaction.");
+			}
+			sqlite3_reset(trans->handles[i]);
+			sqlite3_step(t_handles->rollback);
+			sqlite3_reset(t_handles->rollback);
+			UNLOCK_DB(db_handle);
 			return;
 		}
+		sqlite3_reset(trans->handles[i]);
 	}
 	
-	// Commit
+	// Commit Transaction
+	status = sqlite3_step(t_handles->commit);
+	if (status != SQLITE_DONE) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
+		sqlite3_reset(t_handles->commit);
+		sqlite3_step(t_handles->rollback);
+		sqlite3_reset(t_handles->rollback);
+		UNLOCK_DB(db_handle);
+		return;
+	}
+	sqlite3_reset(t_handles->commit);
 	
-	id = sqlite3_last_insert_rowid(trans->db->write_handle);
+	changes = sqlite3_total_changes(db_handle) - total_changes_before;
+	id = sqlite3_last_insert_rowid(db_handle);
 	
-	UNLOCK_DB(trans->db->write_handle);
+	UNLOCK_DB(db_handle);
 }
 void TransactionWorker::HandleOKCallback() {
 	Nan::HandleScope scope;

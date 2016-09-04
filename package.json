@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "bindings": "^1.2.1",
-    "nan": "^2.2.0",
+    "nan": "^2.4.0",
     "to-descriptor": "^1.0.1"
   },
   "devDependencies": {
