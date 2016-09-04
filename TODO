@@ -1,6 +1,7 @@
 TODO SHORTLIST
 
 review statement reset policy (write statements dont commit until reset?)
+investigate BEGIN IMMEDIATE as an alternative to mutexes
 transaction concurrency
 better transaction destruction/CloseHandles
 
