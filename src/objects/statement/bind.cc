@@ -12,20 +12,7 @@ NAN_METHOD(Statement::Bind) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	
-	int info_length = info.Length();
-	int len = stmt->handles->count;
-	for (int i=0; i<len; ++i) {
-		sqlite3_stmt* handle = stmt->handles->Get(i);
-		Binder binder(handle);
-		binder.Bind(info, info_length);
-		const char* err = binder.GetError();
-		if (err) {
-			for (; i>=0; --i) {
-				sqlite3_clear_bindings(stmt->handles->Get(i));
-			}
-			return Nan::ThrowError(err);
-		}
-	}
+	STATEMENT_BIND(stmt, info, info.Length());
 	
 	stmt->bound = true;
 	info.GetReturnValue().Set(info.This());

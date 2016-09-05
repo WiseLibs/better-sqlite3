@@ -1,9 +1,8 @@
 TODO SHORTLIST
 
+remove emitAsync and AsyncEventEmitter?
 review statement reset policy (write statements dont commit until reset?)
 investigate BEGIN IMMEDIATE as an alternative to mutexes
-transaction concurrency
-better transaction destruction/CloseHandles
 
 --------------------------------------------------------------------------------
 
@@ -61,6 +60,8 @@ created. This way, we can eliminate overhead caused by the NextAnonIndex()
 and GetNamedParameterIndex() functions
 
 we could use ExternalStringResource to make trans->source only exist in one place, to reduce memory consumption of Statement objects
+
+consolidate bool state/config info into single bitwise flag property (Statement and Transaction)
 
 if we promisify run(), get(), all(), or each(), their performance will suffer
 if more than 3 arguments are passed (more than 2 bound arguments for each())

@@ -7,6 +7,16 @@
       "dependencies": [
         "deps/sqlite3.gyp:sqlite3"
       ],
+      'cflags': [
+        '-std=c++11',
+        '-stdlib=libc++'
+      ],
+      'xcode_settings': {
+        'OTHER_CPLUSPLUSFLAGS': [
+          '-std=c++11',
+          '-stdlib=libc++'
+        ],
+      },
       "sources": [
         "src/objects/database/database.cc",
         "src/objects/statement/statement.cc",

@@ -2,6 +2,7 @@
 #define NODE_SQLITE3_PLUS_TRANSACTION_H
 
 // Dependencies
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "../../util/macros.h"
@@ -13,13 +14,14 @@ class Transaction : public Nan::ObjectWrap {
 		~Transaction();
 		static void Init();
 		
-		class CloseHandles { public:
-			void operator() (Transaction*);
+		class Compare { public:
+			bool operator() (const Transaction*, const Transaction*);
 		};
 		
 		// Friends
-		friend class CloseHandles;
+		friend class Compare;
 		friend class Database;
+		template <class OBJECT, class ASYNC> friend class QueryWorker;
 		friend class TransactionWorker;
 		
 	private:
@@ -28,6 +30,17 @@ class Transaction : public Nan::ObjectWrap {
 		static NAN_GETTER(Busy);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Run);
+		bool CloseHandles(); // Returns true if the handles were not previously closed
+		bool CloseIfPossible(); // Returns true if the transaction is not busy
+		
+		// Tools for QueryWorker
+		inline void ClearBindings() {
+			for (unsigned int i=0; i<handle_count; ++i) {
+				sqlite3_clear_bindings(handles[i]);
+			}
+		}
+		void EraseFromSet();
+		
 		
 		// Sqlite3 interfacing
 		Database* db;
@@ -38,6 +51,9 @@ class Transaction : public Nan::ObjectWrap {
 		bool config_locked;
 		bool bound;
 		bool busy;
+		
+		// Unique Transaction Id
+		sqlite3_uint64 id;
 };
 
 #endif

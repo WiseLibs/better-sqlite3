@@ -11,7 +11,7 @@ CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker
 	still_connecting(still_connecting) {}
 void CloseWorker::Execute() {
 	if (!still_connecting) {
-		if (Database::CloseHandles(db) != SQLITE_OK) {
+		if (db->CloseHandles() != SQLITE_OK) {
 			SetErrorMessage("Failed to successfully close the database connection.");
 		}
 	}

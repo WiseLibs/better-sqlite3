@@ -1,3 +1,4 @@
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement.h"
@@ -7,35 +8,27 @@
 #include "../../workers/statement-workers/all.h"
 #include "../../workers/statement-workers/each.h"
 #include "../../util/macros.h"
-#include "../../util/handle-manager.h"
-#include "../../util/frozen-buffer.h"
 #include "../../binder/binder.h"
 
 #include "new.cc"
-#include "cache.cc"
+#include "busy.cc"
 #include "bind.cc"
 #include "pluck.cc"
 #include "run.cc"
 #include "get.cc"
 #include "all.cc"
 #include "each.cc"
-#include "new-handle.cc"
-#include "close-handles.cc"
 
 Statement::Statement() : Nan::ObjectWrap(),
-	db(NULL),
-	handles(NULL),
-	source(NULL),
+	st_handle(NULL),
 	config_locked(false),
 	bound(false),
-	requests(0),
+	busy(false),
 	pluck_column(false) {}
 Statement::~Statement() {
-	if (handles && db) {
-		db->stmts.Remove(this);
+	if (CloseHandles()) {
+		db->stmts.erase(this);
 	}
-	delete handles;
-	delete source;
 }
 void Statement::Init() {
 	Nan::HandleScope scope;
@@ -44,7 +37,7 @@ void Statement::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
-	Nan::SetPrototypeMethod(t, "cache", Cache);
+	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("busy").ToLocalChecked(), Busy);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	Nan::SetPrototypeMethod(t, "run", Run);
@@ -55,3 +48,25 @@ void Statement::Init() {
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 }
 CONSTRUCTOR(Statement::constructor);
+
+bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
+	return a->id < b->id;
+}
+bool Statement::CloseHandles() {
+	if (st_handle) {
+		sqlite3_finalize(st_handle);
+		st_handle = NULL;
+		return true;
+	}
+	return false;
+}
+bool Statement::CloseIfPossible() {
+	if (!busy) {
+		CloseHandles();
+		return true;
+	}
+	return false;
+}
+void Statement::EraseFromSet() {
+	db->stmts.erase(this);
+}

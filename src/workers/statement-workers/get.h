@@ -3,13 +3,13 @@
 
 #include <sqlite3.h>
 #include <nan.h>
-#include "statement-worker.h"
+#include "../query-worker.h"
 #include "../../util/data.h"
 class Statement;
 
-class GetWorker : public StatementWorker<Nan::AsyncWorker> {
+class GetWorker : public QueryWorker<Statement, Nan::AsyncWorker> {
 	public:
-		GetWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*);
+		GetWorker(Statement*, Nan::Callback*);
 		void Execute();
 		void HandleOKCallback();
 	private:

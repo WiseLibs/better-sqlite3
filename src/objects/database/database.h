@@ -2,13 +2,13 @@
 #define NODE_SQLITE3_PLUS_DATABASE_H
 
 // Dependencies
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
+#include "../statement/statement.h"
+#include "../transaction/transaction.h"
 #include "../../util/macros.h"
-#include "../../util/list.h"
 #include "../../util/transaction-handles.h"
-class Statement;
-class Transaction;
 
 // Globals
 extern bool CONSTRUCTING_PRIVILEGES;
@@ -26,7 +26,7 @@ class Database : public Nan::ObjectWrap {
 		friend class CloseWorker;
 		friend class Statement;
 		friend class Transaction;
-		template <class T> friend class StatementWorker;
+		template <class OBJECT, class ASYNC> friend class QueryWorker;
 		friend class TransactionWorker;
 		
 	private:
@@ -35,8 +35,8 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Close);
 		static NAN_METHOD(Prepare);
 		static NAN_METHOD(CreateTransaction);
-		static int CloseHandles(Database*);
-		void ActuallyClose();
+		int CloseHandles();
+		void MaybeClose();
 		
 		// Sqlite3 interfacing
 		sqlite3* read_handle;
@@ -45,12 +45,11 @@ class Database : public Nan::ObjectWrap {
 		
 		// State
 		DB_STATE state;
-		unsigned int requests;
 		unsigned int workers;
 		
 		// Associated Statements and Transactions
-		List<Statement> stmts;
-		List<Transaction> transs;
+		std::set<Statement*, Statement::Compare> stmts;
+		std::set<Transaction*, Transaction::Compare> transs;
 };
 
 #endif

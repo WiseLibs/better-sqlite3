@@ -2,24 +2,25 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "each.h"
-#include "statement-worker.h"
+#include "../query-worker.h"
 #include "../../objects/statement/statement.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/list.h"
 
-EachWorker::EachWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb, Nan::Callback* progressCb)
-	: StatementWorker<Nan::AsyncProgressWorker>(stmt, handle, handle_index, cb),
-	data_mutex(NULL), handle_mutex(NULL), cached_names(false) {
-		progressCallback = progressCb;
-	}
+EachWorker::EachWorker(Statement* stmt, Nan::Callback* cb, Nan::Callback* progressCb)
+	: QueryWorker<Statement, Nan::AsyncProgressWorker>(stmt, cb),
+	data_mutex(NULL),
+	handle_mutex(NULL),
+	cached_names(false),
+	progressCallback(progressCb) {}
 EachWorker::~EachWorker() {
 	sqlite3_mutex_free(data_mutex);
 	sqlite3_mutex_free(handle_mutex);
 	delete progressCallback;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
-	// Allocated mutexes.
+	// Allocate mutexes.
 	data_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
 	if (data_mutex == NULL) {
 		return SetErrorMessage("Out of memory.");
@@ -29,35 +30,36 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 		return SetErrorMessage("Out of memory.");
 	}
 	
-	LOCK_DB(db_handle);
+	LOCK_DB(obj->db_handle);
 	
 	// Retreive first row, and validated statement result columns.
-	int status = sqlite3_step(handle);
+	int status = sqlite3_step(obj->st_handle);
 	GET_COLUMN_COUNT(column_count);
 	
 	// Retrieve and save rows.
 	while (status == SQLITE_ROW) {
 		sqlite3_mutex_enter(data_mutex);
-		rows.Add(new Data::Row(handle, column_count));
+		rows.Add(new Data::Row(obj->st_handle, column_count));
 		sqlite3_mutex_leave(data_mutex);
 		
 		progress.Signal();
 		
 		sqlite3_mutex_enter(handle_mutex);
-		status = sqlite3_step(handle);
+		status = sqlite3_step(obj->st_handle);
 		sqlite3_mutex_leave(handle_mutex);
 	}
 	
 	if (status != SQLITE_DONE) {
-		SetErrorMessage(sqlite3_errmsg(db_handle));
+		SetErrorMessage(sqlite3_errmsg(obj->db_handle));
 	}
 	
-	UNLOCK_DB(db_handle);
+	sqlite3_reset(obj->st_handle);
+	UNLOCK_DB(obj->db_handle);
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
 	
-	if (GetPluckColumn()) {
+	if (obj->pluck_column) {
 		// Flush rows of plucked columns.
 		
 		sqlite3_mutex_enter(data_mutex);
@@ -82,7 +84,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			
 			sqlite3_mutex_enter(handle_mutex);
 			for (int i=0; i<column_count; ++i) {
-				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked());
+				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(obj->st_handle, i)).ToLocalChecked());
 			}
 			sqlite3_mutex_leave(handle_mutex);
 			
@@ -94,13 +96,13 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		sqlite3_mutex_enter(data_mutex);
 		rows.Flush([this, &columnNames] (Data::Row* row) {
 			
-			v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+			v8::Local<v8::Object> object = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; ++i) {
-				Nan::ForceSet(obj, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
+				Nan::ForceSet(object, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
 			}
 			
 			sqlite3_mutex_leave(data_mutex);
-			v8::Local<v8::Value> args[1] = {obj};
+			v8::Local<v8::Value> args[1] = {object};
 			progressCallback->Call(1, args);
 			sqlite3_mutex_enter(data_mutex);
 			

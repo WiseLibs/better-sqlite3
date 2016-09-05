@@ -165,58 +165,57 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
 
+// Common bind logic for statements.
+#define STATEMENT_BIND(stmt, info, info_length)                                \
+	if (info_length > 0) {                                                     \
+		Binder _binder(stmt->st_handle);                                       \
+		_binder.Bind(info, info_length);                                       \
+		const char* _err = _binder.GetError();                                 \
+		if (_err) {                                                            \
+			sqlite3_clear_bindings(stmt->st_handle);                           \
+			return Nan::ThrowError(_err);                                      \
+		}                                                                      \
+	}
+
+// Common bind logic for transactions.
+#define TRANSACTION_BIND(trans, info, info_length)                             \
+	if (info_length > 0) {                                                     \
+		MultiBinder _binder(trans->handles, trans->handle_count);              \
+		_binder.Bind(info, info_length);                                       \
+		const char* _err = _binder.GetError();                                 \
+		if (_err) {                                                            \
+			for (unsigned int i=0; i<trans->handle_count; ++i) {               \
+				sqlite3_clear_bindings(trans->handles[i]);                     \
+			}                                                                  \
+			return Nan::ThrowError(_err);                                      \
+		}                                                                      \
+	}
+
 // The first macro-instruction for setting up an asynchronous SQLite request.
-// _i is the index returned by HandleManager#Request.
-// _handle if the handle set given by HandleManager#Request.
-#define STATEMENT_START(stmt)                                                  \
-	if (stmt->db->state != DB_READY) {                                         \
+#define WORKER_START(obj, info, info_length, BIND_MACRO, object_name)          \
+	if (obj->busy) {                                                           \
+		return Nan::ThrowTypeError(                                            \
+	"This " #object_name " is mid-execution. You must wait for it to finish.");\
+	}                                                                          \
+	if (obj->db->state != DB_READY) {                                          \
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (!stmt->config_locked) {stmt->config_locked = true;}                    \
-	                                                                           \
-	sqlite3_stmt* _handle;                                                     \
-	int _i = stmt->handles->Request(&_handle);                                 \
-	if (_handle == NULL) {                                                     \
-		return Nan::ThrowError(                                                \
-			"SQLite failed to create a prepared statement");                   \
-	}
-
-#define STATEMENT_BIND(stmt, info_length)                                      \
-	if (!stmt->bound) {                                                        \
-		Binder _binder(_handle);                                               \
-		_binder.Bind(info, info_length);                                       \
-		const char* err = _binder.GetError();                                  \
-		if (err) {                                                             \
-			stmt->handles->Release(_i, _handle);                               \
-			return Nan::ThrowError(err);                                       \
-		}                                                                      \
+	if (!obj->config_locked) {obj->config_locked = true;}                      \
+	if (!obj->bound) {                                                         \
+		BIND_MACRO(obj, info, info_length);                                    \
 	} else if (info_length > 0) {                                              \
-		stmt->handles->Release(_i, _handle);                                   \
 		return Nan::ThrowTypeError(                                            \
-			"This statement already has bound parameters.");                   \
+			"This " #object_name " already has bound parameters.");            \
 	}
 
 // The second macro-instruction for setting up an asynchronous SQLite request.
 // Returns the statement object making the request.
-#define STATEMENT_END(stmt, worker)                                            \
-	stmt->requests += 1;                                                       \
-	stmt->db->requests += 1;                                                   \
-	stmt->Ref();                                                               \
+#define WORKER_END(obj, worker)                                                \
+	obj->busy = true;                                                          \
+	obj->Ref();                                                                \
 	Nan::AsyncQueueWorker(worker);                                             \
 	info.GetReturnValue().Set(info.This());
-
-// Common bind logic for transactions.
-#define TRANSACTION_BIND(trans, info, info_length)                             \
-	MultiBinder _binder(trans->handles, trans->handle_count);                  \
-	_binder.Bind(info, info_length);                                           \
-	const char* _err = _binder.GetError();                                     \
-	if (_err) {                                                                \
-		for (unsigned int i=0; i<trans->handle_count; ++i) {                   \
-			sqlite3_clear_bindings(trans->handles[i]);                         \
-		}                                                                      \
-		return Nan::ThrowError(_err);                                          \
-	}
 
 // Enters the mutex for the sqlite3 database handle.
 #define LOCK_DB(db_handle)                                                     \
@@ -229,12 +228,13 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // When used in a StatementWorker, gives the number of columns that the
 // statement returns, based on the sqlite3_stmt handle and pluck_column.
 #define GET_COLUMN_COUNT(len)                                                  \
-	len = sqlite3_column_count(handle);                                        \
+	len = sqlite3_column_count(obj->st_handle);                                \
 	if (len < 1) {                                                             \
-		UNLOCK_DB(db_handle);                                                  \
+		sqlite3_reset(obj->st_handle);                                         \
+		UNLOCK_DB(obj->db_handle);                                             \
 		return SetErrorMessage("This statement returns no result columns.");   \
 	}                                                                          \
-	if (GetPluckColumn()) {                                                    \
+	if (obj->pluck_column) {                                                   \
 		len = 1;                                                               \
 	}
 

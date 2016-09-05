@@ -1,3 +1,4 @@
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "transaction.h"
@@ -9,19 +10,16 @@
 #include "busy.cc"
 #include "bind.cc"
 #include "run.cc"
-#include "close-handles.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
-	db(NULL),
 	handles(NULL),
 	config_locked(false),
 	bound(false),
 	busy(false) {}
 Transaction::~Transaction() {
-	if (handles && db) {
-		db->transs.Remove(this);
+	if (CloseHandles()) {
+		db->transs.erase(this);
 	}
-	CloseHandles()(this);
 }
 void Transaction::Init() {
 	Nan::HandleScope scope;
@@ -37,3 +35,28 @@ void Transaction::Init() {
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 }
 CONSTRUCTOR(Transaction::constructor);
+
+bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) {
+	return a->id < b->id;
+}
+bool Transaction::CloseHandles() {
+	if (handles) {
+		for (unsigned int i=0; i<handle_count; ++i) {
+			sqlite3_finalize(handles[i]);
+		}
+		delete[] handles;
+		handles = NULL;
+		return true;
+	}
+	return false;
+}
+bool Transaction::CloseIfPossible() {
+	if (!busy) {
+		CloseHandles();
+		return true;
+	}
+	return false;
+}
+void Transaction::EraseFromSet() {
+	db->transs.erase(this);
+}
