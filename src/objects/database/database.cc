@@ -6,12 +6,12 @@
 #include "../../workers/database-workers/open.h"
 #include "../../workers/database-workers/close.h"
 #include "../../util/macros.h"
-#include "../../util/handle-manager.h"
-#include "../../util/frozen-buffer.h"
 #include "../../util/transaction-handles.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 bool CONSTRUCTING_PRIVILEGES = false;
+sqlite3_uint64 NEXT_STATEMENT_ID = 0;
+sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 
 #include "new.cc"
 #include "open.cc"
@@ -24,13 +24,21 @@ Database::Database() : Nan::ObjectWrap(),
 	write_handle(NULL),
 	t_handles(NULL),
 	state(DB_CONNECTING),
-	requests(0),
-	workers(0),
-	stmts(false),
-	transs(false) {}
+	workers(0) {}
 Database::~Database() {
 	state = DB_DONE;
-	CloseHandles(this);
+	
+	// This is necessary in the case that a database and its statements are
+	// garbage collected at the same time. The database might be destroyed
+	// first, so it needs to tell all of its statements "hey, I don't exist
+	// anymore". By the same nature, statements must remove themselves from a
+	// database's sets when they are garbage collected first.
+	for (Statement* stmt : stmts) {stmt->CloseHandles();}
+	for (Transaction* trans : transs) {trans->CloseHandles();}
+	stmts.clear();
+	transs.clear();
+	
+	CloseHandles();
 }
 NAN_MODULE_INIT(Database::Init) {
 	Nan::HandleScope scope;
@@ -48,22 +56,14 @@ NAN_MODULE_INIT(Database::Init) {
 		Nan::GetFunction(t).ToLocalChecked());
 }
 
-int Database::CloseHandles(Database* db) {
-	// This is necessary in the case that a database and its statements are
-	// garbage collected at the same time. The database might be destroyed
-	// first, so it needs to tell all of its statements "hey, I don't exist
-	// anymore". By the same nature, statements must remove themselves from a
-	// database's list when they are garbage collected first.
-	db->stmts.Flush(Statement::CloseHandles());
-	db->transs.Flush(Transaction::CloseHandles());
+int Database::CloseHandles() {
+	delete t_handles;
+	int status1 = sqlite3_close(read_handle);
+	int status2 = sqlite3_close(write_handle);
 	
-	delete db->t_handles;
-	db->t_handles = NULL;
-	
-	int status1 = sqlite3_close(db->read_handle);
-	int status2 = sqlite3_close(db->write_handle);
-	db->read_handle = NULL;
-	db->write_handle = NULL;
+	t_handles = NULL;
+	read_handle = NULL;
+	write_handle = NULL;
 	
 	return status1 != SQLITE_OK ? status1 : status2;
 }

@@ -52,8 +52,11 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	CONSTRUCTING_PRIVILEGES = true;
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(Transaction::constructor);
-	v8::Local<v8::Object> transaction = cons->NewInstance(0, NULL);
+	Nan::MaybeLocal<v8::Object> maybeTransaction = Nan::NewInstance(cons);
 	CONSTRUCTING_PRIVILEGES = false;
+	
+	if (maybeTransaction.IsEmpty()) {return;}
+	v8::Local<v8::Object> transaction = maybeTransaction.ToLocalChecked();
 	
 	// Initializes C++ object properties.
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(transaction);
@@ -91,8 +94,9 @@ NAN_METHOD(Database::CreateTransaction) {
 	transaction->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
 	Nan::ForceSet(transaction, Nan::New("source").ToLocalChecked(), joinedSource, FROZEN);
 	
-	// Pushes onto transs list.
-	db->transs.Add(trans);
+	// Pushes onto transs set.
+	trans->id = NEXT_TRANSACTION_ID++;
+	db->transs.insert(db->transs.end(), trans);
 	
 	info.GetReturnValue().Set(transaction);
 }

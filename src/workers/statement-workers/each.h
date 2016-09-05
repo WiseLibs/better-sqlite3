@@ -4,14 +4,14 @@
 #include <sys/types.h>
 #include <sqlite3.h>
 #include <nan.h>
-#include "statement-worker.h"
+#include "../query-worker.h"
 #include "../../util/data.h"
 #include "../../util/list.h"
 class Statement;
 
-class EachWorker : public StatementWorker<Nan::AsyncProgressWorker> {
+class EachWorker : public QueryWorker<Statement, Nan::AsyncProgressWorker> {
 	public:
-		EachWorker(Statement*, sqlite3_stmt*, int, Nan::Callback*, Nan::Callback*);
+		EachWorker(Statement*, Nan::Callback*, Nan::Callback*);
 		~EachWorker();
 		void Execute(const Nan::AsyncProgressWorker::ExecutionProgress&);
 		void HandleProgressCallback(const char*, size_t);

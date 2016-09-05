@@ -1,27 +1,28 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "get.h"
-#include "statement-worker.h"
+#include "../query-worker.h"
 #include "../../objects/statement/statement.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 
-GetWorker::GetWorker(Statement* stmt, sqlite3_stmt* handle, int handle_index, Nan::Callback* cb)
-	: StatementWorker<Nan::AsyncWorker>(stmt, handle, handle_index, cb) {}
+GetWorker::GetWorker(Statement* stmt, Nan::Callback* cb)
+	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb) {}
 void GetWorker::Execute() {
-	LOCK_DB(db_handle);
-	int status = sqlite3_step(handle);
+	LOCK_DB(obj->db_handle);
+	int status = sqlite3_step(obj->st_handle);
 	int column_count;
 	
 	GET_COLUMN_COUNT(column_count);
 	
 	if (status == SQLITE_ROW) {
-		row.Fill(handle, column_count);
+		row.Fill(obj->st_handle, column_count);
 	} else if (status != SQLITE_DONE) {
-		SetErrorMessage(sqlite3_errmsg(db_handle));
+		SetErrorMessage(sqlite3_errmsg(obj->db_handle));
 	}
 	
-	UNLOCK_DB(db_handle);
+	sqlite3_reset(obj->st_handle);
+	UNLOCK_DB(obj->db_handle);
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -32,17 +33,17 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	// Resolve with the plucked column.
-	if (GetPluckColumn()) {
+	if (obj->pluck_column) {
 		return Resolve(row.values[0]->ToJS());
 	}
 	
 	// Resolve with every column.
-	v8::Local<v8::Object> obj = Nan::New<v8::Object>();
+	v8::Local<v8::Object> object = Nan::New<v8::Object>();
 	for (int i=0; i<row.column_count; ++i) {
-		Nan::ForceSet(obj,
-			Nan::New(sqlite3_column_name(handle, i)).ToLocalChecked(),
+		Nan::ForceSet(object,
+			Nan::New(sqlite3_column_name(obj->st_handle, i)).ToLocalChecked(),
 			row.values[i]->ToJS());
 	}
 	
-	Resolve(obj);
+	Resolve(object);
 }

@@ -2,7 +2,7 @@
   'includes': [ 'common-sqlite.gypi' ],
   'target_defaults': {
     'default_configuration': 'Release',
-    'cflags':[
+    'cflags': [
       '-std=c99'
     ],
     'configurations': {

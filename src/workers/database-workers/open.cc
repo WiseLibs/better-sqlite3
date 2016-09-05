@@ -21,14 +21,14 @@ void OpenWorker::Execute() {
 	status = sqlite3_open_v2(filename, &db->write_handle, WRITE_MODE, NULL);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->write_handle));
-		Database::CloseHandles(db);
+		db->CloseHandles();
 		return;
 	}
 	
 	status = sqlite3_open_v2(filename, &db->read_handle, READ_MODE, NULL);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->read_handle));
-		Database::CloseHandles(db);
+		db->CloseHandles();
 		return;
 	}
 	
@@ -41,7 +41,7 @@ void OpenWorker::Execute() {
 		status = sqlite3_exec(db->write_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
 		if (status != SQLITE_OK) {
 			SetErrorMessage(err);
-			Database::CloseHandles(db);
+			db->CloseHandles();
 			sqlite3_free(err);
 			return;
 		}
@@ -50,7 +50,7 @@ void OpenWorker::Execute() {
 		status = sqlite3_exec(db->read_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
 		if (status != SQLITE_OK) {
 			SetErrorMessage(err);
-			Database::CloseHandles(db);
+			db->CloseHandles();
 			sqlite3_free(err);
 			return;
 		}
@@ -61,7 +61,7 @@ void OpenWorker::Execute() {
 	db->t_handles = new TransactionHandles(db->write_handle, &status);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->write_handle));
-		Database::CloseHandles(db);
+		db->CloseHandles();
 		return;
 	}
 }
@@ -72,7 +72,7 @@ void OpenWorker::HandleOKCallback() {
     if (--db->workers == 0) {db->Unref();}
     
 	if (db->state == DB_DONE) {
-		Database::CloseHandles(db);
+		db->CloseHandles();
 	} else {
 		db->state = DB_READY;
 		v8::Local<v8::Value> args[1] = {Nan::New("open").ToLocalChecked()};

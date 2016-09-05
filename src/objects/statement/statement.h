@@ -2,12 +2,11 @@
 #define NODE_SQLITE3_PLUS_STATEMENT_H
 
 // Dependencies
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "../../util/macros.h"
 class Database;
-class HandleManager;
-class FrozenBuffer;
 
 // Class Declaration
 class Statement : public Nan::ObjectWrap {
@@ -16,43 +15,55 @@ class Statement : public Nan::ObjectWrap {
 		~Statement();
 		static void Init();
 		
-		class CloseHandles { public:
-			void operator() (Statement*);
+		class Compare { public:
+			bool operator() (const Statement*, const Statement*);
 		};
-
 		
 		// Friends
-		friend class CloseHandles;
+		friend class Compare;
 		friend class Database;
-		friend class HandleManager;
-		template <class T> friend class StatementWorker;
+		template <class OBJECT, class ASYNC> friend class QueryWorker;
+		friend class RunWorker;
+		friend class GetWorker;
+		friend class AllWorker;
+		friend class EachWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		static NAN_METHOD(Cache);
+		static NAN_GETTER(Busy);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);
 		static NAN_METHOD(Get);
 		static NAN_METHOD(All);
 		static NAN_METHOD(Each);
-		sqlite3_stmt* NewHandle(); // This should only be invoked while db.state == DB_READY
+		bool CloseHandles(); // Returns true if the handles were not previously closed
+		bool CloseIfPossible(); // Returns true if the statement is not busy
+		
+		// Tools for QueryWorker
+		inline void ClearBindings() {
+			sqlite3_clear_bindings(st_handle);
+		}
+		void EraseFromSet();
+		
 		
 		// Sqlite3 interfacing
 		Database* db;
 		sqlite3* db_handle;
-		HandleManager* handles;
-		FrozenBuffer* source;
+		sqlite3_stmt* st_handle;
 		
 		// State
 		bool config_locked;
 		bool bound;
-		unsigned int requests;
+		bool busy;
 		
 		// Config
 		bool readonly;
 		bool pluck_column;
+		
+		// Unique Statement Id
+		sqlite3_uint64 id;
 };
 
 #endif
