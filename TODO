@@ -2,7 +2,7 @@
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 reduce the number of memory copies:
-- when binding strings, I can use SQLITE_TRANSIENT if I make the string temporarily persistent
+- when binding strings, I can use SQLITE_STATIC if I make the string temporarily persistent
 - when binding blobs, I can do the same thing as above, as long as I'm not scared of the user changing the buffer's underlying memory mid-execution
 
 optimize binding by creating bind maps when statements and transactions are
