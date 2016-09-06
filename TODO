@@ -9,8 +9,6 @@ optimize binding by creating bind maps when statements and transactions are
 created. This way, we can eliminate overhead caused by the NextAnonIndex()
 and GetNamedParameterIndex() functions
 
-consolidate bool state/config info into single bitwise flag property (Statement and Transaction)
-
 use hash table on the database object to remember statements that are valid, and what their column names and column counts are
 
 polish the changes/last_row_id API of .run()

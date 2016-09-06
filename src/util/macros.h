@@ -8,6 +8,12 @@
 #include <nan.h>
 #include "strlcpy.h"
 
+// Bitwise flags
+#define BUSY 0x01
+#define CONFIG_LOCKED 0x02
+#define BOUND 0x04
+#define PLUCK_COLUMN 0x08
+
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
 	Nan::Utf8String utf8(string);
@@ -186,7 +192,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 
 // The first macro-instruction for setting up an asynchronous SQLite request.
 #define WORKER_START(obj, info, info_length, BIND_MACRO, object_name)          \
-	if (obj->busy) {                                                           \
+	if (obj->state & BUSY) {                                                   \
 		return Nan::ThrowTypeError(                                            \
 	"This " #object_name " is mid-execution. You must wait for it to finish.");\
 	}                                                                          \
@@ -194,8 +200,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (!obj->config_locked) {obj->config_locked = true;}                      \
-	if (!obj->bound) {                                                         \
+	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
+	if (!(obj->state & BOUND)) {                                               \
 		BIND_MACRO(obj, info, info_length);                                    \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
@@ -205,7 +211,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // The second macro-instruction for setting up an asynchronous SQLite request.
 // Returns the statement object making the request.
 #define WORKER_END(obj, worker)                                                \
-	obj->busy = true;                                                          \
+	obj->state |= BUSY;                                                        \
 	obj->Ref();                                                                \
 	Nan::AsyncQueueWorker(worker);                                             \
 	info.GetReturnValue().Set(info.This());

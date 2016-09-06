@@ -21,10 +21,7 @@
 
 Statement::Statement() : Nan::ObjectWrap(),
 	st_handle(NULL),
-	config_locked(false),
-	bound(false),
-	busy(false),
-	pluck_column(false) {}
+	state(0) {}
 Statement::~Statement() {
 	if (CloseHandles()) {
 		db->stmts.erase(this);
@@ -61,7 +58,7 @@ bool Statement::CloseHandles() {
 	return false;
 }
 bool Statement::CloseIfPossible() {
-	if (!busy) {
+	if (!(state & BUSY)) {
 		CloseHandles();
 		return true;
 	}

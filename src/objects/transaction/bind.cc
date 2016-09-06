@@ -2,10 +2,10 @@
 
 NAN_METHOD(Transaction::Bind) {
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
-	if (trans->config_locked) {
+	if (trans->state & CONFIG_LOCKED) {
 		return Nan::ThrowTypeError("Cannot bind parameters after the transaction has been executed.");
 	}
-	if (trans->bound) {
+	if (trans->state & BOUND) {
 		return Nan::ThrowTypeError("The bind() method can only be invoked once per transaction object.");
 	}
 	if (trans->db->state != DB_READY) {
@@ -14,6 +14,6 @@ NAN_METHOD(Transaction::Bind) {
 	
 	TRANSACTION_BIND(trans, info, info.Length());
 	
-	trans->bound = true;
+	trans->state |= BOUND;
 	info.GetReturnValue().Set(info.This());
 }

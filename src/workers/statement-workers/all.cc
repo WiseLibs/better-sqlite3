@@ -27,7 +27,7 @@ void AllWorker::HandleOKCallback() {
 	if (row_count > 0) {
 		unsigned int i = 0;
 		
-		if (obj->pluck_column) {
+		if (obj->state & PLUCK_COLUMN) {
 			// Fill array with plucked columns.
 			rows.Flush([&arr, &i] (Data::Row* row) {
 				Nan::Set(arr, i++, row->values[0]->ToJS());

@@ -2,6 +2,7 @@
 #define NODE_SQLITE3_PLUS_TRANSACTION_H
 
 // Dependencies
+#include <stdint.h>
 #include <set>
 #include <sqlite3.h>
 #include <nan.h>
@@ -41,16 +42,11 @@ class Transaction : public Nan::ObjectWrap {
 		}
 		void EraseFromSet();
 		
-		
-		// Sqlite3 interfacing
+		// Sqlite3 interfacing and state
 		Database* db;
 		unsigned int handle_count;
 		sqlite3_stmt** handles;
-		
-		// State
-		bool config_locked;
-		bool bound;
-		bool busy;
+		uint8_t state;
 		
 		// Unique Transaction Id
 		sqlite3_uint64 id;

@@ -26,7 +26,7 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	// Resolve with the plucked column.
-	if (obj->pluck_column) {
+	if (obj->state & PLUCK_COLUMN) {
 		return Resolve(row.values[0]->ToJS());
 	}
 	
