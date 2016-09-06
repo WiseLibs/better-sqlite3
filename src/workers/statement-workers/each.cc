@@ -37,7 +37,7 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
 	
-	if (obj->pluck_column) {
+	if (obj->state & PLUCK_COLUMN) {
 		// Flush rows of plucked columns.
 		
 		sqlite3_mutex_enter(data_mutex);

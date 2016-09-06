@@ -13,9 +13,7 @@
 
 Transaction::Transaction() : Nan::ObjectWrap(),
 	handles(NULL),
-	config_locked(false),
-	bound(false),
-	busy(false) {}
+	state(0) {}
 Transaction::~Transaction() {
 	if (CloseHandles()) {
 		db->transs.erase(this);
@@ -51,7 +49,7 @@ bool Transaction::CloseHandles() {
 	return false;
 }
 bool Transaction::CloseIfPossible() {
-	if (!busy) {
+	if (!(state & BUSY)) {
 		CloseHandles();
 		return true;
 	}

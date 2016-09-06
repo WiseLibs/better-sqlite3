@@ -34,9 +34,9 @@ class QueryWorker : public ASYNC {
 		
 	private:
 		void FinishRequest() {
-			obj->busy = false;
+			obj->state &= ~BUSY;
 			obj->Unref();
-			if (!obj->bound) {
+			if (!(obj->state & BOUND)) {
 				obj->ClearBindings();
 			}
 			if (obj->db->state == DB_DONE) {

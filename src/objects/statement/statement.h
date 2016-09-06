@@ -2,6 +2,7 @@
 #define NODE_SQLITE3_PLUS_STATEMENT_H
 
 // Dependencies
+#include <stdint.h>
 #include <set>
 #include <sqlite3.h>
 #include <nan.h>
@@ -47,19 +48,11 @@ class Statement : public Nan::ObjectWrap {
 		}
 		void EraseFromSet();
 		
-		
-		// Sqlite3 interfacing
+		// Sqlite3 interfacing and state
 		Database* db;
 		sqlite3_stmt* st_handle;
-		
-		// State
-		bool config_locked;
-		bool bound;
-		bool busy;
-		
-		// Config
 		int column_count; // If this is 0, the statement is a write statement
-		bool pluck_column;
+		uint8_t state;
 		
 		// Unique Statement Id
 		sqlite3_uint64 id;
