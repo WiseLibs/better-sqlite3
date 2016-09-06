@@ -27,7 +27,7 @@ void CloseWorker::HandleOKCallback() {
     	Nan::Null()
     };
     
-	EMIT_EVENT_ASYNC(database, 2, args);
+	EMIT_EVENT(database, 2, args);
 }
 void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
@@ -41,5 +41,5 @@ void CloseWorker::HandleErrorCallback() {
     	Nan::Error(message)
     };
     
-	EMIT_EVENT_ASYNC(database, 2, args);
+	EMIT_EVENT(database, 2, args);
 }
