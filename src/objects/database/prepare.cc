@@ -57,7 +57,7 @@ NAN_METHOD(Database::Prepare) {
 		// For read-only statements, we cache their column names.
 		v8::Local<v8::Array> columnNames = Nan::New<v8::Array>(stmt->column_count);
 		for (int i=0; i<stmt->column_count; ++i) {
-			Nan::Set(columnNames, i, NEW_INTERNAL_STRING(sqlite3_column_name(stmt->st_handle, i)));
+			Nan::Set(columnNames, i, NEW_INTERNAL_STRING16(sqlite3_column_name16(stmt->st_handle, i)));
 		}
 		statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames"), columnNames);
 	}
