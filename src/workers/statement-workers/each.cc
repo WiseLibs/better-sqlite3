@@ -54,7 +54,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 	} else {
 		
 		// Get cached column names.
-		v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING("columnNames")));
+		v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames")));
 		
 		// Flush rows.
 		sqlite3_mutex_enter(data_mutex);

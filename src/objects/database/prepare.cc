@@ -17,7 +17,7 @@ NAN_METHOD(Database::Prepare) {
 	
 	// These properties should be added before others.
 	stmt->db = db;
-	statement->SetHiddenValue(NEW_INTERNAL_STRING("database"), info.This());
+	statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("database"), info.This());
 	
 	// Digest the source string.
 	TRIM_STRING(source);
@@ -59,10 +59,10 @@ NAN_METHOD(Database::Prepare) {
 		for (int i=0; i<stmt->column_count; ++i) {
 			Nan::Set(columnNames, i, NEW_INTERNAL_STRING(sqlite3_column_name(stmt->st_handle, i)));
 		}
-		statement->SetHiddenValue(NEW_INTERNAL_STRING("columnNames"), columnNames);
+		statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames"), columnNames);
 	}
-	Nan::ForceSet(statement, NEW_INTERNAL_STRING("readonly"), stmt->column_count == 0 ? Nan::False() : Nan::True(), FROZEN);
-	Nan::ForceSet(statement, NEW_INTERNAL_STRING("source"), source, FROZEN);
+	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("readonly"), stmt->column_count == 0 ? Nan::False() : Nan::True(), FROZEN);
+	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	
 	// Pushes onto stmts set.
 	stmt->id = NEXT_STATEMENT_ID++;
