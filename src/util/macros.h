@@ -240,7 +240,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Creates a new internalized string, but only works with Latin-1 characters.
 #define NEW_INTERNAL_STRING_FAST(string)                                       \
 	v8::String::NewFromOneByte(                                                \
-		v8::Isolate::GetCurrent(), string, v8::NewStringType::kInternalized    \
+		v8::Isolate::GetCurrent(),                                             \
+		(const uint8_t*)string,                                                \
+		v8::NewStringType::kInternalized                                       \
 	).ToLocalChecked()
 
 #endif
