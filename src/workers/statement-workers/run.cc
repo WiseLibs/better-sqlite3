@@ -27,8 +27,8 @@ void RunWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
 	
 	v8::Local<v8::Object> object = Nan::New<v8::Object>();
-	Nan::ForceSet(object, NEW_INTERNAL_STRING("changes"), Nan::New<v8::Number>((double)changes));
-	Nan::ForceSet(object, NEW_INTERNAL_STRING("id"), Nan::New<v8::Number>((double)id));
+	Nan::ForceSet(object, NEW_INTERNAL_STRING_FAST("changes"), Nan::New<v8::Number>((double)changes));
+	Nan::ForceSet(object, NEW_INTERNAL_STRING_FAST("id"), Nan::New<v8::Number>((double)id));
 	
 	Resolve(object);
 }

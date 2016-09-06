@@ -23,7 +23,7 @@ void CloseWorker::HandleOKCallback() {
     if (--db->workers == 0) {db->Unref();}
     
     v8::Local<v8::Value> args[2] = {
-    	NEW_INTERNAL_STRING("close"),
+    	NEW_INTERNAL_STRING_FAST("close"),
     	Nan::Null()
     };
     
@@ -37,7 +37,7 @@ void CloseWorker::HandleErrorCallback() {
     
     CONCAT2(message, "SQLite: ", ErrorMessage());
     v8::Local<v8::Value> args[2] = {
-    	NEW_INTERNAL_STRING("close"),
+    	NEW_INTERNAL_STRING_FAST("close"),
     	Nan::Error(message)
     };
     

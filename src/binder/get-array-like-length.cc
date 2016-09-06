@@ -3,7 +3,7 @@
 // If an error occurs, error is set to an appropriately descriptive string.
 
 double Binder::GetArrayLikeLength(v8::Local<v8::Object> obj) {
-	Nan::MaybeLocal<v8::Value> maybeLength = Nan::Get(obj, NEW_INTERNAL_STRING("length"));
+	Nan::MaybeLocal<v8::Value> maybeLength = Nan::Get(obj, NEW_INTERNAL_STRING_FAST("length"));
 	if (maybeLength.IsEmpty()) {
 		error = "An error was thrown while trying to get the \"length\" property of the given object.";
 		return -1;

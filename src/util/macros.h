@@ -49,9 +49,11 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method. If the getter throws, or if the property is not a
 // function, an error is thrown and the caller returns.
+// This should not be used to retrieve arbitrary methods, because it is
+// restricted by the limitations of NEW_INTERNAL_STRING_FAST().
 #define GET_METHOD(result, obj, methodName)                                    \
 	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
-		Nan::Get(obj, NEW_INTERNAL_STRING(methodName));                        \
+		Nan::Get(obj, NEW_INTERNAL_STRING_FAST(methodName));                   \
 	if (_maybeMethod.IsEmpty()) {return;}                                      \
 	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
 	if (!_localMethod->IsFunction()) {                                         \
@@ -232,6 +234,12 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Creates a new internalized string.
 #define NEW_INTERNAL_STRING(string)                                            \
 	v8::String::NewFromUtf8(                                                   \
+		v8::Isolate::GetCurrent(), string, v8::NewStringType::kInternalized    \
+	).ToLocalChecked()
+
+// Creates a new internalized string, but only works with Latin-1 characters.
+#define NEW_INTERNAL_STRING_FAST(string)                                       \
+	v8::String::NewFromOneByte(                                                \
 		v8::Isolate::GetCurrent(), string, v8::NewStringType::kInternalized    \
 	).ToLocalChecked()
 
