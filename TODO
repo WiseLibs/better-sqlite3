@@ -1,8 +1,6 @@
 ---------- Shortlist ----------
 use hash table on the database object to remember statements that are valid, and what their column names and column counts are
 
-remove emitAsync and AsyncEventEmitter?
-
 ---------- Polish ----------
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
