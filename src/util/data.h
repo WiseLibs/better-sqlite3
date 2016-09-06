@@ -1,12 +1,29 @@
 #ifndef NODE_SQLITE3_PLUS_DATA_H
 #define NODE_SQLITE3_PLUS_DATA_H
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
-#include "strlcpy.h"
 
 namespace Data {
+
+class SimpleExternalString : public v8::String::ExternalStringResource {
+	public:
+		SimpleExternalString(const uint16_t* _data, size_t _length)
+		: v8::String::ExternalStringResource()
+		, _data(_data)
+		, _length(_length) {}
+		~SimpleExternalString() {
+			delete[] _data;
+		}
+		const uint16_t* data() const {return _data;}
+		size_t length() const {return _length;}
+	private:
+		const uint16_t* _data;
+		size_t _length; // Number of uint16_t (not number of bytes)
+};
 
 // A generic class representing an SQLite3 value.
 // When a Value is created, all memory is copied, and managed internally.
@@ -38,20 +55,26 @@ class Float : public Data::Value { public:
 // NUL-terminated string, and len should be the number of bytes in the string,
 // not including the NUL terminator.
 class Text : public Data::Value { public:
-	Text(const unsigned char* str, int len) : length(len) {
-		value = new char[length + 1];
-		strlcpy(value, (const char*)str, length + 1);
+	Text(const void* str, int byte_count) : length((size_t)(byte_count / sizeof (uint16_t))), transferred(false) {
+		value = new uint16_t[length];
+		memcpy(value, str, byte_count);
 	}
 	Text(v8::Local<v8::String> str) {
-		Nan::Utf8String utf8(str);
-		length = utf8.length();
-		value = new char[length + 1];
-		strlcpy(value, *utf8, length + 1);
+		v8::String::Value utf16(str);
+		length = (size_t)utf16.length();
+		value = new uint16_t[length];
+		memcpy(value, *utf16, length * sizeof (uint16_t));
 	}
-	~Text() {delete[] value;}
-	v8::Local<v8::Value> ToJS() {return Nan::New<v8::String>(value, length).ToLocalChecked();}
-	char* value; // Is NUL-terminated.
-	int length; // Does not include the NUL terminator.
+	~Text() {if (!transferred) {delete[] value;}}
+	v8::Local<v8::Value> ToJS() {
+		transferred = true;
+		return v8::String::NewExternalTwoByte(v8::Isolate::GetCurrent(), new SimpleExternalString(value, length)).ToLocalChecked();
+	}
+	uint16_t* value;
+	size_t length; // Number of uint16_t (not number of bytes)
+	
+private:
+	bool transferred;
 };
 
 // An SQLite3 blob value.
@@ -59,7 +82,7 @@ class Text : public Data::Value { public:
 // include. The len argument is the number of bytes. Invoking ToJS() multiple
 // times returns Buffers that all point to the same underlying memory.
 class Blob : public Data::Value { public:
-	Blob(const void* data, int len) : length(len), transferred(false) {
+	Blob(const void* data, int byte_count) : length(byte_count), transferred(false) {
 		value = new char[length];
 		memcpy(value, data, length);
 	}
@@ -123,7 +146,7 @@ class Row {
 						values[i] = new Data::Float(sqlite3_column_double(handle, i));
 						break;
 					case SQLITE_TEXT:
-						values[i] = new Data::Text(sqlite3_column_text(handle, i), sqlite3_column_bytes(handle, i));
+						values[i] = new Data::Text(sqlite3_column_text16(handle, i), sqlite3_column_bytes16(handle, i));
 						break;
 					case SQLITE_BLOB:
 						values[i] = new Data::Blob(sqlite3_column_blob(handle, i), sqlite3_column_bytes(handle, i));
