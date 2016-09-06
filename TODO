@@ -1,6 +1,3 @@
----------- Shortlist ----------
-use hash table on the database object to remember statements that are valid, and what their column names and column counts are
-
 ---------- Polish ----------
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
@@ -13,9 +10,9 @@ optimize binding by creating bind maps when statements and transactions are
 created. This way, we can eliminate overhead caused by the NextAnonIndex()
 and GetNamedParameterIndex() functions
 
-we could use ExternalStringResource to make trans->source only exist in one place, to reduce memory consumption of Statement objects
-
 consolidate bool state/config info into single bitwise flag property (Statement and Transaction)
+
+use hash table on the database object to remember statements that are valid, and what their column names and column counts are
 
 polish the changes/last_row_id API of .run()
 
