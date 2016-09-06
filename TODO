@@ -22,6 +22,15 @@ and GetNamedParameterIndex() functions
 
 we could use ExternalStringResource to make trans->source only exist in one place, to reduce memory consumption of Statement objects
 
+implement fast mode:
+- cant drop tables, remove columns, add columns, or rename columns in tables.
+- cache column names and column counts on each prepared statement
+- use hash table on the database object to remember statements that are valid, and what their column names and column counts are
+
+maybe defer the creation of sqlite3_stmt handles until the first worker execution
+
+could we could use ExternalStringResource and sqlite3_column_name16 to improve performance of getting column names?
+
 consolidate bool state/config info into single bitwise flag property (Statement and Transaction)
 
 polish the changes/last_row_id API of .run()
