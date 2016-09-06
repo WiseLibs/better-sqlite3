@@ -10,7 +10,6 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	unsigned int len = sources->Length();
 	v8::Local<v8::Array> trimmedSources = Nan::New<v8::Array>(len);
-	
 	if (!(len > 0)) {
 		return Nan::ThrowTypeError("No SQL statements were provided.");
 	}
@@ -52,14 +51,11 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	CONSTRUCTING_PRIVILEGES = true;
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(Transaction::constructor);
-	Nan::MaybeLocal<v8::Object> maybeTransaction = Nan::NewInstance(cons);
+	v8::Local<v8::Object> transaction = Nan::NewInstance(cons).ToLocalChecked();
 	CONSTRUCTING_PRIVILEGES = false;
-	
-	if (maybeTransaction.IsEmpty()) {return;}
-	v8::Local<v8::Object> transaction = maybeTransaction.ToLocalChecked();
+	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(transaction);
 	
 	// Initializes C++ object properties.
-	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(transaction);
 	trans->db = db;
 	trans->handle_count = len;
 	trans->handles = new sqlite3_stmt* [len]();
@@ -70,15 +66,13 @@ NAN_METHOD(Database::CreateTransaction) {
 		Nan::Utf8String utf8(source);
 		const char* tail;
 		
-		LOCK_DB(db->write_handle);
-		int status = sqlite3_prepare_v2(db->write_handle, *utf8, utf8.length() + 1, &(trans->handles[i]), &tail);
+		int status = sqlite3_prepare(db->write_handle, *utf8, utf8.length() + 1, &(trans->handles[i]), &tail);
 		
+		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
-			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->write_handle), ").");
-			UNLOCK_DB(db->write_handle);
+			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errstr(status), ").");
 			return Nan::ThrowError(message);
 		}
-		UNLOCK_DB(db->write_handle);
 		if (trans->handles[i] == NULL) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
@@ -91,8 +85,8 @@ NAN_METHOD(Database::CreateTransaction) {
 	}
 	
 	// Initializes JavaScript object properties.
-	transaction->SetHiddenValue(Nan::New("database").ToLocalChecked(), info.This());
-	Nan::ForceSet(transaction, Nan::New("source").ToLocalChecked(), joinedSource, FROZEN);
+	transaction->SetHiddenValue(NEW_INTERNAL_STRING("database"), info.This());
+	Nan::ForceSet(transaction, NEW_INTERNAL_STRING("source"), joinedSource, FROZEN);
 	
 	// Pushes onto transs set.
 	trans->id = NEXT_TRANSACTION_ID++;

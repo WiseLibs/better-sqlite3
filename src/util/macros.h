@@ -45,7 +45,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // function, an error is thrown and the caller returns.
 #define GET_METHOD(result, obj, methodName)                                    \
 	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
-		Nan::Get(obj, Nan::New(methodName).ToLocalChecked());                  \
+		Nan::Get(obj, NEW_INTERNAL_STRING(methodName));                        \
 	if (_maybeMethod.IsEmpty()) {return;}                                      \
 	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
 	if (!_localMethod->IsFunction()) {                                         \
@@ -219,23 +219,21 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 
 // Enters the mutex for the sqlite3 database handle.
 #define LOCK_DB(db_handle)                                                     \
-	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle));
+	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle))
+
+// Enters the mutex for the sqlite3 database handle if the mutex is not
+// already in use by another thread.
+#define TRY_TO_LOCK_DB(db_handle)                                              \
+	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle))
 
 // Exits the mutex for the sqlite3 database handle.
 #define UNLOCK_DB(db_handle)                                                   \
-	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle));
+	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle))
 
-// When used in a StatementWorker, gives the number of columns that the
-// statement returns, based on the sqlite3_stmt handle and pluck_column.
-#define GET_COLUMN_COUNT(len)                                                  \
-	len = sqlite3_column_count(obj->st_handle);                                \
-	if (len < 1) {                                                             \
-		sqlite3_reset(obj->st_handle);                                         \
-		UNLOCK_DB(obj->db_handle);                                             \
-		return SetErrorMessage("This statement returns no result columns.");   \
-	}                                                                          \
-	if (obj->pluck_column) {                                                   \
-		len = 1;                                                               \
-	}
+// Creates a new internalized string.
+#define NEW_INTERNAL_STRING(string)                                            \
+	v8::String::NewFromUtf8(                                                   \
+		v8::Isolate::GetCurrent(), string, v8::NewStringType::kInternalized    \
+	).ToLocalChecked()
 
 #endif

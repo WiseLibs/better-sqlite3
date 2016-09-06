@@ -23,7 +23,7 @@ void CloseWorker::HandleOKCallback() {
     if (--db->workers == 0) {db->Unref();}
     
     v8::Local<v8::Value> args[2] = {
-    	Nan::New("close").ToLocalChecked(),
+    	NEW_INTERNAL_STRING("close"),
     	Nan::Null()
     };
     
@@ -37,7 +37,7 @@ void CloseWorker::HandleErrorCallback() {
     
     CONCAT2(message, "SQLite: ", ErrorMessage());
     v8::Local<v8::Value> args[2] = {
-    	Nan::New("close").ToLocalChecked(),
+    	NEW_INTERNAL_STRING("close"),
     	Nan::Error(message)
     };
     

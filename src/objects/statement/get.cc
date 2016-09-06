@@ -2,7 +2,7 @@
 
 NAN_METHOD(Statement::Get) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
-	if (!stmt->readonly) {
+	if (stmt->column_count == 0) {
 		return Nan::ThrowTypeError("This statement is not read-only. Use run() instead.");
 	}
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, func);
