@@ -75,7 +75,7 @@ void OpenWorker::HandleOKCallback() {
 		db->CloseHandles();
 	} else {
 		db->state = DB_READY;
-		v8::Local<v8::Value> args[1] = {Nan::New("open").ToLocalChecked()};
+		v8::Local<v8::Value> args[1] = {NEW_INTERNAL_STRING("open")};
 		EMIT_EVENT(database, 1, args);
 	}
 }
@@ -90,7 +90,7 @@ void OpenWorker::HandleErrorCallback() {
 		
 		CONCAT2(message, "SQLite: ", ErrorMessage());
 		v8::Local<v8::Value> args[2] = {
-			Nan::New("close").ToLocalChecked(),
+			NEW_INTERNAL_STRING("close"),
 			Nan::Error(message)
 		};
 		

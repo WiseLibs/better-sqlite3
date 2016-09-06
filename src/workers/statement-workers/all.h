@@ -14,7 +14,6 @@ class AllWorker : public QueryWorker<Statement, Nan::AsyncWorker> {
 		void Execute();
 		void HandleOKCallback();
 	private:
-		int column_count;
 		unsigned int row_count;
 		List<Data::Row> rows;
 };

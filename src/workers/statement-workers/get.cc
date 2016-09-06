@@ -9,20 +9,13 @@
 GetWorker::GetWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb) {}
 void GetWorker::Execute() {
-	LOCK_DB(obj->db_handle);
-	int status = sqlite3_step(obj->st_handle);
-	int column_count;
-	
-	GET_COLUMN_COUNT(column_count);
-	
-	if (status == SQLITE_ROW) {
-		row.Fill(obj->st_handle, column_count);
-	} else if (status != SQLITE_DONE) {
-		SetErrorMessage(sqlite3_errmsg(obj->db_handle));
+	if (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
+		row.Fill(obj->st_handle, obj->column_count);
 	}
-	
-	sqlite3_reset(obj->st_handle);
-	UNLOCK_DB(obj->db_handle);
+	int status = sqlite3_reset(obj->st_handle);
+	if (status != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errstr(status));
+	}
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -38,11 +31,10 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	// Resolve with every column.
+	v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING("columnNames")));
 	v8::Local<v8::Object> object = Nan::New<v8::Object>();
 	for (int i=0; i<row.column_count; ++i) {
-		Nan::ForceSet(object,
-			Nan::New(sqlite3_column_name(obj->st_handle, i)).ToLocalChecked(),
-			row.values[i]->ToJS());
+		Nan::ForceSet(object, Nan::Get(columnNames, i).ToLocalChecked(), row.values[i]->ToJS());
 	}
 	
 	Resolve(object);

@@ -11,50 +11,28 @@
 EachWorker::EachWorker(Statement* stmt, Nan::Callback* cb, Nan::Callback* progressCb)
 	: QueryWorker<Statement, Nan::AsyncProgressWorker>(stmt, cb),
 	data_mutex(NULL),
-	handle_mutex(NULL),
-	cached_names(false),
 	progressCallback(progressCb) {}
 EachWorker::~EachWorker() {
 	sqlite3_mutex_free(data_mutex);
-	sqlite3_mutex_free(handle_mutex);
 	delete progressCallback;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
-	// Allocate mutexes.
+	// Allocate mutex.
 	data_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
 	if (data_mutex == NULL) {
 		return SetErrorMessage("Out of memory.");
 	}
-	handle_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
-	if (handle_mutex == NULL) {
-		return SetErrorMessage("Out of memory.");
-	}
-	
-	LOCK_DB(obj->db_handle);
-	
-	// Retreive first row, and validated statement result columns.
-	int status = sqlite3_step(obj->st_handle);
-	GET_COLUMN_COUNT(column_count);
-	
-	// Retrieve and save rows.
-	while (status == SQLITE_ROW) {
+	// Retrieve and feed rows.
+	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
 		sqlite3_mutex_enter(data_mutex);
-		rows.Add(new Data::Row(obj->st_handle, column_count));
+		rows.Add(new Data::Row(obj->st_handle, obj->column_count));
 		sqlite3_mutex_leave(data_mutex);
-		
 		progress.Signal();
-		
-		sqlite3_mutex_enter(handle_mutex);
-		status = sqlite3_step(obj->st_handle);
-		sqlite3_mutex_leave(handle_mutex);
 	}
-	
-	if (status != SQLITE_DONE) {
-		SetErrorMessage(sqlite3_errmsg(obj->db_handle));
+	int status = sqlite3_reset(obj->st_handle);
+	if (status != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errstr(status));
 	}
-	
-	sqlite3_reset(obj->st_handle);
-	UNLOCK_DB(obj->db_handle);
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;
@@ -75,22 +53,8 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		
 	} else {
 		
-		// Cache columns names, or get the already cached column names.
-		v8::Local<v8::Array> columnNames;
-		if (cached_names) {
-			columnNames = v8::Local<v8::Array>::Cast(GetFromPersistent((uint32_t)0));
-		} else {
-			columnNames = Nan::New<v8::Array>(column_count);
-			
-			sqlite3_mutex_enter(handle_mutex);
-			for (int i=0; i<column_count; ++i) {
-				Nan::Set(columnNames, i, Nan::New(sqlite3_column_name(obj->st_handle, i)).ToLocalChecked());
-			}
-			sqlite3_mutex_leave(handle_mutex);
-			
-			SaveToPersistent((uint32_t)0, columnNames);
-			cached_names = true;
-		}
+		// Get cached column names.
+		v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING("columnNames")));
 		
 		// Flush rows.
 		sqlite3_mutex_enter(data_mutex);

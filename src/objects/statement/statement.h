@@ -50,7 +50,6 @@ class Statement : public Nan::ObjectWrap {
 		
 		// Sqlite3 interfacing
 		Database* db;
-		sqlite3* db_handle;
 		sqlite3_stmt* st_handle;
 		
 		// State
@@ -59,7 +58,7 @@ class Statement : public Nan::ObjectWrap {
 		bool busy;
 		
 		// Config
-		bool readonly;
+		int column_count; // If this is 0, the statement is a write statement
 		bool pluck_column;
 		
 		// Unique Statement Id

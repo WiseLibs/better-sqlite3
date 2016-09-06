@@ -23,8 +23,7 @@ class TransactionHandles {
 				return;
 			}
 			
-			status = sqlite3_prepare_v2(db_handle, "ROLLBACK TRANSACTION;", -1, &rollback, NULL);
-			*statusOut = status;
+			*statusOut = sqlite3_prepare_v2(db_handle, "ROLLBACK TRANSACTION;", -1, &rollback, NULL);
 		}
 		~TransactionHandles() {
 			sqlite3_finalize(begin);

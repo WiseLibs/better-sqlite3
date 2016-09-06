@@ -11,23 +11,14 @@ AllWorker::AllWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb),
 	row_count(0) {}
 void AllWorker::Execute() {
-	LOCK_DB(obj->db_handle);
-	int status = sqlite3_step(obj->st_handle);
-	
-	GET_COLUMN_COUNT(column_count);
-	
-	while (status == SQLITE_ROW) {
+	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
 		++row_count;
-		rows.Add(new Data::Row(obj->st_handle, column_count));
-		status = sqlite3_step(obj->st_handle);
+		rows.Add(new Data::Row(obj->st_handle, obj->column_count));
 	}
-	
-	if (status != SQLITE_DONE) {
-		SetErrorMessage(sqlite3_errmsg(obj->db_handle));
+	int status = sqlite3_reset(obj->st_handle);
+	if (status != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errstr(status));
 	}
-	
-	sqlite3_reset(obj->st_handle);
-	UNLOCK_DB(obj->db_handle);
 }
 void AllWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
@@ -43,11 +34,8 @@ void AllWorker::HandleOKCallback() {
 			});
 		} else {
 			
-			// Temporarily Cache column names.
-			v8::Local<v8::Array> columnNames = Nan::New<v8::Array>(column_count);
-			for (int j=0; j<column_count; ++j) {
-				Nan::Set(columnNames, j, Nan::New(sqlite3_column_name(obj->st_handle, j)).ToLocalChecked());
-			}
+			// Get cached column names.
+			v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING("columnNames")));
 			
 			// Fill array with row objects.
 			rows.Flush([&arr, &i, &columnNames] (Data::Row* row) {

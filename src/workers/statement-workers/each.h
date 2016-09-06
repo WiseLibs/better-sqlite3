@@ -18,9 +18,6 @@ class EachWorker : public QueryWorker<Statement, Nan::AsyncProgressWorker> {
 		void HandleOKCallback();
 	private:
 		sqlite3_mutex* data_mutex;
-		sqlite3_mutex* handle_mutex;
-		int column_count;
-		bool cached_names;
 		List<Data::Row> rows;
 		Nan::Callback* progressCallback;
 };

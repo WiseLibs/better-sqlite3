@@ -27,6 +27,7 @@ class Database : public Nan::ObjectWrap {
 		friend class Statement;
 		friend class Transaction;
 		template <class OBJECT, class ASYNC> friend class QueryWorker;
+		friend class RunWorker;
 		friend class TransactionWorker;
 		
 	private:
