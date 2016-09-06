@@ -231,10 +231,12 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define UNLOCK_DB(db_handle)                                                   \
 	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle))
 
-// Creates a new internalized string.
-#define NEW_INTERNAL_STRING(string)                                            \
-	v8::String::NewFromUtf8(                                                   \
-		v8::Isolate::GetCurrent(), string, v8::NewStringType::kInternalized    \
+// Creates a new internalized string from UTF-16 data.
+#define NEW_INTERNAL_STRING16(string)                                          \
+	v8::String::NewFromTwoByte(                                                \
+		v8::Isolate::GetCurrent(),                                             \
+		(const uint16_t*)string,                                               \
+		v8::NewStringType::kInternalized                                       \
 	).ToLocalChecked()
 
 // Creates a new internalized string, but only works with Latin-1 characters.
