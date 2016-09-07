@@ -4,6 +4,6 @@
 // Regardless of whether an error occurs, the return value is the number of
 // parameters that were bound.
 
-unsigned int Binder::BindArray(v8::Local<v8::Array> arr) {
+int Binder::BindArray(v8::Local<v8::Array> arr) {
 	return BindArrayLike(v8::Local<v8::Object>::Cast(arr), arr->Length());
 }

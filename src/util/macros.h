@@ -100,6 +100,16 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
 
+// If the argument of the given index is not a function, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::Function and made
+// available at the given variable name.
+#define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
+	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a function.");                 \
+	}                                                                          \
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
+
 // If the last argument is not a function, an error is thrown and the caller
 // returns. Otherwise, it is cast to a v8::Function and made available at the
 // given variable name.
@@ -170,7 +180,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define STATEMENT_BIND(stmt, info, info_length)                                \
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle);                                       \
-		_binder.Bind(info, info_length);                                       \
+		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
+		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")))); \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
@@ -182,7 +193,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define TRANSACTION_BIND(trans, info, info_length)                             \
 	if (info_length > 0) {                                                     \
 		MultiBinder _binder(trans->handles, trans->handle_count);              \
-		_binder.Bind(info, info_length);                                       \
+		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
+		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"))));\
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			for (unsigned int i=0; i<trans->handle_count; ++i) {               \
@@ -230,6 +242,14 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Exits the mutex for the sqlite3 database handle.
 #define UNLOCK_DB(db_handle)                                                   \
 	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle))
+
+// Creates a new internalized string from UTF-8 data.
+#define NEW_INTERNAL_STRING8(string)                                           \
+	v8::String::NewFromUtf8(                                                   \
+		v8::Isolate::GetCurrent(),                                             \
+		string,                                                                \
+		v8::NewStringType::kInternalized                                       \
+	).ToLocalChecked()
 
 // Creates a new internalized string from UTF-16 data.
 #define NEW_INTERNAL_STRING16(string)                                          \

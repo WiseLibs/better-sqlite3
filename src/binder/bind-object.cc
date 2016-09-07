@@ -4,7 +4,7 @@
 // Regardless of whether an error occurs, the return value is the number of
 // parameters that were bound.
 
-unsigned int Binder::BindObject(v8::Local<v8::Object> obj) {
+int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap) {
 	// Get array of properties.
 	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetPropertyNames(obj);
 	if (maybeKeys.IsEmpty()) {
@@ -14,11 +14,12 @@ unsigned int Binder::BindObject(v8::Local<v8::Object> obj) {
 	v8::Local<v8::Array> keys = maybeKeys.ToLocalChecked();
 	
 	// Get property count.
-	unsigned int len = keys->Length();
-	unsigned int symbol_count = 0;
+	unsigned int key_length = keys->Length();
+	int len = key_length > (unsigned int)0x7ffffffe ? (int)0x7ffffffe : (int)key_length;
+	int symbol_count = 0;
 	
 	// Loop through each property.
-	for (unsigned int i=0; i<len; ++i) {
+	for (int i=0; i<len; ++i) {
 		
 		// Get current property name.
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);
@@ -35,14 +36,15 @@ unsigned int Binder::BindObject(v8::Local<v8::Object> obj) {
 		}
 		
 		// Get the parameter index of the current named parameter.
-		Nan::Utf8String utf8(key);
-		unsigned int index = GetNamedParameterIndex(*utf8, utf8.length());
-		if (!index) {
+		v8::Local<v8::Value> indexValue = Nan::Get(bindMap, v8::Local<v8::String>::Cast(key)).ToLocalChecked();
+		if (indexValue->IsUndefined()) {
+			Nan::Utf8String utf8(key);
 			error = "The named parameter \"%s\" does not exist.";
 			error_extra = new char[utf8.length() + 1];
 			strlcpy(error_extra, *utf8, utf8.length() + 1);
 			return i - symbol_count;
 		}
+		int index = (int)(v8::Local<v8::Number>::Cast(indexValue)->Value());
 		
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);

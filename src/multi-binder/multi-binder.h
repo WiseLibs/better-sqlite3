@@ -8,16 +8,16 @@
 class MultiBinder : public Binder {
 	public:
 		MultiBinder(sqlite3_stmt**, unsigned int);
-		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int);
+		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Object>);
 		
 	protected:
-		unsigned int NextAnonIndex();
-		unsigned int BindObject(v8::Local<v8::Object>); // This should only be invoked once per handle
+		int NextAnonIndex();
+		int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once per handle
 		
 		sqlite3_stmt** const handles;
 		unsigned int const handle_count;
 		unsigned int handle_index;
-		unsigned int param_count_sum;
+		int param_count_sum;
 };
 
 #endif

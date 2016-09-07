@@ -41,6 +41,7 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(Each);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
 		bool CloseIfPossible(); // Returns true if the statement is not busy
+		v8::Local<v8::Object> CreateBindMap();
 		
 		// Tools for QueryWorker
 		inline void ClearBindings() {
