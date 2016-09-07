@@ -17,6 +17,7 @@
           '-DNDEBUG'
         ],
         'xcode_settings': {
+          'MACOSX_DEPLOYMENT_TARGET': '10.7',
           'OTHER_CPLUSPLUSFLAGS!': [
             '-O3',
             '-Os',
@@ -36,6 +37,7 @@
           'NDEBUG'
         ],
         'xcode_settings': {
+          'MACOSX_DEPLOYMENT_TARGET': '10.7',
           'OTHER_CPLUSPLUSFLAGS!': [
             '-Os',
             '-O2'
