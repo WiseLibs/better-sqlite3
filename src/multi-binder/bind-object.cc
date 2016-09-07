@@ -55,7 +55,11 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 			handle = handles[h];
 			
 			// Get the parameter index of the current named parameter.
-			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(Nan::Get(bindMap, h).ToLocalChecked()), v8::Local<v8::String>::Cast(key)).ToLocalChecked();
+			v8::Local<v8::Value> currentMap = Nan::Get(bindMap, h).ToLocalChecked();
+			if (currentMap->IsUndefined()) {
+				continue;
+			}
+			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(currentMap), v8::Local<v8::String>::Cast(key)).ToLocalChecked();
 			if (!indexValue->IsUndefined()) {
 				int index = (int)(v8::Local<v8::Number>::Cast(indexValue)->Value());
 				
