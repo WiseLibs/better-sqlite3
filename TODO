@@ -1,11 +1,6 @@
 ---------- Polish ----------
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
-optimize binding:
-- for the below two items: make Binder::Bind and MultiBinder::Bind accept both local and persistent obejct handles for persisting bound text and blobs
-- when binding strings, I can use SQLITE_STATIC if I make the string temporarily persistent
-- when binding blobs, I can do the same thing as above, as long as I'm not scared of the user changing the buffer's underlying memory mid-execution
-
 use hash table on the database object to remember statements that are valid, and what their column names, column counts, and bind maps are
 
 polish the changes/last_row_id API of .run()

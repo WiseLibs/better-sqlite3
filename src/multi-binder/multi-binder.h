@@ -7,7 +7,7 @@
 
 class MultiBinder : public Binder {
 	public:
-		MultiBinder(sqlite3_stmt**, unsigned int);
+		MultiBinder(sqlite3_stmt**, unsigned int, v8::Local<v8::Object>);
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Object>);
 		
 	protected:

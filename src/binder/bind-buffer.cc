@@ -5,7 +5,8 @@
 void Binder::BindBuffer(v8::Local<v8::Object> value, int index) {
 	if (!index) {index = NextAnonIndex();}
 	
-	int status = sqlite3_bind_blob(handle, index, (void*)node::Buffer::Data(value), node::Buffer::Length(value), SQLITE_TRANSIENT);
+	persistent->Set((uint32_t)index, value);
+	int status = sqlite3_bind_blob(handle, index, (void*)node::Buffer::Data(value), node::Buffer::Length(value), SQLITE_STATIC);
 	
 	SetBindingError(status);
 }

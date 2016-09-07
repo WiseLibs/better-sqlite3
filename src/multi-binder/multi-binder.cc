@@ -7,8 +7,8 @@
 #include "bind-object.cc"
 #include "bind.cc"
 
-MultiBinder::MultiBinder(sqlite3_stmt** handles, unsigned int handle_count)
-	: Binder(handles[0])
+MultiBinder::MultiBinder(sqlite3_stmt** handles, unsigned int handle_count, v8::Local<v8::Object> persistent)
+	: Binder(handles[0], persistent)
 	, handles(handles)
 	, handle_count(handle_count)
 	, handle_index(0)
