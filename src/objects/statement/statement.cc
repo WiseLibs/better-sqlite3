@@ -18,7 +18,7 @@
 #include "get.cc"
 #include "all.cc"
 #include "each.cc"
-#include "create-bind-map.cc"
+#include "build-bind-map.cc"
 
 Statement::Statement() : Nan::ObjectWrap(),
 	st_handle(NULL),

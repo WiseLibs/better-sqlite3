@@ -5,7 +5,7 @@
 // Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
 
-void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, v8::Local<v8::Object> bindMap) {
+void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, v8::Local<v8::Value> bindMap) {
 	bool bound_object = false;
 	int count = 0;
 	

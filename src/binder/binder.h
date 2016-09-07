@@ -8,7 +8,7 @@ class Binder {
 	public:
 		Binder(sqlite3_stmt*);
 		~Binder();
-		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Object>);
+		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Value>);
 		const char* GetError();
 		
 	protected:
@@ -22,7 +22,7 @@ class Binder {
 		
 		int BindArray(v8::Local<v8::Array>);
 		int BindArrayLike(v8::Local<v8::Object>, unsigned int);
-		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once
+		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Value>); // This should only be invoked once
 		
 		double GetArrayLikeLength(v8::Local<v8::Object>);
 		static bool IsPlainObject(v8::Local<v8::Object>);

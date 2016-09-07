@@ -10,7 +10,7 @@
 #include "busy.cc"
 #include "bind.cc"
 #include "run.cc"
-#include "create-bind-map.cc"
+#include "build-bind-map.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
 	handles(NULL),
