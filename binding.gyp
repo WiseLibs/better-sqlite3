@@ -1,8 +1,8 @@
 {
-  "includes": [ "deps/common-sqlite.gypi" ],
+  "includes": [ "deps/common.gypi" ],
   "targets": [
     {
-      "target_name": "sqlite3_plus",
+      "target_name": "better_sqlite3",
       "include_dirs": ["<!(node -e \"require('nan')\")"],
       "dependencies": [
         "deps/sqlite3.gyp:sqlite3"
@@ -30,7 +30,7 @@
         "src/workers/transaction-worker.cc",
         "src/binder/binder.cc",
         "src/multi-binder/multi-binder.cc",
-        "src/sqlite3_plus.cc"
+        "src/better_sqlite3.cc"
       ]
     }
   ]

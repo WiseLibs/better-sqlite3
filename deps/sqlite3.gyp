@@ -1,5 +1,5 @@
 {
-  'includes': [ 'common-sqlite.gypi' ],
+  'includes': [ 'common.gypi' ],
   'target_defaults': {
     'default_configuration': 'Release',
     'cflags': [
@@ -7,7 +7,7 @@
     ],
     'configurations': {
       'Debug': {
-        'defines': [ 'DEBUG', '_DEBUG' ],
+        'defines': [ 'DEBUG', '_DEBUG', 'SQLITE_ENABLE_API_ARMOR'],
         'msvs_settings': {
           'VCCLCompilerTool': {
             'RuntimeLibrary': 1, # static debug
@@ -75,16 +75,7 @@
         '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c'
       ],
       'direct_dependent_settings': {
-        'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/' ],
-        'defines': [
-          'SQLITE_THREADSAFE=1',
-          'SQLITE_ENABLE_FTS3',
-          'SQLITE_ENABLE_JSON1',
-          'SQLITE_ENABLE_RTREE',
-          'SQLITE_DEFAULT_CACHE_SIZE=16000',
-          'SQLITE_DEFAULT_FOREIGN_KEYS=1',
-          'SQLITE_USE_URI=1'
-        ],
+        'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/' ]
       },
       'cflags_cc': [
           '-Wno-unused-value',

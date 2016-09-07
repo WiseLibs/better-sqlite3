@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_MACROS_H
-#define NODE_SQLITE3_PLUS_MACROS_H
+#ifndef BETTER_SQLITE3_MACROS_H
+#define BETTER_SQLITE3_MACROS_H
 
 #include <sys/types.h>
 #include <cmath>

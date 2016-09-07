@@ -10,7 +10,7 @@
 #include "busy.cc"
 #include "bind.cc"
 #include "run.cc"
-#include "build-bind-map.cc"
+#include "util.cc"
 
 Transaction::Transaction() : Nan::ObjectWrap(),
 	handles(NULL),
@@ -35,9 +35,7 @@ void Transaction::Init() {
 }
 CONSTRUCTOR(Transaction::constructor);
 
-bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) {
-	return a->id < b->id;
-}
+// Returns true if the handles have not been previously closed.
 bool Transaction::CloseHandles() {
 	if (handles) {
 		for (unsigned int i=0; i<handle_count; ++i) {
@@ -49,14 +47,4 @@ bool Transaction::CloseHandles() {
 		return true;
 	}
 	return false;
-}
-bool Transaction::CloseIfPossible() {
-	if (!(state & BUSY)) {
-		CloseHandles();
-		return true;
-	}
-	return false;
-}
-void Transaction::EraseFromSet() {
-	db->transs.erase(this);
 }

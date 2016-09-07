@@ -1,32 +1,13 @@
 {
-  "name": "sqlite3-plus",
-  "description": "Simple and expressive SQLite3 bindings for Node.js, with full transaction support.",
-  "version": "4.0.0",
-  "homepage": "http://github.com/JoshuaWise/node-sqlite3-plus",
+  "name": "better-sqlite3",
+  "version": "0.5.0",
+  "description": "Simple and expressive SQLite3 bindings for Node.js, with full transaction support",
+  "homepage": "http://github.com/JoshuaWise/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
-  "contributors": [
-    "MapBox",
-    "Konstantin Käfer <mail@kkaefer.com>",
-    "Dane Springmeyer <dane@mapbox.com>",
-    "Will White <will@mapbox.com>",
-    "Orlando Vazquez <ovazquez@gmail.com>",
-    "Artem Kustikov <kustikoff@gmail.com>",
-    "Eric Fredricksen <efredricksen@gmail.com>",
-    "John Wright <mrjjwright@gmail.com>",
-    "Ryan Dahl <ry@tinyclouds.org>",
-    "Tom MacWright <tom@mapbox.com>",
-    "Carter Thaxton <carter.thaxton@gmail.com>",
-    "Audrius Kažukauskas <audrius@neutrino.lt>",
-    "Johannes Schauer <josch@pyneo.org>",
-    "Nathan Rajlich <nathan@tootallnate.net>",
-    "AJ ONeal <coolaj86@gmail.com>",
-    "Mithgol",
-    "Ben Noordhuis <ben@strongloop.com>"
-  ],
   "gypfile": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/JoshuaWise/node-sqlite3-plus.git"
+    "url": "git://github.com/JoshuaWise/better-sqlite3.git"
   },
   "dependencies": {
     "bindings": "^1.2.1",
@@ -34,20 +15,19 @@
     "to-descriptor": "^1.0.1"
   },
   "devDependencies": {
-    "mocha": "~2.3.3"
+    "chai": "^3.5.0",
+    "mocha": "^3.0.2"
   },
   "scripts": {
     "install": "node-gyp rebuild",
-    "pretest": "node test/support/createdb.js",
-    "test": "$(npm bin)/mocha -R spec --timeout 480000"
+    "test": "$(npm bin)/mocha --timeout 5000 --slow 5000"
   },
-  "license": "(MIT OR BSD-3-Clause)",
+  "license": "MIT",
   "keywords": [
     "sql",
     "sqlite",
     "sqlite3",
     "database",
     "transactions"
-  ],
-  "main": "./lib/sqlite3-plus.js"
+  ]
 }

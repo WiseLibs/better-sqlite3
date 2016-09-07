@@ -57,6 +57,7 @@ NAN_MODULE_INIT(Database::Init) {
 		Nan::GetFunction(t).ToLocalChecked());
 }
 
+// Returns an SQLite3 result code.
 int Database::CloseHandles() {
 	delete t_handles;
 	int status1 = sqlite3_close(read_handle);

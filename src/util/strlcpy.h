@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_STRLCPY_H
-#define NODE_SQLITE3_PLUS_STRLCPY_H
+#ifndef BETTER_SQLITE3_STRLCPY_H
+#define BETTER_SQLITE3_STRLCPY_H
 
 /*
  * Copyright (c) 1998 Todd C. Miller <Todd.Miller@courtesan.com>

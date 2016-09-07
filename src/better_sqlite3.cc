@@ -10,4 +10,4 @@ NAN_MODULE_INIT(RegisterModule) {
 	Statement::Init();
 	Transaction::Init();
 }
-NODE_MODULE(sqlite3_plus, RegisterModule);
+NODE_MODULE(better_sqlite3, RegisterModule);

@@ -1,8 +1,11 @@
-#ifndef NODE_SQLITE3_PLUS_TRANSACTION_HANDLES_H
-#define NODE_SQLITE3_PLUS_TRANSACTION_HANDLES_H
+#ifndef BETTER_SQLITE3_TRANSACTION_HANDLES_H
+#define BETTER_SQLITE3_TRANSACTION_HANDLES_H
 
 #include <sqlite3.h>
 
+// A simple construct for holding three sqlite3_stmt pointers.
+// After construction, if statusOut is SQLITE_OK, the three pointers
+// can be used to start, commit, and rollback transactions.
 class TransactionHandles {
 	public:
 		TransactionHandles(sqlite3* db_handle, int* statusOut)

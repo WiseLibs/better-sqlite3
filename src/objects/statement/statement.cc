@@ -18,7 +18,7 @@
 #include "get.cc"
 #include "all.cc"
 #include "each.cc"
-#include "build-bind-map.cc"
+#include "util.cc"
 
 Statement::Statement() : Nan::ObjectWrap(),
 	st_handle(NULL),
@@ -47,9 +47,7 @@ void Statement::Init() {
 }
 CONSTRUCTOR(Statement::constructor);
 
-bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
-	return a->id < b->id;
-}
+// Returns true if the handles have not been previously closed.
 bool Statement::CloseHandles() {
 	if (st_handle) {
 		sqlite3_clear_bindings(st_handle);
@@ -58,14 +56,4 @@ bool Statement::CloseHandles() {
 		return true;
 	}
 	return false;
-}
-bool Statement::CloseIfPossible() {
-	if (!(state & BUSY)) {
-		CloseHandles();
-		return true;
-	}
-	return false;
-}
-void Statement::EraseFromSet() {
-	db->stmts.erase(this);
 }
