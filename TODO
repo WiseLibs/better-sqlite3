@@ -17,6 +17,8 @@ if more than 3 arguments are passed (more than 2 bound arguments for each())
 investigate BEGIN IMMEDIATE as an alternative to mutexes
 (if we dont need sqlite3_last_insert_rowid or sqlite3_changes, do we get a performance boost?)
 
+remove FrozenBuffer if not used
+
 ---------- Package ----------
 deal with ./test/ and .travis.yml
 
