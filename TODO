@@ -1,5 +1,4 @@
 ---------- Polish ----------
-is Nan::ForceSet faster than Nan::Set?
 
 think of a way to deal with 64bit integers
 
