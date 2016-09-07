@@ -13,6 +13,8 @@ investigate BEGIN IMMEDIATE as an alternative to mutexes
 
 remove FrozenBuffer if not used
 
+allow transactions to have readonly statements?
+
 ---------- Package ----------
 deal with ./test/ and .travis.yml
 
