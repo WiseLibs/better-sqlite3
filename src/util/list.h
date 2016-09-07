@@ -1,8 +1,6 @@
 #ifndef BETTER_SQLITE3_LIST_H
 #define BETTER_SQLITE3_LIST_H
 
-// This class is effectively a queue.
-// Flushing happens in a first-in-first-out order.
 template <class T>
 class List {
 	private:
@@ -39,6 +37,17 @@ class List {
 				last->next = new_node;
 				last = new_node;
 			}
+		}
+		
+		// Shifts the oldest item off the list.
+		// You are responsible for deleting it yourself.
+		T* Shift() {
+			if (first == NULL) {return NULL;}
+			T* item = first->item;
+			Node* next = first->next;
+			delete first;
+			first = next;
+			return item;
 		}
 		
 		// Executes a function for each item in the list, and removes them all

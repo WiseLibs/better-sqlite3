@@ -7,6 +7,8 @@
 #include "../../workers/database-workers/open.h"
 #include "../../workers/database-workers/close.h"
 #include "../../util/macros.h"
+#include "../../util/data.h"
+#include "../../util/list.h"
 #include "../../util/transaction-handles.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
@@ -17,8 +19,9 @@ sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 #include "new.cc"
 #include "open.cc"
 #include "close.cc"
-#include "prepare.cc"
+#include "create-statement.cc"
 #include "create-transaction.cc"
+#include "pragma.cc"
 
 Database::Database() : Nan::ObjectWrap(),
 	read_handle(NULL),
@@ -49,8 +52,9 @@ NAN_MODULE_INIT(Database::Init) {
 	t->SetClassName(Nan::New("Database").ToLocalChecked());
 	
 	Nan::SetPrototypeMethod(t, "close", Close);
-	Nan::SetPrototypeMethod(t, "prepare", Prepare);
+	Nan::SetPrototypeMethod(t, "statement", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
+	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
 	Nan::Set(target, Nan::New("Database").ToLocalChecked(),

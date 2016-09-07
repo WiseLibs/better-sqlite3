@@ -41,7 +41,7 @@ void AllWorker::HandleOKCallback() {
 			rows.Flush([&arr, &i, &columnNames] (Data::Row* row) {
 				v8::Local<v8::Object> object = Nan::New<v8::Object>();
 				for (int j=0; j<row->column_count; ++j) {
-					Nan::ForceSet(object, Nan::Get(columnNames, j).ToLocalChecked(), row->values[j]->ToJS());
+					Nan::Set(object, Nan::Get(columnNames, j).ToLocalChecked(), row->values[j]->ToJS());
 				}
 				Nan::Set(arr, i++, object);
 			});

@@ -146,6 +146,18 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[index]);
 
+// Sets the given variable name to a bool, representing the truthiness of the
+// argument at the given index.
+#define TRUTHINESS_OF_ARGUMENT(index, var)                                     \
+	bool var;                                                                  \
+	if (info.Length() <= (index)) {                                            \
+		var = false;                                                           \
+	} else {                                                                   \
+		v8::Maybe<bool> _maybe_bool = info[index]->BooleanValue();             \
+		if (_maybe_bool.IsNothing()) {return;}                                 \
+		var = _maybe_bool.FromJust();                                          \
+	}
+
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method, and invokes it with the given args. If the getter
 // throws, if the property is not a function, or if the method throws, an error

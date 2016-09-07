@@ -1,5 +1,5 @@
 ---------- Polish ----------
-add db method for setting pragma on both connections, synchronously
+is Nan::ForceSet faster than Nan::Set?
 
 think of a way to deal with 64bit integers
 
