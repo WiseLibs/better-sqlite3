@@ -150,12 +150,10 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // argument at the given index.
 #define TRUTHINESS_OF_ARGUMENT(index, var)                                     \
 	bool var;                                                                  \
-	if (info.Length() <= (index)) {                                            \
+	if (info.Length() <= (index) || info[index]->BooleanValue() != true) {     \
 		var = false;                                                           \
 	} else {                                                                   \
-		v8::Maybe<bool> _maybe_bool = info[index]->BooleanValue();             \
-		if (_maybe_bool.IsNothing()) {return;}                                 \
-		var = _maybe_bool.FromJust();                                          \
+		var = true;                                                            \
 	}
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
