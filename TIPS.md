@@ -1,3 +1,4 @@
+# Helpful tips for SQLite3
 ## Creating safe tables
 It's a good idea to use `INTEGER PRIMARY KEY AUTOINCREMENT` as one of the columns in a table. This ensures two things:
 - `INTEGER PRIMARY KEY`: improved performance by reusing SQLite3's built-in `rowid` column
