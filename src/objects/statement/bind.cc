@@ -12,7 +12,9 @@ NAN_METHOD(Statement::Bind) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	
-	STATEMENT_BIND(stmt, info, info.Length());
+	v8::Local<v8::Object> object = Nan::New<v8::Object>();
+	info.This()->SetHiddenValue(Nan::New("_").ToLocalChecked(), object);
+	STATEMENT_BIND(stmt, info, info.Length(), object);
 	
 	stmt->state |= BOUND;
 	info.GetReturnValue().Set(info.This());

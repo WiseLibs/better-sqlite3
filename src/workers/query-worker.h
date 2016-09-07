@@ -18,6 +18,10 @@ class QueryWorker : public ASYNC {
 			Reject(Nan::Error(message));
 		}
 		
+		inline Nan::Persistent<v8::Object> GetPersistentHandle() {
+			return ASYNC::persistentHandle;
+		}
+		
 	protected:
 		void Resolve(v8::Local<v8::Value> value) {
 			FinishRequest();

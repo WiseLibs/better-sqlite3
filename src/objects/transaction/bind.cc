@@ -12,7 +12,9 @@ NAN_METHOD(Transaction::Bind) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	
-	TRANSACTION_BIND(trans, info, info.Length());
+	v8::Local<v8::Object> object = Nan::New<v8::Object>();
+	info.This()->SetHiddenValue(Nan::New("_").ToLocalChecked(), object);
+	TRANSACTION_BIND(trans, info, info.Length(), object);
 	
 	trans->state |= BOUND;
 	info.GetReturnValue().Set(info.This());

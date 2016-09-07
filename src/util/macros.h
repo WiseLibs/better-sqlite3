@@ -177,11 +177,12 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	Nan::Persistent<v8::Function> name;
 
 // Common bind logic for statements.
-#define STATEMENT_BIND(stmt, info, info_length)                                \
+#define STATEMENT_BIND(stmt, info, info_length, persistent)                    \
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle);                                       \
 		_binder.Bind(info, info_length,                                        \
-		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")));  \
+		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")),   \
+		persistent);                                                           \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
@@ -190,11 +191,12 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}
 
 // Common bind logic for transactions.
-#define TRANSACTION_BIND(trans, info, info_length)                             \
+#define TRANSACTION_BIND(trans, info, info_length, persistent)                 \
 	if (info_length > 0) {                                                     \
 		MultiBinder _binder(trans->handles, trans->handle_count);              \
 		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"))));\
+		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")))  \
+		persistent);                                                           \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			for (unsigned int i=0; i<trans->handle_count; ++i) {               \
@@ -205,7 +207,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}
 
 // The first macro-instruction for setting up an asynchronous SQLite request.
-#define WORKER_START(obj, info, info_length, BIND_MACRO, object_name)          \
+#define WORKER_START(obj, object_name)                                         \
 	if (obj->state & BUSY) {                                                   \
 		return Nan::ThrowTypeError(                                            \
 	"This " #object_name " is mid-execution. You must wait for it to finish.");\
@@ -214,15 +216,18 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
+	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}
+
+// The second macro-instruction for setting up an asynchronous SQLite request.
+#define WORKER_BIND(obj, worker, info, info_length, BIND_MACRO, object_name)   \
 	if (!(obj->state & BOUND)) {                                               \
-		BIND_MACRO(obj, info, info_length);                                    \
+		BIND_MACRO(obj, info, info_length, worker->GetPersistentHandle());     \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \
 	}
 
-// The second macro-instruction for setting up an asynchronous SQLite request.
+// The third macro-instruction for setting up an asynchronous SQLite request.
 // Returns the statement object making the request.
 #define WORKER_END(obj, worker)                                                \
 	obj->state |= BUSY;                                                        \
