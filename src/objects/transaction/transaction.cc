@@ -41,6 +41,7 @@ bool Transaction::Compare::operator() (const Transaction* a, const Transaction* 
 bool Transaction::CloseHandles() {
 	if (handles) {
 		for (unsigned int i=0; i<handle_count; ++i) {
+			sqlite3_clear_bindings(handles[i]);
 			sqlite3_finalize(handles[i]);
 		}
 		delete[] handles;

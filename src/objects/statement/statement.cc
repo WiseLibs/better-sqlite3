@@ -52,6 +52,7 @@ bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
 }
 bool Statement::CloseHandles() {
 	if (st_handle) {
+		sqlite3_clear_bindings(st_handle);
 		sqlite3_finalize(st_handle);
 		st_handle = NULL;
 		return true;
