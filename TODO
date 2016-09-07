@@ -1,17 +1,8 @@
 ---------- Polish ----------
-use SQLITE_ENABLE_API_ARMOR compilation option while developing
-
-use hash table on the database object to remember statements that are valid, and what their column names, column counts, and bind maps are
-
-polish the changes/last_row_id API of .run()
-
-if we promisify run(), get(), all(), or each(), their performance will suffer
-if more than 3 arguments are passed (more than 2 bound arguments for each())
-
 investigate BEGIN IMMEDIATE as an alternative to mutexes
 (if we dont need sqlite3_last_insert_rowid or sqlite3_changes, do we get a performance boost?)
 
-remove FrozenBuffer if not used
+use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 allow transactions to have readonly statements?
 
@@ -45,3 +36,7 @@ DROP TABLE actions
 - begin()
 This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with an object describing the changes, or rejects with an Error.
 
+if we promisify run(), get(), all(), or each(), their performance will suffer
+if more than 3 arguments are passed (more than 2 bound arguments for each())
+
+filter out lastInsertROWID if we know we have INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
