@@ -179,10 +179,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Common bind logic for statements.
 #define STATEMENT_BIND(stmt, info, info_length, persistent)                    \
 	if (info_length > 0) {                                                     \
-		Binder _binder(stmt->st_handle);                                       \
+		Binder _binder(stmt->st_handle, persistent);                           \
 		_binder.Bind(info, info_length,                                        \
-		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")),   \
-		persistent);                                                           \
+		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")));  \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
@@ -193,10 +192,9 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // Common bind logic for transactions.
 #define TRANSACTION_BIND(trans, info, info_length, persistent)                 \
 	if (info_length > 0) {                                                     \
-		MultiBinder _binder(trans->handles, trans->handle_count);              \
+		MultiBinder _binder(trans->handles, trans->handle_count, persistent);  \
 		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")))  \
-		persistent);                                                           \
+		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"))));\
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			for (unsigned int i=0; i<trans->handle_count; ++i) {               \
@@ -221,7 +219,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // The second macro-instruction for setting up an asynchronous SQLite request.
 #define WORKER_BIND(obj, worker, info, info_length, BIND_MACRO, object_name)   \
 	if (!(obj->state & BOUND)) {                                               \
-		BIND_MACRO(obj, info, info_length, worker->GetPersistentHandle());     \
+		BIND_MACRO(obj, info, info_length, worker->GetPersistentObject());     \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \

@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstring>
+#include <stdint.h>
 #include <sqlite3.h>
 #include <nan.h>
 #include "binder.h"
@@ -21,13 +22,14 @@
 #include "bind-object.cc"
 #include "bind.cc"
 
-Binder::Binder(sqlite3_stmt* handle)
+Binder::Binder(sqlite3_stmt* handle, v8::Local<v8::Object> persistent)
 	: handle(handle)
 	, param_count(sqlite3_bind_parameter_count(handle))
 	, anon_index(0)
 	, error(NULL)
 	, error_extra(NULL)
-	, error_full(NULL) {}
+	, error_full(NULL)
+	, persistent(persistent) {}
 
 Binder::~Binder() {
 	delete[] error_extra;
