@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <sqlite3.h>
 #include <nan.h>
 #include "database.h"

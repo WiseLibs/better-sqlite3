@@ -21,11 +21,12 @@ NAN_METHOD(Database::Prepare) {
 	
 	// Digest the source string.
 	TRIM_STRING(source);
-	Nan::Utf8String utf8(source);
+	v8::String::Value utf16(source);
+	int source_bytes_plus1 = utf16.length() * sizeof (uint16_t) + 1;
 	
 	// Builds actual sqlite3_stmt handle.
-	const char* tail;
-	int status = sqlite3_prepare(db->read_handle, *utf8, utf8.length() + 1, &stmt->st_handle, &tail);
+	const void* tail;
+	int status = sqlite3_prepare16(db->read_handle, *utf16, source_bytes_plus1, &stmt->st_handle, &tail);
 	
 	// Validates the newly created statement.
 	if (status != SQLITE_OK) {
@@ -35,14 +36,14 @@ NAN_METHOD(Database::Prepare) {
 	if (stmt->st_handle == NULL) {
 		return Nan::ThrowTypeError("The supplied SQL string contains no statements.");
 	}
-	if (tail != *utf8 + utf8.length()) {
+	if (tail != (const void*)(*utf16 + utf16.length())) {
 		return Nan::ThrowTypeError("The supplied SQL string contains more than one statement.");
 	}
 	
 	// If the sqlite3_stmt is not read-only, replaces the handle with a proper one.
 	if (!sqlite3_stmt_readonly(stmt->st_handle)) {
 		sqlite3_finalize(stmt->st_handle);
-		status = sqlite3_prepare(db->write_handle, *utf8, utf8.length() + 1, &stmt->st_handle, NULL);
+		status = sqlite3_prepare16(db->write_handle, *utf16, source_bytes_plus1, &stmt->st_handle, NULL);
 		if (status != SQLITE_OK) {
 			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errstr(status), ").");
 			return Nan::ThrowError(message);
