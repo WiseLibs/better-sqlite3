@@ -180,8 +180,8 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define STATEMENT_BIND(stmt, info, info_length, persistent)                    \
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle, persistent);                           \
-		_binder.Bind(info, info_length,                                        \
-		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")));  \
+		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
+		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")))); \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
