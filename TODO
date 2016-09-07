@@ -1,39 +1,9 @@
----------- Polish ----------
+---------- Version 1 ----------
+write tests and benchmark
 
-think of a way to deal with 64bit integers
+compare tests and benchmark to node-sqlite3
 
----------- Package ----------
-deal with ./test/ and .travis.yml
-compare tests with node-sqlite3
+rewrite .travis.yml (node 4+)
 
-
----------- Executable ----------
-all tables should have INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
-
-in order for foreign keys to be unconditionally enforced, the child column must have NOT NULL
-
-null values count as unique from eachother for UNIQUE constraints (and basically everything else)
-
-DEFAULT applies when no value is specified for an INSERT. Explicitly given nulls do not trigger DEFAULT
-
-foreign key REFERENCES <table> can be followed by ON DELETE and/or ON UPDATE:
-SET NULL = when the parent's column is updated or deleted, the child's column becomes null
-           (this still causes a violation if the child has NOT NULL)
-SET DEFAULT = when the parent's column is updated or deleted, the child's column becomes the DEFAULT
-              (this still causes a violation if the DEFAULT does not correspond with an actual parent)
-CASCADE = when the parent row is deleted, the child row is deleted
-          (for updates, the value propogates to all children)
-
-ALTER TABLE actions
-
-DROP TABLE actions
-
-
----------- Future API ----------
-- begin()
-This returns a Transaction object. You can use .and() to append statements into the transaction. These statements may be read-only, or not. When finished adding statements, you must use .end() or .commit(), after which the transaction can be .run() (possibly multiple times). The .run() method returns a promise, which resolves with an object describing the changes, or rejects with an Error.
-
-if we promisify run(), get(), all(), or each(), their performance will suffer
-if more than 3 arguments are passed (more than 2 bound arguments for each())
-
-filter out lastInsertROWID if we know we have INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
+---------- Version 2 ----------
+use special objects to deal with 64bit integers
