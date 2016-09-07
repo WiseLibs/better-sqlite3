@@ -2,9 +2,9 @@
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
 optimize binding:
+- create bind maps when statements and transactions are created. This way, we can eliminate overhead caused by the NextAnonIndex() and GetNamedParameterIndex() functions
 - when binding strings, I can use SQLITE_STATIC if I make the string temporarily persistent
 - when binding blobs, I can do the same thing as above, as long as I'm not scared of the user changing the buffer's underlying memory mid-execution
-- create bind maps when statements and transactions are created. This way, we can eliminate overhead caused by the NextAnonIndex() and GetNamedParameterIndex() functions
 - remove utf8 conversion from BindObject (Binder and MultiBinder)
 
 use hash table on the database object to remember statements that are valid, and what their column names and column counts are
