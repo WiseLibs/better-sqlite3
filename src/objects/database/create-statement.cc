@@ -1,6 +1,6 @@
-// .prepare(string sql) -> Statement
+// .statement(string sql) -> Statement
 
-NAN_METHOD(Database::Prepare) {
+NAN_METHOD(Database::CreateStatement) {
 	REQUIRE_ARGUMENT_STRING(0, source);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());

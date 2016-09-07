@@ -62,7 +62,7 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 			
 			v8::Local<v8::Object> object = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; ++i) {
-				Nan::ForceSet(object, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
+				Nan::Set(object, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
 			}
 			
 			sqlite3_mutex_leave(data_mutex);

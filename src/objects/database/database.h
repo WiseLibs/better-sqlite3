@@ -34,8 +34,9 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(New);
 		static NAN_GETTER(Open);
 		static NAN_METHOD(Close);
-		static NAN_METHOD(Prepare);
+		static NAN_METHOD(CreateStatement);
 		static NAN_METHOD(CreateTransaction);
+		static NAN_METHOD(Pragma);
 		int CloseHandles();
 		void MaybeClose();
 		
