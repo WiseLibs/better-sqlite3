@@ -63,10 +63,10 @@ NAN_METHOD(Database::CreateTransaction) {
 	// Create statement handles from each source string.
 	for (unsigned int i=0; i<len; ++i) {
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(Nan::Get(trimmedSources, i).ToLocalChecked());
-		Nan::Utf8String utf8(source);
-		const char* tail;
+		v8::String::Value utf16(source);
+		const void* tail;
 		
-		int status = sqlite3_prepare(db->write_handle, *utf8, utf8.length() + 1, &(trans->handles[i]), &tail);
+		int status = sqlite3_prepare16(db->write_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &(trans->handles[i]), &tail);
 		
 		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
@@ -76,7 +76,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		if (trans->handles[i] == NULL) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
-		if (tail != *utf8 + utf8.length()) {
+		if (tail != (const void*)(*utf16 + utf16.length())) {
 			return Nan::ThrowTypeError("Each provided string may only contain a single SQL statement.");
 		}
 		if (sqlite3_stmt_readonly(trans->handles[i])) {
