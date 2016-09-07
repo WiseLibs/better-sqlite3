@@ -18,7 +18,7 @@ Foreign key constraints are not enforced if the child's column value is `NULL`. 
 
 Example:
 ```sql
-CREATE TABLE ages (age INTEGER, person_id INTEGER NOT NULL REFERENCES people);
+CREATE TABLE comments (value TEXT, user_id INTEGER NOT NULL REFERENCES users);
 ```
 
 Foreign key clauses can be followed by `ON DELETE` and/or `ON UPDATE`, with the following possible values:
