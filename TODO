@@ -4,8 +4,6 @@ investigate BEGIN IMMEDIATE as an alternative to mutexes
 
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
 
-allow transactions to have readonly statements?
-
 ---------- Package ----------
 deal with ./test/ and .travis.yml
 
