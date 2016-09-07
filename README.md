@@ -30,4 +30,4 @@ var db = new Database('foobar.db', {memory: true, wal: false});
 
 # License
 
-[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE.md).
+[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE.md)
