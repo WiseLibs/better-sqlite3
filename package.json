@@ -1,6 +1,6 @@
 {
   "name": "better-sqlite3",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Simple and expressive SQLite3 bindings for Node.js, with full transaction support.",
   "homepage": "http://github.com/JoshuaWise/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
