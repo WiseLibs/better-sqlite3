@@ -7,3 +7,6 @@ rewrite .travis.yml (node 4+)
 
 ---------- Version 2 ----------
 use special objects to deal with 64bit integers
+
+---------- Backlog ----------
+Make sure that Promise.promisify(fn, {deoptimize: true}) does not reduce performance too much for situations with ~6 arguments
