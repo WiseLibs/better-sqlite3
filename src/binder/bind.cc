@@ -5,9 +5,9 @@
 // Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
 
-void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
+void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, v8::Local<v8::Object> bindMap) {
 	bool bound_object = false;
-	unsigned int count = 0;
+	int count = 0;
 	
 	for (int i=0; i<len; ++i) {
 		v8::Local<v8::Value> arg = info[i];
@@ -25,20 +25,6 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 		if (arg->IsObject() && !arg->IsFunction() && !arg->IsArrayBufferView()) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			
-			double array_like_length = GetArrayLikeLength(obj);
-			if (error) {
-				return;
-			}
-			
-			// Array-like objects
-			if (array_like_length >= 0) {
-				count += BindArrayLike(obj, (unsigned int)array_like_length);
-				if (error) {
-					return;
-				}
-				continue;
-			}
-			
 			// Plain objects
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
@@ -47,7 +33,20 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len) {
 				}
 				bound_object = true;
 				
-				count += BindObject(obj);
+				count += BindObject(obj, bindMap);
+				if (error) {
+					return;
+				}
+				continue;
+			}
+			
+			// Array-like objects
+			double array_like_length = GetArrayLikeLength(obj);
+			if (error) {
+				return;
+			}
+			if (array_like_length >= 0) {
+				count += BindArrayLike(obj, (unsigned int)array_like_length);
 				if (error) {
 					return;
 				}

@@ -5,7 +5,7 @@
 // parameters that were bound. Unlike the normal Binder, this will bind
 // parameters to all handles, not just the current one.
 
-unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
+int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap) {
 	// Get array of properties.
 	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetPropertyNames(obj);
 	if (maybeKeys.IsEmpty()) {
@@ -15,14 +15,15 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 	v8::Local<v8::Array> keys = maybeKeys.ToLocalChecked();
 	
 	// Get property count.
-	unsigned int len = keys->Length();
-	unsigned int bound_count = 0;
+	unsigned int key_length = keys->Length();
+	int len = key_length > (unsigned int)0x7ffffffe ? (int)0x7ffffffe : (int)key_length;
+	int bound_count = 0;
 	
 	// Save current handle.
 	sqlite3_stmt* current_handle = handle;
 	
 	// Loop through each property.
-	for (unsigned int i=0; i<len; ++i) {
+	for (int i=0; i<len; ++i) {
 		
 		// Get current property name.
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);
@@ -45,11 +46,6 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 		}
 		v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
 		
-		// Dissect the property name.
-		Nan::Utf8String utf8(key);
-		const char* utf8_value = *utf8;
-		int utf8_length = utf8.length();
-		
 		
 		bool someoneHadNamedParameter = false;
 		
@@ -59,8 +55,9 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 			handle = handles[h];
 			
 			// Get the parameter index of the current named parameter.
-			unsigned int index = GetNamedParameterIndex(utf8_value, utf8_length);
-			if (index) {
+			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(Nan::Get(bindMap, h).ToLocalChecked()), v8::Local<v8::String>::Cast(key)).ToLocalChecked();
+			if (!indexValue->IsUndefined()) {
+				int index = (int)(v8::Local<v8::Number>::Cast(indexValue)->Value());
 				
 				// Bind value.
 				BindValue(value, index);
@@ -79,9 +76,10 @@ unsigned int MultiBinder::BindObject(v8::Local<v8::Object> obj) {
 		
 		// If no handles had this named parameter, provide an error.
 		if (!someoneHadNamedParameter) {
+			Nan::Utf8String utf8(key);
 			error = "The named parameter \"%s\" does not exist.";
-			error_extra = new char[utf8_length + 1];
-			strlcpy(error_extra, utf8_value, utf8_length + 1);
+			error_extra = new char[utf8.length() + 1];
+			strlcpy(error_extra, *utf8, utf8.length() + 1);
 			return bound_count;
 		}
 	}

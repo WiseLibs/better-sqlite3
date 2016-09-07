@@ -64,6 +64,7 @@ NAN_METHOD(Database::Prepare) {
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("readonly"), stmt->column_count == 0 ? Nan::False() : Nan::True(), FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
+	statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"), stmt->CreateBindMap());
 	
 	// Pushes onto stmts set.
 	stmt->id = NEXT_STATEMENT_ID++;

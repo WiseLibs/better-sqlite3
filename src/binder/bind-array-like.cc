@@ -4,8 +4,9 @@
 // Regardless of whether an error occurs, the return value is the number of
 // parameters that were bound.
 
-unsigned int Binder::BindArrayLike(v8::Local<v8::Object> arr, unsigned int len) {
-	for (unsigned int i=0; i<len; ++i) {
+int Binder::BindArrayLike(v8::Local<v8::Object> arr, unsigned int length) {
+	int len = length > (unsigned int)0x7ffffffe ? (int)0x7ffffffe : (int)length;
+	for (int i=0; i<len; ++i) {
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
 		if (maybeValue.IsEmpty()) {
 			error = "An error was thrown while trying to get values from the given array.";
