@@ -23,8 +23,8 @@ CREATE TABLE comments (value TEXT, user_id INTEGER NOT NULL REFERENCES users);
 
 Foreign key clauses can be followed by `ON DELETE` and/or `ON UPDATE`, with the following possible values:
 - `SET NULL`: if the parent column is deleted or updated, the child column becomes `NULL`.
-  - *NOTE: This still causes a constraint violation if the child column has `NOT NULL`*
+  - *NOTE: This still causes a constraint violation if the child column has `NOT NULL`*.
 - `SET DEFAULT`: if the parent column is updated or deleted, the child column becomes its `DEFAULT` value.
-  - *NOTE: This still causes a constraint violation if the child column's `DEFAULT` value does not correspond with an actual parent row*
+  - *NOTE: This still causes a constraint violation if the child column's `DEFAULT` value does not correspond with an actual parent row*.
 - `CASCADE`: if the parent row is deleted, the child row is deleted; if the parent column is updated, the new value is propogated to all children.
 
