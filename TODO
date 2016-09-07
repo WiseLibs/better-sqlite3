@@ -1,6 +1,4 @@
 ---------- Polish ----------
-use SQLITE_ENABLE_API_ARMOR compilation option while developing
-
 add db method for setting pragma on both connections, synchronously
 
 think of a way to deal with 64bit integers
