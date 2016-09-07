@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_DATABASE_H
-#define NODE_SQLITE3_PLUS_DATABASE_H
+#ifndef BETTER_SQLITE3_DATABASE_H
+#define BETTER_SQLITE3_DATABASE_H
 
 // Dependencies
 #include <set>

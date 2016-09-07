@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_WORKER_RUN_H
-#define NODE_SQLITE3_PLUS_WORKER_RUN_H
+#ifndef BETTER_SQLITE3_WORKER_RUN_H
+#define BETTER_SQLITE3_WORKER_RUN_H
 
 #include <sqlite3.h>
 #include <nan.h>

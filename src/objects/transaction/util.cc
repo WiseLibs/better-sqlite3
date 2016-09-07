@@ -1,3 +1,26 @@
+// Used by std::set to organize the pointers it holds.
+bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) {
+	return a->id < b->id;
+}
+
+// Closes all associated sqlite3 handles if the transaction is not busy.
+// Returns false if the transaction is busy.
+bool Transaction::CloseIfPossible() {
+	if (!(state & BUSY)) {
+		CloseHandles();
+		return true;
+	}
+	return false;
+}
+
+// Removes itself from its database's associated std::set.
+void Transaction::EraseFromSet() {
+	db->transs.erase(this);
+}
+
+// Builds a JavaScript array that has an object for each sqlite3_stmt handle
+// that has bind parameters. Each object maps the handle's parameter names
+// to their respective parameter index.
 void Transaction::BuildBindMap() {
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::Cast(db->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("NullFactory")));
 	v8::Local<v8::Object> array = Nan::New<v8::Object>();

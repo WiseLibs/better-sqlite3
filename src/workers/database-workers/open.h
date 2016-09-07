@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_WORKER_OPEN_H
-#define NODE_SQLITE3_PLUS_WORKER_OPEN_H
+#ifndef BETTER_SQLITE3_WORKER_OPEN_H
+#define BETTER_SQLITE3_WORKER_OPEN_H
 
 #include <nan.h>
 class Database;

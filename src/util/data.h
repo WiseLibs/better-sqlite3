@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_DATA_H
-#define NODE_SQLITE3_PLUS_DATA_H
+#ifndef BETTER_SQLITE3_DATA_H
+#define BETTER_SQLITE3_DATA_H
 
 #include <sys/types.h>
 #include <stdint.h>

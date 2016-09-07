@@ -1,5 +1,5 @@
-#ifndef NODE_SQLITE3_PLUS_STATEMENT_H
-#define NODE_SQLITE3_PLUS_STATEMENT_H
+#ifndef BETTER_SQLITE3_STATEMENT_H
+#define BETTER_SQLITE3_STATEMENT_H
 
 // Dependencies
 #include <stdint.h>

@@ -1,11 +1,13 @@
 ---------- Polish ----------
-investigate BEGIN IMMEDIATE as an alternative to mutexes
-(if we dont need sqlite3_last_insert_rowid or sqlite3_changes, do we get a performance boost?)
-
 use SQLITE_ENABLE_API_ARMOR compilation option while developing
+
+add db method for setting pragma on both connections, synchronously
+
+think of a way to deal with 64bit integers
 
 ---------- Package ----------
 deal with ./test/ and .travis.yml
+compare tests with node-sqlite3
 
 
 ---------- Executable ----------

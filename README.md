@@ -1,4 +1,4 @@
-# sqlite3-plus
+# better-sqlite3
 
 *You want [Node](http://nodejs.org/)?*
 
@@ -6,22 +6,20 @@
 
 *You want your life to be* **easy?**
 
-##### **Well you're in luck because sqlite3-plus is here!!!!**
+##### **Well you're in luck because better-sqlite3 is here!!!!**
 
 ## Installation
 
 ```bash
-npm install --save sqlite3-plus
+npm install --save better-sqlite3
 ```
 
 ## Usage
 
 ```js
-var sql = require('sqlite3-plus').verbose();
-var db = new sql.Database(':memory:');
+var Database = require('better-sqlite3');
+var db = new Database('foobar.db', {memory: true, wal: false});
 ```
-
-The `statement.pluck()` method will return the wrong data if the specified column's position in the table changes (by dropping and recreating the table).
 
 ## Features
 
@@ -30,22 +28,6 @@ The `statement.pluck()` method will return the wrong data if the specified colum
  - Big test suite
  - Written in modern C++ and tested for memory leaks
 
-# Contributors
-
-* [Konstantin Käfer](https://github.com/kkaefer)
-* [Dane Springmeyer](https://github.com/springmeyer)
-* [Will White](https://github.com/willwhite)
-* [Orlando Vazquez](https://github.com/orlandov)
-* [Artem Kustikov](https://github.com/artiz)
-* [Eric Fredricksen](https://github.com/grumdrig)
-* [John Wright](https://github.com/mrjjwright)
-* [Ryan Dahl](https://github.com/ry)
-* [Tom MacWright](https://github.com/tmcw)
-* [Carter Thaxton](https://github.com/carter-thaxton)
-* [Audrius Kažukauskas](https://github.com/audriusk)
-* [Johannes Schauer](https://github.com/pyneo)
-* [Mithgol](https://github.com/Mithgol)
-
 # License
 
-[BSD and MIT licensed](https://github.com/JoshuaWise/node-sqlite3-plus/blob/master/LICENSE.md).
+[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE.md).

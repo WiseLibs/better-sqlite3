@@ -1,6 +1,8 @@
-#ifndef NODE_SQLITE3_PLUS_LIST_H
-#define NODE_SQLITE3_PLUS_LIST_H
+#ifndef BETTER_SQLITE3_LIST_H
+#define BETTER_SQLITE3_LIST_H
 
+// This class is effectively a queue.
+// Flushing happens in a first-in-first-out order.
 template <class T>
 class List {
 	private:
