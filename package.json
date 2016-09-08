@@ -20,7 +20,9 @@
   },
   "scripts": {
     "install": "node-gyp rebuild",
-    "test": "$(npm bin)/mocha --timeout 5000 --slow 5000"
+    "test": "$(npm bin)/mocha --timeout 5000 --slow 5000",
+    "pretest": "mkdir ./temp/",
+    "posttest": "rm -r ./temp/"
   },
   "license": "MIT",
   "keywords": [
