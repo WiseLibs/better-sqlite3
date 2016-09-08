@@ -204,7 +204,7 @@ stmt.run(['John', 'Smith', 45], callback);
 stmt.run(['John'], ['Smith', 45], callback);
 ```
 
-You can also use named parameters. SQLite3 provides [4 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), three of which are supported by `node-sqlite3` (`:foo`, `@foo`, and `$foo`). However, if you use named parameters, make sure to only use **one** syntax within a given [`Statement`](#class-statement) or [`Transaction`](#class-transaction) object. Mixing syntaxes within the same object is not supported. When using named parameters, all named paramaters must be in a single object. You cannot split them across several objects.
+You can also use named parameters. SQLite3 provides [4 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), three of which are supported by `better-sqlite3` (`:foo`, `@foo`, and `$foo`). However, if you use named parameters, make sure to only use **one** syntax within a given [`Statement`](#class-statement) or [`Transaction`](#class-transaction) object. Mixing syntaxes within the same object is not supported. When using named parameters, all named paramaters must be in a single object. You cannot split them across several objects.
 
 ```js
 // The following are equivalent.
