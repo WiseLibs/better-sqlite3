@@ -93,7 +93,7 @@ An object representing a single SQL statement.
 
 ### .run([...bindParameters], callback) -> this
 
-*[UNAVAILABLE ON READ-ONLY STATEMENTS]*
+*** *UNAVAILABLE ON READ-ONLY STATEMENTS*
 
 Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
 
@@ -104,7 +104,7 @@ Upon success, the second callback argument will be an `info` object describing a
 
 ### .get([...bindParameters], callback) -> this
 
-*[ONLY ON READ-ONLY STATEMENTS]*
+*** *ONLY ON READ-ONLY STATEMENTS*
 
 Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
 
@@ -112,13 +112,13 @@ Upon success, the second callback argument will be an object representing the *f
 
 ### .all([...bindParameters], callback) -> this
 
-*[ONLY ON READ-ONLY STATEMENTS]*
+*** *ONLY ON READ-ONLY STATEMENTS*
 
 Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row, all matching rows will be retrieved. The second argument of the callback will be an array of objects that each represent a row. If no rows are retrieved, the array will be empty.
 
 ### .each([...bindParameters], rowCallback, finalCallback) -> this
 
-*[ONLY ON READ-ONLY STATEMENTS]*
+*** *ONLY ON READ-ONLY STATEMENTS*
 
 Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
 
@@ -126,7 +126,7 @@ If execution of the statement fails, `finalCallback` will be invoked with an `Er
 
 ### .pluck() -> this
 
-*[ONLY ON READ-ONLY STATEMENTS]*
+*** *ONLY ON READ-ONLY STATEMENTS*
 
 Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
 
