@@ -108,7 +108,7 @@ Upon success, the second callback argument will be an `info` object describing a
 
 Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
 
-Upon success, the second callback argument will be an object representing the *first row* retrieved by the query. If the statement was successful but retrieved no data, the second argument will be `undefined`.
+Upon success, the second callback argument will be an object representing the first row retrieved by the query. If the statement was successful but retrieved no data, the second argument will be `undefined`.
 
 ### .all([...bindParameters], callback) -> this
 
