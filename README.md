@@ -54,7 +54,7 @@ If this option is `true` (the default), the following PRAGMA are applied:
 - `PRAGMA journal_mode = WAL;`
 - `PRAGMA synchronous = 1;`
 
-This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set this option to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used, as well as the default `synchronous` setting.
+This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set `options.wal` to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used, as well as the default `synchronous` setting.
 
 ### .statement(sqlString) -> Statement
 
@@ -86,6 +86,20 @@ Closes the database connection. After invoking this method, no statements/transa
 ### *get* .open -> boolean
 
 Returns whether the database is currently open.
+
+## class *Statement*
+
+An object representing a single SQL statement.
+
+### .run([...bindParameters], callback) -> this
+
+*[NOT AVAILABLE ON READ-ONLY STATEMENTS]*
+
+Executes the statement asynchronously. When the operation completes the callback will be invoked. Upon success, the first argument of the the callback will be `null`, and the second argument will be an `info` object describing any changes made. If the operation fails, the first and only argument of the callback will be an `Error`.
+
+The `info` object has two properties:
+- `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
+- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the [last row inserted into the database](https://www.sqlite.org/capi3ref.html#sqlite3_last_insert_rowid). If the current statement did not insert any rows into the database, this number should be completely ignored.
 
 # License
 

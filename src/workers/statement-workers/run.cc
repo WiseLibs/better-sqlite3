@@ -20,7 +20,7 @@ void RunWorker::Execute() {
 		return;
 	}
 	
-	changes = sqlite3_total_changes(db_handle) - total_changes_before;
+	changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
 	id = sqlite3_last_insert_rowid(db_handle);
 	UNLOCK_DB(db_handle);
 }

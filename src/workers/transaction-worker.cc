@@ -15,7 +15,6 @@ void TransactionWorker::Execute() {
 	TransactionHandles* t_handles = obj->db->t_handles;
 	
 	LOCK_DB(db_handle);
-	int total_changes_before = sqlite3_total_changes(db_handle);
 	
 	// Begin Transaction
 	sqlite3_step(t_handles->begin);
@@ -26,8 +25,12 @@ void TransactionWorker::Execute() {
 		return;
 	}
 	
+	changes = 0;
+	
 	// Execute statements
 	for (unsigned int i=0; i<obj->handle_count; ++i) {
+		int total_changes_before = sqlite3_total_changes(db_handle);
+		
 		sqlite3_step(obj->handles[i]);
 		status = sqlite3_reset(obj->handles[i]);
 		if (status != SQLITE_OK) {
@@ -41,6 +44,10 @@ void TransactionWorker::Execute() {
 				SetErrorMessage(message);
 			}
 			return;
+		}
+		
+		if (sqlite3_total_changes(db_handle) != total_changes_before) {
+			changes += sqlite3_changes(db_handle);
 		}
 	}
 	
@@ -60,7 +67,6 @@ void TransactionWorker::Execute() {
 		return;
 	}
 	
-	changes = sqlite3_total_changes(db_handle) - total_changes_before;
 	id = sqlite3_last_insert_rowid(db_handle);
 	UNLOCK_DB(db_handle);
 }
