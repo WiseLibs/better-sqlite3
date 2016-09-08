@@ -66,9 +66,9 @@ Creates a new prepared `Transaction` object. Each string in the given array must
 
 ### .pragma(sqlString, [returnSimpleData]) -> results
 
-This method will execute the given `PRAGMA` statement ***synchronously*** and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
+This method will execute the given PRAGMA statement **synchronously** and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
-Since most PRAGMA commands return a single value, the `returnSimpleData` option is provided to make things easier. With this option, only the first column of the first row will be returned.
+Since most PRAGMA statements return a single value, the `returnSimpleData` option is provided to make things easier. With this option, only the first column of the first row will be returned.
 
 ```js
 db.pragma('cache_size = 32000');
@@ -77,7 +77,7 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 
 The data returned by `.pragma()` is always in string format.
 
-This method will throw an exception if the provided string is not a valid PRAGMA statement.
+You should *NOT* use normal prepared statements or transactions to run PRAGMA statements. Doing so could potentially corrupt the database.
 
 The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
 
