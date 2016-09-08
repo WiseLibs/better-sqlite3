@@ -102,6 +102,8 @@ If successful, the callback's second parameter will be an `info` object describi
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current statement did not insert any rows into the database, this number should be completely ignored.
 
+You can optionally specify [bind parameters](#binding-parameters), which are automatically unbound when execution completes.
+
 ### .get([...bindParameters], callback) -> this
 
 **(only on read-only statements)*
@@ -110,11 +112,15 @@ Executes the prepared statement. When execution completes the callback will be i
 
 If successful, the callback's second parameter will be an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but retrieved no data, the second parameter will be `undefined` instead.
 
+You can optionally specify [bind parameters](#binding-parameters), which are automatically unbound when execution completes.
+
 ### .all([...bindParameters], callback) -> this
 
 **(only on read-only statements)*
 
 Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row all matching rows will be retrieved. The callback's second parameter will be an array of row objects. If no rows are retrieved, the array will be empty.
+
+You can optionally specify [bind parameters](#binding-parameters), which are automatically unbound when execution completes.
 
 ### .each([...bindParameters], rowCallback, finalCallback) -> this
 
@@ -123,6 +129,8 @@ Similar to [`.get()`](#getbindparameters-callback---this), but instead of only r
 Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved, one by one. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
 
 If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first argument, and iteration will stop.
+
+You can optionally specify [bind parameters](#binding-parameters), which are automatically unbound when execution completes.
 
 ### .pluck() -> this
 
@@ -134,7 +142,7 @@ This method can only be invoked before the statement is first executed. After a 
 
 ### .bind([...bindParameters]) -> this
 
-Binds the given parameters to the statement *permanently*. Unlike binding parameters upon execution, these parameters will stay bound to the prepared statement for its entire life.
+[Binds the given parameters](#binding-parameters) to the statement *permanently*. Unlike binding parameters upon execution, these parameters will stay bound to the prepared statement for its entire life.
 
 This method can only be invoked before the statement is first executed. After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
 
@@ -166,6 +174,8 @@ If successful, the callback's second parameter will be an `info` object describi
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this transaction. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current transaction did not insert any rows into the database, this number should be completely ignored.
+
+You can optionally specify [bind parameters](#binding-parameters), which are automatically unbound when execution completes.
 
 ### .bind([...bindParameters]) -> this
 
