@@ -62,7 +62,7 @@ Creates a new prepared [`Statement`](#class-statement) object. This method will 
 
 ### .transaction(arrayOfStrings) -> Transaction
 
-Creates a new prepared [`Transaction`](#class-transaction) object. Each string in the given array must be a valid SQL statement. [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementsqlstring---statement).
+Creates a new prepared [`Transaction`](#class-transaction) object. Each string in the given array must be a valid SQL statement. [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement).
 
 ### .pragma(string, [simplify]) -> results
 
@@ -77,7 +77,7 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 
 The data returned by `.pragma()` is always in string format. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
 
-#### WARNING: You should NOT use prepared [statements](#statementsqlstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
+#### WARNING: You should NOT use prepared [statements](#statementstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
 
 ### .close() -> this
 
