@@ -40,7 +40,7 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 When the database connection is ready, the `open` event is fired.
 
-If the database is closed, the `close` event will be fired. If the database was closed because of an error, the associated `Error` object will be available as the first argument of the `close` event. If there was no error, the first argument will be `null`.
+If the database is closed, the `close` event will be fired. If the database was closed because of an error, the associated `Error` object will be available as the first parameter of the `close` event. If there was no error, the first parameter will be `null`.
 
 ### Options
 
@@ -95,9 +95,9 @@ An object representing a single SQL statement.
 
 **(only on write statements)*
 
-Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
+Executes the prepared statement. When execution completes the callback will be invoked with either an `Error` or `null` as its first parameter.
 
-If successful, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
+If successful, the callback's second parameter will be an `info` object describing any changes made. The `info` object has two properties:
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current statement did not insert any rows into the database, this number should be completely ignored.
@@ -106,23 +106,23 @@ If successful, the second callback argument will be an `info` object describing 
 
 **(only on read-only statements)*
 
-Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
+Executes the prepared statement. When execution completes the callback will be invoked with either an `Error` or `null` as its first parameter.
 
-If successful, the second callback argument will be an object representing the first row retrieved by the query. If the statement was successful but retrieved no data, the second argument will be `undefined`.
+If successful, the callback's second parameter will be an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but retrieved no data, the second parameter will be `undefined` instead.
 
 ### .all([...bindParameters], callback) -> this
 
 **(only on read-only statements)*
 
-Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row, all matching rows will be retrieved. The second argument of the callback will be an array of objects that each represent a row. If no rows are retrieved, the array will be empty.
+Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row all matching rows will be retrieved instead. The callback's second parameter will be an array of row objects. If no rows are retrieved, the array will be empty.
 
 ### .each([...bindParameters], rowCallback, finalCallback) -> this
 
 **(only on read-only statements)*
 
-Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
+Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved, one by one. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
 
-If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first argument, and iteration will stop.
+If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first parameter, and iteration will stop.
 
 ### .pluck() -> this
 
@@ -162,7 +162,7 @@ Similar to [`Statement#run()`](#runbindparameters-callback---this).
 
 Each statement in the transaction is executed in order. Failed transactions are automatically rolled back.
 
-If successful, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
+If successful, the callback's second parameter will be an `info` object describing any changes made. The `info` object has two properties:
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this transaction. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current transaction did not insert any rows into the database, this number should be completely ignored.
