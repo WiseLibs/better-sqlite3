@@ -144,6 +144,14 @@ This method is primarily used as a performance enhancement for executing the sam
 
 Returns whether the prepared statement is mid-execution. If a statement is busy, it cannot be executed again until its query completes.
 
+### *get* .source -> string
+
+Returns the source string that was used to create the prepared statement.
+
+### *get* .readonly -> boolean
+
+Returns whether the prepared statement is read-only.
+
 ## class *Transaction*
 
 An object representing many SQL statements grouped into a single logical [transaction](https://www.sqlite.org/lang_transaction.html).
@@ -166,6 +174,10 @@ Same as [`Statement#bind()`](#bindbindparameters---this).
 ### *get* .busy -> boolean
 
 Same as [`Statement#busy`](#get-busy---boolean).
+
+### *get* .source -> string
+
+Returns a concatenation of every source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
 
 # Binding Parameters
 
