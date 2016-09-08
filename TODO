@@ -1,6 +1,4 @@
 ---------- Version 1 ----------
-write README
-
 write tests and benchmark
 
 compare tests and benchmark to node-sqlite3
