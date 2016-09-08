@@ -36,7 +36,7 @@ db.on('open', function () {
 
 ## new Database(*path*, [*options*])
 
-This creates a database connection. If the database file does not exist, it is created.
+Creates a database connection. If the database file does not exist, it is created.
 
 When the database connection is ready, the `open` event is fired.
 
