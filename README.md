@@ -114,7 +114,7 @@ If successful, the callback's second parameter will be an object that represents
 
 **(only on read-only statements)*
 
-Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row all matching rows will be retrieved instead. The callback's second parameter will be an array of row objects. If no rows are retrieved, the array will be empty.
+Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row all matching rows will be retrieved. The callback's second parameter will be an array of row objects. If no rows are retrieved, the array will be empty.
 
 ### .each([...bindParameters], rowCallback, finalCallback) -> this
 
