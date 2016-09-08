@@ -228,4 +228,4 @@ stmt.run(45, {name: 'Henry'}, callback);
 
 # License
 
-[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE.md)
+[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE)
