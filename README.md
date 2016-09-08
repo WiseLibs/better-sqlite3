@@ -64,11 +64,11 @@ Creates a new prepared `Statement` object. This method will throw an exception i
 
 Creates a new prepared `Transaction` object. Each string in the given array must be a valid SQL statement. `Transaction` objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementsqlstring---statement).
 
-### .pragma(sqlString, [returnSimpleData]) -> results
+### .pragma(sqlString, [simplify]) -> results
 
 This method will execute the given PRAGMA statement **synchronously** and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
-Since most PRAGMA statements return a single value, the `returnSimpleData` option is provided to make things easier. With this option, only the first column of the first row will be returned.
+Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. With this option, only the first column of the first row will be returned.
 
 ```js
 db.pragma('cache_size = 32000');
