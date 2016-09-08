@@ -100,7 +100,7 @@ Executes the statement asynchronously. When the operation completes the callback
 Upon success, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
-- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the [last row inserted into the database](https://www.sqlite.org/capi3ref.html#sqlite3_last_insert_rowid). If the current statement did not insert any rows into the database, this number should be completely ignored.
+- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current statement did not insert any rows into the database, this number should be completely ignored.
 
 ### .get([...bindParameters], callback) -> this
 
