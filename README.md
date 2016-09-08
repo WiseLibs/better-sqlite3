@@ -1,12 +1,6 @@
 # better-sqlite3
 
-*You want [Node](http://nodejs.org/)?*
-
-*You want [Sqlite](http://sqlite.org/)?*
-
-*You want your life to be* **easy?**
-
-**Well you're in luck because better-sqlite3 is here!!!!**
+The fastest and carefully designed library for SQLite3 in Node.js.
 
 - Full transaction support
 - Full atomicity on a single connection
