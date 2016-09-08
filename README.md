@@ -122,7 +122,7 @@ Similar to [`.get()`](#getbindparameters-callback---this), but instead of only r
 
 Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved, one by one. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
 
-If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first parameter, and iteration will stop.
+If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first argument, and iteration will stop.
 
 ### .pluck() -> this
 
