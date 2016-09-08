@@ -226,9 +226,9 @@ var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, {name: 'Henry'}, callback);
 ```
 
-# SQLite3 build settings
+# SQLite3 Compilation Options
 
-The following build settings are used:
+The following [compilation options](https://www.sqlite.org/compile.html) are used:
 - SQLITE_THREADSAFE=1
 - SQLITE_ENABLE_FTS5
 - SQLITE_ENABLE_JSON1
