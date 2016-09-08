@@ -58,11 +58,11 @@ This means the database will be opened in [Write Ahead Logging](https://www.sqli
 
 ### .statement(sqlString) -> Statement
 
-Creates a new prepared `Statement` object. This method will throw an exception if the provided string is not a valid SQL statement.
+Creates a new prepared [`Statement`](#class-statement) object. This method will throw an exception if the provided string is not a valid SQL statement.
 
 ### .transaction(arrayOfStrings) -> Transaction
 
-Creates a new prepared `Transaction` object. Each string in the given array must be a valid SQL statement. `Transaction` objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementsqlstring---statement).
+Creates a new prepared [`Transaction`](#class-transaction) object. Each string in the given array must be a valid SQL statement. [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementsqlstring---statement).
 
 ### .pragma(sqlString, [simplify]) -> results
 
@@ -114,7 +114,56 @@ Upon success, the second callback argument will be an object representing the *f
 
 *[ONLY ON READ-ONLY STATEMENTS]*
 
-Similar to 
+Similar to [`.get()`](#getbindparameters-callback---this), but instead of only retrieving one row, all matching rows will be retrieved. The second argument of the callback will be an array of objects that each represent a row. If no rows are retrieved, the array will be empty.
+
+### .each([...bindParameters], rowCallback, finalCallback) -> this
+
+*[ONLY ON READ-ONLY STATEMENTS]*
+
+Similar to [`.all()`](#allbindparameters-callback---this), but instead of returning every row together, `rowCallback` will be invoked for each row as they are retrieved. After all rows have been consumed, `finalCallback` is invoked to indicate completion.
+
+If execution of the statement fails, `finalCallback` will be invoked with an `Error` object as its first argument, and iteration will stop.
+
+### .pluck() -> this
+
+*[ONLY ON READ-ONLY STATEMENTS]*
+
+Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
+
+This method can only be invoked before the statement is first executed. After a statement invokes this method, it cannot be undone.
+
+### .bind([...bindParameters]) -> this
+
+Binds the given parameters to the statement *permanently*. Unlike binding parameters upon execution, these parameters will stay bound to the prepared statement for its entire life.
+
+This method can only be invoked before the statement is first executed. After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
+
+This method is primarily used as a performance enhancement for executing the same statement many times with same parameters.
+
+### *get* .busy -> boolean
+
+Returns whether the prepared statement is mid-execution. If a statement is busy, it cannot be executed again until its query completes.
+
+## class *Transaction*
+
+An object representing many SQL statements grouped into a single logical [transaction](https://www.sqlite.org/lang_transaction.html).
+
+### .run([...bindParameters], callback) -> this
+
+Executes the transaction asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`. Failed transactions are automatically rolled back.
+
+Upon success, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
+
+- `info.changes`: The total number of rows that were inserted, updated, or deleted by this transaction. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
+- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the [last row inserted into the database](https://www.sqlite.org/capi3ref.html#sqlite3_last_insert_rowid). If the current transaction did not insert any rows into the database, this number should be completely ignored.
+
+### .bind([...bindParameters]) -> this
+
+Same as `Statement#bind()`.
+
+### *get* .busy -> boolean
+
+Same as `Statement#busy`.
 
 # License
 
