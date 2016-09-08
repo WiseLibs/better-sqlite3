@@ -1,6 +1,6 @@
 # better-sqlite3
 
-The fastest and carefully designed library for SQLite3 in Node.js.
+The fastest and most carefully designed library for SQLite3 in Node.js.
 
 - Full transaction support
 - Full atomicity on a single connection
@@ -20,7 +20,8 @@ var Database = require('better-sqlite3');
 var db = new Database('foobar.db', options);
 
 db.on('open', function () {
-	db.statement("SELECT * FROM users WHERE id=?").get(userId, function (err, row) {
+	var stmt = db.statement("SELECT * FROM users WHERE id=?");
+	stmt.get(userId, function (err, row) {
 		console.log(row.firstName, row.lastName, row.email);
 	});
 })
