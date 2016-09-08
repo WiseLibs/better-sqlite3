@@ -138,7 +138,7 @@ Binds the given parameters to the statement *permanently*. Unlike binding parame
 
 This method can only be invoked before the statement is first executed. After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
 
-This method is primarily used as a performance enhancement for executing the same prepared statement many times with the same parameters.
+This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same parameters.
 
 ### *get* .busy -> boolean
 
