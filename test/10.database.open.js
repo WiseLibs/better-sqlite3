@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var fs = require('.');
+var fs = require('fs');
 var Database = require('../.');
 
 describe('Opening a database', function () {
