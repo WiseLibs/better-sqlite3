@@ -93,7 +93,7 @@ An object representing a single SQL statement.
 
 ### .run([...bindParameters], callback) -> this
 
-*(UNAVAILABLE ON READ-ONLY STATEMENTS)*
+**(unavailable on read-only statements)*
 
 Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
 
