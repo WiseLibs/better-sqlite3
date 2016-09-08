@@ -212,7 +212,11 @@ var stmt = db.statement('INSERT INTO people VALUES (@firstName, @lastName, @age)
 var stmt = db.statement('INSERT INTO people VALUES (:firstName, :lastName, :age)');
 var stmt = db.statement('INSERT INTO people VALUES ($firstName, $lastName, $age)');
 
-stmt.run({firstName: 'John', lastName: 'Smith', age: 45}, callback);
+stmt.run({
+	firstName: 'John',
+	lastName: 'Smith',
+	age: 45
+}, callback);
 ```
 
 Below is an example of mixing anonymous parameters with named parameters.
