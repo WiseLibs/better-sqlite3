@@ -50,11 +50,11 @@ If this option is `true`, an in-memory database will be created, rather than a d
 
 #### *options.wal*
 
-If this option is true (the default), the following PRAGMA are applied:
+If this option is `true` (the default), the following PRAGMA are applied:
 - `PRAGMA journal_mode = WAL;`
 - `PRAGMA synchronous = 1;`
 
-This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set this option to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used (and the default `synchronous` setting).
+This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set this option to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used (as well as the default `synchronous` setting).
 
 ### .statement(sqlString) -> Statement
 
