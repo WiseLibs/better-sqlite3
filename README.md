@@ -226,7 +226,7 @@ var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, {name: 'Henry'}, callback);
 ```
 
-# SQLite3 Compilation Options
+# SQLite3 compilation options
 
 The following [compilation options](https://www.sqlite.org/compile.html) are used:
 - SQLITE_THREADSAFE=1
