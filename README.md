@@ -93,13 +93,28 @@ An object representing a single SQL statement.
 
 ### .run([...bindParameters], callback) -> this
 
-*[NOT AVAILABLE ON READ-ONLY STATEMENTS]*
+*[UNAVAILABLE ON READ-ONLY STATEMENTS]*
 
-Executes the statement asynchronously. When the operation completes the callback will be invoked. Upon success, the first argument of the the callback will be `null`, and the second argument will be an `info` object describing any changes made. If the operation fails, the first and only argument of the callback will be an `Error`.
+Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
 
-The `info` object has two properties:
+Upon success, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
+
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the [last row inserted into the database](https://www.sqlite.org/capi3ref.html#sqlite3_last_insert_rowid). If the current statement did not insert any rows into the database, this number should be completely ignored.
+
+### .get([...bindParameters], callback) -> this
+
+*[ONLY ON READ-ONLY STATEMENTS]*
+
+Executes the statement asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`.
+
+Upon success, the second callback argument will be an object representing the *first row* retrieved by the query. If the statement was successful but retrieved no data, the second argument will be `undefined`.
+
+### .all([...bindParameters], callback) -> this
+
+*[ONLY ON READ-ONLY STATEMENTS]*
+
+Similar to 
 
 # License
 
