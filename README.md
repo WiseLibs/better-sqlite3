@@ -56,7 +56,7 @@ If this option is `true` (the default), the following PRAGMA are applied:
 
 This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set `options.wal` to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used, as well as the default `synchronous` setting.
 
-### .statement(sqlString) -> Statement
+### .statement(string) -> Statement
 
 Creates a new prepared [`Statement`](#class-statement) object. This method will throw an exception if the provided string is not a valid SQL statement.
 
@@ -64,7 +64,7 @@ Creates a new prepared [`Statement`](#class-statement) object. This method will 
 
 Creates a new prepared [`Transaction`](#class-transaction) object. Each string in the given array must be a valid SQL statement. [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementsqlstring---statement).
 
-### .pragma(sqlString, [simplify]) -> results
+### .pragma(string, [simplify]) -> results
 
 This method will execute the given PRAGMA statement **synchronously** and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
