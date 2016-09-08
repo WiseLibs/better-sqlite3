@@ -6,7 +6,7 @@
 
 *You want your life to be* **easy?**
 
-***Well you're in luck because better-sqlite3 is here!!!!***
+**Well you're in luck because better-sqlite3 is here!!!!**
 
 - Full transaction support
 - Full atomicity on a single connection
