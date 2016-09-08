@@ -150,7 +150,9 @@ An object representing many SQL statements grouped into a single logical [transa
 
 ### .run([...bindParameters], callback) -> this
 
-Executes the transaction asynchronously. When the operation completes the callback will be invoked. If the operation fails, the first argument of the callback will be an `Error`, otherwise `null`. Failed transactions are automatically rolled back.
+Similar to [`Statement#run()`](#runbindparameters-callback---this).
+
+Each statement in the transaction is executed in order. Failed transactions are automatically rolled back.
 
 Upon success, the second callback argument will be an `info` object describing any changes made. The `info` object has two properties:
 
@@ -159,11 +161,48 @@ Upon success, the second callback argument will be an `info` object describing a
 
 ### .bind([...bindParameters]) -> this
 
-Same as `Statement#bind()`.
+Same as [`Statement#bind()`](#bindbindparameters---this).
 
 ### *get* .busy -> boolean
 
-Same as `Statement#busy`.
+Same as [`Statement#busy`](#get-busy---boolean).
+
+# Binding Parameters
+
+This section applies to anywhere in the documentation that specifies the optional argument `[...bindParameters]`.
+
+There are many ways to bind parameters to a prepared statement or transaction. The simplest way is with anonymous parameters:
+
+```js
+var stmt = db.statement('INSERT INTO people VALUES (?, ?, ?)');
+
+// The following are equivalent.
+stmt.run('John', 'Smith', 45, callback);
+stmt.run(['John', 'Smith', 45], callback);
+stmt.run(['John'], ['Smith', 45], callback);
+```
+
+You can also use named parameters. SQLite3 provides [4 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), three of which are supported by `node-sqlite3` (`:foo`, `@foo`, and `$foo`). However, if you use named parameters, make sure to only use **one** syntax within a given [`Statement`](#class-statement) or [`Transaction`](#class-transaction) object. Mixing syntaxes within the same object is not supported. When using named parameters, all named paramaters must be in a single object. You cannot split them across several objects.
+
+```js
+// The following are equivalent.
+var stmt = db.statement('INSERT INTO people VALUES (@firstName, @lastName, @age)');
+var stmt = db.statement('INSERT INTO people VALUES (:firstName, :lastName, :age)');
+var stmt = db.statement('INSERT INTO people VALUES ($firstName, $lastName, $age)');
+
+stmt.run({
+	firstName: 'John',
+	lastName: 'Smith',
+	age: 45
+}, callback);
+```
+
+Below is an example of mixing anonymous parameters with named parameters.
+
+```js
+var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
+stmt.run(45, {name: 'Henry'}, callback);
+```
 
 # License
 
