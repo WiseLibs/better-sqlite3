@@ -8,10 +8,9 @@
 const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
 const int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
 
-OpenWorker::OpenWorker(Database* db, char* filename, bool wal) : Nan::AsyncWorker(NULL),
+OpenWorker::OpenWorker(Database* db, char* filename) : Nan::AsyncWorker(NULL),
 	db(db),
-	filename(filename),
-	wal(wal) {}
+	filename(filename) {}
 OpenWorker::~OpenWorker() {
 	delete[] filename;
 }
@@ -32,31 +31,8 @@ void OpenWorker::Execute() {
 		return;
 	}
 	
-	sqlite3_busy_timeout(db->write_handle, 30000);
-	sqlite3_busy_timeout(db->read_handle, 30000);
-	
-	if (wal) {
-		
-		char* err;
-		status = sqlite3_exec(db->write_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
-		if (status != SQLITE_OK) {
-			SetErrorMessage(err);
-			db->CloseHandles();
-			sqlite3_free(err);
-			return;
-		}
-		
-		sqlite3_free(err);
-		status = sqlite3_exec(db->read_handle, "PRAGMA journal_mode = WAL; PRAGMA synchronous = 1;", NULL, 0, &err);
-		if (status != SQLITE_OK) {
-			SetErrorMessage(err);
-			db->CloseHandles();
-			sqlite3_free(err);
-			return;
-		}
-		
-		sqlite3_free(err);
-	}
+	sqlite3_busy_timeout(db->write_handle, 5000);
+	sqlite3_busy_timeout(db->read_handle, 5000);
 	
 	db->t_handles = new TransactionHandles(db->write_handle, &status);
 	if (status != SQLITE_OK) {
