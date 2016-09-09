@@ -2,7 +2,7 @@ var expect = require('chai').expect;
 var fs = require('fs');
 var Database = require('../.');
 
-describe('Opening a database', function () {
+describe('new Database()', function () {
 	it('should throw an exception when file path is not a string', function () {
 		expect(function () {new Database();}).to.throw(TypeError);
 		expect(function () {new Database(null);}).to.throw(TypeError);
