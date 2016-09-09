@@ -42,8 +42,6 @@ When the database connection is ready, the `open` event is fired.
 
 If the database is closed, the `close` event will be fired. If the database was closed because of an error, the associated `Error` object will be available as the first parameter of the `close` event. If there was no error, the first parameter will be `null`.
 
-### Options
-
 If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
 ### .statement(string) -> Statement
@@ -75,7 +73,7 @@ This method is provided because [.pragma()](#pragmastring-simplify---results)'s 
 
 By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if there are pending reads or write on the database. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
 
-When the operation is complete, the callback is invoked with an `Error` or `null` as its first parameter, depending on if the operation was successful. If successful, the callback's second parameter will be a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints ("RESTART" mode), this number will always be `1`.
+When the operation is complete, the callback is invoked with an `Error` or `null` as its first parameter, depending on if the operation was successful. If successful, the callback's second parameter will be a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints ("RESTART" mode), this number will always be `1` unless there is no WAL file.
 
 ### .close() -> this
 

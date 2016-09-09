@@ -57,7 +57,7 @@ void CheckpointWorker::FinishRequest() {
 	if (--db->workers == 0) {
 		db->Unref();
 	}
-	if (--db->checkpoints == 0 && obj->db->state == DB_DONE) {
-		obj->db->MaybeClose();
+	if (--db->checkpoints == 0 && db->state == DB_DONE) {
+		db->MaybeClose();
 	}
 }
