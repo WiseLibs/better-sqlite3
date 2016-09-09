@@ -23,6 +23,7 @@
         "src/objects/transaction/transaction.cc",
         "src/workers/database-workers/open.cc",
         "src/workers/database-workers/close.cc",
+        "src/workers/database-workers/checkpoint.cc",
         "src/workers/statement-workers/run.cc",
         "src/workers/statement-workers/get.cc",
         "src/workers/statement-workers/all.cc",

@@ -18,28 +18,28 @@ void CloseWorker::Execute() {
 }
 void CloseWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-    v8::Local<v8::Object> database = db->handle();
-    
-    if (--db->workers == 0) {db->Unref();}
-    
-    v8::Local<v8::Value> args[2] = {
-    	NEW_INTERNAL_STRING_FAST("close"),
-    	Nan::Null()
-    };
-    
+	v8::Local<v8::Object> database = db->handle();
+	
+	if (--db->workers == 0) {db->Unref();}
+	
+	v8::Local<v8::Value> args[2] = {
+		NEW_INTERNAL_STRING_FAST("close"),
+		Nan::Null()
+	};
+	
 	EMIT_EVENT(database, 2, args);
 }
 void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
-    v8::Local<v8::Object> database = db->handle();
-    
-    if (--db->workers == 0) {db->Unref();}
-    
-    CONCAT2(message, "SQLite: ", ErrorMessage());
-    v8::Local<v8::Value> args[2] = {
-    	NEW_INTERNAL_STRING_FAST("close"),
-    	Nan::Error(message)
-    };
-    
+	v8::Local<v8::Object> database = db->handle();
+	
+	if (--db->workers == 0) {db->Unref();}
+	
+	CONCAT2(message, "SQLite: ", ErrorMessage());
+	v8::Local<v8::Value> args[2] = {
+		NEW_INTERNAL_STRING_FAST("close"),
+		Nan::Error(message)
+	};
+	
 	EMIT_EVENT(database, 2, args);
 }

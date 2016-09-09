@@ -6,6 +6,7 @@
 #include "../transaction/transaction.h"
 #include "../../workers/database-workers/open.h"
 #include "../../workers/database-workers/close.h"
+#include "../../workers/database-workers/checkpoint.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/list.h"
@@ -22,6 +23,7 @@ sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 #include "create-statement.cc"
 #include "create-transaction.cc"
 #include "pragma.cc"
+#include "checkpoint.cc"
 
 Database::Database() : Nan::ObjectWrap(),
 	read_handle(NULL),
@@ -55,6 +57,7 @@ NAN_MODULE_INIT(Database::Init) {
 	Nan::SetPrototypeMethod(t, "statement", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
+	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
 	Nan::Set(target, Nan::New("Database").ToLocalChecked(),

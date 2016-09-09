@@ -43,10 +43,10 @@ void OpenWorker::Execute() {
 }
 void OpenWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-    v8::Local<v8::Object> database = db->handle();
-    
-    if (--db->workers == 0) {db->Unref();}
-    
+	v8::Local<v8::Object> database = db->handle();
+	
+	if (--db->workers == 0) {db->Unref();}
+	
 	if (db->state == DB_DONE) {
 		db->CloseHandles();
 	} else {
@@ -57,10 +57,10 @@ void OpenWorker::HandleOKCallback() {
 }
 void OpenWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
-    v8::Local<v8::Object> database = db->handle();
-    
-    if (--db->workers == 0) {db->Unref();}
-    
+	v8::Local<v8::Object> database = db->handle();
+	
+	if (--db->workers == 0) {db->Unref();}
+	
 	if (db->state != DB_DONE) {
 		db->state = DB_DONE;
 		
