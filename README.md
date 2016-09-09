@@ -233,10 +233,10 @@ By default, SQLite3 databases are not well suited for some write-heavy applicati
 db.pragma('journal_mode = WAL');
 ```
 
-WAL mode has a few *disadvantages* to consider:
+WAL mode has a *few* disadvantages to consider:
 - Transactions that involve ATTACHed databases are atomic for each individual database, but are not atomic across all databases as a set.
 - Under rare circumstances, the [WAL file](https://www.sqlite.org/wal.html) may experience "checkpoint starvation" (see below).
-- Some hardware/system limitations that may affect some users, [listed here](https://www.sqlite.org/wal.html).
+- There are some hardware/system limitations that may affect some users, [listed here](https://www.sqlite.org/wal.html).
 
 However, you trade those disadvantages for greatly improved performance in most web applications.
 
