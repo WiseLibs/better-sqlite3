@@ -10,7 +10,10 @@ class CheckpointWorker : public Nan::AsyncWorker {
 		void Execute();
 		void HandleOKCallback();
 		void HandleErrorCallback();
+		
 	private:
+		void FinishRequest();
+		
 		Database* const db;
 		bool force;
 		double fraction_checkpointed;

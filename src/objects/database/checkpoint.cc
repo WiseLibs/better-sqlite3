@@ -21,6 +21,7 @@ NAN_METHOD(Database::Checkpoint) {
 	
 	db->Ref();
 	db->workers += 1;
+	db->checkpoints += 1;
 	Nan::AsyncQueueWorker(new CheckpointWorker(db, force, new Nan::Callback(func)));
 	
 	info.GetReturnValue().Set(info.This());

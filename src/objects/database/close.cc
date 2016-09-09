@@ -30,7 +30,7 @@ NAN_METHOD(Database::Close) {
 		}
 		db->MaybeClose();
 		
-		// This must be after the TryToClose() attempt, so the CloseWorker
+		// This must be after the MaybeClose() attempt, so the CloseWorker
 		// can detect if the database is still connecting.
 		db->state = DB_DONE;
 	}
@@ -39,7 +39,7 @@ NAN_METHOD(Database::Close) {
 }
 
 void Database::MaybeClose() {
-	if (stmts.empty() && transs.empty()) {
+	if (stmts.empty() && transs.empty() && checkpoints == 0) {
 		Nan::AsyncQueueWorker(new CloseWorker(this, state == DB_CONNECTING));
 	}
 }
