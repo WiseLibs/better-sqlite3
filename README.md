@@ -240,14 +240,14 @@ WAL mode has a *few* disadvantages to consider:
 
 However, you trade those disadvantages for greatly improved performance in most web applications.
 
-If you want to *massively* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
+If you want to *further* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
 
 ```js
 db.pragma('journal_mode = WAL');
 db.pragma('synchronous = 1');
 ```
 
-Normally, setting `synchronous = 1` would introduce the risk of database corruption following a power loss or hard reboot. But in [WAL mode](https://www.sqlite.org/wal.html), you do not introduce this risk.
+Normally, setting `synchronous = 1` would introduce the risk of database corruption following a power loss or hard reboot. But in [WAL mode](https://www.sqlite.org/wal.html), you do not introduce this risk. The combination of these two PRAGMAs provides extremely fast performance.
 
 ### Defending against "checkpoint starvation"
 
