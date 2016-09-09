@@ -19,7 +19,7 @@ describe('Opening a database', function () {
 		expect(function () {new Database('file:temp/10.3.db');}).to.throw(TypeError);
 		expect(function () {new Database('file:temp/10.4.db?mode=memory');}).to.throw(TypeError);
 	});
-	it('should not allow ":memory:"" databases', function () {
+	it('should not allow ":memory:" databases', function () {
 		expect(function () {new Database(':memory:');}).to.throw(TypeError);
 	});
 	it('should allow disk-based databases to be created', function (done) {
