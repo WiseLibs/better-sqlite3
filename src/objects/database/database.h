@@ -50,6 +50,7 @@ class Database : public Nan::ObjectWrap {
 		// State
 		DB_STATE state;
 		unsigned int workers;
+		unsigned int checkpoints;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

@@ -30,7 +30,8 @@ Database::Database() : Nan::ObjectWrap(),
 	write_handle(NULL),
 	t_handles(NULL),
 	state(DB_CONNECTING),
-	workers(0) {}
+	workers(0),
+	checkpoints(0) {}
 Database::~Database() {
 	state = DB_DONE;
 	

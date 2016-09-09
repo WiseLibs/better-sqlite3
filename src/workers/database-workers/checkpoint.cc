@@ -37,7 +37,7 @@ void CheckpointWorker::Execute() {
 }
 void CheckpointWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-	if (--db->workers == 0) {db->Unref();}
+	FinishRequest();
 	
 	v8::Local<v8::Value> args[2] = {
 		Nan::Null(),
@@ -47,9 +47,17 @@ void CheckpointWorker::HandleOKCallback() {
 }
 void CheckpointWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
-	if (--db->workers == 0) {db->Unref();}
+	FinishRequest();
 	
 	CONCAT2(message, "SQLite: ", Nan::AsyncWorker::ErrorMessage());
 	v8::Local<v8::Value> args[1] = {Nan::Error(message)};
 	Nan::AsyncWorker::callback->Call(1, args);
+}
+void CheckpointWorker::FinishRequest() {
+	if (--db->workers == 0) {
+		db->Unref();
+	}
+	if (--db->checkpoints == 0 && obj->db->state == DB_DONE) {
+		obj->db->MaybeClose();
+	}
 }
