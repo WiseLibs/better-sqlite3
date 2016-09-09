@@ -14,7 +14,6 @@ class OpenWorker : public Nan::AsyncWorker {
 	private:
 		Database* const db;
 		const char* const filename;
-		bool const wal;
 };
 
 #endif

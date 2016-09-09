@@ -44,17 +44,7 @@ If the database is closed, the `close` event will be fired. If the database was 
 
 ### Options
 
-#### *options.memory*
-
-If this option is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
-
-#### *options.wal*
-
-If this option is `true` (the default), the following PRAGMA are applied:
-- `PRAGMA journal_mode = WAL;`
-- `PRAGMA synchronous = 1;`
-
-This means the database will be opened in [Write Ahead Logging](https://www.sqlite.org/wal.html) mode. If you set `options.wal` to `false`, the old [Rollback Journal](https://www.sqlite.org/lockingv3.html#rollback) mode will be used, as well as the default `synchronous` setting.
+If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
 ### .statement(string) -> Statement
 
@@ -76,6 +66,14 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 ```
 
 The data returned by `.pragma()` is always in string format. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
+
+### .checkpoint([force], callback) -> this
+
+This method is provided because [.pragma()](#pragmastring-simplify---results)'s synchronous nature makes it unsuitable for running [WAL mode checkpoints](https://www.sqlite.org/wal.html).
+
+By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if there are pending reads or write on the database. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
+
+When the operation is complete, the callback is invoked with an `Error` or `null` as its first parameter, depending on if the operation was successful. If successful, the callback's second parameter will be a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints ("RESTART" mode), this number will always be `1`.
 
 #### WARNING: You should NOT use prepared [statements](#statementstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
 
@@ -189,6 +187,7 @@ Same as [`Statement#busy`](#get-busy---boolean).
 
 Returns a concatenation of every source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
 
+
 # Binding Parameters
 
 This section applies to anywhere in the documentation that specifies the optional argument `[...bindParameters]`.
@@ -225,6 +224,36 @@ Below is an example of mixing anonymous parameters with named parameters.
 var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, {name: 'Henry'}, callback);
 ```
+
+# Performance
+
+By default, SQLite3 databases are not well suited for some write-heavy applications. If your application reads frequently, but writes to the database very infrequently, you'll probably be fine. But if this is not the case, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html):
+
+```js
+db.pragma('journal_mode = WAL');
+```
+
+WAL mode has a few *disadvantages* to consider:
+- Transactions that involve ATTACHed databases are atomic for each individual database, but are not atomic across all databases as a set.
+- Under rare circumstances, the [WAL file](https://www.sqlite.org/wal.html) may experience "checkpoint starvation" (see below).
+- Some hardware/system limitations that may affect some users, [listed here](https://www.sqlite.org/wal.html).
+
+However, you trade those disadvantages for greatly improved performance in most web applications.
+
+If you want to *massively* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
+
+```js
+db.pragma('journal_mode = WAL');
+db.pragma('synchronous = 1');
+```
+
+Normally, setting `synchronous = 1` would introduce the risk of database corruption following a power loss or hard reboot. But in [WAL mode](https://www.sqlite.org/wal.html), you do not introduce this risk.
+
+### Defending against "checkpoint starvation"
+
+Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
+
+To prevent this, you can optionally use the [db.checkpoint()](#checkpointforce-callback---this) method to force checkpointing whenever you deem appropriate.
 
 # SQLite3 compilation options
 
