@@ -22,10 +22,11 @@ class Database : public Nan::ObjectWrap {
 		static NAN_MODULE_INIT(Init);
 		
 		// Friends
-		friend class OpenWorker;
-		friend class CloseWorker;
 		friend class Statement;
 		friend class Transaction;
+		friend class OpenWorker;
+		friend class CloseWorker;
+		friend class CheckpointWorker;
 		template <class OBJECT, class ASYNC> friend class QueryWorker;
 		friend class RunWorker;
 		friend class TransactionWorker;
@@ -37,6 +38,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(CreateStatement);
 		static NAN_METHOD(CreateTransaction);
 		static NAN_METHOD(Pragma);
+		static NAN_METHOD(Checkpoint);
 		int CloseHandles();
 		void MaybeClose();
 		

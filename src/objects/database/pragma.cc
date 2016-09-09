@@ -34,8 +34,9 @@ NAN_METHOD(Database::Pragma) {
 	// Executes the SQL on the read handle.
 	sqlite3_exec(db->read_handle, *utf8, NULL, NULL, &err);
 	if (err != NULL) {
-		Nan::ThrowError(err);
+		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
+		Nan::ThrowError(message);
 		return;
 	}
 	sqlite3_free(err);
@@ -44,15 +45,20 @@ NAN_METHOD(Database::Pragma) {
 	List<Data::Row> table[2] {};
 	sqlite3_exec(db->write_handle, *utf8, PragmaCallback, table, &err);
 	if (err != NULL) {
-		Nan::ThrowError(err);
+		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
+		Nan::ThrowError(message);
 		return;
 	}
 	sqlite3_free(err);
 	
 	if (simple_result) {
 		Data::Row* values = table[1].Shift();
-		info.GetReturnValue().Set(values->values[0]->ToJS());
+		if (values == NULL) {
+			info.GetReturnValue().Set(Nan::Undefined());
+		} else {
+			info.GetReturnValue().Set(values->values[0]->ToJS());
+		}
 		delete values;
 	} else {
 		unsigned int i = 0;
