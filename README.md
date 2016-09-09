@@ -67,6 +67,8 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 
 The data returned by `.pragma()` is always in string format. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
 
+#### WARNING: You should NOT use prepared [statements](#statementstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
+
 ### .checkpoint([force], callback) -> this
 
 This method is provided because [.pragma()](#pragmastring-simplify---results)'s synchronous nature makes it unsuitable for running [WAL mode checkpoints](https://www.sqlite.org/wal.html).
@@ -74,8 +76,6 @@ This method is provided because [.pragma()](#pragmastring-simplify---results)'s 
 By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if there are pending reads or write on the database. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
 
 When the operation is complete, the callback is invoked with an `Error` or `null` as its first parameter, depending on if the operation was successful. If successful, the callback's second parameter will be a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints ("RESTART" mode), this number will always be `1`.
-
-#### WARNING: You should NOT use prepared [statements](#statementstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
 
 ### .close() -> this
 
