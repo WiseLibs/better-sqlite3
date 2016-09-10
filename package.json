@@ -16,13 +16,17 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
-    "mocha": "^3.0.2"
+    "cli-color": "^1.1.0",
+    "fs-extra": "^0.30.0",
+    "mocha": "^3.0.2",
+    "sqlite3": "^3.1.4"
   },
   "scripts": {
     "install": "node-gyp rebuild",
     "test": "$(npm bin)/mocha --timeout 5000 --slow 5000",
     "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
-    "posttest": "rm -r ./temp/"
+    "posttest": "rm -r ./temp/",
+    "benchmark": "node benchmark"
   },
   "license": "MIT",
   "keywords": [
