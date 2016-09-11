@@ -13,7 +13,7 @@ NAN_METHOD(Statement::Bind) {
 	}
 	
 	v8::Local<v8::Object> object = Nan::New<v8::Object>();
-	info.This()->SetHiddenValue(Nan::EmptyString(), object);
+	info.This()->SetHiddenValue(NEW_INTERNAL_STRING_FAST("_"), object);
 	STATEMENT_BIND(stmt, info, info.Length(), object);
 	
 	stmt->state |= BOUND;
