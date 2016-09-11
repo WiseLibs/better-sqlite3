@@ -20,7 +20,6 @@ NAN_METHOD(Database::CreateStatement) {
 	statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("database"), info.This());
 	
 	// Digest the source string.
-	TRIM_STRING(source);
 	v8::String::Value utf16(source);
 	int source_bytes_plus1 = utf16.length() * sizeof (uint16_t) + 1;
 	
