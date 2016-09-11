@@ -1,4 +1,9 @@
 ---------- Version 1 ----------
+add "real-world" read+write benchmark
+figure out why node-sqlite3's select-all.sync.small.js is unrealistically fast
+
+add toggleable option on database for creating statements that support named parameters or not
+
 write tests
 
 compare tests to node-sqlite3
