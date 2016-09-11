@@ -31,10 +31,9 @@ void GetWorker::HandleOKCallback() {
 	}
 	
 	// Resolve with every column.
-	v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames")));
 	v8::Local<v8::Object> object = Nan::New<v8::Object>();
 	for (int i=0; i<row.column_count; ++i) {
-		Nan::Set(object, Nan::Get(columnNames, i).ToLocalChecked(), row.values[i]->ToJS());
+		Nan::Set(object, NEW_INTERNAL_STRING16(sqlite3_column_name16(obj->st_handle, i)), row.values[i]->ToJS());
 	}
 	
 	Resolve(object);

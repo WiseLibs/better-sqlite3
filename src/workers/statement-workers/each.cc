@@ -52,17 +52,14 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		sqlite3_mutex_leave(data_mutex);
 		
 	} else {
-		
-		// Get cached column names.
-		v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames")));
-		
 		// Flush rows.
+		
 		sqlite3_mutex_enter(data_mutex);
-		rows.Flush([this, &columnNames] (Data::Row* row) {
+		rows.Flush([this] (Data::Row* row) {
 			
 			v8::Local<v8::Object> object = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; ++i) {
-				Nan::Set(object, Nan::Get(columnNames, i).ToLocalChecked(), row->values[i]->ToJS());
+				Nan::Set(object, NEW_INTERNAL_STRING16(sqlite3_column_name16(obj->st_handle, i)), row->values[i]->ToJS());
 			}
 			
 			sqlite3_mutex_leave(data_mutex);
