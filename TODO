@@ -1,4 +1,6 @@
 ---------- Version 1 ----------
+add filename to database object
+
 write tests and benchmark
 
 compare tests and benchmark to node-sqlite3
