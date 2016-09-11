@@ -42,7 +42,7 @@ require('./create-table')('CREATE TABLE entries (name TEXT, number INTEGER, data
 
 function next() {
 	if (!trials.length) {
-		fs.removeSync(path.join(__dirname, '..', 'temp'));
+		fs.removeSync('temp/');
 		console.log(clc.green('All benchmarks complete!'));
 		process.exit();
 	}
