@@ -1,9 +1,7 @@
 ---------- Version 1 ----------
-add filename to database object
+write tests
 
-write tests and benchmark
-
-compare tests and benchmark to node-sqlite3
+compare tests to node-sqlite3
 
 rewrite .travis.yml (node 4+)
 

@@ -83,6 +83,10 @@ Closes the database connection. After invoking this method, no statements/transa
 
 Returns whether the database is currently open.
 
+### *get* .filename -> string
+
+Returns the string used to open the databse connection.
+
 ## class *Statement*
 
 An object representing a single SQL statement.
