@@ -38,5 +38,5 @@ void Transaction::BuildBindMap() {
 			Nan::Set(array, h, namedParams);
 		}
 	}
-	handle()->SetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"), array);
+	handle()->SetHiddenValue(Nan::EmptyString(), array);
 }

@@ -191,7 +191,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle, persistent);                           \
 		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		stmt->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap")))); \
+		stmt->handle()->GetHiddenValue(Nan::EmptyString())));                  \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
@@ -204,7 +204,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	if (info_length > 0) {                                                     \
 		MultiBinder _binder(trans->handles, trans->handle_count, persistent);  \
 		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		trans->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"))));\
+		trans->handle()->GetHiddenValue(Nan::EmptyString())));                 \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			for (unsigned int i=0; i<trans->handle_count; ++i) {               \

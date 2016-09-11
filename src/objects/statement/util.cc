@@ -30,5 +30,5 @@ void Statement::BuildBindMap() {
 			Nan::Set(namedParams, NEW_INTERNAL_STRING8(name + 1), Nan::New<v8::Number>((double)i));
 		}
 	}
-	handle()->SetHiddenValue(NEW_INTERNAL_STRING_FAST("bindMap"), namedParams);
+	handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
 }
