@@ -9,12 +9,12 @@ NAN_METHOD(Database::CreateTransaction) {
 	}
 	
 	unsigned int len = sources->Length();
-	v8::Local<v8::Array> trimmedSources = Nan::New<v8::Array>(len);
+	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);
 	if (!(len > 0)) {
 		return Nan::ThrowTypeError("No SQL statements were provided.");
 	}
 	
-	// Validate and trim source strings.
+	// Validate and digest source strings.
 	v8::Local<v8::String> semicolon = Nan::New(";").ToLocalChecked();
 	for (unsigned int i=0; i<len; ++i) {
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(sources, i);
@@ -26,24 +26,17 @@ NAN_METHOD(Database::CreateTransaction) {
 			return Nan::ThrowTypeError("Expected each item in the given array to be a string.");
 		}
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(value);
-		TRIM_STRING(source);
-		{
-			v8::Local<v8::StringObject> sourceObject = Nan::New<v8::StringObject>(source);  
-			v8::Local<v8::Value> charAtArgs[1] = {Nan::New<v8::Number>((double)(source->Length() - 1))};
-			INVOKE_METHOD(lastChar, sourceObject, "charAt", 1, charAtArgs);
-			if (!lastChar->IsString()) {
-				return Nan::ThrowTypeError("Expected String.prototype.charAt to return a string.");
-			}
-			if (!lastChar->StrictEquals(semicolon)) {
-				source = v8::String::Concat(source, semicolon);
-			}
+		v8::String::Value utf16(source);
+		uint16_t last_char = (*utf16)[utf16.length() - 1];
+		if (last_char != 0x3b) {
+			source = v8::String::Concat(source, semicolon);
 		}
-		Nan::Set(trimmedSources, i, source);
+		Nan::Set(digestedSources, i, source);
 	}
 	
 	// Create joined source string.
 	v8::Local<v8::Value> joinArgs[1] = {Nan::New("\n").ToLocalChecked()};
-	INVOKE_METHOD(joinedSource, trimmedSources, "join", 1, joinArgs)
+	INVOKE_METHOD(joinedSource, digestedSources, "join", 1, joinArgs)
 	if (!joinedSource->IsString()) {
 		return Nan::ThrowTypeError("Expected Array.prototype.join to return a string.");
 	}
@@ -62,7 +55,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	// Create statement handles from each source string.
 	for (unsigned int i=0; i<len; ++i) {
-		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(Nan::Get(trimmedSources, i).ToLocalChecked());
+		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(Nan::Get(digestedSources, i).ToLocalChecked());
 		v8::String::Value utf16(source);
 		const void* tail;
 		
