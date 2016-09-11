@@ -53,13 +53,6 @@ NAN_METHOD(Database::CreateStatement) {
 		if (stmt->column_count < 1) {
 			return Nan::ThrowTypeError("This read-only SQL statement returns no result columns.");
 		}
-		
-		// For read-only statements, we cache their column names.
-		v8::Local<v8::Array> columnNames = Nan::New<v8::Array>(stmt->column_count);
-		for (int i=0; i<stmt->column_count; ++i) {
-			Nan::Set(columnNames, i, NEW_INTERNAL_STRING16(sqlite3_column_name16(stmt->st_handle, i)));
-		}
-		statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames"), columnNames);
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("readonly"), stmt->column_count == 0 ? Nan::False() : Nan::True(), FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);

@@ -33,15 +33,11 @@ void AllWorker::HandleOKCallback() {
 				Nan::Set(arr, i++, row->values[0]->ToJS());
 			});
 		} else {
-			
-			// Get cached column names.
-			v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(obj->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("columnNames")));
-			
 			// Fill array with row objects.
-			rows.Flush([&arr, &i, &columnNames] (Data::Row* row) {
+			rows.Flush([this, &arr, &i] (Data::Row* row) {
 				v8::Local<v8::Object> object = Nan::New<v8::Object>();
 				for (int j=0; j<row->column_count; ++j) {
-					Nan::Set(object, Nan::Get(columnNames, j).ToLocalChecked(), row->values[j]->ToJS());
+					Nan::Set(object, NEW_INTERNAL_STRING16(sqlite3_column_name16(obj->st_handle, j)), row->values[j]->ToJS());
 				}
 				Nan::Set(arr, i++, object);
 			});
