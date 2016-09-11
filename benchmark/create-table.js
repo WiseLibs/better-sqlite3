@@ -3,31 +3,25 @@ var path = require('path');
 var ours = require('../.');
 var theirs = require('sqlite3');
 
-module.exports = function (sql, filename, ourTest, theirTest) {
+module.exports = function (sql, name, callback) {
 	var opened = 0;
 	var created = 0;
-	ours = new ours(path.join('temp', path.basename(filename) + '.1.db')).on('open', open);
-	theirs = new theirs.Database(path.join('temp', path.basename(filename) + '.2.db'), open);
+	var ourDb = new ours(path.join('temp', name + '.ours.db')).on('open', open);
+	var theirDb = new theirs.Database(path.join('temp', name + '.theirs.db'), open);
 	
 	function open() {
 		if (++opened === 2) {
-			ours.statement(sql).run(ready);
-			theirs.run(sql, ready);
+			ourDb.statement(sql).run(ready);
+			theirDb.run(sql, ready);
 		}
 	}
 	function ready(err) {
+		if (err) {
+			console.error(err);
+			process.exit(1);
+		}
 		if (++created === 2) {
-			var done = function () {
-				process.exit();
-			};
-			var callback = function () {
-				global.gc();
-				theirTest(theirs, done);
-			};
-			setTimeout(function () {
-				global.gc();
-				ourTest(ours, callback);
-			}, 100);
+			callback(ourDb, theirDb);
 		}
 	}
 };

@@ -29,7 +29,7 @@ db.on('open', function () {
 ## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
 
 - `node-sqlite3` uses asynchronous APIs for tasks that don't touch the hard disk. That's not only bad besign, but it wastes tons of resources.
-- `node-sqlite3` forces you to manage the memory of SQLite3 statements yourself. `better-sqlite3` does it the JavaScript way, allowing the garbage collector to worry about memory management.
+- `node-sqlite3` exposes low-level (C language) memory management functions. `better-sqlite3` does it the JavaScript way, allowing the garbage collector to worry about memory management.
 - This module secretly splits your database connectino into two parts; a read-only connection, and a writable connection, which gives you completely atomic transactions and protects you from reading uncommitted data.
 
 # API
