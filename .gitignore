@@ -35,3 +35,4 @@ node_modules
 # Project specific
 lib/binding
 .DS_Store
+temp/
