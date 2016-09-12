@@ -9,11 +9,10 @@
 #include "strlcpy.h"
 
 // Bitwise flags
-#define BUSY 0x01
-#define CONFIG_LOCKED 0x02
-#define BOUND 0x04
-#define HAS_BIND_MAP 0x8
-#define PLUCK_COLUMN 0x10
+#define CONFIG_LOCKED 0x01
+#define BOUND 0x02
+#define HAS_BIND_MAP 0x4
+#define PLUCK_COLUMN 0x8
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
@@ -69,7 +68,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 // returns. This should ONLY be invoked in a libuv async callback.
 #define EMIT_EVENT(obj, argc, argv)                                            \
 	GET_METHOD(_method, obj, "emit");                                          \
-	Nan::MakeCallback(obj, _method, argc, argv);                               \
+	Nan::MakeCallback(obj, _method, argc, argv);
 
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available
@@ -122,21 +121,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[indexOut]);
 
-// If the last two arguments are not both functions, an error is thrown and the
-// caller returns. Otherwise, they are cast to v8::Functions and made available
-// at the given variable names.
-#define REQUIRE_LAST_TWO_ARGUMENTS_FUNCTIONS(indexOut, var1, var2)             \
-	int indexOut = info.Length() - 2;                                          \
-	if (indexOut < 0 || !info[indexOut]->IsFunction()                          \
-	                 || !info[indexOut + 1]->IsFunction()) {                   \
-		return Nan::ThrowTypeError(                                            \
-			"Expected the final two arguments to both be functions.");         \
-	}                                                                          \
-	v8::Local<v8::Function> var1 =                                             \
-		v8::Local<v8::Function>::Cast(info[indexOut]);                         \
-	v8::Local<v8::Function> var2 =                                             \
-		v8::Local<v8::Function>::Cast(info[indexOut + 1]);                     \
-
 // If the argument of the given index is not an array, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::Array and made available
 // at the given variable name.
@@ -172,69 +156,76 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
 
+#define STATEMENT_CLEAR_BINDINGS(stmt)                                         \
+	sqlite3_clear_bindings(stmt->st_handle);
+
+#define TRANSACTION_CLEAR_BINDINGS(trans)                                      \
+	for (unsigned int i=0; i<trans->handle_count; ++i) {                       \
+		sqlite3_clear_bindings(trans->handles[i]);                             \
+	}
+
 // Common bind logic for statements.
-#define STATEMENT_BIND(stmt, info, info_length, persistent)                    \
+#define STATEMENT_BIND(stmt, info, info_length, bind_type)                     \
 	if (info_length > 0) {                                                     \
-		Binder _binder(stmt->st_handle, persistent);                           \
+		Binder _binder(stmt->st_handle, bind_type);                            \
 		_binder.Bind(info, info_length, stmt);                                 \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
-			sqlite3_clear_bindings(stmt->st_handle);                           \
+			STATEMENT_CLEAR_BINDINGS(stmt);                                    \
 			return Nan::ThrowError(_err);                                      \
 		}                                                                      \
 	}
 
 // Common bind logic for transactions.
-#define TRANSACTION_BIND(trans, info, info_length, persistent)                 \
+#define TRANSACTION_BIND(trans, info, info_length, bind_type)                  \
 	if (info_length > 0) {                                                     \
-		MultiBinder _binder(trans->handles, trans->handle_count, persistent);  \
+		MultiBinder _binder(trans->handles, trans->handle_count, bind_type);   \
 		_binder.Bind(info, info_length, trans);                                \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
-			for (unsigned int i=0; i<trans->handle_count; ++i) {               \
-				sqlite3_clear_bindings(trans->handles[i]);                     \
-			}                                                                  \
+			TRANSACTION_CLEAR_BINDINGS(trans);                                 \
 			return Nan::ThrowError(_err);                                      \
 		}                                                                      \
 	}
 
-// The first macro-instruction for setting up an asynchronous SQLite request.
-#define WORKER_START(obj, object_name)                                         \
-	if (obj->state & BUSY) {                                                   \
+// The macro-instruction that runs before an SQLite request.
+#define QUERY_START(obj, object_name, BIND_MACRO, info, info_length)           \
+	if (obj->db->in_each) {                                                    \
 		return Nan::ThrowTypeError(                                            \
-	"This " #object_name " is mid-execution. You must wait for it to finish.");\
+			"This database connection is busy executing a query.");            \
 	}                                                                          \
 	if (obj->db->state != DB_READY) {                                          \
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}
-
-// The second macro-instruction for setting up an asynchronous SQLite request.
-#define WORKER_BIND(obj, worker, info, info_length, BIND_MACRO, object_name)   \
+	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
 	if (!(obj->state & BOUND)) {                                               \
-		BIND_MACRO(obj, info, info_length, worker->GetPersistentObject());     \
+		BIND_MACRO(obj, info, info_length, SQLITE_STATIC);                     \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \
 	}
 
-// The third macro-instruction for setting up an asynchronous SQLite request.
-// Returns the statement object making the request.
-#define WORKER_END(obj, worker)                                                \
-	obj->state |= BUSY;                                                        \
-	obj->Ref();                                                                \
-	if (obj->db->workers++ == 0) {obj->db->Ref();}                             \
-	Nan::AsyncQueueWorker(worker);                                             \
-	info.GetReturnValue().Set(info.This());
+// The macro-instruction that MUST be run before returning from a query.
+#define QUERY_CLEANUP(obj, UNBIND_MACRO)                                       \
+	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}
 
-// Enters the mutex for the sqlite3 database handle.
-#define LOCK_DB(db_handle)                                                     \
-	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle))
+// Like QUERY_THROW, but does not return from the caller function.
+#define QUERY_THROW_STAY(obj, UNBIND_MACRO, error_out)                         \
+	CONCAT2(_error_message, "SQLite: ", error_out);                            \
+	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
+	Nan::ThrowError(_error_message);
 
-// Exits the mutex for the sqlite3 database handle.
-#define UNLOCK_DB(db_handle)                                                   \
-	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle))
+// The macro-instruction that runs after a failed SQLite request.
+#define QUERY_THROW(obj, UNBIND_MACRO, error_out)                              \
+	QUERY_THROW_STAY(obj, UNBIND_MACRO, error_out);                            \
+	return;
+
+// The macro-instruction that runs after a successful SQLite request.
+#define QUERY_RETURN(obj, UNBIND_MACRO, return_value)                          \
+	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
+	info.GetReturnValue().Set(return_value);                                   \
+	return;
 
 // Creates a new internalized string from UTF-8 data.
 #define NEW_INTERNAL_STRING8(string)                                           \

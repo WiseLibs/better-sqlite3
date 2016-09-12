@@ -5,14 +5,8 @@
 void Binder::BindString(v8::Local<v8::String> value, int index) {
 	if (!index) {index = NextAnonIndex();}
 	
-	int status;
 	v8::String::Value utf16(value);
-	if (utf16.length() > 1024) {
-		persistent->Set((uint32_t)index, value);
-		status = sqlite3_bind_text16(handle, index, *utf16, utf16.length() * sizeof (uint16_t), SQLITE_STATIC);
-	} else {
-		status = sqlite3_bind_text16(handle, index, *utf16, utf16.length() * sizeof (uint16_t), SQLITE_TRANSIENT);
-	}
+	int status = sqlite3_bind_text16(handle, index, *utf16, utf16.length() * sizeof (uint16_t), bind_type);
 	
 	SetBindingError(status);
 }

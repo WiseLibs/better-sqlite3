@@ -1,11 +1,10 @@
+#include <cassert>
 #include <sqlite3.h>
 #include <nan.h>
 #include "open.h"
-#include "../../objects/database/database.h"
-#include "../../util/macros.h"
-#include "../../util/transaction-handles.h"
-
-const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
+#include "../objects/database/database.h"
+#include "../util/macros.h"
+#include "../util/transaction-handles.h"
 
 OpenWorker::OpenWorker(Database* db, char* filename) : Nan::AsyncWorker(NULL),
 	db(db),
@@ -16,13 +15,14 @@ OpenWorker::~OpenWorker() {
 void OpenWorker::Execute() {
 	int status;
 	
-	status = sqlite3_open_v2(filename, &db->db_handle, WRITE_MODE, NULL);
+	status = sqlite3_open(filename, &db->db_handle);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->db_handle));
 		db->CloseHandles();
 		return;
 	}
 	
+	assert(sqlite3_db_mutex(db->db_handle) == NULL);
 	sqlite3_busy_timeout(db->db_handle, 5000);
 	
 	db->t_handles = new TransactionHandles(db->db_handle, &status);

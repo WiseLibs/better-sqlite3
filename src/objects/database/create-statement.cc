@@ -4,6 +4,9 @@ NAN_METHOD(Database::CreateStatement) {
 	REQUIRE_ARGUMENT_STRING(0, source);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+	if (db->in_each) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	if (db->state != DB_READY) {
 		return Nan::ThrowError("The database connection is not open.");
 	}
@@ -20,20 +23,16 @@ NAN_METHOD(Database::CreateStatement) {
 	
 	// Digest the source string.
 	v8::String::Value utf16(source);
-	int source_bytes_plus1 = utf16.length() * sizeof (uint16_t) + 1;
 	
 	// Builds actual sqlite3_stmt handle.
 	const void* tail;
-	LOCK_DB(db->db_handle);
-	int status = sqlite3_prepare16(db->db_handle, *utf16, source_bytes_plus1, &stmt->st_handle, &tail);
+	int status = sqlite3_prepare16(db->db_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &stmt->st_handle, &tail);
 	
 	// Validates the newly created statement.
 	if (status != SQLITE_OK) {
 		CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ").");
-		UNLOCK_DB(db->db_handle);
 		return Nan::ThrowError(message);
 	}
-	UNLOCK_DB(db->db_handle);
 	if (stmt->st_handle == NULL) {
 		return Nan::ThrowTypeError("The supplied SQL string contains no statements.");
 	}
@@ -51,6 +50,7 @@ NAN_METHOD(Database::CreateStatement) {
 		}
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
+	statement->SetHiddenValue(Nan::New("_").ToLocalChecked(), info.This());
 	
 	// Pushes onto stmts set.
 	stmt->id = NEXT_STATEMENT_ID++;
