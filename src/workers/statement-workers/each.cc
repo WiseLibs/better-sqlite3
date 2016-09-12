@@ -27,6 +27,7 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 		SetErrorMessage("Out of memory.");
 		return;
 	}
+	
 	// Retrieve and feed rows.
 	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
 		sqlite3_mutex_enter(data_mutex);
@@ -58,14 +59,16 @@ void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2)
 		sqlite3_mutex_leave(data_mutex);
 		
 	} else {
-		// Flush rows.
+		// Get cached column names.
+		v8::Local<v8::Array> columnNames = v8::Local<v8::Array>::Cast(Nan::AsyncProgressWorker::GetFromPersistent((uint32_t)0));
 		
+		// Flush rows.
 		sqlite3_mutex_enter(data_mutex);
-		rows.Flush([this] (Data::Row* row) {
+		rows.Flush([this, &columnNames] (Data::Row* row) {
 			
 			v8::Local<v8::Object> object = Nan::New<v8::Object>();
 			for (int i=0; i<row->column_count; ++i) {
-				Nan::Set(object, NEW_INTERNAL_STRING16(sqlite3_column_name16(obj->st_handle, i)), row->values[i]->ToJS());
+				Nan::Set(object, v8::Local<v8::String>::Cast(Nan::Get(columnNames, (uint32_t)i).ToLocalChecked()), row->values[i]->ToJS());
 			}
 			
 			sqlite3_mutex_leave(data_mutex);
