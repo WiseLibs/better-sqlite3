@@ -18,8 +18,8 @@ describe('Database#close()', function () {
 			expect(db.open).to.be.false;
 		});
 	});
-	describe('because of a failed open attempt', function (done) {
-		it('should have an Error object as its first parameter', function () {
+	describe('because of a failed open attempt', function () {
+		it('should have an Error object as its first parameter', function (done) {
 			var db = new Database('temp/nonexistent/abcfoobar123/11.2.db');
 			db.on('open', function () {
 				done(new Error('This event should not have been fired.'));
