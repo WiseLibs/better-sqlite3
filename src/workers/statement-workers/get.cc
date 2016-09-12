@@ -9,7 +9,7 @@
 GetWorker::GetWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb) {}
 void GetWorker::Execute() {
-	sqlite3* db_handle = obj->db->read_handle;
+	sqlite3* db_handle = obj->db->db_handle;
 	LOCK_DB(db_handle);
 	
 	if (sqlite3_step(obj->st_handle) == SQLITE_ROW) {

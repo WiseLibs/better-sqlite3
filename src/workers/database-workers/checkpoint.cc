@@ -8,7 +8,7 @@ CheckpointWorker::CheckpointWorker(Database* db, bool force, Nan::Callback* cb) 
 	db(db),
 	force(force) {}
 void CheckpointWorker::Execute() {
-	sqlite3* db_handle = db->write_handle;
+	sqlite3* db_handle = db->db_handle;
 	LOCK_DB(db_handle);
 	
 	int total_frames;

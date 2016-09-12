@@ -11,7 +11,7 @@ AllWorker::AllWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb),
 	row_count(0) {}
 void AllWorker::Execute() {
-	sqlite3* db_handle = obj->db->read_handle;
+	sqlite3* db_handle = obj->db->db_handle;
 	LOCK_DB(db_handle);
 	
 	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {

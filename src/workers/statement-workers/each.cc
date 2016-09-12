@@ -17,7 +17,7 @@ EachWorker::~EachWorker() {
 	delete progressCallback;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
-	sqlite3* db_handle = obj->db->read_handle;
+	sqlite3* db_handle = obj->db->db_handle;
 	LOCK_DB(db_handle);
 	
 	// Allocate mutex.
