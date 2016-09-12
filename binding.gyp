@@ -9,7 +9,7 @@
       ],
       'cflags': [
         '-std=c++11',
-        '-Wno-error=strict-overflow'
+        '-Wno-error'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS': [
