@@ -10,7 +10,7 @@
       'cflags': [
         '-std=c++11',
         '-Wno-error',
-        '-c'
+        '-zmuldefs'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS': [
