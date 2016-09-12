@@ -104,7 +104,7 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 **(only on read-only statements)*
 
-Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but retrieved no data, the second parameter will be `undefined` instead.
+Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but retrieved no data, `undefined` is returned instead.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
