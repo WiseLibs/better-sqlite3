@@ -40,6 +40,7 @@ class QueryWorker : public ASYNC {
 		void FinishRequest() {
 			obj->state &= ~BUSY;
 			obj->Unref();
+			if (--obj->db->workers == 0) {obj->db->Unref();}
 			if (!(obj->state & BOUND)) {
 				obj->ClearBindings();
 			}

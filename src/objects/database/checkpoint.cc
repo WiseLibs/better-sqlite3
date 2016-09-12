@@ -19,8 +19,7 @@ NAN_METHOD(Database::Checkpoint) {
 		return Nan::ThrowError("The database connection is not open.");
 	}
 	
-	db->Ref();
-	db->workers += 1;
+	if (db->workers++ == 0) {db->Ref();}
 	db->checkpoints += 1;
 	Nan::AsyncQueueWorker(new CheckpointWorker(db, force, new Nan::Callback(func)));
 	

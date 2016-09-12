@@ -11,7 +11,7 @@
 #include "../../binder/binder.h"
 
 #include "new.cc"
-#include "busy.cc"
+#include "getters.cc"
 #include "bind.cc"
 #include "pluck.cc"
 #include "run.cc"
@@ -36,6 +36,7 @@ void Statement::Init() {
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("busy").ToLocalChecked(), Busy);
+	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), Readonly);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	Nan::SetPrototypeMethod(t, "run", Run);
