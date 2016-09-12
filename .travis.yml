@@ -1,13 +1,23 @@
+sudo: required
+dist: trusty
 language: node_js
 node_js:
 - "4"
 - "5"
 - "6"
 env:
-- CXX=clang-3.5
+- CC=clang-3.7
+- CXX=clang++-3.7
 addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.7
     packages:
-    - clang-3.5
+    - clang-3.7
+    - clang++-3.7
+before_install:
+- wget http://llvm.org/releases/3.7.0/clang+llvm-3.7.0-x86_64-linux-gnu-ubuntu-14.04.tar.xz -O $HOME/clang+llvm.tar.xz
+- mkdir $HOME/clang+llvm
+- tar xf $HOME/clang+llvm.tar.xz -C $HOME/clang+llvm --strip-components 1
+- export PATH=$HOME/clang+llvm/bin:$PATH
