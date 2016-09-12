@@ -61,7 +61,7 @@ db.pragma('cache_size = 32000');
 var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 ```
 
-The data returned by `.pragma()` is always in string format.
+The data returned by `.pragma()` is always in string format. If execution of the PRAGMA fails, an `Error` is thrown.
 
 It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
 
@@ -72,6 +72,8 @@ Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html).
 By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if there are pending reads or write on the database. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
 
 When the operation is complete, it returns a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints ("RESTART" mode), this number will always be `1` unless there is no WAL file.
+
+If execution of the checkpoint fails, an `Error` is thrown.
 
 ### .close() -> this
 
@@ -98,6 +100,8 @@ Executes the prepared statement. When execution completes it returns an `info` o
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current statement did not insert any rows into the database, this number should be completely ignored.
 
+If execution of the statement fails, an `Error` is thrown.
+
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .get([...bindParameters]) -> row
@@ -105,6 +109,8 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 **(only on read-only statements)*
 
 Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but retrieved no data, `undefined` is returned instead.
+
+If execution of the statement fails, an `Error` is thrown.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
@@ -114,13 +120,15 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving one row all matching rows will be retrieved. The return value is an array of row objects. If no rows are retrieved, the array will be empty.
 
+If execution of the statement fails, an `Error` is thrown.
+
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .each([...bindParameters], callback) -> undefined
 
 **(only on read-only statements)*
 
-Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, `callback` is invoked for each row as they are retrieved, one by one. After all rows have been consumed, `undefined` is returned.
+Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, the `callback` is invoked for each row as they are retrieved, one by one. After all rows have been consumed, `undefined` is returned.
 
 If execution of the statement fails, an `Error` is thrown and iteration stops.
 
@@ -164,6 +172,8 @@ When execution completes it returns an `info` object describing any changes made
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this transaction. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
 - `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current transaction did not insert any rows into the database, this number should be completely ignored.
+
+If execution of the transaction fails, an `Error` is thrown.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
