@@ -4,15 +4,12 @@
 #include "statement.h"
 #include "../query.h"
 #include "../database/database.h"
-#include "../../workers/statement-workers/run.h"
-#include "../../workers/statement-workers/get.h"
-#include "../../workers/statement-workers/all.h"
-#include "../../workers/statement-workers/each.h"
 #include "../../util/macros.h"
+#include "../../util/data.h"
+#include "../../util/list.h"
 #include "../../binder/binder.h"
 
 #include "new.cc"
-#include "getters.cc"
 #include "bind.cc"
 #include "pluck.cc"
 #include "run.cc"
@@ -36,7 +33,6 @@ void Statement::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("busy").ToLocalChecked(), Busy);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), Readonly);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);

@@ -3,21 +3,6 @@ bool Transaction::Compare::operator() (const Transaction* a, const Transaction* 
 	return a->id < b->id;
 }
 
-// Closes all associated sqlite3 handles if the transaction is not busy.
-// Returns false if the transaction is busy.
-bool Transaction::CloseIfPossible() {
-	if (!(state & BUSY)) {
-		CloseHandles();
-		return true;
-	}
-	return false;
-}
-
-// Removes itself from its database's associated std::set.
-void Transaction::EraseFromSet() {
-	db->transs.erase(this);
-}
-
 // Builds a JavaScript array that has an object for each sqlite3_stmt handle
 // that has bind parameters. Each object maps the handle's parameter names
 // to their respective parameter index. After the first invocation, a cached

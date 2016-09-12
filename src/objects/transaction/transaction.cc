@@ -4,11 +4,9 @@
 #include "transaction.h"
 #include "../query.h"
 #include "../database/database.h"
-#include "../../workers/transaction-worker.h"
 #include "../../multi-binder/multi-binder.h"
 
 #include "new.cc"
-#include "busy.cc"
 #include "bind.cc"
 #include "run.cc"
 #include "util.cc"
@@ -28,7 +26,6 @@ void Transaction::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
 	
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("busy").ToLocalChecked(), Busy);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "run", Run);
 	

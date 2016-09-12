@@ -12,9 +12,7 @@ NAN_METHOD(Statement::Bind) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	
-	v8::Local<v8::Object> object = Nan::New<v8::Object>();
-	info.This()->SetHiddenValue(NEW_INTERNAL_STRING_FAST("_"), object);
-	STATEMENT_BIND(stmt, info, info.Length(), object);
+	STATEMENT_BIND(stmt, info, info.Length(), SQLITE_TRANSIENT);
 	
 	stmt->state |= BOUND;
 	info.GetReturnValue().Set(info.This());

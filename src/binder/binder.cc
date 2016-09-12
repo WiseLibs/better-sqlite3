@@ -23,14 +23,14 @@
 #include "bind-object.cc"
 #include "bind.cc"
 
-Binder::Binder(sqlite3_stmt* handle, v8::Local<v8::Object> persistent)
+Binder::Binder(sqlite3_stmt* handle, sqlite3_destructor_type bind_type)
 	: handle(handle)
 	, param_count(sqlite3_bind_parameter_count(handle))
 	, anon_index(0)
 	, error(NULL)
 	, error_extra(NULL)
 	, error_full(NULL)
-	, persistent(persistent) {}
+	, bind_type(bind_type) {}
 
 Binder::~Binder() {
 	delete[] error_extra;

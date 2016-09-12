@@ -3,21 +3,6 @@ bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
 	return a->id < b->id;
 }
 
-// Closes all associated sqlite3 handles if the statement is not busy.
-// Returns false if the transaction is busy.
-bool Statement::CloseIfPossible() {
-	if (!(state & BUSY)) {
-		CloseHandles();
-		return true;
-	}
-	return false;
-}
-
-// Removes itself from its database's associated std::set.
-void Statement::EraseFromSet() {
-	db->stmts.erase(this);
-}
-
 // Builds a JavaScript object that maps the statement's parameter names with
 // the parameter index of each one. After the first invocation, a cached version
 // is returned, rather than rebuilding it.
@@ -37,4 +22,9 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 	handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
 	state |= HAS_BIND_MAP;
 	return namedParams;
+}
+
+// get .readonly -> boolean
+NAN_GETTER(Statement::Readonly) {
+	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Statement>(info.This())->column_count != 0);
 }

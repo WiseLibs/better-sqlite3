@@ -26,13 +26,6 @@ class Database : public Nan::ObjectWrap {
 		friend class Transaction;
 		friend class OpenWorker;
 		friend class CloseWorker;
-		friend class CheckpointWorker;
-		template <class OBJECT, class ASYNC> friend class QueryWorker;
-		friend class GetWorker;
-		friend class AllWorker;
-		friend class EachWorker;
-		friend class RunWorker;
-		friend class TransactionWorker;
 		
 	private:
 		static NAN_METHOD(New);
@@ -43,7 +36,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
 		int CloseHandles();
-		void MaybeClose();
+		void CloseChildHandles();
 		
 		// Sqlite3 interfacing
 		sqlite3* db_handle;
@@ -52,7 +45,7 @@ class Database : public Nan::ObjectWrap {
 		// State
 		DB_STATE state;
 		unsigned int workers;
-		unsigned int checkpoints;
+		bool in_each;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

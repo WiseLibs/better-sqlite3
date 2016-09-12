@@ -21,6 +21,9 @@ NAN_METHOD(Database::Pragma) {
 	REQUIRE_ARGUMENT_STRING(0, source);
 	TRUTHINESS_OF_ARGUMENT(1, simple_result);
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+	if (db->in_each) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	if (db->state != DB_READY) {
 		return Nan::ThrowError("The database connection is not open.");
 	}
@@ -36,8 +39,7 @@ NAN_METHOD(Database::Pragma) {
 	if (err != NULL) {
 		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
-		Nan::ThrowError(message);
-		return;
+		return Nan::ThrowError(message);
 	}
 	sqlite3_free(err);
 	

@@ -7,7 +7,7 @@ class Query;
 
 class Binder {
 	public:
-		Binder(sqlite3_stmt*, v8::Local<v8::Object>);
+		Binder(sqlite3_stmt*, sqlite3_destructor_type);
 		~Binder();
 		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		const char* GetError();
@@ -36,7 +36,7 @@ class Binder {
 		char* error_extra;
 		const char* error_full;
 		
-		v8::Local<v8::Object> persistent;
+		sqlite3_destructor_type bind_type;
 };
 
 #endif

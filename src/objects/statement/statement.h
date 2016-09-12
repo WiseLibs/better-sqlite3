@@ -3,7 +3,6 @@
 
 // Dependencies
 #include <stdint.h>
-#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "../query.h"
@@ -25,16 +24,10 @@ class Statement : public Nan::ObjectWrap, public Query {
 		// Friends
 		friend class Compare;
 		friend class Database;
-		template <class OBJECT, class ASYNC> friend class QueryWorker;
-		friend class RunWorker;
-		friend class GetWorker;
-		friend class AllWorker;
-		friend class EachWorker;
 		
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		static NAN_GETTER(Busy);
 		static NAN_GETTER(Readonly);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
@@ -43,13 +36,6 @@ class Statement : public Nan::ObjectWrap, public Query {
 		static NAN_METHOD(All);
 		static NAN_METHOD(Each);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
-		bool CloseIfPossible(); // Returns true if the statement is not busy
-		
-		// Tools for QueryWorker
-		inline void ClearBindings() {
-			sqlite3_clear_bindings(st_handle);
-		}
-		void EraseFromSet();
 		
 		// Sqlite3 interfacing and state
 		Database* db;

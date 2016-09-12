@@ -1,10 +1,14 @@
 ---------- Version 1 ----------
-write tests
+should a new HandleScope be inside the .each() loop?
 
+re-write benchmarks for sync
+
+re-write readme for sync
+
+re-write tests for sync
+
+write tests
 compare tests to node-sqlite3
 
 ---------- Version 2 ----------
 use special objects to deal with 64bit integers
-
----------- Backlog ----------
-Make sure that Promise.promisify(fn, {deoptimize: true}) does not reduce performance too much for situations with ~6 arguments

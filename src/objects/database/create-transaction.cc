@@ -4,6 +4,9 @@ NAN_METHOD(Database::CreateTransaction) {
 	REQUIRE_ARGUMENT_ARRAY(0, sources);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+	if (db->in_each) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	if (db->state != DB_READY) {
 		return Nan::ThrowError("The database connection is not open.");
 	}
@@ -59,16 +62,13 @@ NAN_METHOD(Database::CreateTransaction) {
 		v8::String::Value utf16(source);
 		const void* tail;
 		
-		LOCK_DB(db->db_handle);
 		int status = sqlite3_prepare16(db->db_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &(trans->handles[i]), &tail);
 		
 		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
 			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ").");
-			UNLOCK_DB(db->db_handle);
 			return Nan::ThrowError(message);
 		}
-		UNLOCK_DB(db->db_handle);
 		if (trans->handles[i] == NULL) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
@@ -80,6 +80,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 	}
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
+	transaction->SetHiddenValue(Nan::New("_").ToLocalChecked(), info.This());
 	
 	// Pushes onto transs set.
 	trans->id = NEXT_TRANSACTION_ID++;

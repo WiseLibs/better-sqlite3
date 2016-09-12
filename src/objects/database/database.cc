@@ -4,9 +4,8 @@
 #include "database.h"
 #include "../statement/statement.h"
 #include "../transaction/transaction.h"
-#include "../../workers/database-workers/open.h"
-#include "../../workers/database-workers/close.h"
-#include "../../workers/database-workers/checkpoint.h"
+#include "../../workers/open.h"
+#include "../../workers/close.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/list.h"
@@ -30,7 +29,7 @@ Database::Database() : Nan::ObjectWrap(),
 	t_handles(NULL),
 	state(DB_CONNECTING),
 	workers(0),
-	checkpoints(0) {}
+	in_each(false) {}
 Database::~Database() {
 	state = DB_DONE;
 	
@@ -39,10 +38,7 @@ Database::~Database() {
 	// first, so it needs to tell all of its statements "hey, I don't exist
 	// anymore". By the same nature, statements must remove themselves from a
 	// database's sets when they are garbage collected first.
-	for (Statement* stmt : stmts) {stmt->CloseHandles();}
-	for (Transaction* trans : transs) {trans->CloseHandles();}
-	stmts.clear();
-	transs.clear();
+	CloseChildHandles();
 	
 	CloseHandles();
 }
@@ -71,4 +67,11 @@ int Database::CloseHandles() {
 	t_handles = NULL;
 	db_handle = NULL;
 	return status;
+}
+
+void Database::CloseChildHandles() {
+	for (Statement* stmt : stmts) {stmt->CloseHandles();}
+	for (Transaction* trans : transs) {trans->CloseHandles();}
+	stmts.clear();
+	transs.clear();
 }
