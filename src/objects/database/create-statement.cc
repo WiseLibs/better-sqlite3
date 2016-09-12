@@ -24,13 +24,16 @@ NAN_METHOD(Database::CreateStatement) {
 	
 	// Builds actual sqlite3_stmt handle.
 	const void* tail;
+	LOCK_DB(db->read_handle);
 	int status = sqlite3_prepare16(db->read_handle, *utf16, source_bytes_plus1, &stmt->st_handle, &tail);
 	
 	// Validates the newly created statement.
 	if (status != SQLITE_OK) {
-		CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errstr(status), ").");
+		CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->read_handle), ").");
+		UNLOCK_DB(db->read_handle);
 		return Nan::ThrowError(message);
 	}
+	UNLOCK_DB(db->read_handle);
 	if (stmt->st_handle == NULL) {
 		return Nan::ThrowTypeError("The supplied SQL string contains no statements.");
 	}
@@ -41,11 +44,14 @@ NAN_METHOD(Database::CreateStatement) {
 	// If the sqlite3_stmt is not read-only, replaces the handle with a proper one.
 	if (!sqlite3_stmt_readonly(stmt->st_handle)) {
 		sqlite3_finalize(stmt->st_handle);
+		LOCK_DB(db->write_handle);
 		status = sqlite3_prepare16(db->write_handle, *utf16, source_bytes_plus1, &stmt->st_handle, NULL);
 		if (status != SQLITE_OK) {
-			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errstr(status), ").");
+			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->write_handle), ").");
+			UNLOCK_DB(db->write_handle);
 			return Nan::ThrowError(message);
 		}
+		UNLOCK_DB(db->write_handle);
 		stmt->column_count = 0;
 	} else {
 		stmt->column_count = sqlite3_column_count(stmt->st_handle);

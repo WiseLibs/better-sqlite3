@@ -10,18 +10,17 @@ RunWorker::RunWorker(Statement* stmt, Nan::Callback* cb)
 void RunWorker::Execute() {
 	sqlite3* db_handle = obj->db->write_handle;
 	LOCK_DB(db_handle);
+	
 	int total_changes_before = sqlite3_total_changes(db_handle);
 	
 	sqlite3_step(obj->st_handle);
-	int status = sqlite3_reset(obj->st_handle);
-	if (status != SQLITE_OK) {
-		UNLOCK_DB(db_handle);
-		SetErrorMessage(sqlite3_errstr(status));
-		return;
+	if (sqlite3_reset(obj->st_handle) == SQLITE_OK) {
+		changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
+		id = sqlite3_last_insert_rowid(db_handle);
+	} else {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
 	
-	changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
-	id = sqlite3_last_insert_rowid(db_handle);
 	UNLOCK_DB(db_handle);
 }
 void RunWorker::HandleOKCallback() {

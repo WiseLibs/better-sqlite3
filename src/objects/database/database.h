@@ -28,6 +28,9 @@ class Database : public Nan::ObjectWrap {
 		friend class CloseWorker;
 		friend class CheckpointWorker;
 		template <class OBJECT, class ASYNC> friend class QueryWorker;
+		friend class GetWorker;
+		friend class AllWorker;
+		friend class EachWorker;
 		friend class RunWorker;
 		friend class TransactionWorker;
 		

@@ -17,10 +17,15 @@ EachWorker::~EachWorker() {
 	delete progressCallback;
 }
 void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &progress) {
+	sqlite3* db_handle = obj->db->read_handle;
+	LOCK_DB(db_handle);
+	
 	// Allocate mutex.
 	data_mutex = sqlite3_mutex_alloc(SQLITE_MUTEX_FAST);
 	if (data_mutex == NULL) {
-		return SetErrorMessage("Out of memory.");
+		UNLOCK_DB(db_handle);
+		SetErrorMessage("Out of memory.");
+		return;
 	}
 	// Retrieve and feed rows.
 	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
@@ -29,10 +34,11 @@ void EachWorker::Execute(const Nan::AsyncProgressWorker::ExecutionProgress &prog
 		sqlite3_mutex_leave(data_mutex);
 		progress.Signal();
 	}
-	int status = sqlite3_reset(obj->st_handle);
-	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errstr(status));
+	if (sqlite3_reset(obj->st_handle) != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	
+	UNLOCK_DB(db_handle);
 }
 void EachWorker::HandleProgressCallback(const char* not_used1, size_t not_used2) {
 	Nan::HandleScope scope;

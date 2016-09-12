@@ -9,13 +9,17 @@
 GetWorker::GetWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb) {}
 void GetWorker::Execute() {
+	sqlite3* db_handle = obj->db->read_handle;
+	LOCK_DB(db_handle);
+	
 	if (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
 		row.Fill(obj->st_handle, obj->column_count);
 	}
-	int status = sqlite3_reset(obj->st_handle);
-	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errstr(status));
+	if (sqlite3_reset(obj->st_handle) != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	
+	UNLOCK_DB(db_handle);
 }
 void GetWorker::HandleOKCallback() {
 	Nan::HandleScope scope;

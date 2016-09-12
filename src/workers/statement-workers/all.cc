@@ -11,14 +11,18 @@ AllWorker::AllWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb),
 	row_count(0) {}
 void AllWorker::Execute() {
+	sqlite3* db_handle = obj->db->read_handle;
+	LOCK_DB(db_handle);
+	
 	while (sqlite3_step(obj->st_handle) == SQLITE_ROW) {
 		++row_count;
 		rows.Add(new Data::Row(obj->st_handle, obj->column_count));
 	}
-	int status = sqlite3_reset(obj->st_handle);
-	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errstr(status));
+	if (sqlite3_reset(obj->st_handle) != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 	}
+	
+	UNLOCK_DB(db_handle);
 }
 void AllWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
