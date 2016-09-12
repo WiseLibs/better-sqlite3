@@ -1,6 +1,8 @@
 ---------- Version 1 ----------
 add "real-world" read+write benchmark
 
+test performance difference when using mutexes for .statement(), .transaction(), .get(), .all(), and .each()
+
 write tests
 
 compare tests to node-sqlite3
