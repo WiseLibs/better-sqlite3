@@ -8,7 +8,7 @@ NAN_METHOD(Database::New) {
 	Database* db = new Database();
 	db->Wrap(info.This());
 	info.This()->SetHiddenValue(NEW_INTERNAL_STRING_FAST("NF"), nullFactory);
-	Nan::ForceSet(info.This(), NEW_INTERNAL_STRING_FAST("filename"), filenameGiven, FROZEN);
+	Nan::ForceSet(info.This(), NEW_INTERNAL_STRING_FAST("name"), filenameGiven, FROZEN);
 	
 	db->Ref();
 	db->workers += 1;

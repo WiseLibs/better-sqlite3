@@ -1,8 +1,4 @@
 ---------- Version 1 ----------
-should a new HandleScope be inside the .each() loop?
-
-re-write readme for sync
-
 write tests
 compare tests to node-sqlite3
 

@@ -12,7 +12,6 @@ NAN_METHOD(Statement::Each) {
 	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
-		// Nan::HandleScope scope;
 		Data::Row row(stmt->st_handle, stmt->column_count);
 		v8::MaybeLocal<v8::Value> callback_return_value;
 		
