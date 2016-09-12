@@ -2,6 +2,7 @@
 #include <nan.h>
 #include "multi-binder.h"
 #include "../binder/binder.h"
+#include "../objects/query.h"
 
 #include "next-anon-index.cc"
 #include "bind-object.cc"

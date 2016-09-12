@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "transaction.h"
+#include "../query.h"
 #include "../database/database.h"
 #include "../../workers/transaction-worker.h"
 #include "../../multi-binder/multi-binder.h"

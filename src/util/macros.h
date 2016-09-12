@@ -12,7 +12,8 @@
 #define BUSY 0x01
 #define CONFIG_LOCKED 0x02
 #define BOUND 0x04
-#define PLUCK_COLUMN 0x08
+#define HAS_BIND_MAP 0x8
+#define PLUCK_COLUMN 0x10
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
@@ -190,8 +191,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define STATEMENT_BIND(stmt, info, info_length, persistent)                    \
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle, persistent);                           \
-		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		stmt->handle()->GetHiddenValue(Nan::EmptyString())));                  \
+		_binder.Bind(info, info_length, stmt);                                 \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			sqlite3_clear_bindings(stmt->st_handle);                           \
@@ -203,8 +203,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define TRANSACTION_BIND(trans, info, info_length, persistent)                 \
 	if (info_length > 0) {                                                     \
 		MultiBinder _binder(trans->handles, trans->handle_count, persistent);  \
-		_binder.Bind(info, info_length, v8::Local<v8::Object>::Cast(           \
-		trans->handle()->GetHiddenValue(Nan::EmptyString())));                 \
+		_binder.Bind(info, info_length, trans);                                \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
 			for (unsigned int i=0; i<trans->handle_count; ++i) {               \

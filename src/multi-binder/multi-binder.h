@@ -4,11 +4,12 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "../binder/binder.h"
+class Query;
 
 class MultiBinder : public Binder {
 	public:
 		MultiBinder(sqlite3_stmt**, unsigned int, v8::Local<v8::Object>);
-		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Object>);
+		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		
 	protected:
 		int NextAnonIndex();
