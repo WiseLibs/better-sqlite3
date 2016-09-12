@@ -4,7 +4,8 @@ The fastest and most carefully designed library for SQLite3 in Node.js.
 
 - Full transaction support
 - Geared for performance and efficiency
-- Easy-to-use node-style API
+- Idiomatic node-style API
+- Includes convenient time-saving utilities
 
 ## Installation
 
