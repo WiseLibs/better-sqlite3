@@ -9,7 +9,8 @@
       ],
       'cflags': [
         '-std=c++11',
-        '-Wno-error'
+        '-Wno-error',
+        '-c'
       ],
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS': [
