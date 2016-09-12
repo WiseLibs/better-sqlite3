@@ -5,8 +5,7 @@
 #include "../../util/macros.h"
 #include "../../util/transaction-handles.h"
 
-const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
-const int READ_MODE = SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX | SQLITE_OPEN_SHAREDCACHE;
+const int WRITE_MODE = SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
 OpenWorker::OpenWorker(Database* db, char* filename) : Nan::AsyncWorker(NULL),
 	db(db),
@@ -17,26 +16,18 @@ OpenWorker::~OpenWorker() {
 void OpenWorker::Execute() {
 	int status;
 	
-	status = sqlite3_open_v2(filename, &db->write_handle, WRITE_MODE, NULL);
+	status = sqlite3_open_v2(filename, &db->db_handle, WRITE_MODE, NULL);
 	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errmsg(db->write_handle));
+		SetErrorMessage(sqlite3_errmsg(db->db_handle));
 		db->CloseHandles();
 		return;
 	}
 	
-	status = sqlite3_open_v2(filename, &db->read_handle, READ_MODE, NULL);
-	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errmsg(db->read_handle));
-		db->CloseHandles();
-		return;
-	}
+	sqlite3_busy_timeout(db->db_handle, 5000);
 	
-	sqlite3_busy_timeout(db->write_handle, 5000);
-	sqlite3_busy_timeout(db->read_handle, 5000);
-	
-	db->t_handles = new TransactionHandles(db->write_handle, &status);
+	db->t_handles = new TransactionHandles(db->db_handle, &status);
 	if (status != SQLITE_OK) {
-		SetErrorMessage(sqlite3_errmsg(db->write_handle));
+		SetErrorMessage(sqlite3_errmsg(db->db_handle));
 		db->CloseHandles();
 		return;
 	}

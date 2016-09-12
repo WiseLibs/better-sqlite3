@@ -3,7 +3,6 @@
 The fastest and most carefully designed library for SQLite3 in Node.js.
 
 - Full transaction support
-- Full atomicity on a single connection
 - Geared for performance and efficiency
 - Easy-to-use node-style API
 
@@ -30,7 +29,7 @@ db.on('open', function () {
 
 - `node-sqlite3` uses asynchronous APIs for tasks that don't touch the hard disk. That's not only bad besign, but it wastes tons of resources.
 - `node-sqlite3` exposes low-level (C language) memory management functions. `better-sqlite3` does it the JavaScript way, allowing the garbage collector to worry about memory management.
-- This module secretly splits your database connectino into two parts; a read-only connection, and a writable connection, which gives you completely atomic transactions and protects you from reading uncommitted data.
+- `better-sqlite3` is just as fast, (even faster in some cases) than `node-sqlite3`.
 
 # API
 
@@ -64,8 +63,6 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 ```
 
 The data returned by `.pragma()` is always in string format. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
-
-#### WARNING: You should NOT use prepared [statements](#statementstring---statement) or [transactions](#transactionarrayofstrings---transaction) to run PRAGMA statements. Doing so could result in database corruption.
 
 ### .checkpoint([force], callback) -> this
 
@@ -229,7 +226,7 @@ stmt.run(45, {name: 'Henry'}, callback);
 
 # Performance
 
-By default, SQLite3 databases are not well suited for some write-heavy applications. If your application reads frequently, but writes to the database very infrequently, you'll probably be fine. But if this is not the case, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html):
+Concurrently reading and writing from an SQLite3 database can be very slow in some cases. Since concurrency is usually very important in web applications, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html) to greatly increase overall performance and concurrency.
 
 ```js
 db.pragma('journal_mode = WAL');

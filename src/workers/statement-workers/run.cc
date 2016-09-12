@@ -8,7 +8,7 @@
 RunWorker::RunWorker(Statement* stmt, Nan::Callback* cb)
 	: QueryWorker<Statement, Nan::AsyncWorker>(stmt, cb) {}
 void RunWorker::Execute() {
-	sqlite3* db_handle = obj->db->write_handle;
+	sqlite3* db_handle = obj->db->db_handle;
 	LOCK_DB(db_handle);
 	
 	int total_changes_before = sqlite3_total_changes(db_handle);

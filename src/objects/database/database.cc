@@ -26,8 +26,7 @@ sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 #include "checkpoint.cc"
 
 Database::Database() : Nan::ObjectWrap(),
-	read_handle(NULL),
-	write_handle(NULL),
+	db_handle(NULL),
 	t_handles(NULL),
 	state(DB_CONNECTING),
 	workers(0),
@@ -68,12 +67,8 @@ NAN_MODULE_INIT(Database::Init) {
 // Returns an SQLite3 result code.
 int Database::CloseHandles() {
 	delete t_handles;
-	int status1 = sqlite3_close(read_handle);
-	int status2 = sqlite3_close(write_handle);
-	
+	int status = sqlite3_close(db_handle);
 	t_handles = NULL;
-	read_handle = NULL;
-	write_handle = NULL;
-	
-	return status1 != SQLITE_OK ? status1 : status2;
+	db_handle = NULL;
+	return status;
 }

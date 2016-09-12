@@ -10,7 +10,7 @@
 TransactionWorker::TransactionWorker(Transaction* trans, Nan::Callback* cb)
 	: QueryWorker<Transaction, Nan::AsyncWorker>(trans, cb) {}
 void TransactionWorker::Execute() {
-	sqlite3* db_handle = obj->db->write_handle;
+	sqlite3* db_handle = obj->db->db_handle;
 	TransactionHandles* t_handles = obj->db->t_handles;
 	
 	LOCK_DB(db_handle);

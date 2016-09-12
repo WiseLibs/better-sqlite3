@@ -168,21 +168,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	if (_maybeValue.IsEmpty()) {return;}                                       \
 	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
 
-// Given a v8::String, replaces it with a version that has been trimmed by
-// String.prototype.trim. If any part of the process throws, or if the result
-// of String.prototype.trim is not a string, an error is thrown and the caller
-// returns.
-#define TRIM_STRING(string)                                                    \
-	v8::Local<v8::StringObject> _stringObject =                                \
-		Nan::New<v8::StringObject>(string);                                    \
-	INVOKE_METHOD(_trimmedString, _stringObject, "trim", 0, NULL);             \
-	if (!_trimmedString->IsString()) {                                         \
-		return Nan::ThrowTypeError(                                            \
-			"Expected String.prototype.trim to return a string.");             \
-	} else {                                                                   \
-		string = v8::Local<v8::String>::Cast(_trimmedString);                  \
-	}
-
 // Defines a persistent v8::function, used for constructors.
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;

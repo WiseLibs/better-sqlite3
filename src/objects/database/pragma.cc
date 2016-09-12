@@ -20,7 +20,6 @@ int PragmaCallback(void* x, int column_count, char** results, char** column_name
 NAN_METHOD(Database::Pragma) {
 	REQUIRE_ARGUMENT_STRING(0, source);
 	TRUTHINESS_OF_ARGUMENT(1, simple_result);
-	TRIM_STRING(source);
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (db->state != DB_READY) {
 		return Nan::ThrowError("The database connection is not open.");
@@ -31,19 +30,9 @@ NAN_METHOD(Database::Pragma) {
 	Nan::Utf8String utf8(sql);
 	char* err;
 	
-	// Executes the SQL on the read handle.
-	sqlite3_exec(db->read_handle, *utf8, NULL, NULL, &err);
-	if (err != NULL) {
-		CONCAT2(message, "SQLite: ", err);
-		sqlite3_free(err);
-		Nan::ThrowError(message);
-		return;
-	}
-	sqlite3_free(err);
-	
-	// Executes the SQL on the write handle.
+	// Executes the SQL on the database handle.
 	List<Data::Row> table[2] {};
-	sqlite3_exec(db->write_handle, *utf8, PragmaCallback, table, &err);
+	sqlite3_exec(db->db_handle, *utf8, PragmaCallback, table, &err);
 	if (err != NULL) {
 		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
