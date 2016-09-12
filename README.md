@@ -52,7 +52,7 @@ Creates a new prepared [`Transaction`](#class-transaction) object. Each string i
 
 ### .pragma(string, [simplify]) -> results
 
-This method will execute the given PRAGMA statement and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
+This method will execute the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
 Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. With this option, only the first column of the first row will be returned.
 
@@ -61,7 +61,7 @@ db.pragma('cache_size = 32000');
 var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 ```
 
-The data returned by `.pragma()` is always in string format. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
+The data returned by `.pragma()` is always in string format. It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
 
 ### .checkpoint([force]) -> number
 
