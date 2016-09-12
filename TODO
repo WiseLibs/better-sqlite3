@@ -1,12 +1,9 @@
 ---------- Version 1 ----------
 add "real-world" read+write benchmark
-figure out why node-sqlite3's select-all.sync.small.js is unrealistically fast
 
 write tests
 
 compare tests to node-sqlite3
-
-rewrite .travis.yml (node 4+)
 
 ---------- Version 2 ----------
 use special objects to deal with 64bit integers
