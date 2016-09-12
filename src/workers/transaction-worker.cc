@@ -10,7 +10,6 @@
 TransactionWorker::TransactionWorker(Transaction* trans, Nan::Callback* cb)
 	: QueryWorker<Transaction, Nan::AsyncWorker>(trans, cb) {}
 void TransactionWorker::Execute() {
-	int status;
 	sqlite3* db_handle = obj->db->write_handle;
 	TransactionHandles* t_handles = obj->db->t_handles;
 	
@@ -18,10 +17,9 @@ void TransactionWorker::Execute() {
 	
 	// Begin Transaction
 	sqlite3_step(t_handles->begin);
-	status = sqlite3_reset(t_handles->begin);
-	if (status != SQLITE_OK) {
+	if (sqlite3_reset(t_handles->begin) != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 		UNLOCK_DB(db_handle);
-		SetErrorMessage(sqlite3_errstr(status));
 		return;
 	}
 	
@@ -32,17 +30,11 @@ void TransactionWorker::Execute() {
 		int total_changes_before = sqlite3_total_changes(db_handle);
 		
 		sqlite3_step(obj->handles[i]);
-		status = sqlite3_reset(obj->handles[i]);
-		if (status != SQLITE_OK) {
+		if (sqlite3_reset(obj->handles[i]) != SQLITE_OK) {
+			SetErrorMessage(sqlite3_errmsg(db_handle));
 			sqlite3_step(t_handles->rollback);
-			int status2 = sqlite3_reset(t_handles->rollback);
+			sqlite3_reset(t_handles->rollback);
 			UNLOCK_DB(db_handle);
-			if (status2 == SQLITE_OK) {
-				SetErrorMessage(sqlite3_errstr(status));
-			} else {
-				CONCAT3(message, sqlite3_errstr(status), "\nSQLite Rollback Failed: ", sqlite3_errstr(status2))
-				SetErrorMessage(message);
-			}
 			return;
 		}
 		
@@ -53,17 +45,11 @@ void TransactionWorker::Execute() {
 	
 	// Commit Transaction
 	sqlite3_step(t_handles->commit);
-	status = sqlite3_reset(t_handles->commit);
-	if (status != SQLITE_OK) {
+	if (sqlite3_reset(t_handles->commit) != SQLITE_OK) {
+		SetErrorMessage(sqlite3_errmsg(db_handle));
 		sqlite3_step(t_handles->rollback);
-		int status2 = sqlite3_reset(t_handles->rollback);
+		sqlite3_reset(t_handles->rollback);
 		UNLOCK_DB(db_handle);
-		if (status2 == SQLITE_OK) {
-			SetErrorMessage(sqlite3_errstr(status));
-		} else {
-			CONCAT3(message, sqlite3_errstr(status), "\nSQLite Rollback Failed: ", sqlite3_errstr(status2))
-			SetErrorMessage(message);
-		}
 		return;
 	}
 	

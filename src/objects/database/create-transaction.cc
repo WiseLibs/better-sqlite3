@@ -59,13 +59,16 @@ NAN_METHOD(Database::CreateTransaction) {
 		v8::String::Value utf16(source);
 		const void* tail;
 		
+		LOCK_DB(db->write_handle);
 		int status = sqlite3_prepare16(db->write_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &(trans->handles[i]), &tail);
 		
 		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
-			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errstr(status), ").");
+			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->write_handle), ").");
+			UNLOCK_DB(db->write_handle);
 			return Nan::ThrowError(message);
 		}
+		UNLOCK_DB(db->write_handle);
 		if (trans->handles[i] == NULL) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
