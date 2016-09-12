@@ -21,28 +21,20 @@ exports = module.exports = function (ourDb, theirDb, count, small) {
 exports.data = undefined;
 
 function ourTest(db, count, SQL, pluck, done) {
-	var completed = 0;
-	var failures = 0;
 	if (pluck) {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			db.statement(SQL).pluck().get(i + 1, callback);
+			exports.data = db.statement(SQL).pluck().get(i + 1);
 		}
 	} else {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			db.statement(SQL).get(i + 1, callback);
+			exports.data = db.statement(SQL).get(i + 1);
 		}
 	}
-	function callback(err, data) {
-		exports.data = data;
-		if (err) {++failures;}
-		if (++completed === count) {
-			var td = process.hrtime(t0);
-			report('better-sqlite3', count - failures, td);
-			done();
-		}
-	}
+	var td = process.hrtime(t0);
+	report('better-sqlite3', count, td);
+	done();
 }
 function theirTest(db, count, SQL, pluck, done) {
 	var completed = 0;

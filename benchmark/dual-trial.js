@@ -26,30 +26,23 @@ exports.data = undefined;
 
 function ourTest(db, count, countPerCycle, params, done) {
 	var requested = 0;
-	var completed = 0;
-	var failures = 0;
 	var t0 = process.hrtime();
 	(function request() {
 		for (var i=0; i<countPerCycle; ++i) {
 			if (i % 2) {
-				db.statement('INSERT INTO entries VALUES (?, ?, ?)').run(params, callback);
+				exports.data = db.statement('INSERT INTO entries VALUES (?, ?, ?)').run(params);
 			} else {
-				db.statement('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1, callback);
+				exports.data = db.statement('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
 			}
 		}
 		if ((requested += countPerCycle) < count) {
 			setImmediate(request);
-		}
-	}());
-	function callback(err, data) {
-		exports.data = data;
-		if (err) {++failures;}
-		if (++completed === count) {
+		} else {
 			var td = process.hrtime(t0);
-			report('better-sqlite3', count - failures, td);
+			report('better-sqlite3', count, td);
 			done();
 		}
-	}
+	}());
 }
 function theirTest(db, count, countPerCycle, params, done) {
 	var requested = 0;

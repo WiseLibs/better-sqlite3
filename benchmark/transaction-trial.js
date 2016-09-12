@@ -19,12 +19,10 @@ function ourTest(db, count, params, done) {
 	params = {a: params[0], b: params[1], c: params[2]};
 	var statements = new Array(count).fill('INSERT INTO entries VALUES (@a, @b, @c);');
 	var t0 = process.hrtime();
-	db.transaction(statements).run(params, callback);
-	function callback(err) {
-		var td = process.hrtime(t0);
-		report('better-sqlite3', err ? 0 : count, td);
-		done();
-	}
+	db.transaction(statements).run(params);
+	var td = process.hrtime(t0);
+	report('better-sqlite3', count, td);
+	done();
 }
 function theirTest(db, count, params, done) {
 	function run() {
