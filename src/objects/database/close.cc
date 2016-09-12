@@ -4,8 +4,7 @@ NAN_METHOD(Database::Close) {
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	
 	if (db->state != DB_DONE) {
-		db->Ref();
-		db->workers += 1;
+		if (db->workers++ == 0) {db->Ref();}
 		
 		// Try to close as many query objects as possible. If some queries are
 		// busy, we'll have to wait for the last QueryWorker to actually close

@@ -240,6 +240,7 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define WORKER_END(obj, worker)                                                \
 	obj->state |= BUSY;                                                        \
 	obj->Ref();                                                                \
+	if (obj->db->workers++ == 0) {obj->db->Ref();}                             \
 	Nan::AsyncQueueWorker(worker);                                             \
 	info.GetReturnValue().Set(info.This());
 

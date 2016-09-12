@@ -78,7 +78,6 @@ NAN_METHOD(Database::CreateTransaction) {
 	}
 	
 	// Initializes JavaScript object properties.
-	transaction->SetHiddenValue(NEW_INTERNAL_STRING_FAST("database"), info.This());
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
 	trans->BuildBindMap();
 	

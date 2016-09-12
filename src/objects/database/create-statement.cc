@@ -15,9 +15,8 @@ NAN_METHOD(Database::CreateStatement) {
 	CONSTRUCTING_PRIVILEGES = false;
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(statement);
 	
-	// These properties should be added before others.
+	// This property should be added before others.
 	stmt->db = db;
-	statement->SetHiddenValue(NEW_INTERNAL_STRING_FAST("database"), info.This());
 	
 	// Digest the source string.
 	v8::String::Value utf16(source);
@@ -54,7 +53,6 @@ NAN_METHOD(Database::CreateStatement) {
 			return Nan::ThrowTypeError("This read-only SQL statement returns no result columns.");
 		}
 	}
-	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("readonly"), stmt->column_count == 0 ? Nan::False() : Nan::True(), FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	stmt->BuildBindMap();
 	
