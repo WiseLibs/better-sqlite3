@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement.h"
+#include "../query.h"
 #include "../database/database.h"
 #include "../../workers/statement-workers/run.h"
 #include "../../workers/statement-workers/get.h"

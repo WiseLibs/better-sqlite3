@@ -54,7 +54,6 @@ NAN_METHOD(Database::CreateStatement) {
 		}
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
-	stmt->BuildBindMap();
 	
 	// Pushes onto stmts set.
 	stmt->id = NEXT_STATEMENT_ID++;

@@ -6,11 +6,12 @@
 #include <set>
 #include <sqlite3.h>
 #include <nan.h>
+#include "../query.h"
 #include "../../util/macros.h"
 class Database;
 
 // Class Declaration
-class Statement : public Nan::ObjectWrap {
+class Statement : public Nan::ObjectWrap, public Query {
 	public:
 		Statement();
 		~Statement();
@@ -19,6 +20,7 @@ class Statement : public Nan::ObjectWrap {
 		class Compare { public:
 			bool operator() (const Statement*, const Statement*);
 		};
+		v8::Local<v8::Object> GetBindMap();
 		
 		// Friends
 		friend class Compare;
@@ -42,7 +44,6 @@ class Statement : public Nan::ObjectWrap {
 		static NAN_METHOD(Each);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
 		bool CloseIfPossible(); // Returns true if the statement is not busy
-		void BuildBindMap();
 		
 		// Tools for QueryWorker
 		inline void ClearBindings() {

@@ -3,12 +3,13 @@
 
 #include <sqlite3.h>
 #include <nan.h>
+class Query;
 
 class Binder {
 	public:
 		Binder(sqlite3_stmt*, v8::Local<v8::Object>);
 		~Binder();
-		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, v8::Local<v8::Object>);
+		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		const char* GetError();
 		
 	protected:

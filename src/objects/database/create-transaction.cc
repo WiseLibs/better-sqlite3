@@ -76,10 +76,7 @@ NAN_METHOD(Database::CreateTransaction) {
 			return Nan::ThrowTypeError("Transactions cannot contain read-only statements.");
 		}
 	}
-	
-	// Initializes JavaScript object properties.
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
-	trans->BuildBindMap();
 	
 	// Pushes onto transs set.
 	trans->id = NEXT_TRANSACTION_ID++;

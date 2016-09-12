@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "binder.h"
+#include "../objects/query.h"
 #include "../util/strlcpy.h"
 #include "../util/macros.h"
 

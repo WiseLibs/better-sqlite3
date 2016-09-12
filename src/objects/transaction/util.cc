@@ -20,8 +20,12 @@ void Transaction::EraseFromSet() {
 
 // Builds a JavaScript array that has an object for each sqlite3_stmt handle
 // that has bind parameters. Each object maps the handle's parameter names
-// to their respective parameter index.
-void Transaction::BuildBindMap() {
+// to their respective parameter index. After the first invocation, a cached
+// version is returned, rather than rebuilding it.
+v8::Local<v8::Object> Transaction::GetBindMap() {
+	if (state & HAS_BIND_MAP) {
+		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+	}
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::Cast(db->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("NullFactory")));
 	v8::Local<v8::Object> array = Nan::New<v8::Object>();
 	for (unsigned int h=0; h<handle_count; ++h) {
@@ -39,4 +43,6 @@ void Transaction::BuildBindMap() {
 		}
 	}
 	handle()->SetHiddenValue(Nan::EmptyString(), array);
+	state |= HAS_BIND_MAP;
+	return array;
 }

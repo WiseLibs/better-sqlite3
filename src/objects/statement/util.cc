@@ -18,9 +18,13 @@ void Statement::EraseFromSet() {
 	db->stmts.erase(this);
 }
 
-// Builds a JavaScript object that maps the statement's parameter names
-// with the parameter index of each one.
-void Statement::BuildBindMap() {
+// Builds a JavaScript object that maps the statement's parameter names with
+// the parameter index of each one. After the first invocation, a cached version
+// is returned, rather than rebuilding it.
+v8::Local<v8::Object> Statement::GetBindMap() {
+	if (state & HAS_BIND_MAP) {
+		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+	}
 	int param_count = sqlite3_bind_parameter_count(st_handle);
 	v8::Local<v8::Function> cons = v8::Local<v8::Function>::Cast(db->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("NullFactory")));
 	v8::Local<v8::Object> namedParams = Nan::NewInstance(cons).ToLocalChecked();
@@ -31,4 +35,6 @@ void Statement::BuildBindMap() {
 		}
 	}
 	handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
+	state |= HAS_BIND_MAP;
+	return namedParams;
 }
