@@ -232,11 +232,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define LOCK_DB(db_handle)                                                     \
 	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle))
 
-// Enters the mutex for the sqlite3 database handle if the mutex is not
-// already in use by another thread.
-#define TRY_TO_LOCK_DB(db_handle)                                              \
-	sqlite3_mutex_enter(sqlite3_db_mutex(db_handle))
-
 // Exits the mutex for the sqlite3 database handle.
 #define UNLOCK_DB(db_handle)                                                   \
 	sqlite3_mutex_leave(sqlite3_db_mutex(db_handle))
