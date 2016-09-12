@@ -52,7 +52,7 @@ Creates a new prepared [`Transaction`](#class-transaction) object. Each string i
 
 ### .pragma(string, [simplify]) -> results
 
-This method will execute the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
+Executes the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
 Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. With this option, only the first column of the first row will be returned.
 
@@ -83,7 +83,7 @@ Returns whether the database is currently open.
 
 ### *get* .name -> string
 
-Returns the string used to open the databse connection.
+Returns the string that was used to open the databse connection.
 
 ## class *Statement*
 
