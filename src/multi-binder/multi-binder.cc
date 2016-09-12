@@ -3,6 +3,8 @@
 #include "multi-binder.h"
 #include "../binder/binder.h"
 #include "../objects/query.h"
+#include "../util/strlcpy.h"
+#include "../util/macros.h"
 
 #include "next-anon-index.cc"
 #include "bind-object.cc"
