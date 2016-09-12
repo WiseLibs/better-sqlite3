@@ -8,9 +8,14 @@ process.chdir(path.dirname(__dirname));
 fs.removeSync('temp/');
 fs.ensureDirSync('temp/');
 
+process.on('SIGINT', function () {fs.removeSync('temp/'); process.exit();});
+process.on('SIGHUP', function () {fs.removeSync('temp/'); process.exit();});
+process.on('SIGTERM', function () {fs.removeSync('temp/'); process.exit();});
+
 var trials = fs.readdirSync(path.join(__dirname, 'trials')).filter(function (name) {return name[0] !== '.';});
 if (!trials.length) {
 	console.log(clc.yellow('No benchmarks exist!'));
+	fs.removeSync('temp/');
 	process.exit();
 }
 
@@ -42,8 +47,8 @@ require('./create-table')('CREATE TABLE entries (name TEXT, number INTEGER, data
 
 function next() {
 	if (!trials.length) {
-		fs.removeSync('temp/');
 		console.log(clc.green('All benchmarks complete!'));
+		fs.removeSync('temp/');
 		process.exit();
 	}
 	
