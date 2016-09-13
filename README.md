@@ -44,11 +44,13 @@ If `options.memory` is `true`, an in-memory database will be created, rather tha
 
 ### .statement(*string*) -> *Statement*
 
-Creates a new prepared [`Statement`](#class-statement) object. This method will throw an exception if the provided string is not a valid SQL statement.
+Creates a new prepared [`Statement`](#class-statement) object from the given SQL string.
 
 ### .transaction(*arrayOfStrings*) -> *Transaction*
 
-Creates a new prepared [`Transaction`](#class-transaction) object. Each string in the given array must be a valid SQL statement. [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement).
+Creates a new prepared [`Transaction`](#class-transaction) object from the given array of SQL strings.
+
+*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement). This may change in the future.
 
 ### .pragma(*string*, [*simplify*]) -> *results*
 
