@@ -69,6 +69,14 @@ Returns the string that was used to open the databse connection.
 
 An object representing a single SQL statement.
 
+- [Statement#run()](#runbindparameters---object)
+- [Statement#get()](#getbindparameters---row)
+- [Statement#all()](#allbindparameters---array-of-rows)
+- [Statement#each()](#eachbindparameters-callback---undefined)
+- [Statement#bind()](#bindbindparameters---this)
+- [Statement#source](#get-source---string)
+- [Statement#readonly](#get-readonly---boolean)
+
 ### .run([*...bindParameters*]) -> *object*
 
 **(only on write statements)*
