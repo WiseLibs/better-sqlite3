@@ -27,8 +27,8 @@ You can convert any `Int64` to a string to see its full value. If you try to con
 `Int64s` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like normal numbers.
 
 ```js
-db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
-db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0fff5678));
+db.prepare("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
+db.prepare("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0fff5678));
 ```
 
 # Getting Int64s from the database
@@ -43,7 +43,7 @@ db.defaultSafeIntegers(false); // JavaScript numbers by default
 Additionally, you can override the default for individual [`statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) like so:
 
 ```js
-var stmt = db.statement(SQL);
+var stmt = db.prepare(SQL);
 
 stmt.safeIntegers(); // Safe integers ON
 stmt.safeIntegers(true); // Safe integers ON
