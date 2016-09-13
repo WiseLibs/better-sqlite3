@@ -5,6 +5,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "../../util/macros.h"
+extern bool SAFE_INTEGERS;
 
 class Int64 : public Nan::ObjectWrap {
 	public:
@@ -17,6 +18,15 @@ class Int64 : public Nan::ObjectWrap {
 			return full;
 		}
 		
+		// Either returns a v8::Number or an Int64 object, given an sqlite3_int64.
+		static inline v8::Local<v8::Value> NewProperInteger(sqlite3_int64 value) {
+			if (SAFE_INTEGERS) {
+				FastConstructInt = &value;
+				return Nan::NewInstance(Nan::New<v8::Function>(constructor)).ToLocalChecked();
+			}
+			return Nan::New<v8::Number>((double)value);
+		}
+		
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
@@ -24,6 +34,7 @@ class Int64 : public Nan::ObjectWrap {
 		static NAN_METHOD(ValueOf);
 		static NAN_GETTER(High);
 		static NAN_GETTER(Low);
+		static sqlite3_int64* FastConstructInt;
 		
 		int32_t low;
 		int32_t high;

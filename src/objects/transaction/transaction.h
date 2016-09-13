@@ -27,6 +27,7 @@ class Transaction : public Nan::ObjectWrap, public Query {
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
+		static NAN_METHOD(SafeIntegers);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Run);
 		bool CloseHandles(); // Returns true if the handles were not previously closed

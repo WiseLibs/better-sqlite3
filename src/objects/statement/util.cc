@@ -32,3 +32,16 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 NAN_GETTER(Statement::Readonly) {
 	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Statement>(info.This())->column_count != 0);
 }
+
+// .safeIntegers(boolean) -> this
+NAN_METHOD(Statement::SafeIntegers) {
+	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	
+	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
+		stmt->state |= SAFE_INTS;
+	} else {
+		stmt->state &= ~SAFE_INTS;
+	}
+	
+	info.GetReturnValue().Set(info.This());
+}

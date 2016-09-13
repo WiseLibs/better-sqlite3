@@ -35,3 +35,16 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 	}
 	return array;
 }
+
+// .safeIntegers(boolean) -> this
+NAN_METHOD(Transaction::SafeIntegers) {
+	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
+	
+	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
+		trans->state |= SAFE_INTS;
+	} else {
+		trans->state &= ~SAFE_INTS;
+	}
+	
+	info.GetReturnValue().Set(info.This());
+}

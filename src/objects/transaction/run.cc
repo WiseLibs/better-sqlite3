@@ -45,6 +45,6 @@ NAN_METHOD(Transaction::Run) {
 	sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 	v8::Local<v8::Object> returned_object = Nan::New<v8::Object>();
 	Nan::Set(returned_object, NEW_INTERNAL_STRING_FAST("changes"), Nan::New<v8::Number>((double)changes));
-	Nan::Set(returned_object, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Nan::New<v8::Number>((double)id));
+	Nan::Set(returned_object, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Int64::NewProperInteger(id));
 	QUERY_RETURN(trans, TRANSACTION_CLEAR_BINDINGS, returned_object);
 }

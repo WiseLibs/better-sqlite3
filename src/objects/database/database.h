@@ -36,6 +36,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(CreateTransaction);
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
+		static NAN_METHOD(DefaultSafeIntegers);
 		int CloseHandles();
 		void CloseChildHandles();
 		
@@ -47,6 +48,7 @@ class Database : public Nan::ObjectWrap {
 		DB_STATE state;
 		unsigned int workers;
 		bool in_each;
+		bool safe_ints;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

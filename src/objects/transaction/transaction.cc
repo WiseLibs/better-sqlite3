@@ -4,6 +4,7 @@
 #include "transaction.h"
 #include "../query.h"
 #include "../database/database.h"
+#include "../int64/int64.h"
 #include "../../multi-binder/multi-binder.h"
 
 #include "new.cc"
@@ -26,6 +27,7 @@ void Transaction::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
 	
+	Nan::SetPrototypeMethod(t, "safeIntegers", SafeIntegers);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "run", Run);
 	

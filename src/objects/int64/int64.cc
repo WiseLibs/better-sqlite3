@@ -4,6 +4,7 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "int64.h"
+bool SAFE_INTEGERS = false;
 
 Int64::Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
 	low(low),
@@ -33,10 +34,19 @@ void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	Nan::Set(exports, Nan::New("Int64").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
 }
+sqlite3_int64* Int64::FastConstructInt = NULL;
 CONSTRUCTOR(Int64::constructor);
 Nan::Persistent<v8::FunctionTemplate> Int64::constructorTemplate;
 
 NAN_METHOD(Int64::New) {
+	if (FastConstructInt != NULL) {
+		Int64* int64 = new Int64(*FastConstructInt);
+		FastConstructInt = NULL;
+		int64->Wrap(info.This());
+		info.GetReturnValue().Set(info.This());
+		return;
+	}
+	
 	double low;
 	double high;
 	
