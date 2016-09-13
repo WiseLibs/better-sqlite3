@@ -38,7 +38,7 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 When the database connection is ready, the `open` event is fired.
 
-If the database is closed, the `close` event will be fired. If the database was closed because of an error, the associated `Error` object will be available as the first parameter of the `close` event. If there was no error, the first parameter will be `null`.
+If the database is closed, the `close` event will be fired. If an error occured while trying to open or close the database, the associated `Error` object will be available as the first parameter of the `close` event. If there was no error, the first parameter will be `null`.
 
 If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
