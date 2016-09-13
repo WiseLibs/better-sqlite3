@@ -256,7 +256,6 @@ To prevent this, you can use the [db.checkpoint()](#checkpointforce---number) me
 # SQLite3 compilation options
 
 The following [compilation options](https://www.sqlite.org/compile.html) are used:
-- SQLITE_THREADSAFE=1
 - SQLITE_ENABLE_FTS5
 - SQLITE_ENABLE_JSON1
 - SQLITE_ENABLE_RTREE
