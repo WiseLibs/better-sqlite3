@@ -1,5 +1,3 @@
-# SQLite3 compilation options
-
 The following [compilation options](https://www.sqlite.org/compile.html) are used:
 - SQLITE_ENABLE_FTS5
 - SQLITE_ENABLE_JSON1
