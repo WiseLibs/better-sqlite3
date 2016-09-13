@@ -80,7 +80,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 	}
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
-	transaction->SetHiddenValue(Nan::New("_").ToLocalChecked(), info.This());
+	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);
 	
 	// Pushes onto transs set.
 	trans->id = NEXT_TRANSACTION_ID++;
