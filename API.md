@@ -1,5 +1,13 @@
 # class *Database*
 
+- [Database#statement()](#statementstring---statement)
+- [Database#transaction()](#transactionarrayofstrings---transaction)
+- [Database#pragma()](#pragmastring-simplify---results)
+- [Database#checkpoint()](#checkpointforce---number)
+- [Database#close()](#close---this)
+- [Database#open](#get-open---boolean)
+- [Database#name](#get-name---string)
+
 ### new Database(*path*, [*options*])
 
 Creates a new database connection. If the database file does not exist, it is created.
