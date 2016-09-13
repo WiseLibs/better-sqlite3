@@ -300,6 +300,7 @@ Additionally, you can override the default for individual [`statements`](#class-
 
 ```js
 var stmt = db.statement(SQL);
+
 stmt.safeIntegers(); // Safe integers ON
 stmt.safeIntegers(true); // Safe integers ON
 stmt.safeIntegers(false); // Safe integers OFF
