@@ -13,6 +13,12 @@ WAL mode has a *few* disadvantages to consider:
 
 However, you trade those disadvantages for greatly improved performance in most web applications.
 
+### Checkpoint starvation
+
+Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
+
+To prevent this, you can use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3#checkpointforce---number) method to force checkpointing whenever you deem appropriate.
+
 # Maximum power
 
 If you want to *further* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
