@@ -325,6 +325,8 @@ var int64 = statement.safeIntegers().pluck().get();
 int64 = int64.multiply(2).value();
 ```
 
+Since most [Long](https://github.com/dcodeIO/long.js) methods return new `Long` objects, the `.value()` method is necessary to convert it back to an `Int64`.
+
 # SQLite3 compilation options
 
 The following [compilation options](https://www.sqlite.org/compile.html) are used:
