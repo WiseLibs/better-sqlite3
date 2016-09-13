@@ -289,7 +289,12 @@ db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x
 
 ### Getting Int64s from the database
 
-By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](#runbindparameters---object) methods). If these numbers get too high (larger than 9007199254740991), their values will be incorrect, potentially causing very bad errors. You can change this default by invoking `db.defaultSafeIntegers(true)`.
+By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](#runbindparameters---object) methods). You can change this default by invoking when ever you want:
+
+```js
+db.defaultSafeIntegers(true); // Int64s by default
+db.defaultSafeIntegers(false); // JavaScript numbers by default
+```
 
 Additionally, you can override the default for individual [`statements`](#class-statement) and [`transactions`](#class-transaction) like so:
 
