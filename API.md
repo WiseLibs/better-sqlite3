@@ -1,7 +1,7 @@
 # class *Database*
 
 - [new Database()](#new-databasepath-options)
-- [Database#statement()](#statementstring---statement)
+- [Database#prepare()](#preparestring---statement)
 - [Database#transaction()](#transactionarrayofstrings---transaction)
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointforce---number)
@@ -19,7 +19,7 @@ If the database is closed, the `close` event will be fired. If an error occured 
 
 If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
-### .statement(*string*) -> *Statement*
+### .prepare(*string*) -> *Statement*
 
 Creates a new prepared [`Statement`](#class-statement) from the given SQL string.
 
@@ -27,7 +27,7 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 
 Creates a new prepared [`Transaction`](#class-transaction) from the given array of SQL strings.
 
-*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement). This restriction may change in the future.
+*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#preparestring---statement). This restriction may change in the future.
 
 ### .pragma(*string*, [*simplify*]) -> *results*
 
@@ -42,7 +42,7 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 
 The data returned by `.pragma()` is always in string format. If execution of the PRAGMA fails, an `Error` is thrown.
 
-It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
+It's better to use this method instead of normal [prepared statements](#preparestring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
 
 ### .checkpoint([*force*]) -> *number*
 
@@ -183,7 +183,7 @@ This section refers to anywhere in the documentation that specifies the optional
 There are many ways to bind parameters to a prepared statement or transaction. The simplest way is with anonymous parameters:
 
 ```js
-var stmt = db.statement('INSERT INTO people VALUES (?, ?, ?)');
+var stmt = db.prepare('INSERT INTO people VALUES (?, ?, ?)');
 
 // The following are equivalent.
 stmt.run('John', 'Smith', 45);
@@ -195,9 +195,9 @@ You can also use named parameters. SQLite3 provides [4 different syntaxes for na
 
 ```js
 // The following are equivalent.
-var stmt = db.statement('INSERT INTO people VALUES (@firstName, @lastName, @age)');
-var stmt = db.statement('INSERT INTO people VALUES (:firstName, :lastName, :age)');
-var stmt = db.statement('INSERT INTO people VALUES ($firstName, $lastName, $age)');
+var stmt = db.prepare('INSERT INTO people VALUES (@firstName, @lastName, @age)');
+var stmt = db.prepare('INSERT INTO people VALUES (:firstName, :lastName, :age)');
+var stmt = db.prepare('INSERT INTO people VALUES ($firstName, $lastName, $age)');
 
 stmt.run({
 	firstName: 'John',
@@ -209,6 +209,6 @@ stmt.run({
 Below is an example of mixing anonymous parameters with named parameters.
 
 ```js
-var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
+var stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, {name: 'Henry'});
 ```
