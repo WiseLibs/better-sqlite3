@@ -1,4 +1,4 @@
-# The Int64 Class
+# The `Int64` Class
 
 SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/IEEE_floating_point) to fully represent. To support this data type, `better-sqlite3` provides the immutable `Int64` class:
 
