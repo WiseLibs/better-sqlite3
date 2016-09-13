@@ -306,6 +306,8 @@ db.statement(SQL).safeIntegers(false); // Safe integers OFF
 // You can do the same thing with Transaction objects.
 ```
 
+It's worth noting that FLOAT values returned from the database will always be represented as JavaScript numbers.
+
 ### Extending Int64s
 
 `Int64` objects are very basic and do not provide advanced functionality. However, they expose accessors for their `low` and `high` bits, which matches the API for the very comprehensive [Long](https://github.com/dcodeIO/long.js) library. If you need to manipulate 64 bit integers, the strategy is quite simple:
