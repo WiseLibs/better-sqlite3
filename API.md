@@ -1,5 +1,6 @@
 # class *Database*
 
+- [new Database()](#new-databasepath-options)
 - [Database#statement()](#statementstring---statement)
 - [Database#transaction()](#transactionarrayofstrings---transaction)
 - [Database#pragma()](#pragmastring-simplify---results)
