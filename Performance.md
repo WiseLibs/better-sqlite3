@@ -1,4 +1,4 @@
-## Improving concurrency
+# Improving concurrency
 
 Concurrently reading and writing from an SQLite3 database can be very slow in some cases. Since concurrency is usually very important in web applications, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html) to greatly increase overall performance and concurrency.
 
@@ -12,6 +12,8 @@ WAL mode has a *few* disadvantages to consider:
 - There are some hardware/system limitations that may affect some users, [listed here](https://www.sqlite.org/wal.html).
 
 However, you trade those disadvantages for greatly improved performance in most web applications.
+
+# Maximum power
 
 If you want to *further* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
 
