@@ -24,7 +24,7 @@ You can convert any `Int64` to a string to see its full value. If you try to con
 
 # Binding Int64s
 
-`Int64s` can bind to [`Statements`](#class-statement) and [`Transactions`](#class-transaction) just like normal numbers.
+`Int64s` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like normal numbers.
 
 ```js
 db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
@@ -33,14 +33,14 @@ db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x
 
 # Getting Int64s from the database
 
-By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](#runbindparameters---object) methods). You can change this default as you please:
+By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#runbindparameters---object) methods). You can change this default as you please:
 
 ```js
 db.defaultSafeIntegers(true); // Int64s by default
 db.defaultSafeIntegers(false); // JavaScript numbers by default
 ```
 
-Additionally, you can override the default for individual [`statements`](#class-statement) and [`transactions`](#class-transaction) like so:
+Additionally, you can override the default for individual [`statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) like so:
 
 ```js
 var stmt = db.statement(SQL);
