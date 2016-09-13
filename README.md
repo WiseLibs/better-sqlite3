@@ -276,7 +276,7 @@ number.equals(+number); // returns true
 
 An `Int64` is constructed of two parts: its lower 32 bits, and its higher 32 bits, respectively. The higher bits are optional, and default to `0`.
 
-You can convert any `Int64` to a string to see its full value. If you try to convert an `Int64` to a JavaScript number, it will convert to `NaN` if the number is too big to be accurately represented.
+You can convert any `Int64` to a string to see its full value. If you try to convert an `Int64` to a JavaScript number but the `Int64` is too big to be accurately represented, it will convert to `NaN` to protect you from accidentally losing information.
 
 ### Binding Int64s
 
