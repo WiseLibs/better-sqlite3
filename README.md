@@ -278,12 +278,16 @@ An `Int64` is constructed of two parts: its lower 32 bits, and its higher 32 bit
 
 You can convert any `Int64` to a string to see its full value. If you try to convert an `Int64` to a JavaScript number, it will convert to `NaN` if the number is too big to be accurately represented.
 
+### Binding Int64s
+
 `Int64s` can be bound to [`Statements`](#class-statement) and [`Transactions`](#class-transaction) just like normal numbers.
 
 ```js
 db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
 db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0fff5678));
 ```
+
+### Getting Int64s from the database
 
 By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](#runbindparameters---object) methods). If these numbers get too high (larger than 9007199254740991), their values will be incorrect, potentially causing very bad errors. You can change this default by invoking `db.defaultSafeIntegers(true)`.
 
@@ -296,6 +300,8 @@ db.statement(SQL).safeIntegers(false); // Safe integers OFF
 
 // You can do the same thing with Transaction objects.
 ```
+
+### Extending Int64s
 
 `Int64` objects are very basic and do not provide advanced functionality. However, they expose accessors for their `low` and `high` bits, which matches the API for the very comprehensive [Long](https://github.com/dcodeIO/long.js) library. If you need to manipulate 64 bit integers, the strategy is quite simple:
 
