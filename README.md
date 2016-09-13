@@ -318,8 +318,9 @@ It's worth noting that FLOAT values returned from the database will always be re
 var Int64 = require('better-sqlite3').Int64;
 Object.assign(Int64.prototype, require('long').prototype);
 
+// Now you can use methods from the Long library.
 var int64 = statement.safeIntegers().pluck().get();
-int64 = int64.multiply(2); // Now you can use methods from the Long library.
+int64 = int64.multiply(2);
 ```
 
 # SQLite3 compilation options
