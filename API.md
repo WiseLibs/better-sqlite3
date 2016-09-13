@@ -5,8 +5,8 @@
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointforce---number)
 - [Database#close()](#close---this)
-- [Database#open (getter)](#get-open---boolean)
-- [Database#name (getter)](#get-name---string)
+- [Database#open *(getter)*](#get-open---boolean)
+- [Database#name *(getter)*](#get-name---string)
 
 ### new Database(*path*, [*options*])
 
