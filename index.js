@@ -8,11 +8,14 @@ defineFrozen(Int64, 'ZERO', new Int64(0, 0));
 defineFrozen(Int64, 'ONE', new Int64(1, 0));
 defineFrozen(Int64, 'NEG_ONE', new Int64(-1, -1));
 
-Int64.prototype.equals = function (other) {
+Int64.prototype.equals = function equals(other) {
 	if (!(other instanceof Int64)) {
 		return +this == other;
 	}
 	return this.low === other.low && this.high === other.high;
+};
+Int64.prototype.value = function value() {
+	return new Int64(this.low, this.high);
 };
 
 function defineFrozen(obj, key, value) {
