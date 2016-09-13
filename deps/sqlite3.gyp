@@ -5,6 +5,11 @@
     'cflags': [
       '-std=c99'
     ],
+    'xcode_settings': {
+      'OTHER_CFLAGS': [
+        '-std=c99'
+      ],
+    },
     'configurations': {
       'Debug': {
         'defines': [ 'DEBUG', '_DEBUG', 'SQLITE_ENABLE_API_ARMOR'],
