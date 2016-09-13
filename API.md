@@ -8,17 +8,17 @@ If the database is closed, the `close` event will be fired. If an error occured 
 
 If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
-## .statement(*string*) -> *Statement*
+### .statement(*string*) -> *Statement*
 
 Creates a new prepared [`Statement`](#class-statement) from the given SQL string.
 
-## .transaction(*arrayOfStrings*) -> *Transaction*
+### .transaction(*arrayOfStrings*) -> *Transaction*
 
 Creates a new prepared [`Transaction`](#class-transaction) from the given array of SQL strings.
 
 *NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement). This restriction may change in the future.
 
-## .pragma(*string*, [*simplify*]) -> *results*
+### .pragma(*string*, [*simplify*]) -> *results*
 
 Executes the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
@@ -33,7 +33,7 @@ The data returned by `.pragma()` is always in string format. If execution of the
 
 It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
 
-## .checkpoint([*force*]) -> *number*
+### .checkpoint([*force*]) -> *number*
 
 Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html).
 
@@ -43,15 +43,15 @@ When the operation is complete, it returns a number between `0` and `1`, indicat
 
 If execution of the checkpoint fails, an `Error` is thrown.
 
-## .close() -> *this*
+### .close() -> *this*
 
 Closes the database connection. After invoking this method, no statements/transactions can be created or executed. When all resources have been released, the `close` event will be fired.
 
-## *get* .open -> *boolean*
+### *get* .open -> *boolean*
 
 Returns whether the database is currently open.
 
-## *get* .name -> *string*
+### *get* .name -> *string*
 
 Returns the string that was used to open the databse connection.
 
@@ -59,7 +59,7 @@ Returns the string that was used to open the databse connection.
 
 An object representing a single SQL statement.
 
-## .run([*...bindParameters*]) -> *object*
+### .run([*...bindParameters*]) -> *object*
 
 **(only on write statements)*
 
@@ -72,7 +72,7 @@ If execution of the statement fails, an `Error` is thrown.
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-## .get([*...bindParameters*]) -> *row*
+### .get([*...bindParameters*]) -> *row*
 
 **(only on read-only statements)*
 
@@ -82,7 +82,7 @@ If the statement was successful but found no data, `undefined` is returned. If e
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-## .all([*...bindParameters*]) -> *array of rows*
+### .all([*...bindParameters*]) -> *array of rows*
 
 **(only on read-only statements)*
 
@@ -92,7 +92,7 @@ If no rows are found, the array will be empty. If execution of the statement fai
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-## .each([*...bindParameters*], callback) -> *undefined*
+### .each([*...bindParameters*], callback) -> *undefined*
 
 **(only on read-only statements)*
 
@@ -102,7 +102,7 @@ After all rows have been consumed, `undefined` is returned. If execution of the 
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-## .pluck() -> *this*
+### .pluck() -> *this*
 
 **(only on read-only statements)*
 
@@ -110,7 +110,7 @@ Causes the prepared statement to only return the value of the first column of an
 
 This method can only be invoked before the statement is first executed. After a statement invokes this method, it cannot be undone.
 
-## .bind([*...bindParameters*]) -> *this*
+### .bind([*...bindParameters*]) -> *this*
 
 [Binds the given parameters](#binding-parameters) to the statement *permanently*. Unlike binding parameters upon execution, these parameters will stay bound to the prepared statement for its entire life.
 
@@ -118,11 +118,11 @@ This method can only be invoked before the statement is first executed. After a 
 
 This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same bound parameters. However, if the prepared statement will only be executed once, it's faster to bind the parameters directly with the execution ([`run()`](#runbindparameters---object), [`get()`](#getbindparameters---row), [`all()`](#allbindparameters---array-of-rows), or [`each()`](#eachbindparameters-callback---undefined)).
 
-## *get* .source -> *string*
+### *get* .source -> *string*
 
 Returns the source string that was used to create the prepared statement.
 
-## *get* .readonly -> *boolean*
+### *get* .readonly -> *boolean*
 
 Returns whether the prepared statement is read-only.
 
@@ -130,7 +130,7 @@ Returns whether the prepared statement is read-only.
 
 An object representing many SQL statements grouped into a single logical [transaction](https://www.sqlite.org/lang_transaction.html).
 
-## .run([*...bindParameters*]) -> *object*
+### .run([*...bindParameters*]) -> *object*
 
 Similar to [`Statement#run()`](#runbindparameters---object).
 
@@ -145,10 +145,10 @@ If execution of the transaction fails, an `Error` is thrown.
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-## .bind([*...bindParameters*]) -> *this*
+### .bind([*...bindParameters*]) -> *this*
 
 Same as [`Statement#bind()`](#bindbindparameters---this).
 
-## *get* .source -> *string*
+### *get* .source -> *string*
 
 Returns a concatenation of every source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
