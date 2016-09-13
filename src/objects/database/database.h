@@ -12,6 +12,7 @@
 
 // Globals
 extern bool CONSTRUCTING_PRIVILEGES;
+extern Nan::Persistent<v8::Function> NullFactory;
 enum DB_STATE {DB_CONNECTING, DB_READY, DB_DONE};
 
 // Class Declaration
