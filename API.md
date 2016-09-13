@@ -1,12 +1,12 @@
 # class *Database*
 
-- [Database#statement()](#statementstring---statement)
-- [Database#transaction()](#transactionarrayofstrings---transaction)
-- [Database#pragma()](#pragmastring-simplify---results)
-- [Database#checkpoint()](#checkpointforce---number)
-- [Database#close()](#close---this)
-- [Database#open](#get-open---boolean)
-- [Database#name](#get-name---string)
+- [.statement()](#statementstring---statement)
+- [.transaction()](#transactionarrayofstrings---transaction)
+- [.pragma()](#pragmastring-simplify---results)
+- [.checkpoint()](#checkpointforce---number)
+- [.close()](#close---this)
+- [.open](#get-open---boolean)
+- [.name](#get-name---string)
 
 ### new Database(*path*, [*options*])
 
