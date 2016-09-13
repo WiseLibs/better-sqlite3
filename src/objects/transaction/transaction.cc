@@ -36,9 +36,15 @@ CONSTRUCTOR(Transaction::constructor);
 // Returns true if the handles have not been previously closed.
 bool Transaction::CloseHandles() {
 	if (handles) {
-		for (unsigned int i=0; i<handle_count; ++i) {
-			sqlite3_clear_bindings(handles[i]);
-			sqlite3_finalize(handles[i]);
+		if (state & BOUND) {
+			for (unsigned int i=0; i<handle_count; ++i) {
+				sqlite3_clear_bindings(handles[i]);
+				sqlite3_finalize(handles[i]);
+			}
+		} else {
+			for (unsigned int i=0; i<handle_count; ++i) {
+				sqlite3_finalize(handles[i]);
+			}
 		}
 		delete[] handles;
 		handles = NULL;
