@@ -29,7 +29,7 @@ db.on('open', function () {
 
 - `node-sqlite3` uses asynchronous APIs for tasks that don't involve I/O. That's not only bad design, but it wastes tons of resources.
 - `node-sqlite3` exposes low-level (C language) memory management functions. `better-sqlite3` does it the JavaScript way, allowing the garbage collector to worry about memory management.
-- `better-sqlite3` is simpler to use, and it provides nice utilities for some operations that are very difficult or impossible in `node-sqlite3`.
+- `better-sqlite3` is simpler to use, and provides nice utilities for some operations that are very difficult or impossible in `node-sqlite3`.
 - `better-sqlite3` is much faster than `node-sqlite3` in most cases, and just as fast in all other cases.
 
 # Documentation
