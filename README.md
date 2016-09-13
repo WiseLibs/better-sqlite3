@@ -319,7 +319,7 @@ var Int64 = require('better-sqlite3').Int64;
 Object.assign(Int64.prototype, require('long').prototype);
 
 var int64 = statement.safeIntegers().pluck().get();
-int64 = int64.multiply(2); // You can use methods from the Long library now
+int64 = int64.multiply(2); // Now you can use methods from the Long library.
 ```
 
 # SQLite3 compilation options
