@@ -27,7 +27,11 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 			Nan::Set(array, h, namedParams);
 		}
 	}
-	handle()->SetHiddenValue(Nan::EmptyString(), array);
-	state |= HAS_BIND_MAP;
+	if (state & USED_BIND_MAP) {
+		handle()->SetHiddenValue(Nan::EmptyString(), array);
+		state |= HAS_BIND_MAP;
+	} else {
+		state |= USED_BIND_MAP;
+	}
 	return array;
 }

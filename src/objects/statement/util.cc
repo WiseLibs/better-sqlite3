@@ -19,8 +19,12 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 			Nan::Set(namedParams, NEW_INTERNAL_STRING8(name + 1), Nan::New<v8::Number>((double)i));
 		}
 	}
-	handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
-	state |= HAS_BIND_MAP;
+	if (state & USED_BIND_MAP) {
+		handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
+		state |= HAS_BIND_MAP;
+	} else {
+		state |= USED_BIND_MAP;
+	}
 	return namedParams;
 }
 
