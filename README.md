@@ -122,7 +122,7 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving one row all matching rows will be retrieved. The return value is an array of row objects.
 
-If no rows are retrieved, the array will be empty. If execution of the statement fails, an `Error` is thrown.
+If no rows are found, the array will be empty. If execution of the statement fails, an `Error` is thrown.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
