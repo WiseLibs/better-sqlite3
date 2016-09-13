@@ -11,6 +11,11 @@ class Int64 : public Nan::ObjectWrap {
 		Int64(uint32_t, uint32_t);
 		Int64(sqlite3_int64);
 		static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
+		static Nan::Persistent<v8::FunctionTemplate> constructorTemplate;
+		
+		inline sqlite3_int64 GetValue() {
+			return full;
+		}
 		
 	private:
 		static CONSTRUCTOR(constructor);
@@ -19,9 +24,6 @@ class Int64 : public Nan::ObjectWrap {
 		static NAN_METHOD(ValueOf);
 		static NAN_GETTER(High);
 		static NAN_GETTER(Low);
-		inline sqlite3_int64 GetValue() {
-			return full;
-		}
 		
 		uint32_t low;
 		uint32_t high;

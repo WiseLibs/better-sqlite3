@@ -5,6 +5,7 @@
 #include <nan.h>
 #include "binder.h"
 #include "../objects/query.h"
+#include "../objects/int64/int64.h"
 #include "../util/strlcpy.h"
 #include "../util/macros.h"
 
@@ -14,6 +15,7 @@
 #include "set-binding-error.cc"
 #include "get-error.cc"
 #include "bind-number.cc"
+#include "bind-int64.cc"
 #include "bind-string.cc"
 #include "bind-buffer.cc"
 #include "bind-null.cc"

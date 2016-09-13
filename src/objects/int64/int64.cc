@@ -28,11 +28,13 @@ void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	Nan::SetPrototypeMethod(t, "valueOf", ValueOf);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
+	constructorTemplate.Reset(t);
 	
 	Nan::Set(exports, Nan::New("Int64").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
 }
 CONSTRUCTOR(Int64::constructor);
+Nan::Persistent<v8::FunctionTemplate> Int64::constructorTemplate;
 
 NAN_METHOD(Int64::New) {
 	double low;
