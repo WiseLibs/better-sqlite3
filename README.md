@@ -110,9 +110,9 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 **(only on read-only statements)*
 
-Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names. If the statement was successful but found no data, `undefined` is returned.
+Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names.
 
-If execution of the statement fails, an `Error` is thrown.
+If the statement was successful but found no data, `undefined` is returned. If execution of the statement fails, an `Error` is thrown.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
@@ -120,9 +120,9 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 **(only on read-only statements)*
 
-Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving one row all matching rows will be retrieved. The return value is an array of row objects. If no rows are retrieved, the array will be empty.
+Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving one row all matching rows will be retrieved. The return value is an array of row objects.
 
-If execution of the statement fails, an `Error` is thrown.
+If no rows are retrieved, the array will be empty. If execution of the statement fails, an `Error` is thrown.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
@@ -130,9 +130,9 @@ You can optionally specify [bind parameters](#binding-parameters), which are onl
 
 **(only on read-only statements)*
 
-Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, the `callback` is invoked for each row as they are retrieved, one by one. After all rows have been consumed, `undefined` is returned.
+Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, the `callback` is invoked for each row as they are retrieved, one by one.
 
-If execution of the statement fails, an `Error` is thrown and iteration stops.
+After all rows have been consumed, `undefined` is returned. If execution of the statement fails, an `Error` is thrown and iteration stops.
 
 You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
