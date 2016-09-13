@@ -33,6 +33,7 @@
     "sql",
     "sqlite",
     "sqlite3",
+    "int64",
     "database",
     "transactions"
   ]
