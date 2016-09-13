@@ -20,7 +20,7 @@ var Database = require('better-sqlite3');
 var db = new Database('foobar.db', options);
 
 db.on('open', function () {
-	var row = db.statement('SELECT * FROM users WHERE id=?').get(userId);
+	var row = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
 	console.log(row.firstName, row.lastName, row.email);
 });
 ```

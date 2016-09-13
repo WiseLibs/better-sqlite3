@@ -3,7 +3,7 @@
 module.exports = function (db, count, SQL, values, callback) {
 	if (db.pragma) {
 		var run = function (values, cb) {
-			cb(null, db.statement(SQL).run(values));
+			cb(null, db.prepare(SQL).run(values));
 		};
 	} else {
 		var run = function (values, cb) {

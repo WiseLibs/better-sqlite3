@@ -30,9 +30,9 @@ function ourTest(db, count, countPerCycle, params, done) {
 	(function request() {
 		for (var i=0; i<countPerCycle; ++i) {
 			if (i % 2) {
-				exports.data = db.statement('INSERT INTO entries VALUES (?, ?, ?)').run(params);
+				exports.data = db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(params);
 			} else {
-				exports.data = db.statement('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
+				exports.data = db.prepare('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
 			}
 		}
 		if ((requested += countPerCycle) < count) {
