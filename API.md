@@ -148,6 +148,10 @@ Returns whether the prepared statement is read-only.
 
 An object representing many SQL statements grouped into a single logical [transaction](https://www.sqlite.org/lang_transaction.html).
 
+- [Transaction#run()](#runbindparameters---object)
+- [Transaction#bind()](#bindbindparameters---this)
+- [Transaction#source](#get-source---string)
+
 ### .run([*...bindParameters*]) -> *object*
 
 Similar to [`Statement#run()`](#runbindparameters---object).
