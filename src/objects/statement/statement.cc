@@ -4,6 +4,7 @@
 #include "statement.h"
 #include "../query.h"
 #include "../database/database.h"
+#include "../int64/int64.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/list.h"
@@ -34,6 +35,7 @@ void Statement::Init() {
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), Readonly);
+	Nan::SetPrototypeMethod(t, "safeIntegers", SafeIntegers);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
 	Nan::SetPrototypeMethod(t, "run", Run);

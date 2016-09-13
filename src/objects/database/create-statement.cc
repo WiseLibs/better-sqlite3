@@ -51,6 +51,7 @@ NAN_METHOD(Database::CreateStatement) {
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);
+	if (db->safe_ints) {stmt->state |= SAFE_INTS;}
 	
 	// Pushes onto stmts set.
 	stmt->id = NEXT_STATEMENT_ID++;

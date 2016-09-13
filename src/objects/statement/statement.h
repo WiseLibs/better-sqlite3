@@ -29,6 +29,7 @@ class Statement : public Nan::ObjectWrap, public Query {
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
 		static NAN_GETTER(Readonly);
+		static NAN_METHOD(SafeIntegers);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
 		static NAN_METHOD(Run);

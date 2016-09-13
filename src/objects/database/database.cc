@@ -24,13 +24,15 @@ Nan::Persistent<v8::Function> NullFactory;
 #include "create-transaction.cc"
 #include "pragma.cc"
 #include "checkpoint.cc"
+#include "util.cc"
 
 Database::Database() : Nan::ObjectWrap(),
 	db_handle(NULL),
 	t_handles(NULL),
 	state(DB_CONNECTING),
 	workers(0),
-	in_each(false) {}
+	in_each(false),
+	safe_ints(false) {}
 Database::~Database() {
 	state = DB_DONE;
 	
@@ -55,6 +57,7 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
+	Nan::SetPrototypeMethod(t, "defaultSafeIntegers", DefaultSafeIntegers);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
 	Nan::Set(exports, Nan::New("Database").ToLocalChecked(),

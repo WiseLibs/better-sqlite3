@@ -36,6 +36,8 @@ NAN_METHOD(Statement::Each) {
 			return;
 		}
 		
+		// Refresh SAFE_INTEGERS, since anything could have happened during the callback.
+		SAFE_INTEGERS = stmt->state & SAFE_INTS ? true : false;
 	}
 	if (sqlite3_reset(stmt->st_handle) == SQLITE_OK) {
 		stmt->db->in_each = false;

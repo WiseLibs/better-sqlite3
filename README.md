@@ -282,6 +282,18 @@ db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff
 db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0fff5678));
 ```
 
+By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](#runbindparameters---object) methods). If these numbers get too high (larger than 9007199254740991), their values will be incorrect, potentially causing very bad errors. You can change this default by invoking `db.defaultSafeIntegers(true)`.
+
+Additionally, you can override the default for individual [`statements`](#class-statement) and [`transactions`](#class-transaction) like so:
+
+```js
+db.statement(SQL).safeIntegers(); // Safe integers ON
+db.statement(SQL).safeIntegers(true); // Safe integers ON
+db.statement(SQL).safeIntegers(false); // Safe integers OFF
+
+// You can do the same thing with Transaction objects.
+```
+
 # SQLite3 compilation options
 
 The following [compilation options](https://www.sqlite.org/compile.html) are used:

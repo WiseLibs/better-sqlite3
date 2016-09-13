@@ -13,7 +13,8 @@
 #define BOUND 0x02
 #define USED_BIND_MAP 0x4
 #define HAS_BIND_MAP 0x8
-#define PLUCK_COLUMN 0x10
+#define SAFE_INTS 0x10
+#define PLUCK_COLUMN 0x20
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
@@ -199,7 +200,8 @@ inline bool IS_32BIT_INT(double num) {
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \
-	}
+	}                                                                          \
+	SAFE_INTEGERS = obj->state & SAFE_INTS ? true : false;
 
 // The macro-instruction that MUST be run before returning from a query.
 #define QUERY_CLEANUP(obj, UNBIND_MACRO)                                       \

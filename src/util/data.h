@@ -6,6 +6,7 @@
 #include <cstring>
 #include <sqlite3.h>
 #include <nan.h>
+#include "../objects/int64/int64.h"
 
 namespace Data {
 
@@ -37,8 +38,8 @@ class Value { public:
 // An SQLite3 integer value.
 class Integer : public Data::Value { public:
 	Integer(sqlite3_int64 n) : value(n) {}
-	Integer(v8::Local<v8::Number> n) : value((sqlite3_int64)n->Value()) {}
-	v8::Local<v8::Value> ToJS() {return Nan::New<v8::Number>((double)value);}
+	Integer(v8::Local<v8::Object> n) : value(Nan::ObjectWrap::Unwrap<Int64>(n)->GetValue()) {}
+	v8::Local<v8::Value> ToJS() {return Int64::NewProperInteger(value);}
 	sqlite3_int64 value;
 };
 
