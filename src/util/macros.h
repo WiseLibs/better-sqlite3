@@ -101,16 +101,6 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 	}                                                                          \
 	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
 
-// If the argument of the given index is not a function, an error is thrown and
-// the caller returns. Otherwise, it is cast to a v8::Function and made
-// available at the given variable name.
-#define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
-	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
-		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a function.");                 \
-	}                                                                          \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
-
 // If the last argument is not a function, an error is thrown and the caller
 // returns. Otherwise, it is cast to a v8::Function and made available at the
 // given variable name.

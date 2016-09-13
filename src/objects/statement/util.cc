@@ -1,3 +1,5 @@
+extern Nan::Persistent<v8::Function> NullFactory;
+
 // Used by std::set to organize the pointers it holds.
 bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
 	return a->id < b->id;
@@ -11,7 +13,7 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
 	}
 	int param_count = sqlite3_bind_parameter_count(st_handle);
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::Cast(db->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("NF")));
+	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
 	v8::Local<v8::Object> namedParams = Nan::NewInstance(cons).ToLocalChecked();
 	for (int i=1; i<=param_count; ++i) {
 		const char* name = sqlite3_bind_parameter_name(st_handle, i);

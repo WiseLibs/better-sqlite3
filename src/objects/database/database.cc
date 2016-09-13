@@ -15,6 +15,7 @@ const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::Dont
 bool CONSTRUCTING_PRIVILEGES = false;
 sqlite3_uint64 NEXT_STATEMENT_ID = 0;
 sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
+Nan::Persistent<v8::Function> NullFactory;
 
 #include "new.cc"
 #include "open.cc"
@@ -42,7 +43,7 @@ Database::~Database() {
 	
 	CloseHandles();
 }
-NAN_MODULE_INIT(Database::Init) {
+void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	Nan::HandleScope scope;
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
@@ -56,8 +57,13 @@ NAN_MODULE_INIT(Database::Init) {
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
 	
-	Nan::Set(target, Nan::New("Database").ToLocalChecked(),
+	Nan::Set(exports, Nan::New("Database").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
+	
+	// Save NullFactory to persistent handle.
+	v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(Nan::Get(module, Nan::New("require").ToLocalChecked()).ToLocalChecked());
+	v8::Local<v8::Value> args[1] = {Nan::New("../../lib/null-factory.js").ToLocalChecked()};
+	NullFactory.Reset(v8::Local<v8::Function>::Cast(Nan::Call(require, module, 1, args).ToLocalChecked()));
 }
 
 // Returns an SQLite3 result code.

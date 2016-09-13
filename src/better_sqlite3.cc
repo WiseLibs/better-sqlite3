@@ -3,10 +3,10 @@
 #include "objects/statement/statement.h"
 #include "objects/transaction/transaction.h"
 
-NAN_MODULE_INIT(RegisterModule) {
+void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	Nan::HandleScope scope;
 	
-	Database::Init(target);
+	Database::Init(exports, module);
 	Statement::Init();
 	Transaction::Init();
 }
