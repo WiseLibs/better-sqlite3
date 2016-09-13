@@ -280,7 +280,7 @@ You can convert any `Int64` to a string to see its full value. If you try to con
 
 ### Binding Int64s
 
-`Int64s` can be bound to [`Statements`](#class-statement) and [`Transactions`](#class-transaction) just like normal numbers.
+`Int64s` can bind to [`Statements`](#class-statement) and [`Transactions`](#class-transaction) just like normal numbers.
 
 ```js
 db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
