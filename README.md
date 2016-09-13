@@ -104,7 +104,7 @@ Executes the prepared statement. When execution completes it returns an `info` o
 
 If execution of the statement fails, an `Error` is thrown.
 
-You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .get([*...bindParameters*]) -> *row*
 
@@ -114,7 +114,7 @@ Executes the prepared statement. When execution completes it returns an object t
 
 If the statement was successful but found no data, `undefined` is returned. If execution of the statement fails, an `Error` is thrown.
 
-You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .all([*...bindParameters*]) -> *array of rows*
 
@@ -124,7 +124,7 @@ Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving 
 
 If no rows are found, the array will be empty. If execution of the statement fails, an `Error` is thrown.
 
-You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .each([*...bindParameters*], callback) -> *undefined*
 
@@ -134,7 +134,7 @@ Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of return
 
 After all rows have been consumed, `undefined` is returned. If execution of the statement fails, an `Error` is thrown and iteration stops.
 
-You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .pluck() -> *this*
 
@@ -177,7 +177,7 @@ When execution completes it returns an `info` object describing any changes made
 
 If execution of the transaction fails, an `Error` is thrown.
 
-You can optionally specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ### .bind([*...bindParameters*]) -> *this*
 
