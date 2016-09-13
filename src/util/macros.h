@@ -11,8 +11,9 @@
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
 #define BOUND 0x02
-#define HAS_BIND_MAP 0x4
-#define PLUCK_COLUMN 0x8
+#define USED_BIND_MAP 0x4
+#define HAS_BIND_MAP 0x8
+#define PLUCK_COLUMN 0x10
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {
