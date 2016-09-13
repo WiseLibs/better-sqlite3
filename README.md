@@ -4,7 +4,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 
 - Full transaction support
 - Geared for performance and efficiency
-- Idiomatic synchronous API
+- Easy-to-use synchronous API *(faster than an asynchronous API)*
 
 ## Installation
 
@@ -21,7 +21,7 @@ var db = new Database('foobar.db', options);
 db.on('open', function () {
 	var row = db.statement('SELECT * FROM users WHERE id=?').get(userId);
 	console.log(row.firstName, row.lastName, row.email);
-})
+});
 ```
 
 ## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
