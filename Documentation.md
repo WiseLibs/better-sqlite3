@@ -1,6 +1,3 @@
-# Documentation
-
-Table of Contents:
 - [API documentation](https://github.com/JoshuaWise/better-sqlite3/wiki/API)
 - [Performance](https://github.com/JoshuaWise/better-sqlite3/wiki/Performance)
 - [64-bit integer support](https://github.com/JoshuaWise/better-sqlite3/wiki/64-bit-integer-support)
