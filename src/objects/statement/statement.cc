@@ -48,7 +48,7 @@ CONSTRUCTOR(Statement::constructor);
 // Returns true if the handles have not been previously closed.
 bool Statement::CloseHandles() {
 	if (st_handle) {
-		sqlite3_clear_bindings(st_handle);
+		if (state & BOUND) {sqlite3_clear_bindings(st_handle);}
 		sqlite3_finalize(st_handle);
 		st_handle = NULL;
 		return true;
