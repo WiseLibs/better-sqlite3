@@ -5,15 +5,15 @@
 #include <nan.h>
 #include "int64.h"
 
-Int64::Int64(uint32_t low, uint32_t high) : Nan::ObjectWrap(),
+Int64::Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
 	low(low),
 	high(high) {
-		full = (sqlite3_int64)(((sqlite3_uint64)high) << 32 | low);
+		full = (sqlite3_int64)((((sqlite3_uint64)((uint32_t)high)) << 32) | (uint32_t)low);
 	}
 Int64::Int64(sqlite3_int64 full) : Nan::ObjectWrap(),
 	full(full) {
-		low = (uint32_t)((sqlite3_uint64)full);
-		high = (uint32_t)(((sqlite3_uint64)full) >> 32);
+		low = (int32_t)((uint32_t)(((sqlite3_uint64)full) & (sqlite3_uint64)0xffffffff));
+		high = (int32_t)((uint32_t)(((sqlite3_uint64)full) >> 32));
 	}
 void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	Nan::HandleScope scope;
@@ -49,11 +49,11 @@ NAN_METHOD(Int64::New) {
 	}
 	low = low_number->Value();
 	
-	if (!IS_POSITIVE_INTEGER(low) || !IS_POSITIVE_INTEGER(high) || low > (double)0xffffffff || high > (double)0xffffffff) {
-		return Nan::ThrowTypeError("Expected both arguments to be 32 bit unsigned integers.");
+	if (!IS_32BIT_INT(low) || !IS_32BIT_INT(high)) {
+		return Nan::ThrowTypeError("Expected both arguments to be 32 bit signed integers.");
 	}
 	
-	Int64* int64 = new Int64((uint32_t)low, (uint32_t)high);
+	Int64* int64 = new Int64((int32_t)low, (int32_t)high);
 	int64->Wrap(info.This());
 	info.GetReturnValue().Set(info.This());
 }
