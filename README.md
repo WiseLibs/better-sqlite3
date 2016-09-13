@@ -65,7 +65,7 @@ var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
 
 The data returned by `.pragma()` is always in string format. If execution of the PRAGMA fails, an `Error` is thrown.
 
-It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA statements can be found [here](https://www.sqlite.org/pragma.html).
+It's better to use this method instead of normal [prepared statements](#statementstring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
 
 ### .checkpoint([*force*]) -> *number*
 
