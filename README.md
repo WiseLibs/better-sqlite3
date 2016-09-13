@@ -299,9 +299,10 @@ db.defaultSafeIntegers(false); // JavaScript numbers by default
 Additionally, you can override the default for individual [`statements`](#class-statement) and [`transactions`](#class-transaction) like so:
 
 ```js
-db.statement(SQL).safeIntegers(); // Safe integers ON
-db.statement(SQL).safeIntegers(true); // Safe integers ON
-db.statement(SQL).safeIntegers(false); // Safe integers OFF
+var stmt = db.statement(SQL);
+stmt.safeIntegers(); // Safe integers ON
+stmt.safeIntegers(true); // Safe integers ON
+stmt.safeIntegers(false); // Safe integers OFF
 
 // You can do the same thing with Transaction objects.
 ```
