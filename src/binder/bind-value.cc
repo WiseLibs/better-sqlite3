@@ -12,6 +12,11 @@ void Binder::BindValue(v8::Local<v8::Value> value, int index) {
 	} else if (node::Buffer::HasInstance(value)) {
 		BindBuffer(v8::Local<v8::Object>::Cast(value), index);
 	} else {
-		error = "SQLite3 can only bind numbers, strings, Buffers, and null.";
+		v8::Local<v8::FunctionTemplate> Int64Template = Nan::New<v8::FunctionTemplate>(Int64::constructorTemplate);
+		if (Int64Template->HasInstance(value)) {
+			BindInt64(Nan::ObjectWrap::Unwrap<Int64>(v8::Local<v8::Object>::Cast(value)), index);
+		} else {
+			error = "SQLite3 can only bind numbers, strings, Buffers, and null.";
+		}
 	}
 }
