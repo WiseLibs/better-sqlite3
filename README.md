@@ -262,24 +262,24 @@ SQLite3 can store data in 64-bit signed integers, which are too big for JavaScri
 ```js
 var Int64 = require('better-sqlite3').Int64;
 
-var number = new Int64(0xabcd1234, 0x00005678);
-number.toString(); // returns "95076278407732"
-+number;           // returns 95076278407732
+var number = new Int64(0x1234abcd, 0x00005678);
+number.toString(); // returns "95073701505997"
++number;           // returns 95073701505997
 
-var bigNumber = new Int64(0xabcd1234, 0x0fff5678);
-bigNumber.toString(); // returns "1152735105908544052"
+var bigNumber = new Int64(0x01234abcd, 0x0fff5678);
+bigNumber.toString(); // returns "1152735103331642317"
 +bigNumber;           // returns NaN, cannot be represented in JavaScript
 ```
 
-An `Int64` is constructed of two parts: its lower 32 bits, and its higher 32 bits, respectively. The higher bits are optional, and default to `0`. Both components are unsigned.
+An `Int64` is constructed of two parts: its lower 32 bits, and its higher 32 bits, respectively. The higher bits are optional, and default to `0`.
 
 You can convert any `Int64` to a string to see its full value. If you try to convert an `Int64` to a JavaScript number, it will convert to `NaN` if the number is too big to be accurately represented.
 
 `Int64s` can be bound to [`Statements`](#class-statement) and [`Transactions`](#class-transaction) just like normal numbers.
 
 ```js
-db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0xabcd1234, 0x0fff5678));
-db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0xabcd1234, 0x0fff5678));
+db.statement("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
+db.statement("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0fff5678));
 ```
 
 # SQLite3 compilation options

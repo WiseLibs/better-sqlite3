@@ -26,10 +26,14 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 	return str;
 }
 
-// Given a double, returns whether the number is non-negative, finite, and
-// an integer.
-inline bool IS_POSITIVE_INTEGER(double num) {
-	return std::isfinite(num) && num >= 0 && floor(num) == num;
+// Given a double, returns whether the number is a valid 32-bit unsigned integer.
+inline bool IS_32BIT_UINT(double num) {
+	return floor(num) == num && num < 4294967296 && num >= 0;
+}
+
+// Given a double, returns whether the number is a valid 32-bit signed integer.
+inline bool IS_32BIT_INT(double num) {
+	return floor(num) == num && num < 2147483648 && num >= -2147483648;
 }
 
 // Creates a stack-allocated buffer of the concatenation of 2 well-formed
