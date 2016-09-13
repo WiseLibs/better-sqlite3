@@ -257,7 +257,7 @@ To prevent this, you can use the [db.checkpoint()](#checkpointforce---number) me
 
 # 64-bit integer support
 
-SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/IEEE_floating_point) to fully represent. To support this data type, `better-sqlite3` provides the `Int64` class:
+SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/IEEE_floating_point) to fully represent. To support this data type, `better-sqlite3` provides the immutable `Int64` class:
 
 ```js
 var Int64 = require('better-sqlite3').Int64;
@@ -269,6 +269,9 @@ number.toString(); // returns "95073701505997"
 var bigNumber = new Int64(0x01234abcd, 0x0fff5678);
 bigNumber.toString(); // returns "1152735103331642317"
 +bigNumber;           // returns NaN, cannot be represented in JavaScript
+
+number.equals(bigNumber); // returns false
+number.equals(+number); // returns true
 ```
 
 An `Int64` is constructed of two parts: its lower 32 bits, and its higher 32 bits, respectively. The higher bits are optional, and default to `0`.
@@ -292,6 +295,16 @@ db.statement(SQL).safeIntegers(true); // Safe integers ON
 db.statement(SQL).safeIntegers(false); // Safe integers OFF
 
 // You can do the same thing with Transaction objects.
+```
+
+`Int64` objects are very basic and do not provide advanced functionality. However, they expose accessors for their `low` and `high` bits, which matches the API for the very comprehensive [Long](https://github.com/dcodeIO/long.js) library. If you need to manipulate 64 bit integers, the strategy is quite simple:
+
+```js
+var Int64 = require('better-sqlite3').Int64;
+Object.assign(Int64.prototype, require('long').prototype);
+
+var int64 = statement.safeIntegers().pluck().get();
+int64 = int64.multiply(2); // You can use methods from the Long library now
 ```
 
 # SQLite3 compilation options
