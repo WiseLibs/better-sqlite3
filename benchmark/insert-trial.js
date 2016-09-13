@@ -18,7 +18,7 @@ module.exports = function (ourDb, theirDb, count, params) {
 function ourTest(db, count, params, done) {
 	var t0 = process.hrtime();
 	for (var i=0; i<count; ++i) {
-		db.statement('INSERT INTO entries VALUES (?, ?, ?)').run(params);
+		db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(params);
 	}
 	var td = process.hrtime(t0);
 	report('better-sqlite3', count, td);

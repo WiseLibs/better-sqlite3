@@ -53,7 +53,7 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	t->SetClassName(Nan::New("Database").ToLocalChecked());
 	
 	Nan::SetPrototypeMethod(t, "close", Close);
-	Nan::SetPrototypeMethod(t, "statement", CreateStatement);
+	Nan::SetPrototypeMethod(t, "prepare", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);

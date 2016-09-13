@@ -10,7 +10,7 @@ module.exports = function (sql, name, callback) {
 	
 	function open() {
 		if (++opened === 2) {
-			ourDb.statement(sql).run();
+			ourDb.prepare(sql).run();
 			theirDb.run(sql, function (err) {
 				if (err) {
 					console.error(err);

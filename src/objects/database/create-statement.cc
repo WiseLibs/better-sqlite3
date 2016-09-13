@@ -1,4 +1,4 @@
-// .statement(string sql) -> Statement
+// .prepare(string sql) -> Statement
 
 NAN_METHOD(Database::CreateStatement) {
 	REQUIRE_ARGUMENT_STRING(0, source);

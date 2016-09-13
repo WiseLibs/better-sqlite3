@@ -24,12 +24,12 @@ function ourTest(db, count, SQL, pluck, done) {
 	if (pluck) {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			exports.data = db.statement(SQL).pluck().all();
+			exports.data = db.prepare(SQL).pluck().all();
 		}
 	} else {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			exports.data = db.statement(SQL).all();
+			exports.data = db.prepare(SQL).all();
 		}
 	}
 	var td = process.hrtime(t0);
