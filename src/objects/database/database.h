@@ -19,7 +19,7 @@ class Database : public Nan::ObjectWrap {
 	public:
 		Database();
 		~Database();
-		static NAN_MODULE_INIT(Init);
+		static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
 		
 		// Friends
 		friend class Statement;

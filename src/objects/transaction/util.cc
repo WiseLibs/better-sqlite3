@@ -1,3 +1,5 @@
+extern Nan::Persistent<v8::Function> NullFactory;
+
 // Used by std::set to organize the pointers it holds.
 bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) {
 	return a->id < b->id;
@@ -11,7 +13,7 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 	if (state & HAS_BIND_MAP) {
 		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
 	}
-	v8::Local<v8::Function> cons = v8::Local<v8::Function>::Cast(db->handle()->GetHiddenValue(NEW_INTERNAL_STRING_FAST("NF")));
+	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
 	v8::Local<v8::Object> array = Nan::New<v8::Object>();
 	for (unsigned int h=0; h<handle_count; ++h) {
 		sqlite3_stmt* handle = handles[h];
