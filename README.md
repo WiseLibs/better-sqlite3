@@ -50,7 +50,7 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 
 Creates a new prepared [`Transaction`](#class-transaction) from the given array of SQL strings.
 
-*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement). This may change in the future.
+*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, transactions serve the sole purpose of batch-write operations. For read-only operations, use regular [prepared statements](#statementstring---statement). This restriction may change in the future.
 
 ### .pragma(*string*, [*simplify*]) -> *results*
 
