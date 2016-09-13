@@ -1,6 +1,3 @@
 ---------- Version 1 ----------
 write tests
 compare tests to node-sqlite3
-
----------- Version 2 ----------
-use special objects to deal with 64bit integers
