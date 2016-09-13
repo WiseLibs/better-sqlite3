@@ -154,3 +154,40 @@ Same as [`Statement#bind()`](#bindbindparameters---this).
 ### *get* .source -> *string*
 
 Returns a concatenation of every source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
+
+# Binding Parameters
+
+This section refers to anywhere in the documentation that specifies the optional argument [*`...bindParameters`*].
+
+There are many ways to bind parameters to a prepared statement or transaction. The simplest way is with anonymous parameters:
+
+```js
+var stmt = db.statement('INSERT INTO people VALUES (?, ?, ?)');
+
+// The following are equivalent.
+stmt.run('John', 'Smith', 45);
+stmt.run(['John', 'Smith', 45]);
+stmt.run(['John'], ['Smith', 45]);
+```
+
+You can also use named parameters. SQLite3 provides [4 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), **three** of which are supported by `better-sqlite3` (`@foo`, `:foo`, and `$foo`). However, if you use named parameters, make sure to only use **one** syntax within a given [`Statement`](#class-statement) or [`Transaction`](#class-transaction) object. Mixing syntaxes within the same object is not supported.
+
+```js
+// The following are equivalent.
+var stmt = db.statement('INSERT INTO people VALUES (@firstName, @lastName, @age)');
+var stmt = db.statement('INSERT INTO people VALUES (:firstName, :lastName, :age)');
+var stmt = db.statement('INSERT INTO people VALUES ($firstName, $lastName, $age)');
+
+stmt.run({
+	firstName: 'John',
+	lastName: 'Smith',
+	age: 45
+});
+```
+
+Below is an example of mixing anonymous parameters with named parameters.
+
+```js
+var stmt = db.statement('INSERT INTO people VALUES (@name, @name, ?)');
+stmt.run(45, {name: 'Henry'});
+```
