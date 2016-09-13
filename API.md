@@ -1,4 +1,6 @@
-# new Database(*path*, [*options*])
+# class *Database*
+
+### new Database(*path*, [*options*])
 
 Creates a new database connection. If the database file does not exist, it is created.
 
