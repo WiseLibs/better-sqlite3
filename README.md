@@ -190,7 +190,7 @@ Returns a concatenation of every source string that was used to create the prepa
 
 # Binding Parameters
 
-This section applies to anywhere in the documentation that specifies the optional argument *`[...bindParameters]`*.
+This section applies to anywhere in the documentation that specifies the optional argument `[*...bindParameters*]`.
 
 There are many ways to bind parameters to a prepared statement or transaction. The simplest way is with anonymous parameters:
 
