@@ -1,5 +1,3 @@
-extern Nan::Persistent<v8::Function> NullFactory;
-
 // Used by std::set to organize the pointers it holds.
 bool Statement::Compare::operator() (const Statement* a, const Statement* b) {
 	return a->id < b->id;
