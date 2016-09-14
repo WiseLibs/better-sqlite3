@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = function (ourDb, theirDb, count, countPerCycle) {
+module.exports = function (ourDbs, theirDbs, count, countPerCycle) {
 	if (countPerCycle > 1000) {
 		throw new Error('countPerCycle must be <= 1000');
 	}
@@ -10,18 +10,20 @@ module.exports = function (ourDb, theirDb, count, countPerCycle) {
 	}
 	function callback0() {
 		global.gc();
-		ourTest(ourDb, count, countPerCycle, params, callback1);
+		ourTest(ourDbs, count, countPerCycle, params, callback1);
 	}
 	function callback1() {
 		global.gc();
-		theirTest(theirDb, count, countPerCycle, params, callback2);
+		theirTest(theirDbs, count, countPerCycle, params, callback2);
 	}
 	function callback2() {
 		var closedCount = 0;
-		ourDb.on('close', closed).close();
-		theirDb.close(closed);
+		ourDbs[0].on('close', closed).close();
+		ourDbs[1].on('close', closed).close();
+		theirDbs[0].close(closed);
+		theirDbs[1].close(closed);
 		function closed() {
-			++closedCount === 2 && process.exit();
+			++closedCount === 4 && process.exit();
 		}
 	}
 	setTimeout(callback0, 100);
@@ -29,15 +31,15 @@ module.exports = function (ourDb, theirDb, count, countPerCycle) {
 
 exports.data = undefined;
 
-function ourTest(db, count, countPerCycle, params, done) {
+function ourTest(dbs, count, countPerCycle, params, done) {
 	var requested = 0;
 	var t0 = process.hrtime();
 	(function request() {
 		for (var i=0; i<countPerCycle; ++i) {
 			if (i % 2) {
-				exports.data = db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(params);
+				exports.data = dbs[0].prepare('INSERT INTO entries VALUES (?, ?, ?)').run(params);
 			} else {
-				exports.data = db.prepare('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
+				exports.data = dbs[1].prepare('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
 			}
 		}
 		if ((requested += countPerCycle) < count) {
@@ -49,7 +51,7 @@ function ourTest(db, count, countPerCycle, params, done) {
 		}
 	}());
 }
-function theirTest(db, count, countPerCycle, params, done) {
+function theirTest(dbs, count, countPerCycle, params, done) {
 	var requested = 0;
 	var completed = 0;
 	var failures = 0;
@@ -57,9 +59,9 @@ function theirTest(db, count, countPerCycle, params, done) {
 	(function request() {
 		for (var i=0; i<countPerCycle; ++i) {
 			if (i % 2) {
-				db.run('INSERT INTO entries VALUES (?, ?, ?)', params, callback);
+				dbs[0].run('INSERT INTO entries VALUES (?, ?, ?)', params, callback);
 			} else {
-				db.get('SELECT name FROM entries WHERE rowid=?', i + 1, callback);
+				dbs[1].get('SELECT name FROM entries WHERE rowid=?', i + 1, callback);
 			}
 		}
 		if ((requested += countPerCycle) < count) {
@@ -79,5 +81,5 @@ function theirTest(db, count, countPerCycle, params, done) {
 
 function report(name, count, time) {
 	var ms = time[0] * 1000 + Math.round(time[1] / 1000000);
-	console.log(name + '\t' + count + ' INSERT or SELECTs in ' + ms + 'ms');
+	console.log(name + '\t' + count + ' overlapping INSERT or SELECTs in ' + ms + 'ms');
 }

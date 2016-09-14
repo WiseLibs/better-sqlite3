@@ -10,7 +10,12 @@ module.exports = function (ourDb, theirDb, count, params) {
 		theirTest(theirDb, count, params, callback2);
 	}
 	function callback2() {
-		process.exit();
+		var closedCount = 0;
+		ourDb.on('close', closed).close();
+		theirDb.close(closed);
+		function closed() {
+			++closedCount === 2 && process.exit();
+		}
 	}
 	setTimeout(callback0, 100);
 };

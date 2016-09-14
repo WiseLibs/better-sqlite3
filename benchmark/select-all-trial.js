@@ -13,7 +13,12 @@ exports = module.exports = function (ourDb, theirDb, count, small) {
 		theirTest(theirDb, count, SQL, small, callback2);
 	}
 	function callback2() {
-		process.exit();
+		var closedCount = 0;
+		ourDb.on('close', closed).close();
+		theirDb.close(closed);
+		function closed() {
+			++closedCount === 2 && process.exit();
+		}
 	}
 	setTimeout(callback0, 100);
 };
