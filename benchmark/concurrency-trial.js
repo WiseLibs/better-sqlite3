@@ -39,7 +39,7 @@ function ourTest(dbs, count, countPerCycle, params, done) {
 			if (i % 2) {
 				exports.data = dbs[0].prepare('INSERT INTO entries VALUES (?, ?, ?)').run(params);
 			} else {
-				exports.data = dbs[1].prepare('SELECT name FROM entries WHERE rowid=?').pluck().get(i + 1);
+				exports.data = dbs[1].prepare('SELECT name FROM entries WHERE rowid=?').pluck().get(i % 1000 + 1);
 			}
 		}
 		if ((requested += countPerCycle) < count) {
@@ -61,7 +61,7 @@ function theirTest(dbs, count, countPerCycle, params, done) {
 			if (i % 2) {
 				dbs[0].run('INSERT INTO entries VALUES (?, ?, ?)', params, callback);
 			} else {
-				dbs[1].get('SELECT name FROM entries WHERE rowid=?', i + 1, callback);
+				dbs[1].get('SELECT name FROM entries WHERE rowid=?', i % 1000 + 1, callback);
 			}
 		}
 		if ((requested += countPerCycle) < count) {

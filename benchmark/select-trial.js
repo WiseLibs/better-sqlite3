@@ -29,12 +29,12 @@ function ourTest(db, count, SQL, pluck, done) {
 	if (pluck) {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			exports.data = db.prepare(SQL).pluck().get(i + 1);
+			exports.data = db.prepare(SQL).pluck().get(i % 1000 + 1);
 		}
 	} else {
 		var t0 = process.hrtime();
 		for (var i=0; i<count; ++i) {
-			exports.data = db.prepare(SQL).get(i + 1);
+			exports.data = db.prepare(SQL).get(i % 1000 + 1);
 		}
 	}
 	var td = process.hrtime(t0);
@@ -46,7 +46,7 @@ function theirTest(db, count, SQL, pluck, done) {
 	var failures = 0;
 	var t0 = process.hrtime();
 	for (var i=0; i<count; ++i) {
-		db.get(SQL, i + 1, callback);
+		db.get(SQL, i % 1000 + 1, callback);
 	}
 	function callback(err, data) {
 		exports.data = data;
