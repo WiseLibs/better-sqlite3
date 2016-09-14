@@ -1,17 +1,17 @@
-Concurrently reading and writing on multiple connections (WAL mode).
+### Concurrently reading and writing on multiple connections (WAL mode)
 ```
 better-sqlite3	10000 overlapping INSERT or SELECTs in 268ms
 node-sqlite3	10000 overlapping INSERT or SELECTs in 553ms
 ```
 
-Reading and writing on a single connection (normal journal mode).
+### Reading and writing on a single connection
+normal journal mode:
 ```
 better-sqlite3	1000 INSERT or SELECTs in 409ms
 node-sqlite3	1000 INSERT or SELECTs in 793ms
 ```
 
-
-Reading and writing on a single connection (WAL mode).
+WAL mode:
 ```
 better-sqlite3	10000 INSERT or SELECTs in 265ms
 node-sqlite3	10000 INSERT or SELECTs in 282ms
