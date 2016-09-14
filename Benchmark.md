@@ -1,4 +1,4 @@
-# Running the benchmarks
+# Running the benchmark
 
 To run the benchmark yourself:
 ```bash
