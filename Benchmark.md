@@ -12,8 +12,9 @@ node benchmark
 
 These results are from 09/13/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
 
-### Concurrently reading and writing on multiple connections (WAL mode)
+### Concurrently reading and writing on multiple connections
 ```
+--- WAL mode ---
 better-sqlite3	10000 overlapping INSERT or SELECTs in 268ms
 node-sqlite3	10000 overlapping INSERT or SELECTs in 553ms
 ```
