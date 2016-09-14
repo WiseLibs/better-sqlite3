@@ -2,7 +2,7 @@
 
 To run the benchmark yourself:
 ```bash
-https://github.com/JoshuaWise/better-sqlite3.git
+git clone https://github.com/JoshuaWise/better-sqlite3.git
 cd better-sqlite3
 npm install
 node benchmark
