@@ -19,40 +19,35 @@ node-sqlite3	10000 overlapping INSERT or SELECTs in 553ms
 ```
 
 ### Reading and writing on a single connection
-normal journal mode:
+
 ```
+--- normal journal mode ---
 better-sqlite3	1000 INSERT or SELECTs in 409ms
 node-sqlite3	1000 INSERT or SELECTs in 793ms
-```
 
-WAL mode:
-```
+--- WAL mode ---
 better-sqlite3	10000 INSERT or SELECTs in 265ms
 node-sqlite3	10000 INSERT or SELECTs in 282ms
 ```
 
 ### Inserting small rows of data individually (`.run()`)
-normal journal mode:
 ```
+--- normal journal mode ---
 better-sqlite3	500 INSERTs in 1414ms
 node-sqlite3	500 INSERTs in 2776ms
-```
 
-WAL mode:
-```
+--- WAL mode ---
 better-sqlite3	5000 INSERTs in 152ms
 node-sqlite3	5000 INSERTs in 144ms
 ```
 
 ### Inserting large rows of data individually (`.run()`)
-normal journal mode:
 ```
+--- normal journal mode ---
 better-sqlite3	250 INSERTs in 1085ms
 node-sqlite3	250 INSERTs in 1606ms
-```
 
-WAL mode:
-```
+--- WAL mode ---
 better-sqlite3	250 INSERTs in 1464ms
 node-sqlite3	250 INSERTs in 2965ms
 ```
@@ -94,27 +89,23 @@ node-sqlite3	100 SELECT iterations in 1648ms
 ```
 
 ### Inserting many small rows in a single transaction.
-normal journal mode:
 ```
+--- normal journal mode ---
 better-sqlite3	5000 INSERTs (single TRANSACTION) in 45ms
 node-sqlite3	5000 INSERTs (single TRANSACTION) in 125ms
-```
 
-WAL mode:
-```
+--- WAL mode ---
 better-sqlite3	5000 INSERTs (single TRANSACTION) in 45ms
 node-sqlite3	5000 INSERTs (single TRANSACTION) in 131ms
 ```
 
 ### Inserting many large rows in a single transaction.
-normal journal mode:
 ```
+--- normal journal mode ---
 better-sqlite3	250 INSERTs (single TRANSACTION) in 596ms
 node-sqlite3	250 INSERTs (single TRANSACTION) in 1062ms
-```
 
-WAL mode:
-```
+--- WAL mode ---
 better-sqlite3	250 INSERTs (single TRANSACTION) in 1117ms
 node-sqlite3	250 INSERTs (single TRANSACTION) in 2437ms
 ```
