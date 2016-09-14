@@ -1,3 +1,15 @@
+# Benchmark
+
+To run the benchmark yourself:
+```bash
+https://github.com/JoshuaWise/better-sqlite3.git
+cd better-sqlite3
+npm install
+node benchmark
+```
+
+These results are from 09/13/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
+
 ### Concurrently reading and writing on multiple connections (WAL mode)
 ```
 better-sqlite3	10000 overlapping INSERT or SELECTs in 268ms
