@@ -8,7 +8,7 @@ npm install
 node benchmark
 ```
 
-# Benchmark results
+# Results
 
 These results are from 09/13/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
 
