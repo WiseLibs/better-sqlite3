@@ -1,13 +1,3 @@
-# Running the benchmark
-
-To run the benchmark yourself:
-```bash
-git clone https://github.com/JoshuaWise/better-sqlite3.git
-cd better-sqlite3
-npm install
-node benchmark
-```
-
 # Benchmark results
 
 These results are from 09/13/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
@@ -117,4 +107,14 @@ WAL mode:
 ```
 better-sqlite3	250 INSERTs (single TRANSACTION) in 1117ms
 node-sqlite3	250 INSERTs (single TRANSACTION) in 2437ms
+```
+
+# Running the benchmark
+
+To run the benchmark yourself:
+```bash
+git clone https://github.com/JoshuaWise/better-sqlite3.git
+cd better-sqlite3
+npm install
+node benchmark
 ```
