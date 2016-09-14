@@ -8,7 +8,7 @@ class Int64;
 
 class Binder {
 	public:
-		Binder(sqlite3_stmt*, sqlite3_destructor_type);
+		Binder(sqlite3_stmt*, sqlite3_destructor_type, bool = false);
 		~Binder();
 		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		const char* GetError();
@@ -39,6 +39,7 @@ class Binder {
 		const char* error_full;
 		
 		sqlite3_destructor_type bind_type;
+		bool transient_buffers;
 };
 
 #endif

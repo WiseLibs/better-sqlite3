@@ -160,10 +160,22 @@ inline bool IS_32BIT_INT(double num) {
 		sqlite3_clear_bindings(trans->handles[i]);                             \
 	}
 
-// Common bind logic for statements.
+// Common bind logic for statements (must match STATEMENT_BIND_T_BUFFERS).
 #define STATEMENT_BIND(stmt, info, info_length, bind_type)                     \
 	if (info_length > 0) {                                                     \
 		Binder _binder(stmt->st_handle, bind_type);                            \
+		_binder.Bind(info, info_length, stmt);                                 \
+		const char* _err = _binder.GetError();                                 \
+		if (_err) {                                                            \
+			STATEMENT_CLEAR_BINDINGS(stmt);                                    \
+			return Nan::ThrowError(_err);                                      \
+		}                                                                      \
+	}
+
+// Should be the same as STATEMENT_BIND, but uses the transient_buffers option.
+#define STATEMENT_BIND_T_BUFFERS(stmt, info, info_length, bind_type)           \
+	if (info_length > 0) {                                                     \
+		Binder _binder(stmt->st_handle, bind_type, true);                      \
 		_binder.Bind(info, info_length, stmt);                                 \
 		const char* _err = _binder.GetError();                                 \
 		if (_err) {                                                            \
