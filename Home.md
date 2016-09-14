@@ -1,5 +1,4 @@
 - [API documentation](https://github.com/JoshuaWise/better-sqlite3/wiki/API)
-- [Performance](https://github.com/JoshuaWise/better-sqlite3/wiki/Performance)
-- [Benchmark results](https://github.com/JoshuaWise/better-sqlite3/wiki/Benchmark)
+- [Performance](https://github.com/JoshuaWise/better-sqlite3/wiki/Performance) (also see [benchmark results](https://github.com/JoshuaWise/better-sqlite3/wiki/Benchmark))
 - [64-bit integer support](https://github.com/JoshuaWise/better-sqlite3/wiki/64-bit-integer-support)
 - [SQLite3 compilation options](https://github.com/JoshuaWise/better-sqlite3/wiki/SQLite3-compilation-options)
