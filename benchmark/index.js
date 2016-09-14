@@ -43,7 +43,17 @@ require('./create-table')('CREATE TABLE entries (aaaa TEXT, bbbb INTEGER, cccc F
 	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?, ?, ?, ?)', values, filled);
 	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?, ?, ?, ?)', values, filled);
 });
-require('./create-table')('CREATE TABLE entries (name TEXT, number INTEGER, data BLOB)', 'insert-db', created);
+require('./create-table')('CREATE TABLE entries (name TEXT, number INTEGER, data BLOB)', 'insert-db', function (ourDb, theirDb) {
+	var values = [
+		'John Smith',
+		524,
+		null
+	];
+	var filledCount = 0;
+	function filled() {++filledCount === 2 && created();}
+	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?)', values, filled);
+	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?)', values, filled);
+});
 
 function next() {
 	if (!trials.length) {
