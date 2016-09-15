@@ -1,2 +1,5 @@
+remove Nan
+replace C-style casts with static_casts
+
 write tests
 compare tests to node-sqlite3
