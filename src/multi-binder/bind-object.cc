@@ -61,7 +61,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 			}
 			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(currentMap), v8::Local<v8::String>::Cast(key)).ToLocalChecked();
 			if (!indexValue->IsUndefined()) {
-				int index = (int)(v8::Local<v8::Number>::Cast(indexValue)->Value());
+				int index = static_cast<int>(v8::Local<v8::Number>::Cast(indexValue)->Value());
 				
 				// Bind value.
 				BindValue(value, index);

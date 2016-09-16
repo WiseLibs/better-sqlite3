@@ -5,6 +5,8 @@
 #include <nan.h>
 #include "int64.h"
 bool SAFE_INTEGERS = false;
+const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
+const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
 
 Int64::Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
 	low(low),
@@ -63,30 +65,30 @@ NAN_METHOD(Int64::New) {
 		return Nan::ThrowTypeError("Expected both arguments to be 32 bit signed integers.");
 	}
 	
-	Int64* int64 = new Int64((int32_t)low, (int32_t)high);
+	Int64* int64 = new Int64(static_cast<int32_t>(low), static_cast<int32_t>(high));
 	int64->Wrap(info.This());
 	info.GetReturnValue().Set(info.This());
 }
 
 NAN_GETTER(Int64::Low) {
 	info.GetReturnValue().Set(
-		Nan::New<v8::Number>((double)(Nan::ObjectWrap::Unwrap<Int64>(info.This())->low))
+		Nan::New<v8::Number>(static_cast<double>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->low))
 	);
 }
 NAN_GETTER(Int64::High) {
 	info.GetReturnValue().Set(
-		Nan::New<v8::Number>((double)(Nan::ObjectWrap::Unwrap<Int64>(info.This())->high))
+		Nan::New<v8::Number>(static_cast<double>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->high))
 	);
 }
 NAN_METHOD(Int64::ToString) {
 	info.GetReturnValue().Set(Nan::New(
-		std::to_string((long long)(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full)).c_str()
+		std::to_string(static_cast<long long>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full)).c_str()
 	).ToLocalChecked());
 }
 NAN_METHOD(Int64::ValueOf) {
 	Int64* int64 = Nan::ObjectWrap::Unwrap<Int64>(info.This());
-	if (int64->full <= (sqlite3_int64)9007199254740991 && int64->full >= (sqlite3_int64)-9007199254740991) {
-		info.GetReturnValue().Set(Nan::New<v8::Number>((double)(int64->full)));
+	if (int64->full <= MAX_SAFE && int64->full >= MIN_SAFE) {
+		info.GetReturnValue().Set(Nan::New<v8::Number>(static_cast<double>(int64->full)));
 	} else {
 		info.GetReturnValue().Set(Nan::New<v8::Number>(std::numeric_limits<double>::quiet_NaN()));
 	}
