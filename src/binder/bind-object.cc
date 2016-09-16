@@ -44,7 +44,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 			strlcpy(error_extra, *utf8, utf8.length() + 1);
 			return i - symbol_count;
 		}
-		int index = (int)(v8::Local<v8::Number>::Cast(indexValue)->Value());
+		int index = static_cast<int>(v8::Local<v8::Number>::Cast(indexValue)->Value());
 		
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);

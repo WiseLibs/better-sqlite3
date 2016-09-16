@@ -56,7 +56,7 @@ class Float : public Data::Value { public:
 // NUL-terminated string, and len should be the number of bytes in the string,
 // not including the NUL terminator.
 class Text : public Data::Value { public:
-	Text(const void* str, int byte_count) : length((size_t)(byte_count / sizeof (uint16_t))), transferred(false) {
+	Text(const void* str, int byte_count) : length(static_cast<size_t>(byte_count / sizeof (uint16_t))), transferred(false) {
 		value = new uint16_t[length];
 		memcpy(value, str, byte_count);
 	}
