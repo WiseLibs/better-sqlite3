@@ -15,7 +15,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 	
 	// Get property count.
 	unsigned int key_length = keys->Length();
-	int len = key_length > (unsigned int)0x7ffffffe ? (int)0x7ffffffe : (int)key_length;
+	int len = key_length > 0x7ffffffeU ? 0x7ffffffe : static_cast<int>(key_length);
 	int symbol_count = 0;
 	
 	// Loop through each property.
