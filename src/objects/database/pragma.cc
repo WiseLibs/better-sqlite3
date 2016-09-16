@@ -1,19 +1,28 @@
 // .pragma(string sql, [boolean simpleResult]) -> array
 
-Data::Row* PragmaMakeRowOfStrings(char** strings, int len) {
-	Data::Row* row = new Data::Row();
-	row->column_count = len;
-	row->values = new Data::Value* [len];
-	for (int i=0; i<len; ++i) {
-		row->values[i] = new Data::Text(Nan::New(strings[i]).ToLocalChecked());
-	}
-	return row;
-}
+typedef struct PragmaInfo {
+	v8::Local<v8::Value> rows;
+	bool simple;
+	bool after_first;
+} PragmaInfo;
 
 int PragmaCallback(void* x, int column_count, char** results, char** column_names) {
-	List<Data::Row>* table = static_cast<List<Data::Row>*>(x);
-	table[0].Add(PragmaMakeRowOfStrings(column_names, column_count));
-	table[1].Add(PragmaMakeRowOfStrings(results, column_count));
+	PragmaInfo* pragma_info = static_cast<PragmaInfo*>(x);
+	
+	if (pragma_info->simple) {
+		if (!pragma_info->after_first) {
+			pragma_info->after_first = true;
+			pragma_info->rows = Nan::New(results[0]).ToLocalChecked();
+		}
+	} else {
+		v8::Local<v8::Object> row = Nan::New<v8::Object>();
+		for (int i=0; i<column_count; ++i) {
+			Nan::Set(row, Nan::New(column_names[i]).ToLocalChecked(), Nan::New(results[i]).ToLocalChecked());
+		}
+		v8::Local<v8::Array> rows = v8::Local<v8::Array>::Cast(pragma_info->rows);
+		Nan::Set(rows, rows->Length(), row);
+	}
+	
 	return 0;
 }
 
@@ -34,8 +43,8 @@ NAN_METHOD(Database::Pragma) {
 	char* err;
 	
 	// Executes the SQL on the database handle.
-	List<Data::Row> table[2] {List<Data::Row>{}, List<Data::Row>{}};
-	sqlite3_exec(db->db_handle, *utf8, PragmaCallback, table, &err);
+	PragmaInfo pragma_info = {Nan::New<v8::Array>(), simple_result, false};
+	sqlite3_exec(db->db_handle, *utf8, PragmaCallback, &pragma_info, &err);
 	if (err != NULL) {
 		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
@@ -43,26 +52,9 @@ NAN_METHOD(Database::Pragma) {
 	}
 	sqlite3_free(err);
 	
-	if (simple_result) {
-		Data::Row* values = table[1].Shift();
-		if (values == NULL) {
-			info.GetReturnValue().Set(Nan::Undefined());
-		} else {
-			info.GetReturnValue().Set(values->values[0]->ToJS());
-		}
-		delete values;
+	if (simple_result && !pragma_info.after_first) {
+		info.GetReturnValue().Set(Nan::Undefined());
 	} else {
-		unsigned int i = 0;
-		v8::Local<v8::Array> arr = Nan::New<v8::Array>();
-		table[0].Flush([&arr, &i, &table] (Data::Row* keys) {
-			Data::Row* values = table[1].Shift();
-			v8::Local<v8::Object> object = Nan::New<v8::Object>();
-			for (int j=0; j<keys->column_count; ++j) {
-				Nan::Set(object, v8::Local<v8::String>::Cast(keys->values[j]->ToJS()), values->values[j]->ToJS());
-			}
-			Nan::Set(arr, i++, object);
-			delete values;
-		});
-		info.GetReturnValue().Set(arr);
+		info.GetReturnValue().Set(pragma_info.rows);
 	}
 }

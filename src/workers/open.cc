@@ -1,10 +1,13 @@
 #include <cassert>
+#include <algorithm>
 #include <sqlite3.h>
 #include <nan.h>
 #include "open.h"
 #include "../objects/database/database.h"
 #include "../util/macros.h"
 #include "../util/transaction-handles.h"
+const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
+const int max_string_size = v8::String::kMaxLength;
 
 OpenWorker::OpenWorker(Database* db, char* filename) : Nan::AsyncWorker(NULL),
 	db(db),
@@ -24,6 +27,12 @@ void OpenWorker::Execute() {
 	
 	assert(sqlite3_db_mutex(db->db_handle) == NULL);
 	sqlite3_busy_timeout(db->db_handle, 5000);
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_LENGTH, std::min(max_buffer_size, max_string_size));
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_SQL_LENGTH, max_string_size);
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_COLUMN, 0x7fffffff);
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 0x7fffffff);
+	
 	
 	db->t_handles = new TransactionHandles(db->db_handle, &status);
 	if (status != SQLITE_OK) {
