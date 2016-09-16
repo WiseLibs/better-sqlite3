@@ -9,24 +9,16 @@ NAN_METHOD(Statement::Each) {
 	QUERY_START(stmt, statement, STATEMENT_BIND_T_BUFFERS, info, func_index);
 	stmt->db->in_each = true;
 	
-	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
-		Data::Row row(stmt->st_handle, stmt->column_count);
 		v8::MaybeLocal<v8::Value> callback_return_value;
 		
-		// Flush row to callback.
-		if (stmt->state & PLUCK_COLUMN) {
-			v8::Local<v8::Value> args[1] = {row.values[0]->ToJS()};
-			callback_return_value = callback->Call(Nan::Null(), 1, args);
-		} else {
-			v8::Local<v8::Object> object = Nan::New<v8::Object>();
-			for (int i=0; i<row.column_count; ++i) {
-				Nan::Set(object, NEW_INTERNAL_STRING16(sqlite3_column_name16(stmt->st_handle, i)), row.values[i]->ToJS());
-			}
-			v8::Local<v8::Value> args[1] = {object};
-			callback_return_value = callback->Call(Nan::Null(), 1, args);
-		}
+		// The pluck setting must be within the loop, because it could change in a callback.
+		v8::Local<v8::Value> callbackValue = stmt->state & PLUCK_COLUMN
+			? Data::GetValueJS(stmt->st_handle, 0)
+			: Data::GetRowJS(stmt->st_handle, stmt->column_count);
+		v8::Local<v8::Value> args[1] = {callbackValue};
+		callback_return_value = callback->Call(Nan::Null(), 1, args);
 		
 		// If an exception was thrown in the callback, clean up and stop.
 		if (callback_return_value.IsEmpty()) {

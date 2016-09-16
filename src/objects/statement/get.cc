@@ -9,22 +9,11 @@ NAN_METHOD(Statement::Get) {
 	
 	int status = sqlite3_step(stmt->st_handle);
 	if (status == SQLITE_ROW) {
-		Data::Row row(stmt->st_handle, stmt->column_count);
-		v8::Local<v8::Value> returned_value;
-		
-		// Get result row, or plucked column.
-		if (stmt->state & PLUCK_COLUMN) {
-			returned_value = row.values[0]->ToJS();
-		} else {
-			returned_value = Nan::New<v8::Object>();
-			v8::Local<v8::Object> returned_object = v8::Local<v8::Object>::Cast(returned_value);
-			for (int i=0; i<row.column_count; ++i) {
-				Nan::Set(returned_object, NEW_INTERNAL_STRING16(sqlite3_column_name16(stmt->st_handle, i)), row.values[i]->ToJS());
-			}
-		}
-		
+		v8::Local<v8::Value> returnedValue = stmt->state & PLUCK_COLUMN
+			? Data::GetValueJS(stmt->st_handle, 0)
+			: Data::GetRowJS(stmt->st_handle, stmt->column_count);
 		sqlite3_reset(stmt->st_handle);
-		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returned_value);
+		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returnedValue);
 	} else if (status == SQLITE_DONE) {
 		sqlite3_reset(stmt->st_handle);
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, Nan::Undefined());

@@ -18,6 +18,7 @@
       },
       "sources": [
         "src/objects/int64/int64.cc",
+        "src/util/data.cc",
         "src/objects/database/database.cc",
         "src/objects/statement/statement.cc",
         "src/objects/transaction/transaction.cc",
