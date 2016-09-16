@@ -16,7 +16,7 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 	for (int i=1; i<=param_count; ++i) {
 		const char* name = sqlite3_bind_parameter_name(st_handle, i);
 		if (name != NULL) {
-			Nan::Set(namedParams, NEW_INTERNAL_STRING8(name + 1), Nan::New<v8::Number>((double)i));
+			Nan::Set(namedParams, NEW_INTERNAL_STRING8(name + 1), Nan::New<v8::Number>(static_cast<double>(i)));
 		}
 	}
 	if (state & USED_BIND_MAP) {

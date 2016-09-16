@@ -24,7 +24,7 @@ class Int64 : public Nan::ObjectWrap {
 				FastConstructInt = &value;
 				return Nan::NewInstance(Nan::New<v8::Function>(constructor)).ToLocalChecked();
 			}
-			return Nan::New<v8::Number>((double)value);
+			return Nan::New<v8::Number>(static_cast<double>(value));
 		}
 		
 	private:

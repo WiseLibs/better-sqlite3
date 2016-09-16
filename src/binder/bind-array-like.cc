@@ -5,7 +5,7 @@
 // parameters that were bound.
 
 int Binder::BindArrayLike(v8::Local<v8::Object> arr, unsigned int length) {
-	int len = length > (unsigned int)0x7ffffffe ? (int)0x7ffffffe : (int)length;
+	int len = length > 0x7ffffffeU ? 0x7ffffffe : static_cast<int>(length);
 	for (int i=0; i<len; ++i) {
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
 		if (maybeValue.IsEmpty()) {

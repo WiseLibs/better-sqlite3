@@ -46,7 +46,7 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 				return;
 			}
 			if (array_like_length >= 0) {
-				count += BindArrayLike(obj, (unsigned int)array_like_length);
+				count += BindArrayLike(obj, static_cast<unsigned int>(array_like_length));
 				if (error) {
 					return;
 				}

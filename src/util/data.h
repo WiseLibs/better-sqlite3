@@ -62,7 +62,7 @@ class Text : public Data::Value { public:
 	}
 	Text(v8::Local<v8::String> str) {
 		v8::String::Value utf16(str);
-		length = (size_t)utf16.length();
+		length = static_cast<size_t>(utf16.length());
 		value = new uint16_t[length];
 		memcpy(value, *utf16, length * sizeof (uint16_t));
 	}

@@ -1,5 +1,6 @@
 remove Nan
 replace C-style casts with static_casts
+add explicit to contructors
 test if arraybuffers or uint8arrays are faster than nodejs buffers
 
 write tests

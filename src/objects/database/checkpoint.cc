@@ -31,7 +31,7 @@ NAN_METHOD(Database::Checkpoint) {
 		info.GetReturnValue().Set(Nan::New<v8::Number>(1));
 	} else {
 		info.GetReturnValue().Set(Nan::New<v8::Number>(
-			(double)checkpointed_frames / (double)total_frames
+			static_cast<double>(checkpointed_frames) / static_cast<double>(total_frames)
 		));
 	}
 }
