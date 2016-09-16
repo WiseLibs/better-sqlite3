@@ -1,5 +1,2 @@
-remove Nan
-test if arraybuffers or uint8arrays are faster than nodejs buffers
-
 write tests
 compare tests to node-sqlite3
