@@ -74,6 +74,7 @@ An object representing a single SQL statement.
 - [Statement#get()](#getbindparameters---row)
 - [Statement#all()](#allbindparameters---array-of-rows)
 - [Statement#each()](#eachbindparameters-callback---undefined)
+- [Statement#pluck()](#plucktogglesetting---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Statement#source](#get-source---string)
 - [Statement#readonly](#get-readonly---boolean)
@@ -121,13 +122,20 @@ After all rows have been consumed, `undefined` is returned. If execution of the 
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-### .pluck() -> *this*
+### .pluck([toggleSetting]) -> *this*
 
 **(only on read-only statements)*
 
 Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
 
-This method can only be invoked before the statement is first executed. After a statement invokes this method, it cannot be undone.
+You can toggle this on/off as you please.
+
+```js
+var stmt = db.prepare(SQL);
+stmt.pluck(); // plucking ON
+stmt.pluck(true); // plucking ON
+stmt.pluck(false); // plucking OFF
+```
 
 ### .bind([*...bindParameters*]) -> *this*
 
