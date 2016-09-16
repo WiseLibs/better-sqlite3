@@ -7,6 +7,7 @@
 bool SAFE_INTEGERS = false;
 const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
 const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
+const sqlite3_uint64 U32_in_U64 = (sqlite3_uint64)0xffffffff;
 
 Int64::Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
 	low(low),
@@ -15,7 +16,7 @@ Int64::Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
 	}
 Int64::Int64(sqlite3_int64 full) : Nan::ObjectWrap(),
 	full(full) {
-		low = (int32_t)((uint32_t)(((sqlite3_uint64)full) & (sqlite3_uint64)0xffffffff));
+		low = (int32_t)((uint32_t)(((sqlite3_uint64)full) & U32_in_U64));
 		high = (int32_t)((uint32_t)(((sqlite3_uint64)full) >> 32));
 	}
 void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {

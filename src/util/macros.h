@@ -248,7 +248,7 @@ inline bool IS_32BIT_INT(double num) {
 #define NEW_INTERNAL_STRING16(string)                                          \
 	v8::String::NewFromTwoByte(                                                \
 		v8::Isolate::GetCurrent(),                                             \
-		(const uint16_t*)string,                                               \
+		static_cast<const uint16_t*>(string),                                  \
 		v8::NewStringType::kInternalized                                       \
 	).ToLocalChecked()
 
