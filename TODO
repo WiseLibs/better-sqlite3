@@ -1,5 +1,6 @@
 remove Nan
 replace C-style casts with static_casts
+test if arraybuffers or uint8arrays are faster than nodejs buffers
 
 write tests
 compare tests to node-sqlite3
