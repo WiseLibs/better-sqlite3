@@ -74,7 +74,7 @@ An object representing a single SQL statement.
 - [Statement#get()](#getbindparameters---row)
 - [Statement#all()](#allbindparameters---array-of-rows)
 - [Statement#each()](#eachbindparameters-callback---undefined)
-- [Statement#pluck()](#plucktogglesetting---this)
+- [Statement#pluck()](#plucktogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Statement#source](#get-source---string)
 - [Statement#readonly](#get-readonly---boolean)
@@ -122,7 +122,7 @@ After all rows have been consumed, `undefined` is returned. If execution of the 
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-### .pluck([toggleSetting]) -> *this*
+### .pluck([toggleState]) -> *this*
 
 **(only on read-only statements)*
 
