@@ -34,7 +34,7 @@ NAN_METHOD(Database::Pragma) {
 	char* err;
 	
 	// Executes the SQL on the database handle.
-	List<Data::Row> table[2] {};
+	List<Data::Row> table[2] {List<Data::Row>{}, List<Data::Row>{}};
 	sqlite3_exec(db->db_handle, *utf8, PragmaCallback, table, &err);
 	if (err != NULL) {
 		CONCAT2(message, "SQLite: ", err);

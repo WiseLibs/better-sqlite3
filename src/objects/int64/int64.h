@@ -9,8 +9,8 @@ extern bool SAFE_INTEGERS;
 
 class Int64 : public Nan::ObjectWrap {
 	public:
-		Int64(int32_t, int32_t);
-		Int64(sqlite3_int64);
+		explicit Int64(int32_t, int32_t);
+		explicit Int64(sqlite3_int64);
 		static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
 		static Nan::Persistent<v8::FunctionTemplate> constructorTemplate;
 		

@@ -12,7 +12,7 @@ class List {
 		Node* last;
 		
 	public:
-		List() : first(NULL), last(NULL) {}
+		explicit List() : first(NULL), last(NULL) {}
 		
 		// Items that were added to the list are automatically `delete`d.
 		// This is not appropriate if the item's memory must be freed with
