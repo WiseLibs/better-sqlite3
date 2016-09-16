@@ -11,7 +11,7 @@ Data::Row* PragmaMakeRowOfStrings(char** strings, int len) {
 }
 
 int PragmaCallback(void* x, int column_count, char** results, char** column_names) {
-	List<Data::Row>* table = (List<Data::Row>*)x;
+	List<Data::Row>* table = static_cast<List<Data::Row>*>(x);
 	table[0].Add(PragmaMakeRowOfStrings(column_names, column_count));
 	table[1].Add(PragmaMakeRowOfStrings(results, column_count));
 	return 0;
