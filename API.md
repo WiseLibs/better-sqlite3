@@ -128,7 +128,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
 
-You can toggle this on/off as you please.
+You can toggle this on/off as you please:
 
 ```js
 var stmt = db.prepare(SQL);
