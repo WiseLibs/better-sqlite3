@@ -8,7 +8,7 @@ class Query;
 
 class MultiBinder : public Binder {
 	public:
-		MultiBinder(sqlite3_stmt**, unsigned int, sqlite3_destructor_type);
+		explicit MultiBinder(sqlite3_stmt**, unsigned int, sqlite3_destructor_type);
 		void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		
 	protected:

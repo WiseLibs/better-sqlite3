@@ -6,7 +6,7 @@ class Database;
 
 class OpenWorker : public Nan::AsyncWorker {
 	public:
-		OpenWorker(Database*, char*);
+		explicit OpenWorker(Database*, char*);
 		~OpenWorker();
 		void Execute();
 		void HandleOKCallback();

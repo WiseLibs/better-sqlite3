@@ -12,7 +12,7 @@ class Database;
 // Class Declaration
 class Statement : public Nan::ObjectWrap, public Query {
 	public:
-		Statement();
+		explicit Statement();
 		~Statement();
 		static void Init();
 		

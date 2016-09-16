@@ -6,7 +6,7 @@ class Database;
 
 class CloseWorker : public Nan::AsyncWorker {
 	public:
-		CloseWorker(Database*, bool);
+		explicit CloseWorker(Database*, bool);
 		void Execute();
 		void HandleOKCallback();
 		void HandleErrorCallback();

@@ -11,7 +11,7 @@ class Database;
 
 class Transaction : public Nan::ObjectWrap, public Query {
 	public:
-		Transaction();
+		explicit Transaction();
 		~Transaction();
 		static void Init();
 		

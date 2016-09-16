@@ -18,7 +18,7 @@ enum DB_STATE {DB_CONNECTING, DB_READY, DB_DONE};
 // Class Declaration
 class Database : public Nan::ObjectWrap {
 	public:
-		Database();
+		explicit Database();
 		~Database();
 		static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
 		

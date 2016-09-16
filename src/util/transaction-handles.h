@@ -8,7 +8,7 @@
 // can be used to start, commit, and rollback transactions.
 class TransactionHandles {
 	public:
-		TransactionHandles(sqlite3* db_handle, int* statusOut)
+		explicit TransactionHandles(sqlite3* db_handle, int* statusOut)
 		: begin(NULL)
 		, commit(NULL)
 		, rollback(NULL) {

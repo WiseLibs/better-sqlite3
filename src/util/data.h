@@ -12,7 +12,7 @@ namespace Data {
 
 class SimpleExternalString : public v8::String::ExternalStringResource {
 	public:
-		SimpleExternalString(const uint16_t* _data, size_t _length)
+		explicit SimpleExternalString(const uint16_t* _data, size_t _length)
 		: v8::String::ExternalStringResource()
 		, _data(_data)
 		, _length(_length) {}
@@ -30,23 +30,23 @@ class SimpleExternalString : public v8::String::ExternalStringResource {
 // When a Value is created, all memory is copied, and managed internally.
 // Therefore, you must still manage the memory of the originally passed value.
 class Value { public:
-	Value() {}
+	explicit Value() {}
 	virtual ~Value() {}
 	virtual v8::Local<v8::Value> ToJS() {return Nan::Undefined();}
 };
 
 // An SQLite3 integer value.
 class Integer : public Data::Value { public:
-	Integer(sqlite3_int64 n) : value(n) {}
-	Integer(v8::Local<v8::Object> n) : value(Nan::ObjectWrap::Unwrap<Int64>(n)->GetValue()) {}
+	explicit Integer(sqlite3_int64 n) : value(n) {}
+	explicit Integer(v8::Local<v8::Object> n) : value(Nan::ObjectWrap::Unwrap<Int64>(n)->GetValue()) {}
 	v8::Local<v8::Value> ToJS() {return Int64::NewProperInteger(value);}
 	sqlite3_int64 value;
 };
 
 // An SQLite3 real/float value.
 class Float : public Data::Value { public:
-	Float(double n) : value(n) {}
-	Float(v8::Local<v8::Number> n) : value(n->Value()) {}
+	explicit Float(double n) : value(n) {}
+	explicit Float(v8::Local<v8::Number> n) : value(n->Value()) {}
 	v8::Local<v8::Value> ToJS() {return Nan::New<v8::Number>(value);}
 	double value;
 };
@@ -56,11 +56,11 @@ class Float : public Data::Value { public:
 // NUL-terminated string, and len should be the number of bytes in the string,
 // not including the NUL terminator.
 class Text : public Data::Value { public:
-	Text(const void* str, int byte_count) : length(static_cast<size_t>(byte_count / sizeof (uint16_t))), transferred(false) {
+	explicit Text(const void* str, int byte_count) : length(static_cast<size_t>(byte_count / sizeof (uint16_t))), transferred(false) {
 		value = new uint16_t[length];
 		memcpy(value, str, byte_count);
 	}
-	Text(v8::Local<v8::String> str) {
+	explicit Text(v8::Local<v8::String> str) {
 		v8::String::Value utf16(str);
 		length = static_cast<size_t>(utf16.length());
 		value = new uint16_t[length];
@@ -83,11 +83,11 @@ private:
 // include. The len argument is the number of bytes. Invoking ToJS() multiple
 // times returns Buffers that all point to the same underlying memory.
 class Blob : public Data::Value { public:
-	Blob(const void* data, int byte_count) : length(byte_count), transferred(false) {
+	explicit Blob(const void* data, int byte_count) : length(byte_count), transferred(false) {
 		value = new char[length];
 		memcpy(value, data, length);
 	}
-	Blob(v8::Local<v8::Object> buffer) : transferred(false) {
+	explicit Blob(v8::Local<v8::Object> buffer) : transferred(false) {
 		length = node::Buffer::Length(buffer);
 		value = new char[length];
 		memcpy(value, node::Buffer::Data(buffer), length);
@@ -106,7 +106,7 @@ private:
 
 // An SQLite3 null value.
 class Null : public Data::Value { public:
-	Null() {}
+	explicit Null() {}
 	v8::Local<v8::Value> ToJS() {return Nan::Null();}
 };
 
@@ -118,8 +118,8 @@ class Null : public Data::Value { public:
 // constructor must never be less than 1.
 class Row {
 	public:
-		Row() : column_count(0), values(NULL) {}
-		Row(sqlite3_stmt* handle, int len) {
+		explicit Row() : column_count(0), values(NULL) {}
+		explicit Row(sqlite3_stmt* handle, int len) {
 			this->Fill(handle, len);
 		}
 		~Row() {
