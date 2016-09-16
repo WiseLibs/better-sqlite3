@@ -33,7 +33,6 @@ void OpenWorker::Execute() {
 	sqlite3_limit(db->db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
 	sqlite3_limit(db->db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 0x7fffffff);
 	
-	
 	db->t_handles = new TransactionHandles(db->db_handle, &status);
 	if (status != SQLITE_OK) {
 		SetErrorMessage(sqlite3_errmsg(db->db_handle));
