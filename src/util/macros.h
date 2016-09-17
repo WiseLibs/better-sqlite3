@@ -157,38 +157,32 @@ inline bool IS_32BIT_INT(double num) {
 
 // Common bind logic for statements (must match STATEMENT_BIND_T_BUFFERS).
 #define STATEMENT_BIND(stmt, info, info_length, bind_type)                     \
-	if (info_length > 0) {                                                     \
-		Binder _binder(stmt->st_handle, bind_type);                            \
-		_binder.Bind(info, info_length, stmt);                                 \
-		const char* _err = _binder.GetError();                                 \
-		if (_err) {                                                            \
-			STATEMENT_CLEAR_BINDINGS(stmt);                                    \
-			return Nan::ThrowError(_err);                                      \
-		}                                                                      \
+	Binder _binder(stmt->st_handle, bind_type);                                \
+	_binder.Bind(info, info_length, stmt);                                     \
+	const char* _err = _binder.GetError();                                     \
+	if (_err) {                                                                \
+		STATEMENT_CLEAR_BINDINGS(stmt);                                        \
+		return Nan::ThrowError(_err);                                          \
 	}
 
 // Should be the same as STATEMENT_BIND, but uses the transient_buffers option.
 #define STATEMENT_BIND_T_BUFFERS(stmt, info, info_length, bind_type)           \
-	if (info_length > 0) {                                                     \
-		Binder _binder(stmt->st_handle, bind_type, true);                      \
-		_binder.Bind(info, info_length, stmt);                                 \
-		const char* _err = _binder.GetError();                                 \
-		if (_err) {                                                            \
-			STATEMENT_CLEAR_BINDINGS(stmt);                                    \
-			return Nan::ThrowError(_err);                                      \
-		}                                                                      \
+	Binder _binder(stmt->st_handle, bind_type, true);                          \
+	_binder.Bind(info, info_length, stmt);                                     \
+	const char* _err = _binder.GetError();                                     \
+	if (_err) {                                                                \
+		STATEMENT_CLEAR_BINDINGS(stmt);                                        \
+		return Nan::ThrowError(_err);                                          \
 	}
 
 // Common bind logic for transactions.
 #define TRANSACTION_BIND(trans, info, info_length, bind_type)                  \
-	if (info_length > 0) {                                                     \
-		MultiBinder _binder(trans->handles, trans->handle_count, bind_type);   \
-		_binder.Bind(info, info_length, trans);                                \
-		const char* _err = _binder.GetError();                                 \
-		if (_err) {                                                            \
-			TRANSACTION_CLEAR_BINDINGS(trans);                                 \
-			return Nan::ThrowError(_err);                                      \
-		}                                                                      \
+	MultiBinder _binder(trans->handles, trans->handle_count, bind_type);       \
+	_binder.Bind(info, info_length, trans);                                    \
+	const char* _err = _binder.GetError();                                     \
+	if (_err) {                                                                \
+		TRANSACTION_CLEAR_BINDINGS(trans);                                     \
+		return Nan::ThrowError(_err);                                          \
 	}
 
 // The macro-instruction that runs before an SQLite request.
