@@ -10,7 +10,6 @@
 #include "../util/macros.h"
 
 #include "next-anon-index.cc"
-#include "get-array-like-length.cc"
 #include "is-plain-object.cc"
 #include "set-binding-error.cc"
 #include "get-error.cc"
@@ -21,7 +20,6 @@
 #include "bind-null.cc"
 #include "bind-value.cc"
 #include "bind-array.cc"
-#include "bind-array-like.cc"
 #include "bind-object.cc"
 #include "bind.cc"
 

@@ -5,5 +5,18 @@
 // parameters that were bound.
 
 int Binder::BindArray(v8::Local<v8::Array> arr) {
-	return BindArrayLike(v8::Local<v8::Object>::Cast(arr), arr->Length());
+	unsigned int length = arr->Length();
+	int len = length > 0x7ffffffeU ? 0x7ffffffe : static_cast<int>(length);
+	for (int i=0; i<len; ++i) {
+		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
+		if (maybeValue.IsEmpty()) {
+			error = "An error was thrown while trying to get values from the given array.";
+			return i;
+		}
+		BindValue(maybeValue.ToLocalChecked());
+		if (error) {
+			return i;
+		}
+	}
+	return len;
 }

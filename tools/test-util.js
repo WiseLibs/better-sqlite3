@@ -10,5 +10,3 @@ exports.next = function () {
 	++dbId;
 	return exports.current();
 };
-
-

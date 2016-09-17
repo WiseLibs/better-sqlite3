@@ -24,10 +24,8 @@ class Binder {
 		void BindValue(v8::Local<v8::Value>, int = 0);
 		
 		int BindArray(v8::Local<v8::Array>);
-		int BindArrayLike(v8::Local<v8::Object>, unsigned int);
 		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once
 		
-		double GetArrayLikeLength(v8::Local<v8::Object>);
 		static bool IsPlainObject(v8::Local<v8::Object>);
 		
 		sqlite3_stmt* handle;
