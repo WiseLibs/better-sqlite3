@@ -85,7 +85,7 @@ node-sqlite3	1 SELECT iterations in 1099ms
 
 ### Iterating through 1000 small rows of data in a single operation (`.each()`)
 ```
-better-sqlite3	100 SELECT iterations in 35ms
+better-sqlite3	100 SELECT iterations in 31ms
 node-sqlite3	100 SELECT iterations in 1664ms
 ```
 
