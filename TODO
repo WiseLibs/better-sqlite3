@@ -10,3 +10,5 @@ Int64 tests should cover the default safeIntegers state for statements and trans
 a second database#close test file should test every statement and transaction method on a closed database
 
 .run tests should test the accuracy of the "changes" property in INSERT, DELETE, UPDATE, CREATE TABLE, and DROP TABLE operations
+
+all read-only execution tests should also test .pluck
