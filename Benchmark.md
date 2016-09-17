@@ -27,19 +27,19 @@ better-sqlite3	1000 INSERT or SELECTs in 409ms
 node-sqlite3	1000 INSERT or SELECTs in 793ms
 
 --- WAL mode ---
-better-sqlite3	10000 INSERT or SELECTs in 265ms
+better-sqlite3	10000 INSERT or SELECTs in 245ms
 node-sqlite3	10000 INSERT or SELECTs in 282ms
 ```
 
 ### Inserting small rows of data individually (`.run()`)
 ```
 --- normal journal mode ---
-better-sqlite3	500 INSERTs in 1414ms
-node-sqlite3	500 INSERTs in 2776ms
+better-sqlite3	500 INSERTs in 256ms
+node-sqlite3	500 INSERTs in 309ms
 
 --- WAL mode ---
-better-sqlite3	5000 INSERTs in 152ms
-node-sqlite3	5000 INSERTs in 144ms
+better-sqlite3	5000 INSERTs in 149ms
+node-sqlite3	5000 INSERTs in 147ms
 ```
 
 ### Inserting large rows of data individually (`.run()`)
@@ -55,14 +55,14 @@ node-sqlite3	250 INSERTs in 2965ms
 
 ### Selecting small rows of data individually (`.get()`)
 ```
-better-sqlite3	10000 SELECTs in 138ms
-node-sqlite3	10000 SELECTs in 228ms
+better-sqlite3	10000 SELECTs in 150ms
+node-sqlite3	10000 SELECTs in 369ms
 ```
 
 ### Selecting large rows of data individually (`.get()`)
 ```
-better-sqlite3	1000 SELECTs in 800ms
-node-sqlite3	1000 SELECTs in 1438ms
+better-sqlite3	1000 SELECTs in 776ms
+node-sqlite3	1000 SELECTs in 1416ms
 ```
 
 ### Reading 1000 large rows of data in a single operation (`.all()`)
@@ -73,20 +73,20 @@ node-sqlite3	1 multi-row SELECTs in 1600ms
 
 ### Reading 1000 small rows of data in a single operation (`.all()`)
 ```
-better-sqlite3	100 multi-row SELECTs in 89ms
-node-sqlite3	100 multi-row SELECTs in 136ms
+better-sqlite3	100 multi-row SELECTs in 50ms
+node-sqlite3	100 multi-row SELECTs in 141ms
 ```
 
 ### Iterating through 1000 large rows of data in a single operation (`.each()`)
 ```
-better-sqlite3	1 SELECT iterations in 787ms
-node-sqlite3	1 SELECT iterations in 1093ms
+better-sqlite3	1 SELECT iterations in 751ms
+node-sqlite3	1 SELECT iterations in 1099ms
 ```
 
 ### Iterating through 1000 small rows of data in a single operation (`.each()`)
 ```
-better-sqlite3	100 SELECT iterations in 64ms
-node-sqlite3	100 SELECT iterations in 1648ms
+better-sqlite3	100 SELECT iterations in 35ms
+node-sqlite3	100 SELECT iterations in 1664ms
 ```
 
 ### Inserting many small rows in a single transaction.
