@@ -125,5 +125,13 @@ describe('Statement#run()', function () {
 		expect(function () {
 			db.prepare('INSERT INTO entries VALUES (@a, @b, @c, @d)').run(new Foo);
 		}).to.throw(Error);
+		
+		// This part of the test may fail is Statement#get() does not work.
+		var i = 0;
+		var row;
+		while (row = db.prepare('SELECT * FROM entries WHERE rowid=' + ++i).get()) {
+			expect(row).to.deep.equal({a: 'foo', b: 25, c: 25, d: Buffer.alloc(8).fill(0xdd)})
+		}
+		expect(i).to.equal(9);
 	});
 });
