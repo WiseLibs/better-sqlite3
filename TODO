@@ -1,2 +1,12 @@
 write tests
 compare tests to node-sqlite3
+
+.each tests should cover the limiting effects of the in_each property
+
+Int64 tests should cover the default safeIntegers state for statements and transactions
+
+.run, .get, .all, and .each tests should verify that their requirements match Statement#readonly
+
+a second database#close test file should test every statement and transaction method on a closed database
+
+.run tests should test the accuracy of the "changes" property in INSERT, DELETE, UPDATE, CREATE TABLE, and DROP TABLE operations
