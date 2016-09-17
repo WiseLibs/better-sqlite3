@@ -8,6 +8,7 @@
 - [Database#close()](#close---this)
 - [Database#open](#get-open---boolean)
 - [Database#name](#get-name---string)
+- [Database#memory](#get-memory---boolean)
 
 ### new Database(*path*, [*options*])
 
@@ -65,6 +66,10 @@ Returns whether the database is currently open.
 ### *get* .name -> *string*
 
 Returns the string that was used to open the databse connection.
+
+### *get* .memory -> *boolean*
+
+Returns whether the database is an in-memory database.
 
 # class *Statement*
 
