@@ -22,10 +22,8 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		}
 		
 		// Objects
-		if (arg->IsObject() && !arg->IsFunction() && !arg->IsArrayBufferView()) {
+		if (arg->IsObject() && !arg->IsArrayBufferView()) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
-			
-			// Plain objects
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
 					error = "You cannot specify named parameters in two different objects.";
@@ -34,19 +32,6 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 				bound_object = true;
 				
 				count += BindObject(obj, query->GetBindMap());
-				if (error) {
-					return;
-				}
-				continue;
-			}
-			
-			// Array-like objects
-			double array_like_length = GetArrayLikeLength(obj);
-			if (error) {
-				return;
-			}
-			if (array_like_length >= 0) {
-				count += BindArrayLike(obj, static_cast<unsigned int>(array_like_length));
 				if (error) {
 					return;
 				}
