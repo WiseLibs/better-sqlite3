@@ -10,7 +10,7 @@ node benchmark
 
 # Results
 
-These results are from 09/13/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
+These results are from 09/17/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
 
 ### Concurrently reading and writing on multiple connections
 ```
