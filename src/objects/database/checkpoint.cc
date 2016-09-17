@@ -26,9 +26,9 @@ NAN_METHOD(Database::Checkpoint) {
 	}
 	
 	if (checkpointed_frames < 0 || total_frames < 0) {
-		info.GetReturnValue().Set(Nan::New<v8::Number>(0));
+		info.GetReturnValue().Set(Nan::New<v8::Number>(0.0));
 	} else if (total_frames == 0) {
-		info.GetReturnValue().Set(Nan::New<v8::Number>(1));
+		info.GetReturnValue().Set(Nan::New<v8::Number>(1.0));
 	} else {
 		info.GetReturnValue().Set(Nan::New<v8::Number>(
 			static_cast<double>(checkpointed_frames) / static_cast<double>(total_frames)
