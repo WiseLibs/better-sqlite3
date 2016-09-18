@@ -9,10 +9,9 @@ class List {
 			Node* next;
 		} Node;
 		Node* first;
-		Node* last;
 		
 	public:
-		explicit List() : first(NULL), last(NULL) {}
+		explicit List() : first(NULL) {}
 		
 		~List() {
 			while (first != NULL) {
@@ -22,22 +21,17 @@ class List {
 			}
 		}
 		
-		// Pushes an item onto the list.
+		// Unshifts an item onto the list.
 		void Add(T item) {
 			Node* new_node = new Node;
 			new_node->item = item;
-			new_node->next = NULL;
-			if (last == NULL) {
-				first = last = new_node;
-			} else {
-				last->next = new_node;
-				last = new_node;
-			}
+			new_node->next = first;
+			first = new_node;
 		}
 		
 		// Executes a function for each item in the list, and removes them all
 		// from the list. The passed function must not modify the list.
-		// The execution order goes from first-added to last-added.
+		// The execution order goes from last-added to first-added.
 		template <class F> void Flush(F fn) {
 			while (first != NULL) {
 				fn(first->item);
@@ -45,7 +39,6 @@ class List {
 				delete first;
 				first = next;
 			}
-			last = NULL;
 		}
 };
 
