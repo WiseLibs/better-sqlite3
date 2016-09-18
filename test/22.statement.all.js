@@ -15,7 +15,7 @@ describe('Statement#all()', function () {
 		expect(stmt.readonly).to.be.false;
 		expect(function () {stmt.all();}).to.throw(TypeError);
 	});
-	it('should return the first matching row', function () {
+	it('should return an array of every matching row', function () {
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
 		
