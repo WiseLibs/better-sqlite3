@@ -167,6 +167,11 @@ describe('Transaction#run()', function () {
 				.run('foo', {low: 25, high: 25}, 25, Buffer.alloc(8).fill(0xdd));
 		}).to.throw(Error);
 		
+		expect(function () {
+			db.transaction(['INSERT INTO entries VALUES (?, ?, ?, ?)', "INSERT INTO entries VALUES ('foo', 25, 25, x'dddddddd')", 'INSERT INTO entries VALUES (?, ?, ?, ?)'])
+				.run('foo', 25, 25, Buffer.alloc(8).fill(0xdd));
+		}).to.throw(Error);
+		
 		function Foo() {
 			this.a = 'foo';
 			this.b = 25;
