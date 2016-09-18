@@ -49,7 +49,7 @@ It's better to use this method instead of normal [prepared statements](#prepares
 
 Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html).
 
-By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are reading or writing to the database. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
+By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are using the database at the same time. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
 
 If you aren't accessing the database from multiple processes, you should only need PASSIVE mode.
 
