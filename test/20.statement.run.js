@@ -1,11 +1,10 @@
 'use strict';
 var expect = require('chai').expect;
 var Database = require('../.');
-var util = require('../tools/test-util.js');
 var db;
 
 before(function (done) {
-	db = new Database(util.next());
+	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
 	db.on('open', done);
 });
 

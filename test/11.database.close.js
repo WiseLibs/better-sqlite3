@@ -1,6 +1,16 @@
 var expect = require('chai').expect;
 var Database = require('../.');
-var util = require('../tools/test-util.js');
+var util = (function () {
+	var path = require('path');
+	var dbId = 0;
+	var obj;
+	return obj = {
+		current: function () {
+			return 'temp/' + path.basename(__filename).split('.')[0] + '.' + dbId + '.db';
+		},
+		next: function () {++dbId; return obj.current();}
+	};
+}());
 
 describe('Database#close()', function () {
 	describe('before opening it', function () {

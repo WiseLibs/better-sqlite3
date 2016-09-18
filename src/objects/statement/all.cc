@@ -28,9 +28,8 @@ NAN_METHOD(Statement::All) {
 		v8::Local<v8::Array> returnedArray = Nan::New<v8::Array>(row_count);
 		
 		if (row_count > 0) {
-			unsigned int i = 0;
-			rows.Flush([&returnedArray, &i] (v8::Local<v8::Value> value) {
-				Nan::Set(returnedArray, i++, value);
+			rows.Flush([&returnedArray, &row_count] (v8::Local<v8::Value> value) {
+				Nan::Set(returnedArray, --row_count, value);
 			});
 		}
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returnedArray);
