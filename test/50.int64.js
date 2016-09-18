@@ -24,7 +24,8 @@ describe('Int64', function () {
 	it('should compare to other Int64s or other values via .equals()');
 	it('should bind to statements and transactions');
 	it('should get returned by operations after setting .safeIntegers()');
-	it('should react to changing settings inside a .each() callback');
+	it('should react to changing settings inside an .each() callback');
+	it('should be safe from other databases inside an .each() callback');
 	it('should be able to change the default setting on the database');
 	it('should return fully accurate round-trip results');
 });
