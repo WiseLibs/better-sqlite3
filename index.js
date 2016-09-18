@@ -9,6 +9,9 @@ defineFrozen(Int64, 'ONE', new Int64(1, 0));
 defineFrozen(Int64, 'NEG_ONE', new Int64(-1, -1));
 
 Int64.prototype.equals = function equals(other) {
+	if (typeof other === 'string') {
+		return this.toString() === other;
+	}
 	if (!(other instanceof Int64)) {
 		return +this == other;
 	}
