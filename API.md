@@ -51,7 +51,7 @@ Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html).
 
 By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are using the database at the same time. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
 
-You only need to use forceful checkpoints ("RESTART" mode) if you are accessing the database from multiple processes at the same time.
+You only need to force checkpoints ("RESTART" mode) if you are accessing the database from multiple processes at the same time.
 
 When the operation is complete, it returns a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints, this number will always be `1` unless there was no WAL file to begin with.
 
