@@ -1,5 +1,2 @@
 write tests
 compare tests to node-sqlite3
-
-
-Int64 tests should cover the default safeIntegers state for statements and transactions
