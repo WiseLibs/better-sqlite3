@@ -17,7 +17,7 @@ However, you trade those disadvantages for greatly improved performance in most 
 
 Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
 
-To prevent this, just periodically use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method to force checkpointing whenever you deem appropriate.
+To prevent this, just periodically use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method to force checkpointing.
 
 If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
 
