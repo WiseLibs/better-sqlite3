@@ -13,7 +13,7 @@ var bigNumber = new Int64(0x01234abcd, 0x0fff5678);
 bigNumber.toString(); // returns "1152735103331642317"
 +bigNumber;           // returns NaN, cannot be represented in JavaScript
 
-// Equality check helper
+// Equality checker
 number.equals(bigNumber); // returns false
 number.equals(+number); // returns true
 ```
