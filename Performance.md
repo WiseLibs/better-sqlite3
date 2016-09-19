@@ -19,6 +19,8 @@ Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https:
 
 To prevent this, you can use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method to force checkpointing whenever you deem appropriate.
 
+If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
+
 # Maximum power
 
 If you want to *further* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
