@@ -19,7 +19,7 @@ Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https:
 
 If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
 
-If you do access the database from multiple processes simultaneously, preventing this issue is very simple: **periodically use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method to force recycling of the WAL file**.
+If you do access the database from multiple processes simultaneously, preventing this issue is very simple: **periodically use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method when the WAL file gets too big**.
 
 # Maximum power
 
