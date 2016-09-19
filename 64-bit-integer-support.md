@@ -52,7 +52,7 @@ stmt.safeIntegers(false); // Safe integers OFF
 // You can do the same thing with Transaction objects.
 ```
 
-It's worth noting that FLOAT values returned from the database will always be represented as JavaScript numbers.
+It's worth noting that REAL (FLOAT) values returned from the database will always be represented as JavaScript numbers.
 
 # Extending Int64
 
