@@ -1,26 +1,30 @@
 'use strict';
+var OurDatabase = require('../.');
 
 module.exports = function (db, count, SQL, values, callback) {
-	if (db.pragma) {
-		var run = function (values, cb) {
-			cb(null, db.prepare(SQL).run(values));
-		};
-	} else {
-		var run = function (values, cb) {
-			db.run(SQL, values, cb);
-		};
+	if (db instanceof OurDatabase) {
+		db.transaction(new Array(count).fill(SQL)).run(values);
+		callback();
+		return;
 	}
 	
-	var ranCount = 0;
-	for (var i=0; i<count; ++i) {
-		run(values, ran);
+	// node-sqlite3 requires the "@" character for named parameters.
+	var obj = {};
+	for (var key in values) {
+		obj['@' + key] = values[key];
 	}
-	function ran(err) {
-		if (err) {
-			console.log('Error: Failed to fill table.');
+	
+	var checkForError = function (err) {
+		if (err) {throw err;}
+	};
+	db.serialize(function () {
+		db.run('BEGIN TRANSACTION;', checkForError);
+		for (var i=0; i<count; ++i) {
+			db.run(SQL, obj, checkForError);
 		}
-		if (++ranCount === count) {
+		db.run('COMMIT TRANSACTION;', function (err) {
+			checkForError(err);
 			callback();
-		}
-	}
+		});
+	});
 };
