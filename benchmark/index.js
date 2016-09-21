@@ -23,37 +23,47 @@ console.log('Generating tables...');
 
 var createdCount = 0;
 function created() {
-	if (++createdCount === 2) {
+	if (++createdCount === 8) {
 		console.log(clc.magenta('--- Benchmarks ---'));
 		next();
 	}
 }
 
-require('./create-table')('CREATE TABLE entries (aaaa TEXT, bbbb INTEGER, cccc FLOAT, dddd TEXT, eeee INTEGER, ffff BLOB)', 'select-db', function (ourDb, theirDb) {
-	var values = [
-		'John Smith',
-		524,
-		0.324176234,
-		'New York City',
-		20,
-		Buffer.alloc(1024 * 1024).fill(0xdd)
-	];
+require('./create-table')('CREATE TABLE entries (text TEXT, integer INTEGER, real REAL, blob BLOB, nul)', 'select-small', fillSmallDataTable);
+require('./create-table')('CREATE TABLE entries (text TEXT, blob BLOB)', 'select-large', function (ourDb, theirDb) {
+	var bigString = '';
+	while (bigString.length < 1024 * 1024) {
+		bigString += 'John Peter Smith';
+	}
+	var values = {
+		a: bigString,
+		b: Buffer.alloc(1024 * 1024).fill(0xdd)
+	};
 	var filledCount = 0;
 	function filled() {++filledCount === 2 && created();}
-	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?, ?, ?, ?)', values, filled);
-	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?, ?, ?, ?)', values, filled);
+	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (@a, @b)', values, filled);
+	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (@a, @b)', values, filled);
 });
-require('./create-table')('CREATE TABLE entries (name TEXT, number INTEGER, data BLOB)', 'insert-db', function (ourDb, theirDb) {
-	var values = [
-		'John Smith',
-		524,
-		null
-	];
+require('./create-table')('CREATE TABLE entries (data TEXT)', 'insert-text', created);
+require('./create-table')('CREATE TABLE entries (data INTEGER)', 'insert-integer', created);
+require('./create-table')('CREATE TABLE entries (data REAL)', 'insert-real', created);
+require('./create-table')('CREATE TABLE entries (data BLOB)', 'insert-blob', created);
+require('./create-table')('CREATE TABLE entries (data)', 'insert-null', created);
+require('./create-table')('CREATE TABLE entries (text TEXT, integer INTEGER, real REAL, blob BLOB, nul)', 'real-world', fillSmallDataTable);
+
+function fillSmallDataTable(ourDb, theirDb) {
+	var values = {
+		a: 'John Peter Smith',
+		b: 12345,
+		c: 0.12345,
+		d: Buffer.alloc(16).fill(0xdd),
+		e: null
+	};
 	var filledCount = 0;
 	function filled() {++filledCount === 2 && created();}
-	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?)', values, filled);
-	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (?, ?, ?)', values, filled);
-});
+	require('./fill-table')(ourDb, 1000, 'INSERT INTO entries VALUES (@a, @b, @c, @d, @e)', values, filled);
+	require('./fill-table')(theirDb, 1000, 'INSERT INTO entries VALUES (@a, @b, @c, @d, @e)', values, filled);
+}
 
 function next() {
 	if (!trials.length) {
@@ -66,5 +76,10 @@ function next() {
 	
 	console.log(clc.cyan(trialName));
 	var child = spawn('node', ['--expose-gc', path.join(__dirname, 'trials', trialName)], {stdio: 'inherit'});
-	child.on('exit', function () {setTimeout(next, 100);});
+	child.on('exit', function (code) {
+		if (code !== 0) {
+			console.log(clc.red('ERROR (code ' + code + '), probably out of memory'));
+		}
+		setTimeout(next, 100);
+	});
 }
