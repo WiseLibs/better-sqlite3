@@ -25,9 +25,16 @@ exports = module.exports = function (ourDb, theirDb, count, columnName) {
 exports.data = undefined;
 
 function ourTest(db, count, SQL, done) {
-	var t0 = process.hrtime();
-	for (var i=0; i<count; ++i) {
-		exports.data = db.prepare(SQL).get(i % 1000 + 1);
+	if (!/^\s*(no|off|0|false)\s*$/i.test(process.env.USE_PLUCK)) {
+		var t0 = process.hrtime();
+		for (var i=0; i<count; ++i) {
+			exports.data = db.prepare(SQL).pluck().get(i % 1000 + 1);
+		}
+	} else {
+		var t0 = process.hrtime();
+		for (var i=0; i<count; ++i) {
+			exports.data = db.prepare(SQL).get(i % 1000 + 1);
+		}
 	}
 	var td = process.hrtime(t0);
 	report('better-sqlite3', count, td);

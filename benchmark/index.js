@@ -78,7 +78,7 @@ function next() {
 	var child = spawn('node', ['--expose-gc', path.join(__dirname, 'trials', trialName)], {stdio: 'inherit'});
 	child.on('exit', function (code) {
 		if (code !== 0) {
-			console.log(clc.red('ERROR (code ' + code + '), probably out of memory'));
+			console.log(clc.red('ERROR (probably out of memory)'));
 		}
 		setTimeout(next, 100);
 	});

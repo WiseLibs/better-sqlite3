@@ -34,9 +34,16 @@ exports = module.exports = function (ourDb, theirDb, count, rowsPerSelect, colum
 exports.data = undefined;
 
 function ourTest(db, count, SQL, done) {
-	var t0 = process.hrtime();
-	for (var i=0; i<count; ++i) {
-		db.prepare(SQL).each(dataCallback);
+	if (!/^\s*(no|off|0|false)\s*$/i.test(process.env.USE_PLUCK)) {
+		var t0 = process.hrtime();
+		for (var i=0; i<count; ++i) {
+			db.prepare(SQL).pluck().each(dataCallback);
+		}
+	} else {
+		var t0 = process.hrtime();
+		for (var i=0; i<count; ++i) {
+			db.prepare(SQL).each(dataCallback);
+		}
 	}
 	function dataCallback(data) {
 		exports.data = data;
