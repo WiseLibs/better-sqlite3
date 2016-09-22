@@ -233,14 +233,6 @@ inline bool IS_32BIT_INT(double num) {
 		v8::NewStringType::kInternalized                                       \
 	).ToLocalChecked()
 
-// Creates a new internalized string from UTF-16 data.
-#define NEW_INTERNAL_STRING16(string)                                          \
-	v8::String::NewFromTwoByte(                                                \
-		v8::Isolate::GetCurrent(),                                             \
-		static_cast<const uint16_t*>(string),                                  \
-		v8::NewStringType::kInternalized                                       \
-	).ToLocalChecked()
-
 // Creates a new internalized string, but only works with Latin-1 characters.
 #define NEW_INTERNAL_STRING_FAST(string)                                       \
 	v8::String::NewFromOneByte(                                                \
