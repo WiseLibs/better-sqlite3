@@ -5,7 +5,7 @@ NAN_METHOD(Statement::All) {
 	if (stmt->column_count == 0) {
 		return Nan::ThrowTypeError("This statement is not read-only. Use run() instead.");
 	}
-	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
+	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_STATIC, info, info.Length());
 	
 	unsigned int row_count = 0;
 	List<v8::Local<v8::Value>> rows;

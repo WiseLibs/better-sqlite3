@@ -165,16 +165,6 @@ inline bool IS_32BIT_INT(double num) {
 		return Nan::ThrowError(_err);                                          \
 	}
 
-// Should be the same as STATEMENT_BIND, but uses the transient_buffers option.
-#define STATEMENT_BIND_T_BUFFERS(stmt, info, info_length, bind_type)           \
-	Binder _binder(stmt->st_handle, bind_type, true);                          \
-	_binder.Bind(info, info_length, stmt);                                     \
-	const char* _err = _binder.GetError();                                     \
-	if (_err) {                                                                \
-		STATEMENT_CLEAR_BINDINGS(stmt);                                        \
-		return Nan::ThrowError(_err);                                          \
-	}
-
 // Common bind logic for transactions.
 #define TRANSACTION_BIND(trans, info, info_length, bind_type)                  \
 	MultiBinder _binder(trans->handles, trans->handle_count, bind_type);       \
@@ -186,7 +176,7 @@ inline bool IS_32BIT_INT(double num) {
 	}
 
 // The macro-instruction that runs before an SQLite request.
-#define QUERY_START(obj, object_name, BIND_MACRO, info, info_length)           \
+#define QUERY_START(obj, object_name, BIND_MACRO, bind_type, info, info_length)\
 	if (obj->db->in_each) {                                                    \
 		return Nan::ThrowTypeError(                                            \
 			"This database connection is busy executing a query.");            \
@@ -197,7 +187,7 @@ inline bool IS_32BIT_INT(double num) {
 	}                                                                          \
 	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
 	if (!(obj->state & BOUND)) {                                               \
-		BIND_MACRO(obj, info, info_length, SQLITE_STATIC);                     \
+		BIND_MACRO(obj, info, info_length, bind_type);                         \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \

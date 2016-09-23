@@ -2,7 +2,7 @@
 
 NAN_METHOD(Transaction::Run) {
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
-	QUERY_START(trans, transaction, TRANSACTION_BIND, info, info.Length());
+	QUERY_START(trans, transaction, TRANSACTION_BIND, SQLITE_STATIC, info, info.Length());
 	
 	sqlite3* db_handle = trans->db->db_handle;
 	TransactionHandles* t_handles = trans->db->t_handles;
