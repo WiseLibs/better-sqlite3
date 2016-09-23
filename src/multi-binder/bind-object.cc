@@ -7,7 +7,7 @@
 
 int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap) {
 	// Get array of properties.
-	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetPropertyNames(obj);
+	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetOwnPropertyNames(obj);
 	if (maybeKeys.IsEmpty()) {
 		error = "An error was thrown while trying to get the property names of the given object.";
 		return 0;
