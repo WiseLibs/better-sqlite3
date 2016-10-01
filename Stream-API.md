@@ -6,7 +6,7 @@
 - [Stream#forEach()](#foreachconcurrency-callback---stream)
 - [Stream#filter()](#filterconcurrency-callback---stream)
 - [Stream#takeUntil()](#takeuntilpromise---stream)
-- [Stream#reduce()](#reducecallback-initalvalue---this)
+- [Stream#reduce()](#reducecallback-initialvalue---this)
 - [Stream#merge()](#merge---this)
 
 ### new Stream(*source*)
