@@ -1,7 +1,7 @@
 # class *Promise.Stream*
 
 - [new Stream()](#new-streamsource)
-- [Stream.from()](#static-stream-fromiterable---stream)
+- [Stream.from()](#static-streamfromiterable---stream)
 - [Stream#map()](#mapconcurrency-callback---stream)
 - [Stream#forEach()](#foreachconcurrency-callback---stream)
 - [Stream#filter()](#filterconcurrency-callback---stream)
@@ -18,7 +18,7 @@ Streams are also instances of `jellypromise`. If an error occurs in a stream, th
 
 The `source` used to construct a new `Stream` must be some style of `EventEmitter` with the `.addListener()` and `.removeListener()` methods. The stream will listen for the `data`, `end`, and `error` events. The `data` event is used to push an item into the stream; this can be any type of data (or a promise of the data). The `end` event is used to indicate that no more data will be pushed into the stream. After the `end` event, the stream will continue processing the rest of its current data before fulfilling its promise interface. The `error` event is used to indicate an error. Errors will propagate down the pipeline to all streams that originated from this one.
 
-### *static* Promise.from(*iterable*) -> *Stream*
+### *static* Stream.from(*iterable*) -> *Stream*
 
 Constructs a new stream from an `iterable` object of promises or values (or a mix thereof).
 
