@@ -54,7 +54,7 @@ If the `callback` returns a promise, it will be awaited before processing the ne
 
 `callback` has the following signature: `function callback(previousValue, currentValue)`
 
-The callback is also provided a `this` value that can be used to end the reduction process early. By invoking `this.shortcut(value)`, the callback will no longer be invoked, and the stream will be fulfilled with `value`.
+By invoking `this.shortcut(value)`, the reduction process will be ended early, the callback will no longer be invoked, and the stream will be fulfilled with `value`.
 
 ### .merge() -> *this*
 
