@@ -48,7 +48,7 @@ Forwards the stream's data to a new stream that is returned by this method. The 
 
 ### .reduce(*callback*, [*initialValue*]) -> *this*
 
-Applies the `callback` function against an accumulator and each piece of data in the stream. This method causes the stream's fulfillment value to be the final result of reducing all of the data this way. If no `initialValue` is provided and the stream only receives one item, that item will become the fulfillment value without invoking the callback function. If no `initialValue` is provided and there the stream receives *no* items, the stream will be fulfilled with `undefined`.
+Applies the `callback` function against an accumulator and each piece of data in the stream. This method causes the stream's fulfillment value to be the final result of reducing all of the reduction. If no `initialValue` is provided and the stream only receives one item, that item will become the fulfillment value without invoking the callback function. If no `initialValue` is provided and there the stream receives *no* items, the stream will be fulfilled with `undefined`.
 
 If the `callback` returns a promise, it will be awaited before processing the next piece of data against the accumulator. Keep in mind that the `callback` function will receive the data in the order that stream receives it.
 
