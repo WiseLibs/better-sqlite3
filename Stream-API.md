@@ -58,6 +58,6 @@ By invoking `this.shortcut(value)`, the reduction process will be ended early, t
 
 ### .merge() -> *this*
 
-Constructs an array containing all data in the stream. When all data has been received, the stream will fulfill with that array. The items in the array will be ordered by their *original order* as they were when they entered the first stream in the pipeline.
+Constructs an array containing all data from the stream. When all data has been received, the stream will fulfill with that array. The items in the array will be ordered by their *original order* as they were when they entered the first stream in the pipeline.
 
 
