@@ -9,7 +9,7 @@
 
 ### new Stream(*source*)
 
-Creates a new stream from the given *source*. Streams are used to handle many values (or promises of values) concurrently. Unlike many styles of streams, this stream does not maintain the same sequence of items as they were supplied. The stream will output the items as soon as they are resolved. However, their original order can be reconstructed later on because each item's original index is carried along the stream.
+Creates a new stream from the given *source*. Streams are used to handle many values (or promises of values) concurrently. Unlike many styles of streams, this stream does not maintain the same sequence of items as they were supplied. It will output the items as soon as they are resolved. However, their original order can be reconstructed later on because each item's original index is carried along the stream.
 
 Streams are also instances of `jellypromise`. If an error occurs in a stream, the stream will be rejected, along with all streams that originate from it. If no error occurs, most streams will be fulfilled with `undefined` when all of its items have been passed on. However, some methods are available to change the fulfillment value of a stream ([.merge()](), [.reduce()]()).
 
