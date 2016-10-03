@@ -8,9 +8,17 @@ bool Transaction::Compare::operator() (const Transaction* a, const Transaction* 
 // to their respective parameter index. After the first invocation, a cached
 // version is returned, rather than rebuilding it.
 v8::Local<v8::Object> Transaction::GetBindMap() {
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate, Nan::EmptyString());
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
 	if (state & HAS_BIND_MAP) {
-		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+		v8::Local<v8::Value> value;
+		if (handle()->GetPrivate(context, privateKey).ToLocal(&value)) {
+			return v8::Local<v8::Object>::Cast(value);
+		}
 	}
+
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
 	v8::Local<v8::Object> array = Nan::New<v8::Object>();
 	for (unsigned int h=0; h<handle_count; ++h) {
@@ -28,7 +36,7 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 		}
 	}
 	if (state & USED_BIND_MAP) {
-		handle()->SetHiddenValue(Nan::EmptyString(), array);
+		handle()->SetPrivate(context, privateKey, array);
 		state |= HAS_BIND_MAP;
 	} else {
 		state |= USED_BIND_MAP;
@@ -39,12 +47,12 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 // .safeIntegers(boolean) -> this
 NAN_METHOD(Transaction::SafeIntegers) {
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
-	
+
 	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
 		trans->state |= SAFE_INTS;
 	} else {
 		trans->state &= ~SAFE_INTS;
 	}
-	
+
 	info.GetReturnValue().Set(info.This());
 }
