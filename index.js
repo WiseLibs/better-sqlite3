@@ -1,6 +1,9 @@
 'use strict';
 module.exports = require('./lib/database');
-var Int64 = module.exports.Int64 = require('bindings')('better_sqlite3').Int64;
+var Int64 = module.exports.Int64 = require('bindings')({
+	bindings: 'better_sqlite3.node',
+	module_root: __dirname
+}).Int64;
 
 defineFrozen(Int64, 'MAX_VALUE', new Int64(-1, 0x7fffffff));
 defineFrozen(Int64, 'MIN_VALUE', new Int64(0, -0x80000000));
