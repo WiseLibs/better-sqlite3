@@ -45,9 +45,6 @@ NAN_METHOD(Database::CreateStatement) {
 		stmt->column_count = 0;
 	} else {
 		stmt->column_count = sqlite3_column_count(stmt->st_handle);
-		if (stmt->column_count < 1) {
-			return Nan::ThrowTypeError("This read-only SQL statement returns no result columns.");
-		}
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);
