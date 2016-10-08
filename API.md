@@ -88,7 +88,7 @@ An object representing a single SQL statement.
 
 ### .run([*...bindParameters*]) -> *object*
 
-**(only on statements that do NOT return data)*
+**(only on statements that do not return data)*
 
 Executes the prepared statement. When execution completes it returns an `info` object describing any changes made. The `info` object has two properties:
 
