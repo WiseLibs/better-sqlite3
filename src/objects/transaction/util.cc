@@ -1,5 +1,5 @@
 // Used by std::set to organize the pointers it holds.
-bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) {
+bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) const {
 	return a->id < b->id;
 }
 
