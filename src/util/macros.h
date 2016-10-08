@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 #include <cmath>
-#include <cstring>
+#include <string>
 #include <sqlite3.h>
 #include <nan.h>
 #include "strlcpy.h"
@@ -33,20 +33,18 @@ inline bool IS_32BIT_INT(double num) {
 	return floor(num) == num && num < 2147483648 && num >= -2147483648;
 }
 
-// Creates a stack-allocated buffer of the concatenation of 2 well-formed
+// Creates a stack-allocated std:string of the concatenation of 2 well-formed
 // C-strings.
 #define CONCAT2(result, a, b)                                                  \
-	char result[strlen(a) + strlen(b) + 1];                                    \
-	strcpy(result, a);                                                         \
-	strcat(result, b);
+	std::string result(a);                                                     \
+	result += b;
 
-// Creates a stack-allocated buffer of the concatenation of 3 well-formed
+// Creates a stack-allocated std:string of the concatenation of 3 well-formed
 // C-strings.
 #define CONCAT3(result, a, b, c)                                               \
-	char result[strlen(a) + strlen(b) + strlen(c) + 1];                        \
-	strcpy(result, a);                                                         \
-	strcat(result, b);                                                         \
-	strcat(result, c);
+	std::string result(a);                                                     \
+	result += b;                                                               \
+	result += c;
 
 // Given a v8::Object and a C-string method name, retrieves the v8::Function
 // representing that method. If the getter throws, or if the property is not a
@@ -203,7 +201,7 @@ inline bool IS_32BIT_INT(double num) {
 #define QUERY_THROW_STAY(obj, UNBIND_MACRO, error_out)                         \
 	CONCAT2(_error_message, "SQLite: ", error_out);                            \
 	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
-	Nan::ThrowError(_error_message);
+	Nan::ThrowError(_error_message.c_str());
 
 // The macro-instruction that runs after a failed SQLite request.
 #define QUERY_THROW(obj, UNBIND_MACRO, error_out)                              \

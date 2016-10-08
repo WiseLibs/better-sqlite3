@@ -37,7 +37,7 @@ void CloseWorker::HandleErrorCallback() {
 	CONCAT2(message, "SQLite: ", ErrorMessage());
 	v8::Local<v8::Value> args[2] = {
 		NEW_INTERNAL_STRING_FAST("close"),
-		Nan::Error(message)
+		Nan::Error(message.c_str())
 	};
 	
 	EMIT_EVENT(database, 2, args);

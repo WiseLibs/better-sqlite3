@@ -67,7 +67,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
 			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ").");
-			return Nan::ThrowError(message);
+			return Nan::ThrowError(message.c_str());
 		}
 		if (trans->handles[i] == NULL) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
