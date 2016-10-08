@@ -17,7 +17,7 @@ class Statement : public Nan::ObjectWrap, public Query {
 		static void Init();
 		
 		class Compare { public:
-			bool operator() (const Statement*, const Statement*);
+			bool operator() (const Statement*, const Statement*) const;
 		};
 		v8::Local<v8::Object> GetBindMap();
 		
