@@ -15,6 +15,7 @@
 #define HAS_BIND_MAP 0x8
 #define SAFE_INTS 0x10
 #define PLUCK_COLUMN 0x20
+#define RETURNS_DATA 0x40
 
 // Given a v8::String, returns a pointer to a heap-allocated C-String clone.
 inline char* C_STRING(v8::Local<v8::String> string) {

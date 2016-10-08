@@ -28,7 +28,7 @@ class Statement : public Nan::ObjectWrap, public Query {
 	private:
 		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
-		static NAN_GETTER(Readonly);
+		static NAN_GETTER(ReturnsData);
 		static NAN_METHOD(SafeIntegers);
 		static NAN_METHOD(Bind);
 		static NAN_METHOD(Pluck);
@@ -41,7 +41,7 @@ class Statement : public Nan::ObjectWrap, public Query {
 		// Sqlite3 interfacing and state
 		Database* db;
 		sqlite3_stmt* st_handle;
-		int column_count; // If this is 0, the statement is a write statement
+		int column_count;
 		uint8_t state;
 		
 		// Unique Statement Id
