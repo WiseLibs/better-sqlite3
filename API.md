@@ -84,11 +84,11 @@ An object representing a single SQL statement.
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Statement#source](#get-source---string)
-- [Statement#readonly](#get-readonly---boolean)
+- [Statement#returnsData](#get-returnsdata---boolean)
 
 ### .run([*...bindParameters*]) -> *object*
 
-**(only on write statements)*
+**(only on statements that do NOT return data)*
 
 Executes the prepared statement. When execution completes it returns an `info` object describing any changes made. The `info` object has two properties:
 
@@ -101,7 +101,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ### .get([*...bindParameters*]) -> *row*
 
-**(only on read-only statements)*
+**(only on statements that return data)*
 
 Executes the prepared statement. When execution completes it returns an object that represents the first row retrieved by the query. The object's keys represent column names.
 
@@ -111,7 +111,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ### .all([*...bindParameters*]) -> *array of rows*
 
-**(only on read-only statements)*
+**(only on statements that return data)*
 
 Similar to [`.get()`](#getbindparameters---row), but instead of only retrieving one row all matching rows will be retrieved. The return value is an array of row objects.
 
@@ -121,7 +121,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ### .each([*...bindParameters*], callback) -> *undefined*
 
-**(only on read-only statements)*
+**(only on statements that return data)*
 
 Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, the `callback` is invoked for each row as they are retrieved, one by one.
 
@@ -131,7 +131,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ### .pluck([toggleState]) -> *this*
 
-**(only on read-only statements)*
+**(only on statements that return data)*
 
 Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
 
@@ -156,9 +156,9 @@ This method is primarily used as a performance optimization when you need to exe
 
 Returns the source string that was used to create the prepared statement.
 
-### *get* .readonly -> *boolean*
+### *get* .returnsData -> *boolean*
 
-Returns whether the prepared statement is read-only.
+Returns whether the prepared statement returns data.
 
 # class *Transaction*
 
