@@ -49,21 +49,12 @@ describe('Database#prepare()', function () {
 			done();
 		});
 	});
-	it('should throw an exception if the read-only statement returns no columns', function (done) {
-		var db = new Database(util.next());
-		db.on('open', function () {
-			expect(function () {db.prepare('BEGIN TRANSACTION');}).to.throw(TypeError);
-			expect(function () {db.prepare('COMMIT TRANSACTION');}).to.throw(TypeError);
-			expect(function () {db.prepare('ROLLBACK TRANSACTION');}).to.throw(TypeError);
-			done();
-		});
-	});
 	it('should create a prepared Statement object', function (done) {
 		function assertStmt(stmt, source) {
 			expect(stmt.source).to.equal(source);
 			expect(stmt.constructor.name).to.equal('Statement');
 			expect(stmt.database).to.equal(db);
-			expect(stmt.readonly).to.equal(false);
+			expect(stmt.returnsData).to.equal(false);
 			expect(function () {
 				new stmt.constructor(source);
 			}).to.throw(TypeError);
@@ -86,7 +77,7 @@ describe('Database#prepare()', function () {
 			expect(stmt.source).to.equal('SELECT 555');
 			expect(stmt.constructor.name).to.equal('Statement');
 			expect(stmt.database).to.equal(db);
-			expect(stmt.readonly).to.equal(true);
+			expect(stmt.returnsData).to.equal(true);
 			expect(function () {
 				new stmt.constructor('SELECT 555');
 			}).to.throw(TypeError);
