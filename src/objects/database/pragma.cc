@@ -48,7 +48,7 @@ NAN_METHOD(Database::Pragma) {
 	if (err != NULL) {
 		CONCAT2(message, "SQLite: ", err);
 		sqlite3_free(err);
-		return Nan::ThrowError(message);
+		return Nan::ThrowError(message.c_str());
 	}
 	sqlite3_free(err);
 	

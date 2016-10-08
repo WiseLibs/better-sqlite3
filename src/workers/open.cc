@@ -27,7 +27,7 @@ void OpenWorker::Execute() {
 	
 	assert(sqlite3_db_mutex(db->db_handle) == NULL);
 	sqlite3_busy_timeout(db->db_handle, 5000);
-	sqlite3_limit(db->db_handle, SQLITE_LIMIT_LENGTH, std::min(max_buffer_size, max_string_size));
+	sqlite3_limit(db->db_handle, SQLITE_LIMIT_LENGTH, (std::min)(max_buffer_size, max_string_size));
 	sqlite3_limit(db->db_handle, SQLITE_LIMIT_SQL_LENGTH, max_string_size);
 	sqlite3_limit(db->db_handle, SQLITE_LIMIT_COLUMN, 0x7fffffff);
 	sqlite3_limit(db->db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
@@ -66,7 +66,7 @@ void OpenWorker::HandleErrorCallback() {
 		CONCAT2(message, "SQLite: ", ErrorMessage());
 		v8::Local<v8::Value> args[2] = {
 			NEW_INTERNAL_STRING_FAST("close"),
-			Nan::Error(message)
+			Nan::Error(message.c_str())
 		};
 		
 		EMIT_EVENT(database, 2, args);

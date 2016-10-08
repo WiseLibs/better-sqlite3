@@ -22,7 +22,7 @@ NAN_METHOD(Database::Checkpoint) {
 	
 	if (status != SQLITE_OK) {
 		CONCAT2(message, "SQLite: ", sqlite3_errmsg(db->db_handle));
-		return Nan::ThrowError(message);
+		return Nan::ThrowError(message.c_str());
 	}
 	
 	if (checkpointed_frames < 0 || total_frames < 0) {
