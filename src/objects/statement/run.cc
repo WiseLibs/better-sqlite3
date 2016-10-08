@@ -2,8 +2,8 @@
 
 NAN_METHOD(Statement::Run) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
-	if (stmt->column_count != 0) {
-		return Nan::ThrowTypeError("This statement is read-only. Use get(), all(), or each() instead.");
+	if (stmt->state & RETURNS_DATA) {
+		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead.");
 	}
 	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_STATIC, info, info.Length());
 	

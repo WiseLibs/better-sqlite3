@@ -28,9 +28,9 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 	return namedParams;
 }
 
-// get .readonly -> boolean
-NAN_GETTER(Statement::Readonly) {
-	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Statement>(info.This())->column_count != 0);
+// get .returnsData -> boolean
+NAN_GETTER(Statement::ReturnsData) {
+	info.GetReturnValue().Set((Nan::ObjectWrap::Unwrap<Statement>(info.This())->state & RETURNS_DATA) ? true : false);
 }
 
 // .safeIntegers(boolean) -> this

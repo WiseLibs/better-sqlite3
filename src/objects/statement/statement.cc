@@ -34,7 +34,7 @@ void Statement::Init() {
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	t->SetClassName(Nan::New("Statement").ToLocalChecked());
 	
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("readonly").ToLocalChecked(), Readonly);
+	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("returnsData").ToLocalChecked(), ReturnsData);
 	Nan::SetPrototypeMethod(t, "safeIntegers", SafeIntegers);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);
