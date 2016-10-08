@@ -46,7 +46,7 @@ NAN_METHOD(Database::CreateStatement) {
 		stmt->column_count = 0;
 	} else {
 		stmt->column_count = column_count;
-		stmt->state |= RETURNS_DATA
+		stmt->state |= RETURNS_DATA;
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);

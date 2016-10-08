@@ -9,12 +9,18 @@ before(function (done) {
 });
 
 describe('Statement#run()', function () {
-	it('should throw an exception when used on a read-only statement', function () {
+	it('should throw an exception when used on a statement that returns data', function () {
 		var stmt = db.prepare('SELECT 555');
 		expect(function () {stmt.run();}).to.throw(TypeError);
 	});
 	it('should work with CREATE TABLE', function () {
 		var stmt = db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB)');
+		var info = stmt.run();
+		expect(info.changes).to.equal(0);
+		expect(info.lastInsertROWID).to.equal(0);
+	});
+	it('should work with CREATE TABLE IF NOT EXISTS', function () {
+		var stmt = db.prepare('CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB)');
 		var info = stmt.run();
 		expect(info.changes).to.equal(0);
 		expect(info.lastInsertROWID).to.equal(0);
@@ -47,6 +53,13 @@ describe('Statement#run()', function () {
 		expect(info.changes).to.equal(1);
 		expect(info.lastInsertROWID).to.equal(2);
 	});
+	it('should work with BEGIN and COMMIT', function () {
+		expect(db.prepare("BEGIN TRANSACTION").run().changes).to.equal(0);
+		var info = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')").run();
+		expect(info.changes).to.equal(1);
+		expect(info.lastInsertROWID).to.equal(3);
+		expect(db.prepare("COMMIT TRANSACTION").run().changes).to.equal(0);
+	});
 	it('should work with DROP TABLE', function () {
 		var stmt = db.prepare("DROP TABLE entries");
 		expect(stmt.run().changes).to.equal(0);
@@ -63,6 +76,13 @@ describe('Statement#run()', function () {
 		expect(function () {stmt.run();}).to.throw(Error);
 		stmt = db.prepare("INSERT INTO ages VALUES (30, NULL)");
 		expect(function () {stmt.run();}).to.throw(Error);
+	});
+	it('should allow ad-hoc transactions', function () {
+		expect(db.prepare("BEGIN TRANSACTION").run().changes).to.equal(0);
+		expect(db.prepare("INSERT INTO ages VALUES (45, 2)").run().changes).to.equal(1);
+		var stmt = db.prepare("INSERT INTO ages VALUES (30, 3)");
+		expect(function () {stmt.run()}).to.throw(Error);
+		expect(db.prepare("ROLLBACK TRANSACTION").run().changes).to.equal(0);
 	});
 	it('should not count changes from indirect mechanisms', function () {
 		var stmt = db.prepare("UPDATE people SET id=55 WHERE id=2");

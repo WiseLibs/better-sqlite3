@@ -9,17 +9,26 @@ before(function (done) {
 });
 
 describe('Statement#get()', function () {
-	it('should throw an exception when used on a write statement', function () {
+	it('should throw an exception when used on a statement that returns no data', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
+		
 		var stmt = db.prepare("INSERT INTO entries VALUES ('foo', 1, 3.14, x'dddddddd', NULL)");
-		expect(stmt.readonly).to.be.false;
+		expect(stmt.returnsData).to.be.false;
+		expect(function () {stmt.get();}).to.throw(TypeError);
+		
+		var stmt = db.prepare("CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)");
+		expect(stmt.returnsData).to.be.false;
+		expect(function () {stmt.get();}).to.throw(TypeError);
+		
+		var stmt = db.prepare("BEGIN TRANSACTION");
+		expect(stmt.returnsData).to.be.false;
 		expect(function () {stmt.get();}).to.throw(TypeError);
 	});
 	it('should return the first matching row', function () {
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 		
 		var stmt = db.prepare("SELECT * FROM entries");
-		expect(stmt.readonly).to.be.true;
+		expect(stmt.returnsData).to.be.true;
 		expect(stmt.get()).to.deep.equal({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null});
 		
 		stmt = db.prepare("SELECT * FROM entries WHERE b > 5");

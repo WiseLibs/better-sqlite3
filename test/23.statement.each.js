@@ -9,11 +9,21 @@ before(function (done) {
 });
 
 describe('Statement#each()', function () {
-	it('should throw an exception when used on a write statement', function () {
+	it('should throw an exception when used on a statement that returns no data', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
+		
 		var stmt = db.prepare("INSERT INTO entries VALUES ('foo', 1, 3.14, x'dddddddd', NULL)");
-		expect(stmt.readonly).to.be.false;
+		expect(stmt.returnsData).to.be.false;
 		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		
+		var stmt = db.prepare("CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)");
+		expect(stmt.returnsData).to.be.false;
+		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		
+		var stmt = db.prepare("BEGIN TRANSACTION");
+		expect(stmt.returnsData).to.be.false;
+		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 	});
 	it('should throw an exception when the last argument is not a function', function () {
@@ -28,7 +38,7 @@ describe('Statement#each()', function () {
 		
 		var count = 0;
 		var stmt = db.prepare("SELECT * FROM entries");
-		expect(stmt.readonly).to.be.true;
+		expect(stmt.returnsData).to.be.true;
 		var ret = stmt.each(function (data) {
 			row.b = ++count;
 			expect(data).to.deep.equal(row);
