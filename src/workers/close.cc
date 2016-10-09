@@ -2,43 +2,26 @@
 #include <nan.h>
 #include "close.h"
 #include "../objects/database/database.h"
-#include "../util/macros.h"
 
-CloseWorker::CloseWorker(Database* db, bool still_connecting) : Nan::AsyncWorker(NULL),
-	db(db),
-	still_connecting(still_connecting) {}
+CloseWorker::CloseWorker(Database* db) : Nan::AsyncWorker(NULL),
+	db(db) {}
 void CloseWorker::Execute() {
-	if (!still_connecting) {
-		db->CloseChildHandles();
-		if (db->CloseHandles() != SQLITE_OK) {
-			SetErrorMessage("Failed to successfully close the database connection.");
-		}
+	db->CloseChildHandles();
+	if (db->CloseHandles() != SQLITE_OK) {
+		SetErrorMessage("Failed to successfully close the database connection.");
 	}
 }
 void CloseWorker::HandleOKCallback() {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> database = db->handle();
+	db->Unref();
 	
-	if (--db->workers == 0) {db->Unref();}
-	
-	v8::Local<v8::Value> args[2] = {
-		NEW_INTERNAL_STRING_FAST("close"),
-		Nan::Null()
-	};
-	
-	EMIT_EVENT(database, 2, args);
+	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+	resolver->Resolve(Nan::Undefined());
 }
 void CloseWorker::HandleErrorCallback() {
 	Nan::HandleScope scope;
-	v8::Local<v8::Object> database = db->handle();
+	db->Unref();
 	
-	if (--db->workers == 0) {db->Unref();}
-	
-	CONCAT2(message, "SQLite: ", ErrorMessage());
-	v8::Local<v8::Value> args[2] = {
-		NEW_INTERNAL_STRING_FAST("close"),
-		Nan::Error(message.c_str())
-	};
-	
-	EMIT_EVENT(database, 2, args);
+	v8::Local<v8::Promise::Resolver> resolver = v8::Local<v8::Promise::Resolver>::Cast(GetFromPersistent((uint32_t)0));
+	resolver->Reject(Nan::Error(ErrorMessage()));
 }

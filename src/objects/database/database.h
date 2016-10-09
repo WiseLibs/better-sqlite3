@@ -29,14 +29,18 @@ class Database : public Nan::ObjectWrap {
 		friend class CloseWorker;
 		
 	private:
+		static CONSTRUCTOR(constructor);
 		static NAN_METHOD(New);
+		static NAN_METHOD(OpenAsync);
 		static NAN_GETTER(Open);
 		static NAN_METHOD(Close);
+		static NAN_METHOD(CloseAsync);
 		static NAN_METHOD(CreateStatement);
 		static NAN_METHOD(CreateTransaction);
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
 		static NAN_METHOD(DefaultSafeIntegers);
+		int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 		int CloseHandles();
 		void CloseChildHandles();
 		
@@ -46,7 +50,6 @@ class Database : public Nan::ObjectWrap {
 		
 		// State
 		DB_STATE state;
-		unsigned int workers;
 		bool in_each;
 		bool safe_ints;
 		

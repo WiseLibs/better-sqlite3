@@ -63,13 +63,6 @@ inline bool IS_32BIT_INT(double num) {
 	v8::Local<v8::Function> result =                                           \
 		v8::Local<v8::Function>::Cast(_localMethod);
 
-// Invokes the `emit` method on the given v8::Object, with the given args.
-// If the `emit` method cannot be retrieved, an error is thrown and the caller
-// returns. This should ONLY be invoked in a libuv async callback.
-#define EMIT_EVENT(obj, argc, argv)                                            \
-	GET_METHOD(_method, obj, "emit");                                          \
-	Nan::MakeCallback(obj, _method, argc, argv);
-
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available
 // at the given variable name.

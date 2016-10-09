@@ -6,13 +6,12 @@ class Database;
 
 class CloseWorker : public Nan::AsyncWorker {
 	public:
-		explicit CloseWorker(Database*, bool);
+		explicit CloseWorker(Database*);
 		void Execute();
 		void HandleOKCallback();
 		void HandleErrorCallback();
 	private:
 		Database* const db;
-		bool still_connecting;
 };
 
 #endif
