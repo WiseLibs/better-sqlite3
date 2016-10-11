@@ -8,7 +8,7 @@ const char* Binder::GetError() {
 	
 	int len = strlen(error) + strlen(error_extra) - 1;
 	error_full = new char[len];
-	snprintf(const_cast<char*>(error_full), len, error, error_extra);
+	sqlite3_snprintf(len, const_cast<char*>(error_full), error, error_extra);
 	
 	return error_full;
 }
