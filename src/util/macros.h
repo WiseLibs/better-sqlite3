@@ -30,7 +30,7 @@ inline char* C_STRING(v8::Local<v8::String> string) {
 
 // Given a double, returns whether the number is a valid 32-bit signed integer.
 inline bool IS_32BIT_INT(double num) {
-	return floor(num) == num && num < 2147483648L && num >= -2147483647L - 1;
+	return floor(num) == num && num < 2147483648.0 && num >= -2147483648.0;
 }
 
 // Creates a stack-allocated std:string of the concatenation of 2 well-formed
