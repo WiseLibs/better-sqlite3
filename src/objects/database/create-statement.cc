@@ -26,7 +26,7 @@ NAN_METHOD(Database::CreateStatement) {
 	
 	// Builds actual sqlite3_stmt handle.
 	const void* tail;
-	int status = sqlite3_prepare16(db->db_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &stmt->st_handle, &tail);
+	int status = sqlite3_prepare16_v2(db->db_handle, *utf16, utf16.length() * sizeof (uint16_t) + 1, &stmt->st_handle, &tail);
 	
 	// Validates the newly created statement.
 	if (status != SQLITE_OK) {
