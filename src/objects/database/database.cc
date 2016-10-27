@@ -6,11 +6,8 @@
 #include "database.h"
 #include "../statement/statement.h"
 #include "../transaction/transaction.h"
-#include "../../workers/open.h"
-#include "../../workers/close.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
-#include "../../util/list.h"
 #include "../../util/transaction-handles.h"
 
 const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
@@ -32,12 +29,10 @@ Nan::Persistent<v8::Function> NullFactory;
 Database::Database() : Nan::ObjectWrap(),
 	db_handle(NULL),
 	t_handles(NULL),
-	state(DB_CONNECTING),
+	open(true),
 	in_each(false),
 	safe_ints(false) {}
 Database::~Database() {
-	state = DB_DONE;
-	
 	// This is necessary in the case that a database and its statements are
 	// garbage collected at the same time. The database might be destroyed
 	// first, so it needs to tell all of its statements "hey, I don't exist
@@ -55,16 +50,13 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	t->SetClassName(Nan::New("Database").ToLocalChecked());
 	
 	Nan::SetPrototypeMethod(t, "close", Close);
-	Nan::SetPrototypeMethod(t, "closeAsync", CloseAsync);
 	Nan::SetPrototypeMethod(t, "prepare", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
 	Nan::SetPrototypeMethod(t, "defaultSafeIntegers", DefaultSafeIntegers);
 	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
-	Nan::SetMethod(t, "openAsync", OpenAsync);
 	
-	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 	Nan::Set(exports, Nan::New("Database").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
 	
@@ -73,7 +65,6 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	v8::Local<v8::Value> args[1] = {Nan::New("../../lib/null-factory.js").ToLocalChecked()};
 	NullFactory.Reset(v8::Local<v8::Function>::Cast(Nan::Call(require, module, 1, args).ToLocalChecked()));
 }
-CONSTRUCTOR(Database::constructor);
 
 // Returns an SQLite3 result code.
 int Database::CloseHandles() {

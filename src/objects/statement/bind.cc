@@ -8,7 +8,7 @@ NAN_METHOD(Statement::Bind) {
 	if (stmt->state & BOUND) {
 		return Nan::ThrowTypeError("The bind() method can only be invoked once per statement object.");
 	}
-	if (stmt->db->state != DB_READY) {
+	if (!stmt->db->open) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	

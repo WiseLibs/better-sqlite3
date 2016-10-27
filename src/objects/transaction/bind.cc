@@ -8,7 +8,7 @@ NAN_METHOD(Transaction::Bind) {
 	if (trans->state & BOUND) {
 		return Nan::ThrowTypeError("The bind() method can only be invoked once per transaction object.");
 	}
-	if (trans->db->state != DB_READY) {
+	if (!trans->db->open) {
 		return Nan::ThrowError("The associated database connection is closed.");
 	}
 	

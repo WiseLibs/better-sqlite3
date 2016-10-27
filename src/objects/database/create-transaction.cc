@@ -7,7 +7,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	if (db->in_each) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query.");
 	}
-	if (db->state != DB_READY) {
+	if (!db->open) {
 		return Nan::ThrowError("The database connection is not open.");
 	}
 	

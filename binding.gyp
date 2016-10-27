@@ -22,8 +22,6 @@
         "src/objects/database/database.cc",
         "src/objects/statement/statement.cc",
         "src/objects/transaction/transaction.cc",
-        "src/workers/open.cc",
-        "src/workers/close.cc",
         "src/binder/binder.cc",
         "src/multi-binder/multi-binder.cc",
         "src/better_sqlite3.cc"

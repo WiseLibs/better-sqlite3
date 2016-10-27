@@ -1,12 +1,10 @@
 #ifndef BETTER_SQLITE3_MACROS_H
 #define BETTER_SQLITE3_MACROS_H
 
-#include <sys/types.h>
 #include <cmath>
 #include <string>
 #include <sqlite3.h>
 #include <nan.h>
-#include "strlcpy.h"
 
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
@@ -16,17 +14,6 @@
 #define SAFE_INTS 0x10
 #define PLUCK_COLUMN 0x20
 #define RETURNS_DATA 0x40
-
-// Given a v8::String, returns a pointer to a heap-allocated C-String clone.
-inline char* C_STRING(v8::Local<v8::String> string) {
-	Nan::Utf8String utf8(string);
-	
-	size_t len = utf8.length() + 1;
-	char* str = new char[len];
-	strlcpy(str, *utf8, len);
-	
-	return str;
-}
 
 // Given a double, returns whether the number is a valid 32-bit signed integer.
 inline bool IS_32BIT_INT(double num) {
@@ -173,7 +160,7 @@ inline bool IS_32BIT_INT(double num) {
 		return Nan::ThrowTypeError(                                            \
 			"This database connection is busy executing a query.");            \
 	}                                                                          \
-	if (obj->db->state != DB_READY) {                                          \
+	if (!obj->db->open) {                                                      \
 		return Nan::ThrowError(                                                \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
