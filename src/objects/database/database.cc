@@ -8,7 +8,6 @@
 #include "../../workers/close.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
-#include "../../util/list.h"
 #include "../../util/transaction-handles.h"
 
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
