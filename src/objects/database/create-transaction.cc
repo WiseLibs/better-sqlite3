@@ -4,11 +4,11 @@ NAN_METHOD(Database::CreateTransaction) {
 	REQUIRE_ARGUMENT_ARRAY(0, sources);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
+	if (!db->open) {
+		return Nan::ThrowTypeError("The database connection is not open.");
+	}
 	if (db->in_each) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query.");
-	}
-	if (!db->open) {
-		return Nan::ThrowError("The database connection is not open.");
 	}
 	
 	unsigned int len = sources->Length();

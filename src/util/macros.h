@@ -156,13 +156,13 @@ inline bool IS_32BIT_INT(double num) {
 
 // The macro-instruction that runs before an SQLite request.
 #define QUERY_START(obj, object_name, BIND_MACRO, bind_type, info, info_length)\
+	if (!obj->db->open) {                                                      \
+		return Nan::ThrowTypeError(                                            \
+			"The associated database connection is closed.");                  \
+	}                                                                          \
 	if (obj->db->in_each) {                                                    \
 		return Nan::ThrowTypeError(                                            \
 			"This database connection is busy executing a query.");            \
-	}                                                                          \
-	if (!obj->db->open) {                                                      \
-		return Nan::ThrowError(                                                \
-			"The associated database connection is closed.");                  \
 	}                                                                          \
 	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
 	if (!(obj->state & BOUND)) {                                               \
