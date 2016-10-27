@@ -3,13 +3,10 @@ var fs = require('fs');
 var Database = require('../.');
 var db;
 
-before(function (done) {
+before(function () {
 	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
-	db.on('open', function () {
-		db.pragma('journal_mode = WAL');
-		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
-		done();
-	});
+	db.pragma('journal_mode = WAL');
+	db.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
 });
 
 describe('Database#checkpoint()', function () {

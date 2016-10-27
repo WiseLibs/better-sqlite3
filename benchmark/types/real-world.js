@@ -25,12 +25,8 @@ exports = module.exports = function (ourDb, theirDb, count, countPerCycle) {
 		theirTest(theirDb, count, countPerCycle, params, callback2);
 	}
 	function callback2() {
-		var closedCount = 0;
-		ourDb.on('close', closed).close();
-		theirDb.close(closed);
-		function closed() {
-			++closedCount === 2 && process.exit();
-		}
+		ourDb.close();
+		theirDb.close(process.exit);
 	}
 	setTimeout(callback0, 100);
 };

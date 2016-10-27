@@ -4,19 +4,11 @@ var Int64 = Database.Int64;
 var db;
 var db2;
 
-before(function (done) {
+before(function () {
 	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.1.db');
 	db2 = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.2.db');
-	var openCount = 0;
-	db.on('open', opened);
-	db2.on('open', opened);
-	function opened() {
-		if (++openCount === 2) {
-			db.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
-			db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
-			done();
-		}
-	}
+	db.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
+	db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
 });
 
 describe('Int64', function () {

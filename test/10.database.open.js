@@ -33,42 +33,27 @@ describe('new Database()', function () {
 	it('should not allow ":memory:" databases', function () {
 		expect(function () {new Database(':memory:');}).to.throw(TypeError);
 	});
-	it('should allow disk-based databases to be created', function (done) {
+	it('should allow disk-based databases to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
 		var db = new Database(util.current());
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
-		expect(db.open).to.be.false;
-		db.on('open', function () {
-			fs.accessSync(util.current());
-			expect(db.open).to.be.true;
-			done();
-		});
+		expect(db.open).to.be.true;
+		fs.accessSync(util.current());
 	});
-	it('should allow in-memory databases to be created', function (done) {
+	it('should allow in-memory databases to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
 		var db = new Database(util.current(), {memory: true});
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.true;
-		expect(db.open).to.be.false;
-		db.on('open', function () {
-			expect(function () {fs.accessSync(util.current());}).to.throw(Error);
-			expect(db.open).to.be.true;
-			done();
-		});
+		expect(db.open).to.be.true;
+		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	});
-	it('should not allow the database to be used before it opens', function (done) {
-		var db = new Database(util.next());
-		expect(db.open).to.be.false;
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT)');}).to.throw(Error);
-		expect(function () {db.transaction(['CREATE TABLE people (name TEXT)']);}).to.throw(Error);
-		expect(function () {db.pragma('cache_size');}).to.throw(Error);
-		expect(function () {db.checkpoint();}).to.throw(Error);
-		db.on('open', function () {
-			expect(db.open).to.be.true;
-			done();
-		});
-	});
+	it('should throw an Error if opening the database failed', function () {
+		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		expect(function () {new Database('temp/nonexistent/abcfoobar123/' + util.current());})
+		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
+	})
 	it('should have a proper prototype chain', function () {
 		var db = new Database(util.next());
 		expect(db).to.be.an.instanceof(Database);
