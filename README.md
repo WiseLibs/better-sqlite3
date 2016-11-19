@@ -1,5 +1,13 @@
 # better-sqlite3 [![Build Status](https://travis-ci.org/JoshuaWise/better-sqlite3.svg?branch=master)](https://travis-ci.org/JoshuaWise/better-sqlite3)
 
+## Electron Fork
+
+Using the work of [Ben Gotow](https://github.com/bengotow) to patch better-sqlite3 for use with Electron. 
+
+Here's a checklist for building this successfully with Electron:
+- Ensure that your node version matches your version of Electron's. If you're using NVM, check your current version by navigating to your app directory and running `nvm version`, and to set your version run `nvm use x.x.x`.
+- Ensure that you have setup a post installation workflow with node gyp to set the appropriate headers. Again we turn to the work of [Ben Gotow](https://github.com/bengotow) for the easiest solution [use this script in your post install workflow](https://github.com/bengotow/electron-RxDB/blob/master/post-install.js) and add `"postinstall": "node ./post-install.js"` to your package.json (or if going the two package.json route, the package.json you're using for development).
+
 The fastest and simplest library for SQLite3 in Node.js.
 
 - Full transaction support
