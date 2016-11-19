@@ -7,8 +7,15 @@ bool Statement::Compare::operator() (const Statement* a, const Statement* b) con
 // the parameter index of each one. After the second invocation, a cached version
 // is returned, rather than rebuilding it.
 v8::Local<v8::Object> Statement::GetBindMap() {
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	v8::Local<v8::Private> privateKey = v8::Private::ForApi(isolate, Nan::EmptyString());
+	v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
 	if (state & HAS_BIND_MAP) {
-		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+		v8::Local<v8::Value> value;
+		if (handle()->GetPrivate(context, privateKey).ToLocal(&value)) {
+			return v8::Local<v8::Object>::Cast(value);
+		}
 	}
 	int param_count = sqlite3_bind_parameter_count(st_handle);
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
@@ -20,7 +27,7 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 		}
 	}
 	if (state & USED_BIND_MAP) {
-		handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
+		handle()->SetPrivate(context, privateKey, namedParams);
 		state |= HAS_BIND_MAP;
 	} else {
 		state |= USED_BIND_MAP;
