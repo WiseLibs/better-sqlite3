@@ -72,7 +72,7 @@ describe('Int64', function () {
 		var int = new Int64(123, 123);
 		expect(int.equals(int)).to.be.true;
 		expect(int.equals(new Int64(123, 123))).to.be.true;
-		expect(int.equals({low: 123, high: 123})).to.be.false;
+		expect(int.equals({low: 123, high: 123})).to.be.true;
 		expect(int.equals(528280977531)).to.be.true;
 		expect(int.equals('528280977531')).to.be.true;
 		int = new Int64(4243423, 234234234);

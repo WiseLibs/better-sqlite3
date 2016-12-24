@@ -34,7 +34,7 @@ describe('Statement#each()', function () {
 		stmt.each(function () {});
 	});
 	it('should invoke the callback for each matching row', function () {
-		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		
 		var count = 0;
 		var stmt = db.prepare("SELECT * FROM entries");
@@ -56,7 +56,7 @@ describe('Statement#each()', function () {
 		expect(ret).to.be.undefined;
 	});
 	it('should obey the current pluck setting', function () {
-		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		var stmt = db.prepare("SELECT * FROM entries");
 		shouldHave(row);
 		stmt.pluck(true);
@@ -153,21 +153,21 @@ describe('Statement#each()', function () {
 		expect(count).to.equal(10);
 	});
 	it('should accept bind parameters', function () {
-		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		var SQL1 = 'SELECT * FROM entries WHERE a=? AND b=? AND c=? AND d=? AND e IS ?';
 		var SQL2 = 'SELECT * FROM entries WHERE a=@a AND b=@b AND c=@c AND d=@d AND e IS @e';
 		
-		shouldHave(SQL1, row, ['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null])
-		shouldHave(SQL1, row, [['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]])
-		shouldHave(SQL1, row, [['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), [,]])
-		shouldHave(SQL2, row, [{a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: undefined}])
+		shouldHave(SQL1, row, ['foo', 1, 3.14, bufferOfSize(4).fill(0xdd), null])
+		shouldHave(SQL1, row, [['foo', 1, 3.14, bufferOfSize(4).fill(0xdd), null]])
+		shouldHave(SQL1, row, [['foo', 1], [3.14], bufferOfSize(4).fill(0xdd), [,]])
+		shouldHave(SQL2, row, [{a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: undefined}])
 		
-		db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xaa), e: undefined}, function () {
+		db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xaa), e: undefined}, function () {
 			throw new Error('This callback should not have been invoked.');
 		});
 		
 		expect(function () {
-			db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd)}, function () {});
+			db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)}, function () {});
 		}).to.throw(Error);
 		
 		expect(function () {
@@ -197,3 +197,7 @@ describe('Statement#each()', function () {
 		}
 	});
 });
+
+function bufferOfSize(size) {
+	return Buffer.alloc ? Buffer.alloc(+size) : new Buffer(+size);
+}
