@@ -8,7 +8,7 @@ bool Statement::Compare::operator() (const Statement* a, const Statement* b) con
 // is returned, rather than rebuilding it.
 v8::Local<v8::Object> Statement::GetBindMap() {
 	if (state & HAS_BIND_MAP) {
-		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+		return v8::Local<v8::Object>::Cast(Nan::GetPrivate(handle(), Nan::EmptyString()).ToLocalChecked());
 	}
 	int param_count = sqlite3_bind_parameter_count(st_handle);
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
@@ -20,7 +20,7 @@ v8::Local<v8::Object> Statement::GetBindMap() {
 		}
 	}
 	if (state & USED_BIND_MAP) {
-		handle()->SetHiddenValue(Nan::EmptyString(), namedParams);
+		Nan::SetPrivate(handle(), Nan::EmptyString(), namedParams);
 		state |= HAS_BIND_MAP;
 	} else {
 		state |= USED_BIND_MAP;
