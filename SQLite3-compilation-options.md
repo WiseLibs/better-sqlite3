@@ -5,3 +5,4 @@ The following [compilation options](https://www.sqlite.org/compile.html) are use
 - SQLITE_DEFAULT_CACHE_SIZE=-16000
 - SQLITE_DEFAULT_FOREIGN_KEYS=1
 - SQLITE_USE_URI=1
+- SQLITE_MAX_SCHEMA_RETRY=0
