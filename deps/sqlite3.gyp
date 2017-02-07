@@ -87,7 +87,7 @@
       ],
       'defines': [
         '_REENTRANT=1',
-        'SQLITE_THREADSAFE=2',
+        'SQLITE_THREADSAFE=0',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
         'SQLITE_ENABLE_RTREE',
