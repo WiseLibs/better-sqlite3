@@ -10,103 +10,61 @@ node benchmark
 
 # Results
 
-These results are from 09/17/2016, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
+These results are from 03/01/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
 
-### Concurrently reading and writing on multiple connections
+### Creating prepared statements
 ```
---- WAL mode ---
-better-sqlite3	10000 overlapping INSERT or SELECTs in 268ms
-node-sqlite3	10000 overlapping INSERT or SELECTs in 553ms
+better-sqlite3	100000 prepared statements in 1098ms
+node-sqlite3	100000 prepared statements in 1974ms
 ```
 
-### Reading and writing on a single connection
+### Reading rows individually (`.get()`)
+```
+better-sqlite3	10000 SELECTs in 196ms
+node-sqlite3	10000 SELECTs in 431ms
+```
 
+### Reading 1000 rows into an array (`.all()`)
+```
+better-sqlite3	100 SELECTs (1000 rows each) in 48ms
+node-sqlite3	100 SELECTs (1000 rows each) in 137ms
+```
+
+### Iterating over 1000 rows (`.each()`)
+```
+better-sqlite3	100 SELECTs (1000 rows each) in 33ms
+node-sqlite3	100 SELECTs (1000 rows each) in 1483ms
+```
+
+### Inserting rows individually (`.run()`)
 ```
 --- normal journal mode ---
-better-sqlite3	1000 INSERT or SELECTs in 409ms
-node-sqlite3	1000 INSERT or SELECTs in 793ms
+better-sqlite3	500 INSERTs in 216ms
+node-sqlite3	500 INSERTs in 216ms
 
 --- WAL mode ---
-better-sqlite3	10000 INSERT or SELECTs in 245ms
-node-sqlite3	10000 INSERT or SELECTs in 282ms
+better-sqlite3	5000 INSERTs in 133ms
+node-sqlite3	5000 INSERTs in 181ms
 ```
 
-### Inserting small rows of data individually (`.run()`)
+### Inserting many rows in a single transaction
 ```
 --- normal journal mode ---
-better-sqlite3	500 INSERTs in 256ms
-node-sqlite3	500 INSERTs in 309ms
+better-sqlite3	5000 INSERTs in 30ms
+node-sqlite3	5000 INSERTs in 157ms
 
 --- WAL mode ---
-better-sqlite3	5000 INSERTs in 149ms
-node-sqlite3	5000 INSERTs in 147ms
+better-sqlite3	5000 INSERTs in 30ms
+node-sqlite3	5000 INSERTs in 158ms
 ```
 
-### Inserting large rows of data individually (`.run()`)
+### "Real world" benchmark
 ```
 --- normal journal mode ---
-better-sqlite3	250 INSERTs in 1085ms
-node-sqlite3	250 INSERTs in 1606ms
+better-sqlite3	1000 INSERT or SELECTs in 249ms
+node-sqlite3	1000 INSERT or SELECTs in 256ms
 
 --- WAL mode ---
-better-sqlite3	250 INSERTs in 1464ms
-node-sqlite3	250 INSERTs in 2965ms
-```
-
-### Selecting small rows of data individually (`.get()`)
-```
-better-sqlite3	10000 SELECTs in 150ms
-node-sqlite3	10000 SELECTs in 369ms
-```
-
-### Selecting large rows of data individually (`.get()`)
-```
-better-sqlite3	1000 SELECTs in 776ms
-node-sqlite3	1000 SELECTs in 1416ms
-```
-
-### Reading 1000 large rows of data in a single operation (`.all()`)
-```
-better-sqlite3	1 multi-row SELECTs in 770ms
-node-sqlite3	1 multi-row SELECTs in 1600ms
-```
-
-### Reading 1000 small rows of data in a single operation (`.all()`)
-```
-better-sqlite3	100 multi-row SELECTs in 50ms
-node-sqlite3	100 multi-row SELECTs in 141ms
-```
-
-### Iterating through 1000 large rows of data in a single operation (`.each()`)
-```
-better-sqlite3	1 SELECT iterations in 751ms
-node-sqlite3	1 SELECT iterations in 1099ms
-```
-
-### Iterating through 1000 small rows of data in a single operation (`.each()`)
-```
-better-sqlite3	100 SELECT iterations in 31ms
-node-sqlite3	100 SELECT iterations in 1664ms
-```
-
-### Inserting many small rows in a single transaction.
-```
---- normal journal mode ---
-better-sqlite3	5000 INSERTs (single TRANSACTION) in 45ms
-node-sqlite3	5000 INSERTs (single TRANSACTION) in 125ms
-
---- WAL mode ---
-better-sqlite3	5000 INSERTs (single TRANSACTION) in 45ms
-node-sqlite3	5000 INSERTs (single TRANSACTION) in 131ms
-```
-
-### Inserting many large rows in a single transaction.
-```
---- normal journal mode ---
-better-sqlite3	250 INSERTs (single TRANSACTION) in 596ms
-node-sqlite3	250 INSERTs (single TRANSACTION) in 1062ms
-
---- WAL mode ---
-better-sqlite3	250 INSERTs (single TRANSACTION) in 1117ms
-node-sqlite3	250 INSERTs (single TRANSACTION) in 2437ms
+better-sqlite3	10000 INSERT or SELECTs in 293ms
+node-sqlite3	10000 INSERT or SELECTs in 609ms
 ```
