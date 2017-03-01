@@ -153,8 +153,13 @@ describe('Int64', function () {
 		expect(stmt2.get()).to.equal(1006028374637854700);
 		expect(stmt2.safeIntegers().get()).to.deep.equal(int);
 		
-		db.defaultSafeIntegers(true);
+		db.defaultSafeIntegers();
+		
 		expect(stmt.get()).to.equal(1006028374637854700);
 		expect(stmt2.get()).to.deep.equal(int);
+		
+		var stmt3 = db.prepare('SELECT a FROM entries').pluck();
+		expect(stmt3.get()).to.deep.equal(int);
+		expect(stmt3.safeIntegers(false).get()).to.equal(1006028374637854700);
 	});
 });
