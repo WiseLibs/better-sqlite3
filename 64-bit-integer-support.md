@@ -36,6 +36,7 @@ db.prepare("INSERT INTO big_numbers VALUES (?)").run(new Int64(0x01234abcd, 0x0f
 By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#runbindparameters---object) methods). You can change this default as you please:
 
 ```js
+db.defaultSafeIntegers(); // Int64s by default
 db.defaultSafeIntegers(true); // Int64s by default
 db.defaultSafeIntegers(false); // JavaScript numbers by default
 ```
