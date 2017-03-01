@@ -19,10 +19,8 @@ npm install --save better-sqlite3
 var Database = require('better-sqlite3');
 var db = new Database('foobar.db', options);
 
-db.on('open', function () {
-	var row = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
-	console.log(row.firstName, row.lastName, row.email);
-});
+var row = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
+console.log(row.firstName, row.lastName, row.email);
 ```
 
 ## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
