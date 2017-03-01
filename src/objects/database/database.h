@@ -31,6 +31,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Close);
 		static NAN_METHOD(CreateStatement);
 		static NAN_METHOD(CreateTransaction);
+		static NAN_METHOD(Exec);
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
 		static NAN_METHOD(DefaultSafeIntegers);

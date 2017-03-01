@@ -22,6 +22,7 @@ Nan::Persistent<v8::Function> NullFactory;
 #include "close.cc"
 #include "create-statement.cc"
 #include "create-transaction.cc"
+#include "exec.cc"
 #include "pragma.cc"
 #include "checkpoint.cc"
 #include "util.cc"
@@ -52,6 +53,7 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Nan::SetPrototypeMethod(t, "close", Close);
 	Nan::SetPrototypeMethod(t, "prepare", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
+	Nan::SetPrototypeMethod(t, "exec", Exec);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
 	Nan::SetPrototypeMethod(t, "defaultSafeIntegers", DefaultSafeIntegers);
