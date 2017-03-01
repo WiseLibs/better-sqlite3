@@ -12,11 +12,7 @@
 
 ### new Database(*path*, [*options*])
 
-Creates a new database connection. If the database file does not exist, it is created.
-
-When the database connection is ready, the `open` event is fired.
-
-If the database is closed, the `close` event will be fired. If an error occured while trying to open or close the database, the associated `Error` object will be available as the first parameter of the `close` event. If there was no error, the first parameter will be `null`.
+Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
 If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
 
@@ -59,7 +55,7 @@ If execution of the checkpoint fails, an `Error` is thrown.
 
 ### .close() -> *this*
 
-Closes the database connection. After invoking this method, no statements/transactions can be created or executed. When all resources have been released, the `close` event will be fired.
+Closes the database connection. After invoking this method, no statements/transactions can be created or executed.
 
 ### *get* .open -> *boolean*
 
