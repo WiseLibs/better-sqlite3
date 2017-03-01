@@ -9,7 +9,7 @@ bool Transaction::Compare::operator() (const Transaction* a, const Transaction* 
 // version is returned, rather than rebuilding it.
 v8::Local<v8::Object> Transaction::GetBindMap() {
 	if (state & HAS_BIND_MAP) {
-		return v8::Local<v8::Object>::Cast(handle()->GetHiddenValue(Nan::EmptyString()));
+		return v8::Local<v8::Object>::Cast(Nan::GetPrivate(handle(), Nan::EmptyString()).ToLocalChecked());
 	}
 	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
 	v8::Local<v8::Object> array = Nan::New<v8::Object>();
@@ -28,7 +28,7 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 		}
 	}
 	if (state & USED_BIND_MAP) {
-		handle()->SetHiddenValue(Nan::EmptyString(), array);
+		Nan::SetPrivate(handle(), Nan::EmptyString(), array);
 		state |= HAS_BIND_MAP;
 	} else {
 		state |= USED_BIND_MAP;

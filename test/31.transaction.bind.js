@@ -11,7 +11,7 @@ describe('Transaction#bind()', function () {
 	it('should permanently bind the given parameters', function () {
 		db.transaction(['CREATE TABLE entries (a TEXT, b INTEGER, c BLOB)']).run();
 		var trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
-		var buffer = Buffer.alloc(4).fill(0xdd);
+		var buffer = bufferOfSize(4).fill(0xdd);
 		trans.bind('foobar', 25, buffer)
 		trans.run();
 		buffer.fill(0xaa);
@@ -24,7 +24,7 @@ describe('Transaction#bind()', function () {
 	});
 	it('should not allow you to bind temporary parameters afterwards', function () {
 		var trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
-		var buffer = Buffer.alloc(4).fill(0xdd);
+		var buffer = bufferOfSize(4).fill(0xdd);
 		trans.bind('foobar', 25, buffer)
 		expect(function () {trans.run(null);}).to.throw(TypeError);
 		expect(function () {trans.run(buffer);}).to.throw(TypeError);
@@ -90,3 +90,7 @@ describe('Transaction#bind()', function () {
 		trans.bind({a: '123'}, null);
 	});
 });
+
+function bufferOfSize(size) {
+	return Buffer.alloc ? Buffer.alloc(+size) : new Buffer(+size);
+}

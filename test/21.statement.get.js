@@ -28,14 +28,14 @@ describe('Statement#get()', function () {
 		
 		var stmt = db.prepare("SELECT * FROM entries");
 		expect(stmt.returnsData).to.be.true;
-		expect(stmt.get()).to.deep.equal({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null});
+		expect(stmt.get()).to.deep.equal({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null});
 		
 		stmt = db.prepare("SELECT * FROM entries WHERE b > 5");
-		expect(stmt.get()).to.deep.equal({a: 'foo', b: 6, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null});
+		expect(stmt.get()).to.deep.equal({a: 'foo', b: 6, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null});
 	});
 	it('should obey the current pluck setting', function () {
 		var stmt = db.prepare("SELECT * FROM entries");
-		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		expect(stmt.get()).to.deep.equal(row);
 		expect(stmt.pluck(true).get()).to.equal('foo');
 		expect(stmt.get()).to.equal('foo');
@@ -50,26 +50,26 @@ describe('Statement#get()', function () {
 		expect(stmt.pluck().get()).to.be.undefined;
 	});
 	it('should accept bind parameters', function () {
-		var row = {a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null};
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		var SQL1 = 'SELECT * FROM entries WHERE a=? AND b=? AND c=? AND d=? AND e IS ?';
 		var SQL2 = 'SELECT * FROM entries WHERE a=@a AND b=@b AND c=@c AND d=@d AND e IS @e';
-		var result = db.prepare(SQL1).get('foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null);
+		var result = db.prepare(SQL1).get('foo', 1, 3.14, bufferOfSize(4).fill(0xdd), null);
 		expect(result).to.deep.equal(row);
 		
-		result = db.prepare(SQL1).get(['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]);
+		result = db.prepare(SQL1).get(['foo', 1, 3.14, bufferOfSize(4).fill(0xdd), null]);
 		expect(result).to.deep.equal(row);
 		
-		result = db.prepare(SQL1).get(['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), [,]);
+		result = db.prepare(SQL1).get(['foo', 1], [3.14], bufferOfSize(4).fill(0xdd), [,]);
 		expect(result).to.deep.equal(row);
 		
-		result = db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: undefined});
+		result = db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: undefined});
 		expect(result).to.deep.equal(row);
 		
-		result = db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xaa), e: undefined});
+		result = db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xaa), e: undefined});
 		expect(result).to.be.undefined;
 		
 		expect(function () {
-			db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd)});
+			db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)});
 		}).to.throw(Error);
 		
 		expect(function () {
@@ -81,3 +81,7 @@ describe('Statement#get()', function () {
 		}).to.throw(Error);
 	});
 });
+
+function bufferOfSize(size) {
+	return Buffer.alloc ? Buffer.alloc(+size) : new Buffer(+size);
+}

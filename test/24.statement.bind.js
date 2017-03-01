@@ -11,7 +11,7 @@ describe('Statement#bind()', function () {
 	it('should permanently bind the given parameters', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c BLOB)').run();
 		var stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		var buffer = Buffer.alloc(4).fill(0xdd);
+		var buffer = bufferOfSize(4).fill(0xdd);
 		stmt.bind('foobar', 25, buffer)
 		stmt.run();
 		buffer.fill(0xaa);
@@ -24,7 +24,7 @@ describe('Statement#bind()', function () {
 	});
 	it('should not allow you to bind temporary parameters afterwards', function () {
 		var stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		var buffer = Buffer.alloc(4).fill(0xdd);
+		var buffer = bufferOfSize(4).fill(0xdd);
 		stmt.bind('foobar', 25, buffer)
 		expect(function () {stmt.run(null);}).to.throw(TypeError);
 		expect(function () {stmt.run(buffer);}).to.throw(TypeError);
@@ -105,3 +105,7 @@ describe('Statement#bind()', function () {
 		stmt.bind({a: '123'}, null);
 	});
 });
+
+function bufferOfSize(size) {
+	return Buffer.alloc ? Buffer.alloc(+size) : new Buffer(+size);
+}
