@@ -7,6 +7,16 @@ The fastest and simplest library for SQLite3 in Node.js.
 - Easy-to-use synchronous API *(faster than an asynchronous API... yes, you read that correctly)*
 - 64-bit integer support *(invisible until you need it)*
 
+## How other libraries compare
+
+|                                                       |select 1 row `get()`|select 1000 rows `all()`|select 1000 rows `each()`|insert 1 row `run()`    |insert 5000 rows in a transaction|
+|---|---|---|---|---|---|
+|better-sqlite3                                         |1x                  |1x                      |1x                       |1x                      |1x
+|[sqlite](https://www.npmjs.com/package/sqlite)         |2.4x slower         |2.9x slower             |45x slower               |1.5x slower         |5.8x slower
+|[sqlite3](https://www.npmjs.com/package/sqlite3)       |2.2x slower         |2.9x slower             |45x slower               |1.4x slower         |5.5x slower
+
+You can verify these results by [running the benchmark yourself](https://github.com/JoshuaWise/better-sqlite3/wiki/Benchmark).
+
 ## Installation
 
 ```bash
