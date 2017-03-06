@@ -10,7 +10,7 @@ node benchmark
 
 # Results
 
-These results are from 03/01/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4).
+These results are from 03/01/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4), using nodejs v6.9.1.
 
 ### Creating prepared statements
 ```
