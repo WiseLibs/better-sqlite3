@@ -1,4 +1,4 @@
-// .checkpoint([boolean force], Function callback) -> this
+// .checkpoint([boolean force]) -> this
 
 NAN_METHOD(Database::Checkpoint) {
 	TRUTHINESS_OF_ARGUMENT(0, force);
