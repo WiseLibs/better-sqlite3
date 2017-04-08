@@ -9,6 +9,7 @@
 - [Database#open](#get-open---boolean)
 - [Database#name](#get-name---string)
 - [Database#memory](#get-memory---boolean)
+- [Database#readonly](#get-readonly---boolean)
 
 ### new Database(*path*, [*options*])
 
@@ -70,6 +71,10 @@ Returns the string that was used to open the databse connection.
 ### *get* .memory -> *boolean*
 
 Returns whether the database is an in-memory database.
+
+### *get* .readonly -> *boolean*
+
+Returns whether the database connection was created in readonly mode.
 
 # class *Statement*
 
