@@ -33,7 +33,7 @@ NAN_METHOD(Database::Pragma) {
 	if (!db->open) {
 		return Nan::ThrowTypeError("The database connection is not open.");
 	}
-	if (db->in_each) {
+	if (db->busy) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query.");
 	}
 	

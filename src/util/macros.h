@@ -159,7 +159,7 @@ inline bool IS_32BIT_INT(double num) {
 		return Nan::ThrowTypeError(                                            \
 			"The associated database connection is closed.");                  \
 	}                                                                          \
-	if (obj->db->in_each) {                                                    \
+	if (obj->db->busy) {                                                       \
 		return Nan::ThrowTypeError(                                            \
 			"This database connection is busy executing a query.");            \
 	}                                                                          \

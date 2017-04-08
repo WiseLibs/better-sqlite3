@@ -7,7 +7,7 @@ NAN_METHOD(Statement::Each) {
 	}
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, callback);
 	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_TRANSIENT, info, func_index);
-	stmt->db->in_each = true;
+	stmt->db->busy = true;
 	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
@@ -23,7 +23,7 @@ NAN_METHOD(Statement::Each) {
 		// If an exception was thrown in the callback, clean up and stop.
 		if (callback_return_value.IsEmpty()) {
 			sqlite3_reset(stmt->st_handle);
-			stmt->db->in_each = false;
+			stmt->db->busy = false;
 			QUERY_CLEANUP(stmt, STATEMENT_CLEAR_BINDINGS);
 			return;
 		}
@@ -32,10 +32,10 @@ NAN_METHOD(Statement::Each) {
 		SAFE_INTEGERS = stmt->state & SAFE_INTS ? true : false;
 	}
 	if (sqlite3_reset(stmt->st_handle) == SQLITE_OK) {
-		stmt->db->in_each = false;
+		stmt->db->busy = false;
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, Nan::Undefined());
 	}
 	
-	stmt->db->in_each = false;
+	stmt->db->busy = false;
 	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
 }

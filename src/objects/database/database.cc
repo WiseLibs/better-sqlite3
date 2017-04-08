@@ -31,7 +31,7 @@ Database::Database(bool readonly) : Nan::ObjectWrap(),
 	db_handle(NULL),
 	t_handles(),
 	open(true),
-	in_each(false),
+	busy(false),
 	safe_ints(false),
 	readonly(readonly) {}
 Database::~Database() {

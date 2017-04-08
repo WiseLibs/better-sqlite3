@@ -45,7 +45,7 @@ class Database : public Nan::ObjectWrap {
 		
 		// State
 		bool open;
-		bool in_each;
+		bool busy;
 		bool safe_ints;
 		const bool readonly;
 		
