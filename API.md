@@ -153,7 +153,7 @@ stmt.pluck(false); // plucking OFF
 
 This method can only be invoked before the statement is first executed. After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
 
-This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same bound parameters. However, if the prepared statement will only be executed once, it's faster to bind the parameters directly with the execution ([`run()`](#runbindparameters---object), [`get()`](#getbindparameters---row), [`all()`](#allbindparameters---array-of-rows), or [`each()`](#eachbindparameters-callback---undefined)).
+This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same bound parameters.
 
 ### *get* .source -> *string*
 
