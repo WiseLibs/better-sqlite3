@@ -117,8 +117,7 @@ inline bool IS_32BIT_INT(double num) {
 // is thrown and the caller returns.
 #define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
 	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeValue =                                   \
-		Nan::Call(_method, obj, argc, argv);                                   \
+	Nan::MaybeLocal<v8::Value> _maybeValue = _method->Call(obj, argc, argv);   \
 	if (_maybeValue.IsEmpty()) {return;}                                       \
 	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
 

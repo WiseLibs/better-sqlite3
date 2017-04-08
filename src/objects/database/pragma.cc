@@ -50,7 +50,6 @@ NAN_METHOD(Database::Pragma) {
 		sqlite3_free(err);
 		return Nan::ThrowError(message.c_str());
 	}
-	sqlite3_free(err);
 	
 	if (simple_result && !pragma_info.after_first) {
 		info.GetReturnValue().Set(Nan::Undefined());

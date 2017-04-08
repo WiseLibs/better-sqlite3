@@ -21,7 +21,6 @@ NAN_METHOD(Database::Exec) {
 		sqlite3_free(err);
 		return Nan::ThrowError(message.c_str());
 	}
-	sqlite3_free(err);
 	
 	info.GetReturnValue().Set(info.This());
 }

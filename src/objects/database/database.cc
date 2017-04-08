@@ -29,7 +29,7 @@ Nan::Persistent<v8::Function> NullFactory;
 
 Database::Database() : Nan::ObjectWrap(),
 	db_handle(NULL),
-	t_handles(NULL),
+	t_handles(),
 	open(true),
 	in_each(false),
 	safe_ints(false) {}
@@ -70,9 +70,8 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 
 // Returns an SQLite3 result code.
 int Database::CloseHandles() {
-	delete t_handles;
+	t_handles.close();
 	int status = sqlite3_close(db_handle);
-	t_handles = NULL;
 	db_handle = NULL;
 	return status;
 }
@@ -85,9 +84,7 @@ void Database::CloseChildHandles() {
 }
 
 int Database::OpenHandles(const char* filename) {
-	int status;
-	
-	status = sqlite3_open(filename, &db_handle);
+	int status = sqlite3_open(filename, &db_handle);
 	if (status != SQLITE_OK) {
 		return status;
 	}
@@ -100,6 +97,5 @@ int Database::OpenHandles(const char* filename) {
 	sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 0x7fffffff);
 	
-	t_handles = new TransactionHandles(db_handle, &status);
-	return status;
+	return t_handles.open(db_handle);
 }

@@ -1,4 +1,4 @@
-// .each(...any boundValues, Function callback) -> undefined
+// .each(...any boundValues, function callback) -> undefined
 
 NAN_METHOD(Statement::Each) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
