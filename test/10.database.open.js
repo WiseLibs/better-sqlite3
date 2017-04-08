@@ -38,6 +38,7 @@ describe('new Database()', function () {
 		var db = new Database(util.current());
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
+		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		fs.accessSync(util.current());
 	});
@@ -46,6 +47,25 @@ describe('new Database()', function () {
 		var db = new Database(util.current(), {memory: true});
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.true;
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
+	});
+	it('should allow readonly database connections to be created', function () {
+		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		var db = new Database(util.current(), {readonly: true});
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.false;
+		expect(db.readonly).to.be.true;
+		expect(db.open).to.be.true;
+		fs.accessSync(util.current());
+	});
+	it('should allow the "readonly" and "memory" options on the same connection', function () {
+		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		var db = new Database(util.current(), {memory: true, readonly: true});
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.true;
+		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
 		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	});

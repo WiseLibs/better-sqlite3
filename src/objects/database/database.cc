@@ -27,12 +27,13 @@ Nan::Persistent<v8::Function> NullFactory;
 #include "checkpoint.cc"
 #include "util.cc"
 
-Database::Database() : Nan::ObjectWrap(),
+Database::Database(bool readonly) : Nan::ObjectWrap(),
 	db_handle(NULL),
 	t_handles(),
 	open(true),
 	in_each(false),
-	safe_ints(false) {}
+	safe_ints(false),
+	readonly(readonly) {}
 Database::~Database() {
 	// This is necessary in the case that a database and its statements are
 	// garbage collected at the same time. The database might be destroyed

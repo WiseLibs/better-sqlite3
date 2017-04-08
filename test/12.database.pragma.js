@@ -50,6 +50,12 @@ describe('Database#pragma()', function () {
 		db.pragma('cache_size = -8000');
 		expect(db.pragma('cache_size', true)).to.equal('-8000');
 	});
+	it('should be available to readonly connections', function () {
+		var db = new Database(util.next(), {readonly: true});
+		expect(db.pragma('cache_size', true)).to.equal('-16000');
+		db.pragma('cache_size = -8000');
+		expect(db.pragma('cache_size', true)).to.equal('-8000');
+	});
 	it('should return undefined if no rows exist and simpler results are desired', function () {
 		var db = new Database(util.next());
 		expect(db.pragma('table_info', true)).to.be.undefined;

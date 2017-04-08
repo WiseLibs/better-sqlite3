@@ -13,6 +13,15 @@ var util = (function () {
 }());
 
 describe('Database#prepare()', function () {
+	function assertStmt(stmt, source, db, returnsData) {
+		expect(stmt.source).to.equal(source);
+		expect(stmt.constructor.name).to.equal('Statement');
+		expect(stmt.database).to.equal(db);
+		expect(stmt.returnsData).to.equal(returnsData);
+		expect(function () {
+			new stmt.constructor(source);
+		}).to.throw(TypeError);
+	}
 	it('should throw an exception if a string is not provided', function () {
 		var db = new Database(util.next());
 		expect(function () {db.prepare(123);}).to.throw(TypeError);
@@ -38,32 +47,23 @@ describe('Database#prepare()', function () {
 		expect(function () {db.prepare('CREATE TABLE people (name TEXT);;');}).to.throw(TypeError);
 	});
 	it('should create a prepared Statement object', function () {
-		function assertStmt(stmt, source) {
-			expect(stmt.source).to.equal(source);
-			expect(stmt.constructor.name).to.equal('Statement');
-			expect(stmt.database).to.equal(db);
-			expect(stmt.returnsData).to.equal(false);
-			expect(function () {
-				new stmt.constructor(source);
-			}).to.throw(TypeError);
-		}
 		var db = new Database(util.next());
 		var stmt1 = db.prepare('CREATE TABLE people (name TEXT)');
 		var stmt2 = db.prepare('CREATE TABLE people (name TEXT);');
-		assertStmt(stmt1, 'CREATE TABLE people (name TEXT)');
-		assertStmt(stmt2, 'CREATE TABLE people (name TEXT);');
+		assertStmt(stmt1, 'CREATE TABLE people (name TEXT)', db, false);
+		assertStmt(stmt2, 'CREATE TABLE people (name TEXT);', db, false);
 		expect(stmt1).to.not.equal(stmt2);
 		expect(stmt1).to.not.equal(db.prepare('CREATE TABLE people (name TEXT)'));
 	});
 	it('should create a prepared Statement object with just an expression', function () {
 		var db = new Database(util.next());
 		var stmt = db.prepare('SELECT 555');
-		expect(stmt.source).to.equal('SELECT 555');
-		expect(stmt.constructor.name).to.equal('Statement');
-		expect(stmt.database).to.equal(db);
-		expect(stmt.returnsData).to.equal(true);
-		expect(function () {
-			new stmt.constructor('SELECT 555');
-		}).to.throw(TypeError);
+		assertStmt(stmt, 'SELECT 555', db, true);
+	});
+	it('should obey the restrictions of readonly mode', function () {
+		var db = new Database(util.next(), {readonly: true});
+		expect(function () {db.prepare('CREATE TABLE people (name TEXT)');}).to.throw(TypeError);
+		var stmt = db.prepare('SELECT 555');
+		assertStmt(stmt, 'SELECT 555', db, true);
 	});
 });

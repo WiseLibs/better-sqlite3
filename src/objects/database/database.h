@@ -17,7 +17,7 @@ extern Nan::Persistent<v8::Function> NullFactory;
 // Class Declaration
 class Database : public Nan::ObjectWrap {
 	public:
-		explicit Database();
+		explicit Database(bool);
 		~Database();
 		static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
 		
@@ -47,6 +47,7 @@ class Database : public Nan::ObjectWrap {
 		bool open;
 		bool in_each;
 		bool safe_ints;
+		const bool readonly;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

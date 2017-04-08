@@ -9,6 +9,9 @@ NAN_METHOD(Database::Exec) {
 	if (db->in_each) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query.");
 	}
+	if (db->readonly) {
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
+	}
 	
 	// Prepares the SQL string.
 	Nan::Utf8String utf8(source);

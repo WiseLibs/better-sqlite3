@@ -10,6 +10,9 @@ NAN_METHOD(Database::CreateTransaction) {
 	if (db->in_each) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query.");
 	}
+	if (db->readonly) {
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
+	}
 	
 	unsigned int len = sources->Length();
 	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);

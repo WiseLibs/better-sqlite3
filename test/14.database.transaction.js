@@ -67,6 +67,10 @@ describe('Database#transaction()', function () {
 		expect(function () {db.transaction(['CREATE TABLE people (name TEXT)', 'COMMIT TRANSACTION']);}).to.throw(TypeError);
 		expect(function () {db.transaction(['CREATE TABLE people (name TEXT)', 'ROLLBACK TRANSACTION']);}).to.throw(TypeError);
 	});
+	it('should throw an exception if used on a readonly database connection', function () {
+		var db = new Database(util.next(), {readonly: true});
+		expect(function () {db.transaction(['CREATE TABLE people (name TEXT)']);}).to.throw(TypeError);
+	});
 	it('should create a prepared Transaction object', function () {
 		var db = new Database(util.next());
 		var trans1 = db.transaction(['CREATE TABLE people (name TEXT)']);
