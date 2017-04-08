@@ -13,8 +13,11 @@ process.on('SIGHUP', function () {fs.removeSync('temp/'); process.exit();});
 process.on('SIGTERM', function () {fs.removeSync('temp/'); process.exit();});
 
 var trials = fs.readdirSync(path.join(__dirname, 'trials')).filter(function (name) {return name[0] !== '.';});
+trials = process.argv.slice(2).reduce(function (names, str) {
+	return names.filter(function (name) {return name.indexOf(str) !== -1;});
+}, trials);
 if (!trials.length) {
-	console.log(clc.yellow('No benchmarks exist!'));
+	console.log(clc.yellow('No matching benchmarks found!'));
 	fs.removeSync('temp/');
 	process.exit();
 }

@@ -50,6 +50,16 @@ inline bool IS_32BIT_INT(double num) {
 	v8::Local<v8::Function> result =                                           \
 		v8::Local<v8::Function>::Cast(_localMethod);
 
+// Given a v8::Object and a C-string method name, retrieves the v8::Function
+// representing that method, and invokes it with the given args. If the getter
+// throws, if the property is not a function, or if the method throws, an error
+// is thrown and the caller returns.
+#define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
+	GET_METHOD(_method, obj, methodName);                                      \
+	Nan::MaybeLocal<v8::Value> _maybeValue = _method->Call(obj, argc, argv);   \
+	if (_maybeValue.IsEmpty()) {return;}                                       \
+	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
+
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available
 // at the given variable name.
@@ -111,16 +121,6 @@ inline bool IS_32BIT_INT(double num) {
 		var = true;                                                            \
 	}
 
-// Given a v8::Object and a C-string method name, retrieves the v8::Function
-// representing that method, and invokes it with the given args. If the getter
-// throws, if the property is not a function, or if the method throws, an error
-// is thrown and the caller returns.
-#define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
-	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeValue = _method->Call(obj, argc, argv);   \
-	if (_maybeValue.IsEmpty()) {return;}                                       \
-	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
-
 // Defines a persistent v8::function, used for constructors.
 #define CONSTRUCTOR(name)                                                      \
 	Nan::Persistent<v8::Function> name;
@@ -133,9 +133,9 @@ inline bool IS_32BIT_INT(double num) {
 		sqlite3_clear_bindings(trans->handles[i]);                             \
 	}
 
-// Common bind logic for statements (must match STATEMENT_BIND_T_BUFFERS).
-#define STATEMENT_BIND(stmt, info, info_length, bind_type)                     \
-	Binder _binder(stmt->st_handle, bind_type);                                \
+// Common bind logic for statements.
+#define STATEMENT_BIND(stmt, info, info_length)                                \
+	Binder _binder(stmt->st_handle);                                           \
 	_binder.Bind(info, info_length, stmt);                                     \
 	const char* _err = _binder.GetError();                                     \
 	if (_err) {                                                                \
@@ -144,8 +144,8 @@ inline bool IS_32BIT_INT(double num) {
 	}
 
 // Common bind logic for transactions.
-#define TRANSACTION_BIND(trans, info, info_length, bind_type)                  \
-	MultiBinder _binder(trans->handles, trans->handle_count, bind_type);       \
+#define TRANSACTION_BIND(trans, info, info_length)                             \
+	MultiBinder _binder(trans->handles, trans->handle_count);                  \
 	_binder.Bind(info, info_length, trans);                                    \
 	const char* _err = _binder.GetError();                                     \
 	if (_err) {                                                                \
@@ -154,7 +154,7 @@ inline bool IS_32BIT_INT(double num) {
 	}
 
 // The macro-instruction that runs before an SQLite request.
-#define QUERY_START(obj, object_name, BIND_MACRO, bind_type, info, info_length)\
+#define QUERY_START(obj, object_name, BIND_MACRO, info, info_length)           \
 	if (!obj->db->open) {                                                      \
 		return Nan::ThrowTypeError(                                            \
 			"The associated database connection is closed.");                  \
@@ -165,7 +165,7 @@ inline bool IS_32BIT_INT(double num) {
 	}                                                                          \
 	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
 	if (!(obj->state & BOUND)) {                                               \
-		BIND_MACRO(obj, info, info_length, bind_type);                         \
+		BIND_MACRO(obj, info, info_length);                                    \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \

@@ -12,7 +12,7 @@ NAN_METHOD(Statement::Bind) {
 		return Nan::ThrowTypeError("The bind() method can only be invoked once per statement object.");
 	}
 	
-	STATEMENT_BIND(stmt, info, info.Length(), SQLITE_TRANSIENT);
+	STATEMENT_BIND(stmt, info, info.Length());
 	
 	stmt->state |= BOUND;
 	info.GetReturnValue().Set(info.This());

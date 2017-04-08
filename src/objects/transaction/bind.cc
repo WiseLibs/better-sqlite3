@@ -12,7 +12,7 @@ NAN_METHOD(Transaction::Bind) {
 		return Nan::ThrowTypeError("The bind() method can only be invoked once per transaction object.");
 	}
 	
-	TRANSACTION_BIND(trans, info, info.Length(), SQLITE_TRANSIENT);
+	TRANSACTION_BIND(trans, info, info.Length());
 	
 	trans->state |= BOUND;
 	info.GetReturnValue().Set(info.This());

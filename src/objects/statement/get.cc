@@ -5,7 +5,7 @@ NAN_METHOD(Statement::Get) {
 	if (!(stmt->state & RETURNS_DATA)) {
 		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
 	}
-	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_STATIC, info, info.Length());
+	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
 	
 	int status = sqlite3_step(stmt->st_handle);
 	if (status == SQLITE_ROW) {

@@ -10,8 +10,8 @@
 #include "bind-object.cc"
 #include "bind.cc"
 
-MultiBinder::MultiBinder(sqlite3_stmt** handles, unsigned int handle_count, sqlite3_destructor_type bind_type)
-	: Binder(handles[0], bind_type)
+MultiBinder::MultiBinder(sqlite3_stmt** handles, unsigned int handle_count)
+	: Binder(handles[0])
 	, handles(handles)
 	, handle_count(handle_count)
 	, handle_index(0)

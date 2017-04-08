@@ -6,7 +6,7 @@ NAN_METHOD(Statement::Each) {
 		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
 	}
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, callback);
-	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_TRANSIENT, info, func_index);
+	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);
 	stmt->db->busy = true;
 	
 	// Retrieve and feed rows.

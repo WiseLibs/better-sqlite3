@@ -5,7 +5,7 @@ NAN_METHOD(Statement::Run) {
 	if (stmt->state & RETURNS_DATA) {
 		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead.");
 	}
-	QUERY_START(stmt, statement, STATEMENT_BIND, SQLITE_STATIC, info, info.Length());
+	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
 	
 	sqlite3* db_handle = stmt->db->db_handle;
 	int total_changes_before = sqlite3_total_changes(db_handle);
