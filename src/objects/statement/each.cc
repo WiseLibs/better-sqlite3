@@ -11,6 +11,7 @@ NAN_METHOD(Statement::Each) {
 	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
+		Nan::HandleScope scope;
 		v8::MaybeLocal<v8::Value> callback_return_value;
 		
 		// The pluck setting must be within the loop, because it could change in a callback.
