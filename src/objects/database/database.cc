@@ -1,4 +1,6 @@
 #include <cassert>
+#include <cstring>
+#include <cmath>
 #include <algorithm>
 #include <stdint.h>
 #include <sqlite3.h>
@@ -6,6 +8,7 @@
 #include "database.h"
 #include "../statement/statement.h"
 #include "../transaction/transaction.h"
+#include "../../util/strlcpy.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/transaction-handles.h"
@@ -22,6 +25,7 @@ Nan::Persistent<v8::Function> NullFactory;
 #include "close.cc"
 #include "create-statement.cc"
 #include "create-transaction.cc"
+#include "create-function.cc"
 #include "exec.cc"
 #include "pragma.cc"
 #include "checkpoint.cc"
@@ -33,7 +37,9 @@ Database::Database(bool readonly) : Nan::ObjectWrap(),
 	open(true),
 	busy(false),
 	safe_ints(false),
-	readonly(readonly) {}
+	readonly(readonly),
+	was_js_error(false),
+	jsError() {}
 Database::~Database() {
 	// This is necessary in the case that a database and its statements are
 	// garbage collected at the same time. The database might be destroyed
@@ -54,6 +60,7 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Nan::SetPrototypeMethod(t, "close", Close);
 	Nan::SetPrototypeMethod(t, "prepare", CreateStatement);
 	Nan::SetPrototypeMethod(t, "transaction", CreateTransaction);
+	Nan::SetPrototypeMethod(t, "register", CreateFunction);
 	Nan::SetPrototypeMethod(t, "exec", Exec);
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);

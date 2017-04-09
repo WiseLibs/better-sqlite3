@@ -15,14 +15,8 @@ class Binder {
 		
 	protected:
 		virtual int NextAnonIndex();
-		void SetBindingError(int);
-		void BindNumber(v8::Local<v8::Number>, int = 0);
-		void BindInt64(Int64*, int = 0);
-		void BindString(v8::Local<v8::String>, int = 0);
-		void BindBuffer(v8::Local<v8::Object>, int = 0);
-		void BindNull(int = 0);
-		void BindValue(v8::Local<v8::Value>, int = 0);
 		
+		void BindValue(v8::Local<v8::Value>, int = 0);
 		int BindArray(v8::Local<v8::Array>);
 		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once
 		

@@ -35,5 +35,5 @@ NAN_METHOD(Statement::All) {
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returnedArray);
 	}
 	
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, stmt->db->db_handle);
 }

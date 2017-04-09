@@ -24,6 +24,7 @@ class Database : public Nan::ObjectWrap {
 		// Friends
 		friend class Statement;
 		friend class Transaction;
+		friend void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
 		
 	private:
 		static NAN_METHOD(New);
@@ -31,6 +32,7 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Close);
 		static NAN_METHOD(CreateStatement);
 		static NAN_METHOD(CreateTransaction);
+		static NAN_METHOD(CreateFunction);
 		static NAN_METHOD(Exec);
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
@@ -38,6 +40,7 @@ class Database : public Nan::ObjectWrap {
 		int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 		int CloseHandles();
 		void CloseChildHandles();
+		bool HandleJavaScriptError();
 		
 		// Sqlite3 interfacing
 		sqlite3* db_handle;
@@ -48,6 +51,8 @@ class Database : public Nan::ObjectWrap {
 		bool busy;
 		bool safe_ints;
 		const bool readonly;
+		bool was_js_error;
+		Nan::Persistent<v8::Value> jsError;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

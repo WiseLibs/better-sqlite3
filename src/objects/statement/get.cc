@@ -20,5 +20,5 @@ NAN_METHOD(Statement::Get) {
 	}
 	
 	sqlite3_reset(stmt->st_handle);
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, stmt->db->db_handle);
 }

@@ -10,7 +10,7 @@ NAN_METHOD(Transaction::Run) {
 	// Begin Transaction
 	sqlite3_step(t_handles.begin);
 	if (sqlite3_reset(t_handles.begin) != SQLITE_OK) {
-		QUERY_THROW(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+		QUERY_THROW(trans, TRANSACTION_CLEAR_BINDINGS, db_handle);
 	}
 	
 	int changes = 0;
@@ -21,7 +21,7 @@ NAN_METHOD(Transaction::Run) {
 		
 		sqlite3_step(trans->handles[i]);
 		if (sqlite3_reset(trans->handles[i]) != SQLITE_OK) {
-			QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+			QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, db_handle);
 			sqlite3_step(t_handles.rollback);
 			sqlite3_reset(t_handles.rollback);
 			return;
@@ -35,7 +35,7 @@ NAN_METHOD(Transaction::Run) {
 	// Commit Transaction
 	sqlite3_step(t_handles.commit);
 	if (sqlite3_reset(t_handles.commit) != SQLITE_OK) {
-		QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+		QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, db_handle);
 		sqlite3_step(t_handles.rollback);
 		sqlite3_reset(t_handles.rollback);
 		return;
