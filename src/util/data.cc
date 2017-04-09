@@ -80,13 +80,13 @@ v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, int column_count) {
 }
 
 v8::Local<v8::Value>* GetArgumentsJS(sqlite3_value** values, int argument_count, bool safe_integers) {
-	bool was_safe_integers = SAFE_INTEGERS;
+	bool previous_safe_integers = SAFE_INTEGERS;
 	SAFE_INTEGERS = safe_integers;
 	v8::Local<v8::Value>* args = new v8::Local<v8::Value>[argument_count];
 	for (int i=0; i<argument_count; ++i) {
 		args[i] = Data::GetValueJS(values[i]);
 	}
-	SAFE_INTEGERS = was_safe_integers;
+	SAFE_INTEGERS = previous_safe_integers;
 	return args;
 }
 
