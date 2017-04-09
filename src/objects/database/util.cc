@@ -16,12 +16,14 @@ NAN_GETTER(Database::Open) {
 	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Database>(info.This())->open);
 }
 
-bool Database::HandleJavaScriptError() {
+void Database::ThrowError(const char* err) {
 	if (was_js_error) {
-		Nan::ThrowError(Nan::New(jsError));
-		jsError.Reset();
 		was_js_error = false;
-		return true;
+	} else {
+		if (err == NULL) {
+			err = sqlite3_errmsg(db_handle);
+		}
+		CONCAT2(message, "SQLite: ", err);
+		Nan::ThrowError(message.c_str());
 	}
-	return false;
 }

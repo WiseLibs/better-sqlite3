@@ -38,8 +38,7 @@ Database::Database(bool readonly) : Nan::ObjectWrap(),
 	busy(false),
 	safe_ints(false),
 	readonly(readonly),
-	was_js_error(false),
-	jsError() {}
+	was_js_error(false) {}
 Database::~Database() {
 	// This is necessary in the case that a database and its statements are
 	// garbage collected at the same time. The database might be destroyed

@@ -182,27 +182,20 @@ inline bool IS_32BIT_INT(double num) {
 	}                                                                          \
 	SAFE_INTEGERS = obj->state & SAFE_INTS ? true : false;
 
-// The macro-instruction that MUST be run before returning from a query.
-#define QUERY_CLEANUP(obj, UNBIND_MACRO)                                       \
+// Like QUERY_THROW, but does not return from the caller function.
+#define QUERY_THROW_STAY(obj, UNBIND_MACRO)                                    \
+	obj->db->ThrowError();                                                     \
 	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}
 
-// Like QUERY_THROW, but does not return from the caller function.
-#define QUERY_THROW_STAY(obj, UNBIND_MACRO, db_handle)                         \
-	if (!obj->db->HandleJavaScriptError()) {                                   \
-		CONCAT2(_error_message, "SQLite: ", sqlite3_errmsg(db_handle));        \
-		Nan::ThrowError(_error_message.c_str());                               \
-	}                                                                          \
-	QUERY_CLEANUP(obj, UNBIND_MACRO);
-
 // The macro-instruction that runs after a failed SQLite request.
-#define QUERY_THROW(obj, UNBIND_MACRO, db_handle)                              \
-	QUERY_THROW_STAY(obj, UNBIND_MACRO, db_handle);                            \
+#define QUERY_THROW(obj, UNBIND_MACRO)                                         \
+	QUERY_THROW_STAY(obj, UNBIND_MACRO);                                       \
 	return;
 
 // The macro-instruction that runs after a successful SQLite request.
 #define QUERY_RETURN(obj, UNBIND_MACRO, return_value)                          \
-	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
 	info.GetReturnValue().Set(return_value);                                   \
+	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}                            \
 	return;
 
 // Creates a new internalized string from UTF-8 data.

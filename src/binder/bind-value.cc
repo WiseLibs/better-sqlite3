@@ -3,9 +3,7 @@
 // If an error occurs, error is set to an appropriately descriptive string.
 
 void Binder::BindValue(v8::Local<v8::Value> value, int index) {
-	if (!index) {
-		index = NextAnonIndex();
-	}
+	if (!index) {index = NextAnonIndex();}
 	int status = Data::BindValueFromJS(handle, index, value);
 	if (status != SQLITE_OK) {
 		switch (status) {

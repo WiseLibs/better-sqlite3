@@ -20,10 +20,7 @@ NAN_METHOD(Database::Exec) {
 	// Executes the SQL on the database handle.
 	sqlite3_exec(db->db_handle, *utf8, NULL, NULL, &err);
 	if (err != NULL) {
-		if (!db->HandleJavaScriptError()) {
-			CONCAT2(message, "SQLite: ", err);
-			Nan::ThrowError(message.c_str());
-		}
+		db->ThrowError(err);
 		return sqlite3_free(err);
 	}
 	

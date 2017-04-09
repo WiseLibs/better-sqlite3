@@ -40,7 +40,7 @@ class Database : public Nan::ObjectWrap {
 		int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 		int CloseHandles();
 		void CloseChildHandles();
-		bool HandleJavaScriptError();
+		void ThrowError(const char* = NULL);
 		
 		// Sqlite3 interfacing
 		sqlite3* db_handle;
@@ -52,7 +52,6 @@ class Database : public Nan::ObjectWrap {
 		bool safe_ints;
 		const bool readonly;
 		bool was_js_error;
-		Nan::Persistent<v8::Value> jsError;
 		
 		// Associated Statements and Transactions
 		std::set<Statement*, Statement::Compare> stmts;

@@ -24,7 +24,8 @@ NAN_METHOD(Statement::Each) {
 		if (callback_return_value.IsEmpty()) {
 			sqlite3_reset(stmt->st_handle);
 			stmt->db->busy = false;
-			QUERY_CLEANUP(stmt, STATEMENT_CLEAR_BINDINGS);
+			stmt->db->was_js_error = true;
+			QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 			return;
 		}
 		
@@ -37,5 +38,5 @@ NAN_METHOD(Statement::Each) {
 	}
 	
 	stmt->db->busy = false;
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, stmt->db->db_handle);
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 }

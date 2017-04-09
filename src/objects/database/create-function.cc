@@ -31,15 +31,13 @@ void ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	bool was_busy = db->busy;
 	v8::Local<v8::Value>* args = Data::GetArgumentsJS(values, length, function_info->safe_integers);
 	
-	v8::TryCatch tryCatch(v8::Isolate::GetCurrent());
 	db->busy = true;
 	v8::MaybeLocal<v8::Value> maybe_return_value = func->Call(Nan::Null(), length, args);
 	db->busy = was_busy;
 	delete[] args;
 	
-	if (tryCatch.HasCaught()) {
+	if (maybe_return_value.IsEmpty()) {
 		db->was_js_error = true;
-		db->jsError.Reset(tryCatch.Exception());
 		return sqlite3_result_error(ctx, "", 0);
 	}
 	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info->name);
