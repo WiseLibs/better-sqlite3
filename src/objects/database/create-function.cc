@@ -48,7 +48,7 @@ NAN_METHOD(Database::CreateFunction) {
 	REQUIRE_ARGUMENT_STRING(1, name);
 	REQUIRE_ARGUMENT_BOOLEAN(2, deterministic);
 	REQUIRE_ARGUMENT_BOOLEAN(3, safe_integers);
-	REQUIRE_ARGUMENT_BOOLEAN(4, variadic);
+	REQUIRE_ARGUMENT_BOOLEAN(4, varargs);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
@@ -66,7 +66,7 @@ NAN_METHOD(Database::CreateFunction) {
 		return Nan::ThrowTypeError("Cannot create an SQL function without a name.");
 	}
 	
-	if (!variadic) {
+	if (!varargs) {
 		REQUIRE_ARGUMENT_NUMBER(5, argCount);
 		double arg_count = argCount->Value();
 		if (floor(arg_count) != arg_count || arg_count < 0.0) {

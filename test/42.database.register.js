@@ -70,8 +70,8 @@ describe('Database#register()', function () {
 		expect(exec('e1(?)', 2)).to.equal(null);
 		expect(exec('e1(?)', new Int64(2, 2))).to.equal(2);
 	});
-	it('should accept a "variadic" option', function () {
-		register({variadic: true}, function f1() {
+	it('should accept a "varargs" option', function () {
+		register({varargs: true}, function f1() {
 			return [].slice.call(arguments).reduce(function (a, b) {return a * b;}, 1);
 		});
 		expect(exec('f1()')).to.equal(1);
