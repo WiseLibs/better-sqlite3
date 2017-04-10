@@ -48,7 +48,7 @@ NAN_METHOD(Database::CreateFunction) {
 	REQUIRE_ARGUMENT_STRING(1, name);
 	REQUIRE_ARGUMENT_BOOLEAN(2, deterministic);
 	REQUIRE_ARGUMENT_BOOLEAN(3, safe_integers);
-	REQUIRE_ARGUMENT_BOOLEAN(4, strict_arg_count);
+	REQUIRE_ARGUMENT_BOOLEAN(4, variadic);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
@@ -62,11 +62,15 @@ NAN_METHOD(Database::CreateFunction) {
 	int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 	int argc = -1;
 	
-	if (strict_arg_count) {
+	if (!utf8.length()) {
+		return Nan::ThrowTypeError("Cannot create an SQL function without a name.");
+	}
+	
+	if (!variadic) {
 		REQUIRE_ARGUMENT_NUMBER(5, argCount);
 		double arg_count = argCount->Value();
 		if (floor(arg_count) != arg_count || arg_count < 0.0) {
-			return Nan::ThrowTypeError("Expected \"argCount\" option to be a positive integer.");
+			return Nan::ThrowTypeError("Expected function.length to be a positive integer.");
 		}
 		if (arg_count > 127.0) {
 			return Nan::ThrowTypeError("Cannot create an SQL function with more than 127 arguments.");
