@@ -32,17 +32,17 @@ describe('Database#register()', function () {
 		expect(exec('b(?, ?, ?)', 2, 10, 50)).to.equal(62);
 		expect(exec('b(?, ?, ?)', 2, 10, null)).to.equal(12);
 		expect(exec('b(?, ?, ?)', 'foo', 'z', 12)).to.equal('fooz12');
-		
+
 		register(function c() {});
 		expect(exec('c(?, ?)', 2, 10)).to.equal(null);
-		
+
 		register(function d(a) {return a;});
 		var buffer = exec('d(?, ?)', Buffer.alloc(8).fill(0xdd), 'foo');
 		expect(buffer.equals(Buffer.alloc(8).fill(0xdd))).to.be.ok;
-		
+
 		register(function e(a) {return new Int64(a + a);});
 		expect(exec('e(?)', 42)).to.equal(84);
-		
+
 		register(function e2() {return 12;});
 		expect(exec('e2()')).to.equal(12);
 	});
@@ -140,11 +140,11 @@ describe('Database#register()', function () {
 	});
 	describe('should not affect external environment', function () {
 		specify('busy state', function () {
+			var ranOnce = false;
 			register(function t(n) {
 				expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
 				return n * 2;
 			});
-			var ranOnce = false;
 			db.prepare('SELECT t(555)').pluck().each(function (n) {
 				ranOnce = true;
 				expect(n).to.equal(1110);
@@ -153,7 +153,33 @@ describe('Database#register()', function () {
 			expect(ranOnce).to.be.true;
 			db.prepare('SELECT 555');
 		});
-		specify('safeIntegers state');
-		specify('was_js_error state');
+		specify('safeIntegers state', function () {
+			var ranOnce = false;
+			register({safeIntegers: true}, function u(n) {
+				return new Int64(n.low * 10);
+			});
+			db.prepare('SELECT u(555)').safeIntegers(true).pluck().each(function (n) {
+				ranOnce = true;
+				expect(n.low).to.equal(5550);
+			});
+			expect(ranOnce).to.be.true;
+			expect(db.prepare('SELECT u(555)').safeIntegers(false).pluck().get()).to.equal(5550);
+		});
+		specify('was_js_error state', function () {
+			db.prepare('CREATE TABLE abcxyz (value INTEGER)').run();
+			var stmt = db.prepare('SELECT value FROM abcxyz');
+			db.prepare('DROP TABLE abcxyz').run();
+			var err = new Error('foobarbaz');
+			register(function v() {throw err;});
+			expect(function () {db.prepare('SELECT v()').get();}).to.throw(err);
+			try {stmt.get();} catch (ex) {
+				expect(ex).to.be.an.instanceof(Error);
+				expect(ex).to.not.equal(err);
+				expect(ex.message).to.not.equal(err.message);
+				expect(ex.message.indexOf('SQLite: ')).to.equal(0);
+				return;
+			}
+			throw new TypeError('Expected the statement to throw an exception.');
+		});
 	});
 });
