@@ -3,12 +3,12 @@ require('../runner')(function (benchmark, dbs, ctx) {
 	var SQL = 'SELECT ' + ctx.columns.join(', ') + ' FROM ' + ctx.table + ' WHERE rowid=?';
 	var betterSqlite3 = dbs['better-sqlite3'];
 	var nodeSqlite3 = dbs['node-sqlite3'];
+	var rowid = 0;
 	
-	benchmark.add('better-sqlite3', function (deferred) {
-		betterSqlite3.prepare(SQL).get(1);
-		deferred.resolve();
+	benchmark.add('better-sqlite3', function () {
+		betterSqlite3.prepare(SQL).pluck().get(rowid++ % 1000 + 1);
 	});
 	benchmark.add('node-sqlite3', function (deferred) {
-		nodeSqlite3.get(SQL, 1).then(function () {deferred.resolve();});
+		nodeSqlite3.get(SQL, rowid++ % 1000 + 1).then(function () {deferred.resolve();});
 	});
 });
