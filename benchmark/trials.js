@@ -1,6 +1,6 @@
 'use strict';
 
-module.exports = [
+exports.default = [
 	{type: 'select', table: 'allSmall', columns: ['integer']},
 	{type: 'select', table: 'allSmall', columns: ['real']},
 	{type: 'select', table: 'allSmall', columns: ['text']},
@@ -42,17 +42,24 @@ module.exports = [
 	{type: 'transaction', table: 'blobSmall', columns: ['blob']},
 	{type: 'transaction', table: 'nulSmall', columns: ['nul']},
 	{type: 'transaction', table: 'textLarge', columns: ['text']},
-	{type: 'transaction', table: 'blobLarge', columns: ['blob']},
-	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'blob', 'nul'], pragma: ['journal_mode = WAL']},
-	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'blob', 'nul'], pragma: ['journal_mode = DELETE']}
+	{type: 'transaction', table: 'blobLarge', columns: ['blob']}
 ];
 
-if (/^(1|true|on|yes)$/i.test(process.env.NO_CACHE)) {
-	module.exports.forEach(function (trial) {
-		trial.pragma = ['cache_size = 0'].concat(trial.pragma || []);
+exports.rows = [
+	{type: 'select', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'select-all', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'select-each', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']},
+	{type: 'transaction', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']}
+];
+
+(function () {
+	var cacheSize = /^(1|true|on|yes)$/i.test(process.env.NO_CACHE) ? 'cache_size = 0' : 'cache_size = -16000';
+	var trials = [].concat.apply([], Object.keys(exports).map(function (key) {return exports[key];}));
+	trials.forEach(function (trial) {
+		trial.pragma = [cacheSize].concat(trial.pragma || []);
 	});
-} else {
-	module.exports.forEach(function (trial) {
-		trial.pragma = ['cache_size = -16000'].concat(trial.pragma || []);
-	});
-}
+}());

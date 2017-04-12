@@ -7,14 +7,10 @@ require('../runner')(function (benchmark, dbs, ctx) {
 	var rowid = 99;
 	benchmark.on('cycle', function () {rowid = 0;});
 	
-	var stmt = betterSqlite3.prepare(SQL).pluck();
+	var betterSqlite3Select = betterSqlite3.prepare(SQL);
 	
 	benchmark.add('better-sqlite3', function () {
-		betterSqlite3.prepare(SQL).each(rowid % 1000 - 98, function () {});
-		rowid += 100;
-	});
-	benchmark.add(' + optimized', function () {
-		stmt.each(rowid % 1000 - 98, function () {});
+		betterSqlite3Select.each(rowid % 1000 - 98, function () {});
 		rowid += 100;
 	});
 	benchmark.add('node-sqlite3', function (deferred) {

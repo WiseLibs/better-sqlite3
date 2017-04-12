@@ -31,7 +31,10 @@ var trials;
 }());
 
 function getTrials() {
-	return process.argv.slice(2).reduce(filterByArgs, require('./trials').map(addSearchTerms));
+	var trials = require('./trials');
+	var specifiedGroup = trials.hasOwnProperty(process.argv[2]) ? process.argv[2] : '';
+	var args = process.argv.slice(specifiedGroup ? 3 : 2);
+	return args.reduce(filterByArgs, trials[specifiedGroup || 'default'].map(addSearchTerms));
 	
 	function addSearchTerms(trial) {
 		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
