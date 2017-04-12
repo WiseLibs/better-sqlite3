@@ -14,20 +14,20 @@ These results are from 04/12/2017, on a MacBook Pro (Retina, 15-inch, Late 2013,
 
 ### Reading rows individually (`.get()`)
 ```
-better-sqlite3 x 105,488 ops/sec ±3.01%
-node-sqlite3   x 15,847 ops/sec ±1.70%
+better-sqlite3 x 124,973 ops/sec ±1.96%
+node-sqlite3   x 16,110 ops/sec ±1.68%
 ```
 
 ### Reading 100 rows into an array (`.all()`)
 ```
-better-sqlite3 x 5,217 ops/sec ±5.12%
-node-sqlite3   x 1,811 ops/sec ±2.12%
+better-sqlite3 x 5,426 ops/sec ±3.70%
+node-sqlite3   x 1,851 ops/sec ±1.88%
 ```
 
 ### Iterating over 100 rows (`.each()`)
 ```
-better-sqlite3 x 5,598 ops/sec ±1.90%
-node-sqlite3   x 1,751 ops/sec ±2.84%
+better-sqlite3 x 5,473 ops/sec ±3.35%
+node-sqlite3   x 1,742 ops/sec ±2.82%
 ```
 
 ### Inserting rows individually (`.run()`)
