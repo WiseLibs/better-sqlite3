@@ -22,6 +22,13 @@ module.exports = [
 	{type: 'select-each', table: 'allSmall', columns: ['nul']},
 	{type: 'select-each', table: 'allLarge', columns: ['text']},
 	{type: 'select-each', table: 'allLarge', columns: ['blob']},
+	{type: 'insert', table: 'integerSmall', columns: ['integer'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'realSmall', columns: ['real'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'textSmall', columns: ['text'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'blobSmall', columns: ['blob'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'nulSmall', columns: ['nul'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'textLarge', columns: ['text'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'blobLarge', columns: ['blob'], pragma: ['journal_mode = WAL']},
 	{type: 'insert', table: 'integerSmall', columns: ['integer'], pragma: ['journal_mode = DELETE']},
 	{type: 'insert', table: 'realSmall', columns: ['real'], pragma: ['journal_mode = DELETE']},
 	{type: 'insert', table: 'textSmall', columns: ['text'], pragma: ['journal_mode = DELETE']},
@@ -29,13 +36,13 @@ module.exports = [
 	{type: 'insert', table: 'nulSmall', columns: ['nul'], pragma: ['journal_mode = DELETE']},
 	{type: 'insert', table: 'textLarge', columns: ['text'], pragma: ['journal_mode = DELETE']},
 	{type: 'insert', table: 'blobLarge', columns: ['blob'], pragma: ['journal_mode = DELETE']},
-	{type: 'insert', table: 'integerSmall', columns: ['integer'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'realSmall', columns: ['real'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'textSmall', columns: ['text'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'blobSmall', columns: ['blob'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'nulSmall', columns: ['nul'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'textLarge', columns: ['text'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'blobLarge', columns: ['blob'], pragma: ['journal_mode = WAL']}
+	{type: 'transaction', table: 'integerSmall', columns: ['integer']},
+	{type: 'transaction', table: 'realSmall', columns: ['real']},
+	{type: 'transaction', table: 'textSmall', columns: ['text']},
+	{type: 'transaction', table: 'blobSmall', columns: ['blob']},
+	{type: 'transaction', table: 'nulSmall', columns: ['nul']},
+	{type: 'transaction', table: 'textLarge', columns: ['text']},
+	{type: 'transaction', table: 'blobLarge', columns: ['blob']}
 ];
 
 if (/^(1|true|on|yes)$/i.test(process.env.NO_CACHE)) {
