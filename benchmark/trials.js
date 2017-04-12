@@ -42,7 +42,9 @@ module.exports = [
 	{type: 'transaction', table: 'blobSmall', columns: ['blob']},
 	{type: 'transaction', table: 'nulSmall', columns: ['nul']},
 	{type: 'transaction', table: 'textLarge', columns: ['text']},
-	{type: 'transaction', table: 'blobLarge', columns: ['blob']}
+	{type: 'transaction', table: 'blobLarge', columns: ['blob']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'blob', 'nul'], pragma: ['journal_mode = WAL']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'blob', 'nul'], pragma: ['journal_mode = DELETE']}
 ];
 
 if (/^(1|true|on|yes)$/i.test(process.env.NO_CACHE)) {

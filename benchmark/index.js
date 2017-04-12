@@ -36,6 +36,7 @@ function getTrials() {
 	function addSearchTerms(trial) {
 		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
 		var columns = trial.columns.join(',').toLowerCase();
+		if (trial.columns.length > 1) {columns = '(' + columns + ')';}
 		trial.terms = [trial.type.toLowerCase(), size, columns];
 		trial.looseTerms = (trial.pragma || []).filter(customPragma).join('; ').toLowerCase();
 		return trial;
