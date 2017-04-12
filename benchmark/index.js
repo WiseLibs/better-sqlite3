@@ -64,7 +64,8 @@ function nextTrial() {
 	}
 	
 	var trial = trials.shift();
-	console.log(clc.cyan(trial.terms.join(' ') + (trial.looseTerms && ' | ' + trial.looseTerms)));
+	var extraName = trial.looseTerms ? clc.yellow(' | ' + trial.looseTerms) : '';
+	console.log(clc.cyan(trial.terms.join(' ')) + extraName);
 	
 	var child = spawn('node', [path.join(__dirname, 'types', trial.type), JSON.stringify(trial)], {stdio: 'inherit'});
 	child.on('exit', function (code) {
