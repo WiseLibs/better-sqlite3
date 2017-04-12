@@ -7,13 +7,10 @@ require('../runner')(function (benchmark, dbs, ctx) {
 	var nodeSqlite3 = dbs['node-sqlite3'];
 	var data = factory(ctx.table, ctx.columns);
 	
-	var stmt = betterSqlite3.prepare(SQL);
+	var betterSqlite3Insert = betterSqlite3.prepare(SQL);
 	
 	benchmark.add('better-sqlite3', function () {
-		betterSqlite3.prepare(SQL).run(data);
-	});
-	benchmark.add(' + optimized', function () {
-		stmt.run(data);
+		betterSqlite3Insert.run(data);
 	});
 	benchmark.add('node-sqlite3', function (deferred) {
 		nodeSqlite3.run(SQL, data).then(function () {deferred.resolve();});

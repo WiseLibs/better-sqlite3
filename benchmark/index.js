@@ -31,7 +31,8 @@ var trials;
 }());
 
 function getTrials() {
-	return process.argv.slice(2).reduce(filterByArgs, require('./trials').map(addSearchTerms));
+	if (process.argv.length === 2) {return require('./trials').default.map(addSearchTerms);}
+	return process.argv.slice(2).reduce(filterByArgs, require('./trials').searchable.map(addSearchTerms));
 	
 	function addSearchTerms(trial) {
 		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
