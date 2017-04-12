@@ -10,61 +10,50 @@ node benchmark
 
 # Results
 
-These results are from 03/01/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.4), using nodejs v6.9.1.
-
-### Creating prepared statements
-```
-better-sqlite3	100000 prepared statements in 1098ms
-node-sqlite3	100000 prepared statements in 1974ms
-```
+These results are from 04/12/2017, on a MacBook Pro (Retina, 15-inch, Late 2013, OSX 10.11.6), using nodejs v6.10.0.
 
 ### Reading rows individually (`.get()`)
 ```
-better-sqlite3	10000 SELECTs in 196ms
-node-sqlite3	10000 SELECTs in 431ms
+better-sqlite3 x 105,488 ops/sec ±3.01%
+node-sqlite3   x 15,847 ops/sec ±1.70%
 ```
 
-### Reading 1000 rows into an array (`.all()`)
+### Reading 100 rows into an array (`.all()`)
 ```
-better-sqlite3	100 SELECTs (1000 rows each) in 48ms
-node-sqlite3	100 SELECTs (1000 rows each) in 137ms
+better-sqlite3 x 5,217 ops/sec ±5.12%
+node-sqlite3   x 1,811 ops/sec ±2.12%
 ```
 
-### Iterating over 1000 rows (`.each()`)
+### Iterating over 100 rows (`.each()`)
 ```
-better-sqlite3	100 SELECTs (1000 rows each) in 33ms
-node-sqlite3	100 SELECTs (1000 rows each) in 1483ms
+better-sqlite3 x 5,598 ops/sec ±1.90%
+node-sqlite3   x 1,751 ops/sec ±2.84%
 ```
 
 ### Inserting rows individually (`.run()`)
 ```
 --- normal journal mode ---
-better-sqlite3	500 INSERTs in 216ms
-node-sqlite3	500 INSERTs in 216ms
+better-sqlite3 x 2,243 ops/sec ±7.48%
+node-sqlite3   x 1,901 ops/sec ±9.06%
 
 --- WAL mode ---
-better-sqlite3	5000 INSERTs in 133ms
-node-sqlite3	5000 INSERTs in 181ms
+better-sqlite3 x 10,991 ops/sec ±1.89%
+node-sqlite3   x 6,739 ops/sec ±1.79%
 ```
 
-### Inserting many rows in a single transaction
+### Inserting 100 rows in a single transaction
 ```
---- normal journal mode ---
-better-sqlite3	5000 INSERTs in 30ms
-node-sqlite3	5000 INSERTs in 157ms
-
---- WAL mode ---
-better-sqlite3	5000 INSERTs in 30ms
-node-sqlite3	5000 INSERTs in 158ms
+better-sqlite3 x 1,355 ops/sec ±9.24%
+node-sqlite3   x 187 ops/sec ±2.48%
 ```
 
 ### "Real world" benchmark
 ```
 --- normal journal mode ---
-better-sqlite3	1000 INSERT or SELECTs in 249ms
-node-sqlite3	1000 INSERT or SELECTs in 256ms
+better-sqlite3 x 4,424 ops/sec ±6.88%
+node-sqlite3   x 2,714 ops/sec ±8.81%
 
 --- WAL mode ---
-better-sqlite3	10000 INSERT or SELECTs in 293ms
-node-sqlite3	10000 INSERT or SELECTs in 609ms
+better-sqlite3 x 20,530 ops/sec ±1.85%
+node-sqlite3   x 8,826 ops/sec ±3.41%
 ```
