@@ -26,8 +26,8 @@ node-sqlite3   x 1,851 ops/sec ±1.88%
 
 ### Iterating over 100 rows (`.each()`)
 ```
-better-sqlite3 x 5,473 ops/sec ±3.35%
-node-sqlite3   x 1,742 ops/sec ±2.82%
+better-sqlite3 x 5,598 ops/sec ±1.90%
+node-sqlite3   x 1,751 ops/sec ±2.84%
 ```
 
 ### Inserting rows individually (`.run()`)
