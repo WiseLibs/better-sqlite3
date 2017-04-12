@@ -31,10 +31,8 @@ var trials;
 }());
 
 function getTrials() {
-	var trials = require('./trials');
-	var specifiedGroup = trials.hasOwnProperty(process.argv[2]) ? process.argv[2] : '';
-	var args = process.argv.slice(specifiedGroup ? 3 : 2);
-	return args.reduce(filterByArgs, trials[specifiedGroup || 'default'].map(addSearchTerms));
+	if (process.argv.length === 2) {return require('./trials').default.map(addSearchTerms);}
+	return process.argv.slice(2).reduce(filterByArgs, require('./trials').searchable.map(addSearchTerms));
 	
 	function addSearchTerms(trial) {
 		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';

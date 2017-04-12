@@ -1,6 +1,17 @@
 'use strict';
 
 exports.default = [
+	{type: 'select', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'select-all', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'select-each', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']},
+	{type: 'transaction', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
+	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']}
+];
+
+exports.searchable = [
 	{type: 'select', table: 'allSmall', columns: ['integer']},
 	{type: 'select', table: 'allSmall', columns: ['real']},
 	{type: 'select', table: 'allSmall', columns: ['text']},
@@ -43,17 +54,6 @@ exports.default = [
 	{type: 'transaction', table: 'nulSmall', columns: ['nul']},
 	{type: 'transaction', table: 'textLarge', columns: ['text']},
 	{type: 'transaction', table: 'blobLarge', columns: ['blob']}
-];
-
-exports.rows = [
-	{type: 'select', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
-	{type: 'select-all', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
-	{type: 'select-each', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
-	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
-	{type: 'insert', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']},
-	{type: 'transaction', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul']},
-	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = WAL']},
-	{type: 'real-world', table: 'allSmall', columns: ['integer', 'real', 'text', 'nul'], pragma: ['journal_mode = DELETE']}
 ];
 
 (function () {
