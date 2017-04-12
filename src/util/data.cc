@@ -38,11 +38,13 @@
 		return errorValue;                                                     \
 	}
 
-#define SQLITE_VALUE_TO_JS(from, ...)                                          \
+#define SQLITE_VALUE_TO_JS(from, safe_integers, ...)                           \
 	int type = sqlite3_##from##_type(__VA_ARGS__);                             \
 	switch (type) {                                                            \
 	case SQLITE_INTEGER:                                                       \
-		return Int64::NewProperInteger(sqlite3_##from##_int64(__VA_ARGS__));   \
+		return Int64::NewProperInteger(                                        \
+			sqlite3_##from##_int64(__VA_ARGS__), safe_integers                 \
+		);                                                                     \
 	case SQLITE_FLOAT:                                                         \
 		return Nan::New<v8::Number>(sqlite3_##from##_double(__VA_ARGS__));     \
 	case SQLITE_TEXT:                                                          \
@@ -63,30 +65,27 @@
 
 namespace Data {
 
-v8::Local<v8::Value> GetValueJS(sqlite3_stmt* handle, int column) {
-	SQLITE_VALUE_TO_JS(column, handle, column);
+v8::Local<v8::Value> GetValueJS(sqlite3_stmt* handle, int column, bool safe_integers) {
+	SQLITE_VALUE_TO_JS(column, safe_integers, handle, column);
 }
 
-v8::Local<v8::Value> GetValueJS(sqlite3_value* value) {
-	SQLITE_VALUE_TO_JS(value, value);
+v8::Local<v8::Value> GetValueJS(sqlite3_value* value, bool safe_integers) {
+	SQLITE_VALUE_TO_JS(value, safe_integers, value);
 }
 
-v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, int column_count) {
+v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, int column_count, bool safe_integers) {
 	v8::Local<v8::Object> row = Nan::New<v8::Object>();
 	for (int i=0; i<column_count; ++i) {
-		Nan::Set(row, NEW_INTERNAL_STRING8(sqlite3_column_name(handle, i)), Data::GetValueJS(handle, i));
+		Nan::Set(row, NEW_INTERNAL_STRING8(sqlite3_column_name(handle, i)), Data::GetValueJS(handle, i, safe_integers));
 	}
 	return row;
 }
 
 v8::Local<v8::Value>* GetArgumentsJS(sqlite3_value** values, int argument_count, bool safe_integers) {
-	bool previous_safe_integers = SAFE_INTEGERS;
-	SAFE_INTEGERS = safe_integers;
 	v8::Local<v8::Value>* args = new v8::Local<v8::Value>[argument_count];
 	for (int i=0; i<argument_count; ++i) {
-		args[i] = Data::GetValueJS(values[i]);
+		args[i] = Data::GetValueJS(values[i], safe_integers);
 	}
-	SAFE_INTEGERS = previous_safe_integers;
 	return args;
 }
 

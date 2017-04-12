@@ -39,6 +39,9 @@ v8::Local<v8::Object> Transaction::GetBindMap() {
 // .safeIntegers(boolean) -> this
 NAN_METHOD(Transaction::SafeIntegers) {
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
+	if (trans->db->busy) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	
 	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
 		trans->state |= SAFE_INTS;

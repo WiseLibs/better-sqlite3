@@ -179,8 +179,7 @@ inline bool IS_32BIT_INT(double num) {
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \
-	}                                                                          \
-	SAFE_INTEGERS = obj->state & SAFE_INTS ? true : false;
+	}
 
 // Like QUERY_THROW, but does not return from the caller function.
 #define QUERY_THROW_STAY(obj, UNBIND_MACRO)                                    \

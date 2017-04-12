@@ -103,41 +103,19 @@ describe('Int64', function () {
 		stmt = db.prepare('SELECT c FROM entries').pluck();
 		expect(stmt.get()).to.equal('1006028374637854687');
 		expect(stmt.safeIntegers().get()).to.equal('1006028374637854687');
-	});
-	it('should react to changing settings inside an .each() callback', function () {
-		var int = new Int64(4243423, 234234234);
-		var stmt = db.prepare('SELECT * FROM entries');
-		var count = 0;
-		stmt.each(function (row) {
-			expect(row.b).to.equal(1006028374637854700);
-			expect(row.c).to.equal('1006028374637854687');
-			if (++count % 2) {
-				expect(row.a).to.equal(1006028374637854700);
-			} else {
-				expect(row.a).to.deep.equal(int);
-			}
-			stmt.safeIntegers(count % 2 ? true : false);
-		});
-		expect(count).to.equal(4);
-	});
-	it('should be safe from other databases inside an .each() callback', function () {
-		var int = new Int64(4243423, 234234234);
-		var stmt = db.prepare('SELECT a FROM entries').safeIntegers();
-		var stmt2 = db2.prepare('SELECT a FROM entries');
-		var count = 0;
-		stmt.each(function (row) {
-			++count;
-			expect(row.a).to.deep.equal(int);
-			
-			var subcount = 0;
-			stmt2.safeIntegers(false).each(function (row) {
-				++subcount;
-				expect(row.a).to.equal(1006028374637854700);
-			});
-			expect(subcount).to.equal(4);
-			
-		});
-		expect(count).to.equal(4);
+		
+		var lastRowid = db.prepare('SELECT rowid FROM entries ORDER BY rowid DESC').pluck().get();
+		stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		expect(stmt.run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
+		expect(stmt.safeIntegers().run(int, int, int).lastInsertROWID).to.deep.equal(new Int64(++lastRowid));
+		expect(stmt.run(int, int, int).lastInsertROWID).to.deep.equal(new Int64(++lastRowid));
+		expect(stmt.safeIntegers(false).run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
+		
+		var trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
+		expect(trans.run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
+		expect(trans.safeIntegers().run(int, int, int).lastInsertROWID).to.deep.equal(new Int64(++lastRowid));
+		expect(trans.run(int, int, int).lastInsertROWID).to.deep.equal(new Int64(++lastRowid));
+		expect(trans.safeIntegers(false).run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
 	});
 	it('should be able to change the default setting on the database', function () {
 		db.defaultSafeIntegers(true);
@@ -161,5 +139,18 @@ describe('Int64', function () {
 		var stmt3 = db.prepare('SELECT a FROM entries').pluck();
 		expect(stmt3.get()).to.deep.equal(int);
 		expect(stmt3.safeIntegers(false).get()).to.equal(1006028374637854700);
+	});
+	it('should not be able to invoke .safeIntegers() while the database is busy', function () {
+		var ranOnce = false;
+		var stmt1 = db.prepare('SELECT * FROM entries LIMIT 10');
+		var stmt2 = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		stmt1.each(function () {
+			ranOnce = true;
+			expect(function () {stmt1.safeIntegers();}).to.throw(TypeError);
+			expect(function () {stmt2.safeIntegers();}).to.throw(TypeError);
+			expect(function () {stmt1.safeIntegers(false);}).to.throw(TypeError);
+			expect(function () {stmt2.safeIntegers(false);}).to.throw(TypeError);
+		});
+		expect(ranOnce).to.be.true;
 	});
 });

@@ -80,16 +80,16 @@ describe('Statement#each()', function () {
 			expect(i).to.equal(10);
 		}
 	});
-	it('should obey the pluck setting even if it changed inside the callback', function () {
+	it('should not be able to invoke .pluck() while the database is busy', function () {
+		var stmt1 = db.prepare("SELECT * FROM entries");
+		var stmt2 = db.prepare("SELECT * FROM entries LIMIT 2");
 		var i = 0;
-		var stmt = db.prepare("SELECT * FROM entries");
-		stmt.each(function (data) {
-			if (++i % 2) {
-				expect(data).to.be.an('object');
-			} else {
-				expect(data).to.be.a('string');
-			}
-			stmt.pluck(i % 2 ? true : false);
+		stmt1.each(function () {
+			++i;
+			expect(function () {stmt1.pluck();}).to.throw(TypeError);
+			expect(function () {stmt2.pluck();}).to.throw(TypeError);
+			expect(function () {stmt1.pluck(false);}).to.throw(TypeError);
+			expect(function () {stmt2.pluck(false);}).to.throw(TypeError);
 		});
 		expect(i).to.equal(10);
 	});
