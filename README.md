@@ -9,7 +9,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 
 ## How other libraries compare
 
-|   |select 1 row `get()`|select 100 rows `all()`|select 100 rows `each()`|insert 1 row|insert 100 rows in a transaction|
+|   |select 1 row `get()`|select 100 rows `all()`|select 100 rows `each()`|insert 1 row `run()`|insert 100 rows in a transaction|
 |---|---|---|---|---|---|
 |better-sqlite3|1x|1x|1x|1x|1x|
 |[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|6.7x slower|2.9x slower|3.2x slower|1.6x slower|7.2x slower|
