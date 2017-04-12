@@ -7,8 +7,13 @@ require('../runner')(function (benchmark, dbs, ctx) {
 	var data = namedData(ctx.table, ctx.columns);
 	var dataWithPrefix = namedData(ctx.table, ctx.columns, true);
 	
+	var transaction = betterSqlite3.transaction(new Array(100).fill(SQL));
+	
 	benchmark.add('better-sqlite3', function () {
 		betterSqlite3.transaction(new Array(100).fill(SQL)).run(data);
+	});
+	benchmark.add(' + optimized', function () {
+		transaction.run(data);
 	});
 	benchmark.add('node-sqlite3', function (deferred) {
 		var count = 0;
