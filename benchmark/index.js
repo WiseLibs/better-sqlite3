@@ -3,7 +3,7 @@ var path = require('path');
 var fs = require('fs-extra');
 var clc = require('cli-color');
 var spawn = require('child_process').spawn;
-var generateData = require('./generate-data');
+var factory = require('./factory');
 process.chdir(path.dirname(__dirname));
 process.on('SIGINT', exit);
 process.on('SIGHUP', exit);
@@ -21,7 +21,7 @@ var trials;
 	}
 	
 	console.log('Generating tables...');
-	generateData().then(function () {
+	factory.buildTables().then(function () {
 		console.log(clc.magenta('--- Benchmarks ---'));
 		nextTrial();
 	}, function (err) {
@@ -37,14 +37,17 @@ function getTrials() {
 		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
 		var columns = trial.columns.join(',').toLowerCase();
 		trial.terms = [trial.type.toLowerCase(), size, columns];
+		trial.looseTerms = (trial.pragma || []).filter(customPragma).join('; ').toLowerCase();
 		return trial;
 	}
 	function filterByArgs(trials, arg) {
 		arg = arg.toLowerCase();
-		return trials.filter(function (obj) {return obj.terms.some(matchesThis, arg);});
+		return trials.filter(function (obj) {
+			return obj.terms.indexOf(arg) !== -1 || obj.looseTerms.indexOf(arg) !== -1;
+		});
 	}
-	function matchesThis(str) {
-		return str === String(this);
+	function customPragma(str) {
+		return str.indexOf('cache_size') === -1;
 	}
 }
 
@@ -60,7 +63,7 @@ function nextTrial() {
 	}
 	
 	var trial = trials.shift();
-	console.log(clc.cyan(trial.terms.join(' ')));
+	console.log(clc.cyan(trial.terms.join(' ') + (trial.looseTerms && ' | ' + trial.looseTerms)));
 	
 	var child = spawn('node', [path.join(__dirname, 'types', trial.type), JSON.stringify(trial)], {stdio: 'inherit'});
 	child.on('exit', function (code) {

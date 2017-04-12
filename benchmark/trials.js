@@ -14,7 +14,28 @@ module.exports = [
 	{type: 'select-all', table: 'allSmall', columns: ['blob']},
 	{type: 'select-all', table: 'allSmall', columns: ['nul']},
 	{type: 'select-all', table: 'allLarge', columns: ['text']},
-	{type: 'select-all', table: 'allLarge', columns: ['blob']}
+	{type: 'select-all', table: 'allLarge', columns: ['blob']},
+	{type: 'select-each', table: 'allSmall', columns: ['integer']},
+	{type: 'select-each', table: 'allSmall', columns: ['real']},
+	{type: 'select-each', table: 'allSmall', columns: ['text']},
+	{type: 'select-each', table: 'allSmall', columns: ['blob']},
+	{type: 'select-each', table: 'allSmall', columns: ['nul']},
+	{type: 'select-each', table: 'allLarge', columns: ['text']},
+	{type: 'select-each', table: 'allLarge', columns: ['blob']},
+	{type: 'insert', table: 'integerSmall', columns: ['integer'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'realSmall', columns: ['real'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'textSmall', columns: ['text'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'blobSmall', columns: ['blob'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'nulSmall', columns: ['nul'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'textLarge', columns: ['text'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'blobLarge', columns: ['blob'], pragma: ['journal_mode = DELETE']},
+	{type: 'insert', table: 'integerSmall', columns: ['integer'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'realSmall', columns: ['real'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'textSmall', columns: ['text'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'blobSmall', columns: ['blob'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'nulSmall', columns: ['nul'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'textLarge', columns: ['text'], pragma: ['journal_mode = WAL']},
+	{type: 'insert', table: 'blobLarge', columns: ['blob'], pragma: ['journal_mode = WAL']}
 ];
 
 if (/^(1|true|on|yes)$/i.test(process.env.NO_CACHE)) {
