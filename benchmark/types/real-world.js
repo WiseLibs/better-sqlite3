@@ -1,86 +1,29 @@
 'use strict';
-
-exports = module.exports = function (ourDb, theirDb, count, countPerCycle) {
-	if (countPerCycle > 1000) {
-		throw new Error('countPerCycle must be <= 1000');
-	}
-	if (count % countPerCycle !== 0) {
-		count = count + countPerCycle - count % countPerCycle;
-	}
+// Concurrently reads and writes single rows
+require('../runner')(function (benchmark, dbs, ctx) {
+	var factory = require('../factory');
+	var SELECT = 'SELECT ' + ctx.columns.join(', ') + ' FROM ' + ctx.table + ' WHERE rowid=?';
+	var INSERT = 'INSERT INTO ' + ctx.table + ' (' + ctx.columns.join(', ') + ') VALUES ' + factory.params(ctx.columns.length);
+	var betterSqlite3 = dbs['better-sqlite3'];
+	var nodeSqlite3 = dbs['node-sqlite3'];
+	var data = factory(ctx.table, ctx.columns);
+	var rowid = 0;
+	benchmark.on('cycle', function () {rowid = 0;});
 	
-	var params = [
-		'John Peter Smith',
-		12345,
-		0.12345,
-		Buffer.alloc(16).fill(0xdd),
-		null
-	];
+	var betterSqlite3Select = betterSqlite3.prepare(SELECT);
+	var betterSqlite3Insert = betterSqlite3.prepare(INSERT);
 	
-	function callback0() {
-		global.gc();
-		ourTest(ourDb, count, countPerCycle, params, callback1);
-	}
-	function callback1() {
-		global.gc();
-		theirTest(theirDb, count, countPerCycle, params, callback2);
-	}
-	function callback2() {
-		ourDb.close();
-		theirDb.close(process.exit);
-	}
-	setTimeout(callback0, 100);
-};
-
-exports.data = undefined;
-
-function ourTest(db, count, countPerCycle, params, done) {
-	var requested = 0;
-	var t0 = process.hrtime();
-	(function request() {
-		for (var i=0; i<countPerCycle; ++i) {
-			if (i % 2) {
-				exports.data = db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?, ?)').run(params);
-			} else {
-				exports.data = db.prepare('SELECT * FROM entries WHERE rowid=?').get(i % 1000 + 1);
-			}
-		}
-		if ((requested += countPerCycle) < count) {
-			setImmediate(request);
+	benchmark.add('better-sqlite3', function () {
+		if (rowid % 2) {betterSqlite3Select.get(rowid % 1000 + 1);}
+		else {betterSqlite3Insert.run(data);}
+		rowid += 1;
+	});
+	benchmark.add('node-sqlite3', function (deferred) {
+		if (rowid % 2) {
+			nodeSqlite3.get(SELECT, rowid % 1000 + 1).then(function () {deferred.resolve();});
 		} else {
-			var td = process.hrtime(t0);
-			report('better-sqlite3', count, td);
-			done();
+			nodeSqlite3.run(INSERT, data).then(function () {deferred.resolve();});
 		}
-	}());
-}
-function theirTest(db, count, countPerCycle, params, done) {
-	var requested = 0;
-	var completed = 0;
-	var t0 = process.hrtime();
-	(function request() {
-		for (var i=0; i<countPerCycle; ++i) {
-			if (i % 2) {
-				db.run('INSERT INTO entries VALUES (?, ?, ?, ?, ?)', params, callback);
-			} else {
-				db.get('SELECT * FROM entries WHERE rowid=?', i % 1000 + 1, callback);
-			}
-		}
-		if ((requested += countPerCycle) < count) {
-			setImmediate(request);
-		}
-	}());
-	function callback(err, data) {
-		exports.data = data || this;
-		if (err) {throw err;}
-		if (++completed === count) {
-			var td = process.hrtime(t0);
-			report('node-sqlite3', count, td);
-			done();
-		}
-	}
-}
-
-function report(name, count, time) {
-	var ms = time[0] * 1000 + Math.round(time[1] / 1000000);
-	console.log(name + '\t' + count + ' INSERT or SELECTs in ' + ms + 'ms');
-}
+		rowid += 1;
+	});
+});
