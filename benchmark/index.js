@@ -31,17 +31,20 @@ var trials;
 }());
 
 function getTrials() {
-	return process.argv.slice(2).reduce(filterByArgs, require('./trials'));
+	return process.argv.slice(2).reduce(filterByArgs, require('./trials').map(addSearchTerms));
 	
+	function addSearchTerms(trial) {
+		var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
+		var columns = trial.columns.join(',').toLowerCase();
+		trial.terms = [trial.type.toLowerCase(), size, columns];
+		return trial;
+	}
 	function filterByArgs(trials, arg) {
 		arg = arg.toLowerCase();
-		return trials.filter(function (obj) {return valuesOf(obj).some(containsThis, arg);});
+		return trials.filter(function (obj) {return obj.terms.some(matchesThis, arg);});
 	}
-	function valuesOf(obj) {
-		return Object.keys(obj).map(function (key) {return String(this[key]);}, obj).join(',').toLowerCase().split(',');
-	}
-	function containsThis(str) {
-		return str.indexOf(this) !== -1;
+	function matchesThis(str) {
+		return str === String(this);
 	}
 }
 
@@ -57,12 +60,9 @@ function nextTrial() {
 	}
 	
 	var trial = trials.shift();
-	var type = trial.type;
-	var size = trial.table.toLowerCase().indexOf('large') === -1 ? 'small' : 'large';
-	var columns = trial.columns.join(',');
-	console.log(clc.cyan([type, size, columns].join(' ')));
+	console.log(clc.cyan(trial.terms.join(' ')));
 	
-	var child = spawn('node', [path.join(__dirname, 'types', type), JSON.stringify(trial)], {stdio: 'inherit'});
+	var child = spawn('node', [path.join(__dirname, 'types', trial.type), JSON.stringify(trial)], {stdio: 'inherit'});
 	child.on('exit', function (code) {
 		if (code !== 0) {
 			console.log(clc.red('ERROR (probably out of memory)'));

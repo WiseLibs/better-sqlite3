@@ -7,7 +7,14 @@ module.exports = [
 	{type: 'select', table: 'allSmall', columns: ['blob']},
 	{type: 'select', table: 'allSmall', columns: ['nul']},
 	{type: 'select', table: 'allLarge', columns: ['text']},
-	{type: 'select', table: 'allLarge', columns: ['blob']}
+	{type: 'select', table: 'allLarge', columns: ['blob']},
+	{type: 'select-all', table: 'allSmall', columns: ['integer']},
+	{type: 'select-all', table: 'allSmall', columns: ['real']},
+	{type: 'select-all', table: 'allSmall', columns: ['text']},
+	{type: 'select-all', table: 'allSmall', columns: ['blob']},
+	{type: 'select-all', table: 'allSmall', columns: ['nul']},
+	{type: 'select-all', table: 'allLarge', columns: ['text']},
+	{type: 'select-all', table: 'allLarge', columns: ['blob']}
 ];
 
 if (/^(1|true|on|yes)$/i.test(process.env.NO_CACHE)) {
