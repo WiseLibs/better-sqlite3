@@ -24,7 +24,7 @@ You can convert any `Int64` to a string to see its full value. If you try to con
 
 # Binding Int64s
 
-`Int64s` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like normal numbers.
+`Int64s` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like normal numbers. You can also return `Int64s` in [registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this).
 
 ```js
 db.prepare("SELECT * FROM users WHERE id=?").get(new Int64(0x01234abcd, 0x0fff5678));
@@ -51,6 +51,18 @@ stmt.safeIntegers(true); // Safe integers ON
 stmt.safeIntegers(false); // Safe integers OFF
 
 // You can do the same thing with Transaction objects.
+```
+
+[Registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this) can also receive `Int64s` as arguments. You can override the database's default setting like so:
+
+```js
+db.register({safeIntegers: true}, function isInt(value) {return value instanceof Int64;});
+stmt.prepare('SELECT isInt(?)').get('foobar'); // => false
+stmt.prepare('SELECT isInt(?)').get(Int64.MAX_VALUE); // => true
+
+stmt.safeIntegers(); // Safe integers ON
+stmt.safeIntegers(true); // Safe integers ON
+stmt.safeIntegers(false); // Safe integers OFF
 ```
 
 It's worth noting that REAL (FLOAT) values returned from the database will always be represented as JavaScript numbers.
