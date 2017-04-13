@@ -56,7 +56,9 @@ stmt.safeIntegers(false); // Safe integers OFF
 [Registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this) can also receive `Int64s` as arguments. You can override the database's default setting like so:
 
 ```js
-db.register({safeIntegers: true}, function isInt(value) {return value instanceof Int64;});
+db.register({safeIntegers: true}, function isInt(value) {
+	return value instanceof Int64;
+});
 stmt.prepare('SELECT isInt(?)').get('foobar'); // => false
 stmt.prepare('SELECT isInt(?)').get(Int64.MAX_VALUE); // => true
 ```
