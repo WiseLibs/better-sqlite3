@@ -57,7 +57,7 @@ stmt.safeIntegers(false); // Safe integers OFF
 
 ```js
 db.register({safeIntegers: true}, function isInt(value) {
-	return value instanceof Int64;
+  return value instanceof Int64;
 });
 stmt.prepare('SELECT isInt(?)').get('foobar'); // => false
 stmt.prepare('SELECT isInt(?)').get(Int64.MAX_VALUE); // => true
