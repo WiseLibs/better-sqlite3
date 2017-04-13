@@ -32,7 +32,7 @@ describe('Database#exec()', function () {
 		expect(r2).to.equal(db);
 		expect(r3).to.equal(db);
 		
-		var rows = db.prepare('SELECT * FROM entries').all();
+		var rows = db.prepare('SELECT * FROM entries ORDER BY rowid').all();
 		expect(rows.length).to.equal(2);
 		expect(rows[0].a).to.equal('foobar');
 		expect(rows[0].b).to.equal(44);

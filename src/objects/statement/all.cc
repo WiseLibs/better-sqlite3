@@ -6,7 +6,7 @@ NAN_METHOD(Statement::All) {
 		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
 	}
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
-	
+	bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	unsigned int row_count = 0;
 	List<v8::Local<v8::Value>> rows;
 	
@@ -14,12 +14,12 @@ NAN_METHOD(Statement::All) {
 	if (stmt->state & PLUCK_COLUMN) {
 		while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
 			++row_count;
-			rows.Add(Data::GetValueJS(stmt->st_handle, 0));
+			rows.Add(Data::GetValueJS(stmt->st_handle, 0, safe_integers));
 		}
 	} else {
 		while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
 			++row_count;
-			rows.Add(Data::GetRowJS(stmt->st_handle, stmt->column_count));
+			rows.Add(Data::GetRowJS(stmt->st_handle, safe_integers));
 		}
 	}
 	
@@ -35,5 +35,5 @@ NAN_METHOD(Statement::All) {
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returnedArray);
 	}
 	
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 }

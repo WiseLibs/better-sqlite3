@@ -2,6 +2,9 @@
 
 NAN_METHOD(Statement::Pluck) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (stmt->db->busy) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	if (!(stmt->state & RETURNS_DATA)) {
 		return Nan::ThrowTypeError("The pluck() method can only be used by statements that return data.");
 	}

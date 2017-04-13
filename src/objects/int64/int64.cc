@@ -4,7 +4,6 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "int64.h"
-bool SAFE_INTEGERS = false;
 const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
 const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
 const sqlite3_uint64 U32_in_U64 = (sqlite3_uint64)0xffffffff;

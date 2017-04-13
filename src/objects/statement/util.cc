@@ -36,6 +36,9 @@ NAN_GETTER(Statement::ReturnsData) {
 // .safeIntegers(boolean) -> this
 NAN_METHOD(Statement::SafeIntegers) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (stmt->db->busy) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
 	
 	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
 		stmt->state |= SAFE_INTS;

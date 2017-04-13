@@ -15,3 +15,15 @@ NAN_METHOD(Database::DefaultSafeIntegers) {
 NAN_GETTER(Database::Open) {
 	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Database>(info.This())->open);
 }
+
+void Database::ThrowError(const char* err) {
+	if (was_js_error) {
+		was_js_error = false;
+	} else {
+		if (err == NULL) {
+			err = sqlite3_errmsg(db_handle);
+		}
+		CONCAT2(message, "SQLite: ", err);
+		Nan::ThrowError(message.c_str());
+	}
+}

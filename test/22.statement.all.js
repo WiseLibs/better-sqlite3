@@ -27,11 +27,11 @@ describe('Statement#all()', function () {
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		
-		var stmt = db.prepare("SELECT * FROM entries");
+		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		expect(stmt.returnsData).to.be.true;
 		matchesFrom(stmt.all(), 1);
 		
-		stmt = db.prepare("SELECT * FROM entries WHERE b > 5");
+		stmt = db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
 		matchesFrom(stmt.all(), 6);
 		
 		function matchesFrom(rows, i) {

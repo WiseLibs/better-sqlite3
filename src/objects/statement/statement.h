@@ -41,7 +41,6 @@ class Statement : public Nan::ObjectWrap, public Query {
 		// Sqlite3 interfacing and state
 		Database* db;
 		sqlite3_stmt* st_handle;
-		int column_count;
 		uint8_t state;
 		
 		// Unique Statement Id

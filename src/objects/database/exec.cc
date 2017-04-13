@@ -20,9 +20,8 @@ NAN_METHOD(Database::Exec) {
 	// Executes the SQL on the database handle.
 	sqlite3_exec(db->db_handle, *utf8, NULL, NULL, &err);
 	if (err != NULL) {
-		CONCAT2(message, "SQLite: ", err);
-		sqlite3_free(err);
-		return Nan::ThrowError(message.c_str());
+		db->ThrowError(err);
+		return sqlite3_free(err);
 	}
 	
 	info.GetReturnValue().Set(info.This());

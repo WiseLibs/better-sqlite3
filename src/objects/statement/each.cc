@@ -8,6 +8,7 @@ NAN_METHOD(Statement::Each) {
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, callback);
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);
 	stmt->db->busy = true;
+	bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
@@ -16,8 +17,8 @@ NAN_METHOD(Statement::Each) {
 		
 		// The pluck setting must be within the loop, because it could change in a callback.
 		v8::Local<v8::Value> callbackValue = stmt->state & PLUCK_COLUMN
-			? Data::GetValueJS(stmt->st_handle, 0)
-			: Data::GetRowJS(stmt->st_handle, stmt->column_count);
+			? Data::GetValueJS(stmt->st_handle, 0, safe_integers)
+			: Data::GetRowJS(stmt->st_handle, safe_integers);
 		v8::Local<v8::Value> args[1] = {callbackValue};
 		callback_return_value = callback->Call(Nan::Null(), 1, args);
 		
@@ -25,12 +26,10 @@ NAN_METHOD(Statement::Each) {
 		if (callback_return_value.IsEmpty()) {
 			sqlite3_reset(stmt->st_handle);
 			stmt->db->busy = false;
-			QUERY_CLEANUP(stmt, STATEMENT_CLEAR_BINDINGS);
+			stmt->db->was_js_error = true;
+			QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 			return;
 		}
-		
-		// Refresh SAFE_INTEGERS, since anything could have happened during the callback.
-		SAFE_INTEGERS = stmt->state & SAFE_INTS ? true : false;
 	}
 	if (sqlite3_reset(stmt->st_handle) == SQLITE_OK) {
 		stmt->db->busy = false;
@@ -38,5 +37,5 @@ NAN_METHOD(Statement::Each) {
 	}
 	
 	stmt->db->busy = false;
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 }

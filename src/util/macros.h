@@ -90,6 +90,16 @@ inline bool IS_32BIT_INT(double num) {
 	}                                                                          \
 	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
 
+// If the argument of the given index is not a function, an error is thrown and
+// the caller returns. Otherwise, it is cast to a v8::Function and made
+// available at the given variable name.
+#define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
+	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a function.");                 \
+	}                                                                          \
+	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
+
 // If the last argument is not a function, an error is thrown and the caller
 // returns. Otherwise, it is cast to a v8::Function and made available at the
 // given variable name.
@@ -169,28 +179,22 @@ inline bool IS_32BIT_INT(double num) {
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
 			"This " #object_name " already has bound parameters.");            \
-	}                                                                          \
-	SAFE_INTEGERS = obj->state & SAFE_INTS ? true : false;
-
-// The macro-instruction that MUST be run before returning from a query.
-#define QUERY_CLEANUP(obj, UNBIND_MACRO)                                       \
-	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}
+	}
 
 // Like QUERY_THROW, but does not return from the caller function.
-#define QUERY_THROW_STAY(obj, UNBIND_MACRO, error_out)                         \
-	CONCAT2(_error_message, "SQLite: ", error_out);                            \
-	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
-	Nan::ThrowError(_error_message.c_str());
+#define QUERY_THROW_STAY(obj, UNBIND_MACRO)                                    \
+	obj->db->ThrowError();                                                     \
+	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}
 
 // The macro-instruction that runs after a failed SQLite request.
-#define QUERY_THROW(obj, UNBIND_MACRO, error_out)                              \
-	QUERY_THROW_STAY(obj, UNBIND_MACRO, error_out);                            \
+#define QUERY_THROW(obj, UNBIND_MACRO)                                         \
+	QUERY_THROW_STAY(obj, UNBIND_MACRO);                                       \
 	return;
 
 // The macro-instruction that runs after a successful SQLite request.
 #define QUERY_RETURN(obj, UNBIND_MACRO, return_value)                          \
-	QUERY_CLEANUP(obj, UNBIND_MACRO);                                          \
 	info.GetReturnValue().Set(return_value);                                   \
+	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}                            \
 	return;
 
 // Creates a new internalized string from UTF-8 data.

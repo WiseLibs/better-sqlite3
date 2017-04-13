@@ -10,8 +10,8 @@ NAN_METHOD(Statement::Get) {
 	int status = sqlite3_step(stmt->st_handle);
 	if (status == SQLITE_ROW) {
 		v8::Local<v8::Value> returnedValue = stmt->state & PLUCK_COLUMN
-			? Data::GetValueJS(stmt->st_handle, 0)
-			: Data::GetRowJS(stmt->st_handle, stmt->column_count);
+			? Data::GetValueJS(stmt->st_handle, 0, (stmt->state & SAFE_INTS) != 0)
+			: Data::GetRowJS(stmt->st_handle, (stmt->state & SAFE_INTS) != 0);
 		sqlite3_reset(stmt->st_handle);
 		QUERY_RETURN(stmt, STATEMENT_CLEAR_BINDINGS, returnedValue);
 	} else if (status == SQLITE_DONE) {
@@ -20,5 +20,5 @@ NAN_METHOD(Statement::Get) {
 	}
 	
 	sqlite3_reset(stmt->st_handle);
-	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS, sqlite3_errmsg(stmt->db->db_handle));
+	QUERY_THROW(stmt, STATEMENT_CLEAR_BINDINGS);
 }

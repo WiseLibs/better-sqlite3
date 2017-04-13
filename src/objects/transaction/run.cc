@@ -10,7 +10,7 @@ NAN_METHOD(Transaction::Run) {
 	// Begin Transaction
 	sqlite3_step(t_handles.begin);
 	if (sqlite3_reset(t_handles.begin) != SQLITE_OK) {
-		QUERY_THROW(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+		QUERY_THROW(trans, TRANSACTION_CLEAR_BINDINGS);
 	}
 	
 	int changes = 0;
@@ -21,7 +21,7 @@ NAN_METHOD(Transaction::Run) {
 		
 		sqlite3_step(trans->handles[i]);
 		if (sqlite3_reset(trans->handles[i]) != SQLITE_OK) {
-			QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+			QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS);
 			sqlite3_step(t_handles.rollback);
 			sqlite3_reset(t_handles.rollback);
 			return;
@@ -35,7 +35,7 @@ NAN_METHOD(Transaction::Run) {
 	// Commit Transaction
 	sqlite3_step(t_handles.commit);
 	if (sqlite3_reset(t_handles.commit) != SQLITE_OK) {
-		QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS, sqlite3_errmsg(db_handle));
+		QUERY_THROW_STAY(trans, TRANSACTION_CLEAR_BINDINGS);
 		sqlite3_step(t_handles.rollback);
 		sqlite3_reset(t_handles.rollback);
 		return;
@@ -45,6 +45,6 @@ NAN_METHOD(Transaction::Run) {
 	sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 	v8::Local<v8::Object> returnedObject = Nan::New<v8::Object>();
 	Nan::Set(returnedObject, NEW_INTERNAL_STRING_FAST("changes"), Nan::New<v8::Number>(static_cast<double>(changes)));
-	Nan::Set(returnedObject, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Int64::NewProperInteger(id));
+	Nan::Set(returnedObject, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Int64::NewProperInteger(id, (trans->state & SAFE_INTS) != 0));
 	QUERY_RETURN(trans, TRANSACTION_CLEAR_BINDINGS, returnedObject);
 }
