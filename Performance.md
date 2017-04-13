@@ -11,7 +11,7 @@ WAL mode has a *few* disadvantages to consider:
 - Under rare circumstances, the [WAL file](https://www.sqlite.org/wal.html) may experience "checkpoint starvation" (see below).
 - There are some hardware/system limitations that may affect some users, [listed here](https://www.sqlite.org/wal.html).
 
-However, you trade those disadvantages for greatly improved performance in most web applications.
+However, you trade those disadvantages for extremely fast performance in most web applications.
 
 ### Checkpoint starvation
 
@@ -20,14 +20,3 @@ Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https:
 If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
 
 If you do access the database from multiple processes simultaneously, preventing this issue is very simple: **use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method when the WAL file gets too big**.
-
-# Maximum power
-
-If you want to *further* improve write performance and you're willing to sacrifice a tiny bit of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)), you can use this:
-
-```js
-db.pragma('journal_mode = WAL');
-db.pragma('synchronous = 1');
-```
-
-Normally, setting `synchronous = 1` would introduce the risk of database corruption following a power loss or hard reboot. But in [WAL mode](https://www.sqlite.org/wal.html), you do not introduce this risk. The combination of these two PRAGMAs provides extremely fast performance.
