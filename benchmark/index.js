@@ -49,7 +49,7 @@ function getTrials() {
 		});
 	}
 	function customPragma(str) {
-		return str.indexOf('cache_size') === -1;
+		return str.indexOf('cache_size') === -1 && str.indexOf('synchronous') === -1;
 	}
 }
 
