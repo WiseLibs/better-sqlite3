@@ -20,3 +20,7 @@ Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https:
 If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
 
 If you do access the database from multiple processes simultaneously, preventing this issue is very simple: **use the [db.checkpoint()](https://github.com/JoshuaWise/better-sqlite3/wiki/API#checkpointforce---number) method when the WAL file gets too big**.
+
+# A note about durability
+
+This distribution of [sqlite3](https://www.sqlite.org/) uses the `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1` [compile-time option](https://sqlite.org/compile.html#default_wal_synchronous), which makes [WAL mode](https://sqlite.org/pragma.html#pragma_journal_mode) default to the `NORMAL` [synchronous setting](https://sqlite.org/pragma.html#pragma_synchronous). This allows applications to achieve extreme performance, but introduces a slight loss of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)) while in WAL mode. You can override this default by using the [`synchronous` pragma](https://sqlite.org/pragma.html#pragma_synchronous).
