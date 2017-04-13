@@ -26,15 +26,15 @@ describe('Statement#get()', function () {
 	it('should return the first matching row', function () {
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 		
-		var stmt = db.prepare("SELECT * FROM entries");
+		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		expect(stmt.returnsData).to.be.true;
 		expect(stmt.get()).to.deep.equal({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null});
 		
-		stmt = db.prepare("SELECT * FROM entries WHERE b > 5");
+		stmt = db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
 		expect(stmt.get()).to.deep.equal({a: 'foo', b: 6, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null});
 	});
 	it('should obey the current pluck setting', function () {
-		var stmt = db.prepare("SELECT * FROM entries");
+		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		expect(stmt.get()).to.deep.equal(row);
 		expect(stmt.pluck(true).get()).to.equal('foo');

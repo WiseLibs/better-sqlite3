@@ -86,15 +86,18 @@
           '-Wno-unused-value',
       ],
       'defines': [
-        '_REENTRANT=1',
         'SQLITE_THREADSAFE=0',
+        'SQLITE_DEFAULT_MEMSTATUS=0',
+        'SQLITE_OMIT_DECLTYPE',
+        'SQLITE_OMIT_DEPRECATED',
+        'SQLITE_OMIT_PROGRESS_CALLBACK',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
         'SQLITE_ENABLE_RTREE',
+        'SQLITE_USE_URI=1',
         'SQLITE_DEFAULT_CACHE_SIZE=-16000',
         'SQLITE_DEFAULT_FOREIGN_KEYS=1',
-        'SQLITE_USE_URI=1',
-        'SQLITE_MAX_SCHEMA_RETRY=0'
+        'SQLITE_DEFAULT_WAL_SYNCHRONOUS=1'
       ],
       'export_dependent_settings': [
         'action_before_build',

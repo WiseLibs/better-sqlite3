@@ -41,15 +41,10 @@ NAN_METHOD(Database::CreateStatement) {
 	}
 	
 	// Determine if the sqlite3_stmt returns data or not.
-	int column_count = sqlite3_column_count(stmt->st_handle);
-	if (!sqlite3_stmt_readonly(stmt->st_handle) || column_count < 1) {
-		if (db->readonly) {
-			return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
-		}
-		stmt->column_count = 0;
-	} else {
-		stmt->column_count = column_count;
+	if (sqlite3_stmt_readonly(stmt->st_handle) && sqlite3_column_count(stmt->st_handle) >= 1) {
 		stmt->state |= RETURNS_DATA;
+	} else if (db->readonly) {
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);

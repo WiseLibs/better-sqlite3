@@ -73,7 +73,8 @@ v8::Local<v8::Value> GetValueJS(sqlite3_value* value, bool safe_integers) {
 	SQLITE_VALUE_TO_JS(value, safe_integers, value);
 }
 
-v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, int column_count, bool safe_integers) {
+v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, bool safe_integers) {
+	int column_count = sqlite3_column_count(handle);
 	v8::Local<v8::Object> row = Nan::New<v8::Object>();
 	for (int i=0; i<column_count; ++i) {
 		Nan::Set(row, NEW_INTERNAL_STRING8(sqlite3_column_name(handle, i)), Data::GetValueJS(handle, i, safe_integers));

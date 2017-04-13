@@ -18,7 +18,7 @@ NAN_METHOD(Statement::Each) {
 		// The pluck setting must be within the loop, because it could change in a callback.
 		v8::Local<v8::Value> callbackValue = stmt->state & PLUCK_COLUMN
 			? Data::GetValueJS(stmt->st_handle, 0, safe_integers)
-			: Data::GetRowJS(stmt->st_handle, stmt->column_count, safe_integers);
+			: Data::GetRowJS(stmt->st_handle, safe_integers);
 		v8::Local<v8::Value> args[1] = {callbackValue};
 		callback_return_value = callback->Call(Nan::Null(), 1, args);
 		

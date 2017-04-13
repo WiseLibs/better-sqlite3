@@ -19,7 +19,7 @@ NAN_METHOD(Statement::All) {
 	} else {
 		while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
 			++row_count;
-			rows.Add(Data::GetRowJS(stmt->st_handle, stmt->column_count, safe_integers));
+			rows.Add(Data::GetRowJS(stmt->st_handle, safe_integers));
 		}
 	}
 	

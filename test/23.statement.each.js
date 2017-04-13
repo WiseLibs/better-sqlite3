@@ -36,7 +36,7 @@ describe('Statement#each()', function () {
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		
 		var count = 0;
-		var stmt = db.prepare("SELECT * FROM entries");
+		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		expect(stmt.returnsData).to.be.true;
 		var ret = stmt.each(function (data) {
 			row.b = ++count;
@@ -46,7 +46,7 @@ describe('Statement#each()', function () {
 		expect(ret).to.be.undefined;
 		
 		count = 0;
-		stmt = db.prepare("SELECT * FROM entries WHERE b > 5");
+		stmt = db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
 		ret = stmt.each(function (data) {
 			row.b = ++count + 5;
 			expect(data).to.deep.equal(row);
@@ -56,7 +56,7 @@ describe('Statement#each()', function () {
 	});
 	it('should obey the current pluck setting', function () {
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
-		var stmt = db.prepare("SELECT * FROM entries");
+		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		shouldHave(row);
 		stmt.pluck(true);
 		shouldHave('foo');
