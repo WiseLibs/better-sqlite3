@@ -5,6 +5,7 @@
 - [Database#transaction()](#transactionarrayofstrings---transaction)
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointforce---number)
+- [Database#register()](#registeroptions-function---this)
 - [Database#close()](#close---this)
 - [Database#open](#get-open---boolean)
 - [Database#name](#get-name---string)
@@ -55,6 +56,31 @@ You only need to force checkpoints ("RESTART" mode) if you are accessing the dat
 When the operation is complete, it returns a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints, this number will always be `1` unless there was no WAL file to begin with.
 
 If execution of the checkpoint fails, an `Error` is thrown.
+
+### .register([*options*], *function*) -> *this*
+
+Registers the given `function` so that it can be used by SQL statements.
+
+```js
+db.register(function add2(a, b) {return a + b;});
+db.prepare('SELECT add2(?, ?)').get(12, 4); // => 16
+db.prepare('SELECT add2(?, ?)').get('foo', 'bar'); // => 'foobar'
+db.prepare('SELECT add2(?, ?, ?)').get(12, 4, 18); // => Error: wrong number of arguments
+```
+
+By default, registered functions have a strict number of arguments (determined by `function.length`). You can register multiple functions of the same name, each with a different number of arguments, causing SQLite3 to execute a different function depending on how many arguments were passed to it. If you register two functions with same name and the same number of arguments, the second registration will erase the first one.
+
+If `options.name` is given, the function will be registered under that name (instead of defaulting to `function.name`).
+
+If `options.varargs` is `true`, the registered function can accept any number of arguments.
+
+If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm), you can set `options.deterministic` to `true`, which may improve performance under some circumstances.
+
+```js
+db.register({name: "void", deterministic: true, varargs: true}, function () {});
+db.prepare("SELECT void()").get(); // => null
+db.prepare("SELECT void(?, ?)").get(55, 19); // => null
+```
 
 ### .close() -> *this*
 
