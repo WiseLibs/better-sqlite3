@@ -25,4 +25,4 @@ If you do access the database from multiple processes simultaneously, preventing
 
 This distribution of SQLite3 uses the `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1` [compile-time option](https://sqlite.org/compile.html#default_wal_synchronous), which makes databases in WAL mode default to the ["NORMAL" synchronous setting](https://sqlite.org/pragma.html#pragma_synchronous). This allows applications to achieve extreme performance, but introduces a slight loss of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)) while in WAL mode.
 
-You can override this default by running `db.pragma('synchronous = FULL')`.
+You can override this setting by running `db.pragma('synchronous = FULL')`.
