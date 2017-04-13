@@ -59,10 +59,6 @@ stmt.safeIntegers(false); // Safe integers OFF
 db.register({safeIntegers: true}, function isInt(value) {return value instanceof Int64;});
 stmt.prepare('SELECT isInt(?)').get('foobar'); // => false
 stmt.prepare('SELECT isInt(?)').get(Int64.MAX_VALUE); // => true
-
-stmt.safeIntegers(); // Safe integers ON
-stmt.safeIntegers(true); // Safe integers ON
-stmt.safeIntegers(false); // Safe integers OFF
 ```
 
 It's worth noting that REAL (FLOAT) values returned from the database will always be represented as JavaScript numbers.
