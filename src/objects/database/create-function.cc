@@ -47,7 +47,7 @@ NAN_METHOD(Database::CreateFunction) {
 	REQUIRE_ARGUMENT_FUNCTION(0, func);
 	REQUIRE_ARGUMENT_STRING(1, name);
 	REQUIRE_ARGUMENT_BOOLEAN(2, deterministic);
-	REQUIRE_ARGUMENT_BOOLEAN(3, safe_integers);
+	REQUIRE_ARGUMENT_BOOLEAN(3, default_safe_integers);
 	REQUIRE_ARGUMENT_BOOLEAN(4, varargs);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
@@ -59,15 +59,19 @@ NAN_METHOD(Database::CreateFunction) {
 	}
 	
 	Nan::Utf8String utf8(name);
+	bool safe_integers = db->safe_ints;
 	int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 	int argc = -1;
 	
 	if (!utf8.length()) {
 		return Nan::ThrowTypeError("Cannot create an SQL function without a name.");
 	}
-	
+	if (!default_safe_integers) {
+		REQUIRE_ARGUMENT_BOOLEAN(5, safe_ints);
+		safe_integers = safe_ints;
+	}
 	if (!varargs) {
-		REQUIRE_ARGUMENT_NUMBER(5, argCount);
+		REQUIRE_ARGUMENT_NUMBER(6, argCount);
 		double arg_count = argCount->Value();
 		if (floor(arg_count) != arg_count || arg_count < 0.0) {
 			return Nan::ThrowTypeError("Expected function.length to be a positive integer.");

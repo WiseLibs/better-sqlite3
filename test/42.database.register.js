@@ -1,6 +1,5 @@
 var expect = require('chai').expect;
 var Database = require('../.');
-var Int64 = Database.Int64;
 var db;
 
 before(function () {
@@ -43,13 +42,9 @@ describe('Database#register()', function () {
 		var buffer = exec('b3(?)', Buffer.alloc(8).fill(0xdd));
 		expect(buffer.equals(Buffer.alloc(8).fill(0xdd))).to.be.ok;
 		
-		// int64s
-		register(function b4(a) {return new Int64(a + a);});
-		expect(exec('b4(?)', 42)).to.equal(84);
-		
 		// zero arguments
-		register(function b5() {return 12;});
-		expect(exec('b5()')).to.equal(12);
+		register(function b4() {return 12;});
+		expect(exec('b4()')).to.equal(12);
 	});
 	it('should have a strict number of arguments by default', function () {
 		register(function c1(a, b) {});
@@ -64,11 +59,6 @@ describe('Database#register()', function () {
 		expect(exec('d1(?, ?)', 2, 10)).to.equal(-8);
 		expect(exec('d2(?, ?)', 2, 10)).to.equal(20);
 		expect(function () {exec('sdnfjlsd(?, ?)', 2, 10);}).to.throw(Error);
-	});
-	it('should accept a "safeIntegers" option', function () {
-		register({safeIntegers: true}, function e1(a) {return a.low;});
-		expect(exec('e1(?)', 2)).to.equal(null);
-		expect(exec('e1(?)', new Int64(2, 2))).to.equal(2);
 	});
 	it('should accept a "varargs" option', function () {
 		register({varargs: true}, function f1() {
@@ -177,18 +167,6 @@ describe('Database#register()', function () {
 			});
 			expect(ranOnce).to.be.true;
 			db.prepare('SELECT 555');
-		});
-		specify('safeIntegers state', function () {
-			var ranOnce = false;
-			register({safeIntegers: true}, function l1(n) {
-				return new Int64(n.low * 10);
-			});
-			db.prepare('SELECT l1(555)').safeIntegers(true).pluck().each(function (n) {
-				ranOnce = true;
-				expect(n.low).to.equal(5550);
-			});
-			expect(ranOnce).to.be.true;
-			expect(db.prepare('SELECT l1(555)').safeIntegers(false).pluck().get()).to.equal(5550);
 		});
 		specify('was_js_error state', function () {
 			db.prepare('CREATE TABLE abcxyz (value INTEGER)').run();
