@@ -6,7 +6,7 @@ NAN_METHOD(Statement::All) {
 		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
 	}
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
-	bool safe_integers = (stmt->state & SAFE_INTS) != 0;
+	const bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	unsigned int row_count = 0;
 	List<v8::Local<v8::Value>> rows;
 	
