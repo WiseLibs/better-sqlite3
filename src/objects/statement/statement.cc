@@ -7,7 +7,6 @@
 #include "../int64/int64.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
-#include "../../util/list.h"
 #include "../../binder/binder.h"
 
 #include "new.cc"
