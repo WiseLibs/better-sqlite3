@@ -15,13 +15,11 @@ NAN_METHOD(Statement::Each) {
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
 		Nan::HandleScope scope;
-		v8::MaybeLocal<v8::Value> callback_return_value;
 		
-		v8::Local<v8::Value> callbackValue = pluck
-			? Data::GetValueJS(stmt->st_handle, 0, safe_integers)
-			: Data::GetRowJS(stmt->st_handle, safe_integers);
-		v8::Local<v8::Value> args[1] = {callbackValue};
-		callback_return_value = callback->Call(Nan::Null(), 1, args);
+		v8::Local<v8::Value> args[1];
+		args[0] = pluck ? Data::GetValueJS(stmt->st_handle, 0, safe_integers)
+		                : Data::GetRowJS(stmt->st_handle, safe_integers);
+		v8::MaybeLocal<v8::Value> = callback_return_value = callback->Call(Nan::Null(), 1, args);
 		
 		// If an exception was thrown in the callback, clean up and stop.
 		if (callback_return_value.IsEmpty()) {
