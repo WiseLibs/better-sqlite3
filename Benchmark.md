@@ -14,46 +14,46 @@ These results are from 04/13/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, 
 
 ### Reading rows individually (`.get()`)
 ```
-better-sqlite3 x 138,926 ops/sec ±0.81%
-node-sqlite3   x 17,738 ops/sec ±0.49%
+better-sqlite3 x 139,927 ops/sec ±1.61%
+node-sqlite3   x 17,862 ops/sec ±1.54%
 ```
 
 ### Reading 100 rows into an array (`.all()`)
 ```
-better-sqlite3 x 5,871 ops/sec ±2.60%
-node-sqlite3   x 2,189 ops/sec ±2.05%
+better-sqlite3 x 6,649 ops/sec ±1.53%
+node-sqlite3   x 2,018 ops/sec ±1.83%
 ```
 
 ### Iterating over 100 rows (`.each()`)
 ```
-better-sqlite3 x 6,303 ops/sec ±1.95%
-node-sqlite3   x 2,067 ops/sec ±1.82%
+better-sqlite3 x 6,210 ops/sec ±2.43%
+node-sqlite3   x 1,925 ops/sec ±2.56%
 ```
 
 ### Inserting rows individually (`.run()`)
 ```
 --- normal journal mode ---
-better-sqlite3 x 1,013 ops/sec ±14.63%
-node-sqlite3   x 788 ops/sec ±21.24%
+better-sqlite3 x 2,166 ops/sec ±10.90%
+node-sqlite3   x 1,821 ops/sec ±7.31%
 
 --- WAL mode ---
-better-sqlite3 x 61,206 ops/sec ±3.05%
-node-sqlite3   x 19,364 ops/sec ±1.86%
+better-sqlite3 x 64,078 ops/sec ±4.31%
+node-sqlite3   x 17,978 ops/sec ±3.23%
 ```
 
 ### Inserting 100 rows in a single transaction
 ```
-better-sqlite3 x 1,324 ops/sec ±3.01%
-node-sqlite3   x 212 ops/sec ±0.63%
+better-sqlite3 x 1,302 ops/sec ±7.31%
+node-sqlite3   x 209 ops/sec ±2.10%
 ```
 
 ### "Real world" benchmark
 ```
 --- normal journal mode ---
-better-sqlite3 x 4,665 ops/sec ±1.40%
-node-sqlite3   x 3,412 ops/sec ±2.85%
+better-sqlite3 x 4,756 ops/sec ±1.57%
+node-sqlite3   x 3,324 ops/sec ±9.14%
 
 --- WAL mode ---
-better-sqlite3 x 99,606 ops/sec ±1.75%
-node-sqlite3   x 17,643 ops/sec ±4.12%
+better-sqlite3 x 99,210 ops/sec ±3.12%
+node-sqlite3   x 16,942 ops/sec ±5.67%
 ```
