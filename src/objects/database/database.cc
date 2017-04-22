@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstring>
-#include <cmath>
 #include <algorithm>
 #include <stdint.h>
 #include <sqlite3.h>
