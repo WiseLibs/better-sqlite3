@@ -139,8 +139,6 @@ public:
 	}
 };
 
-#include <cstdio>
-
 void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
