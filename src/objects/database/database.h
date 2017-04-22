@@ -25,6 +25,8 @@ class Database : public Nan::ObjectWrap {
 		friend class Statement;
 		friend class Transaction;
 		friend void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
+		friend void StepAggregate(sqlite3_context*, int, sqlite3_value**);
+		friend void FinishAggregate(sqlite3_context*);
 		
 	private:
 		static NAN_METHOD(New);
