@@ -1,6 +1,7 @@
 #ifndef BETTER_SQLITE3_MACROS_H
 #define BETTER_SQLITE3_MACROS_H
 
+#include <cstdint>
 #include <cmath>
 #include <string>
 #include <sqlite3.h>
@@ -15,9 +16,9 @@
 #define PLUCK_COLUMN 0x20
 #define RETURNS_DATA 0x40
 
-// Given a double, returns whether the number is a valid 32-bit signed integer.
-inline bool IS_32BIT_INT(double num) {
-	return floor(num) == num && num < 2147483648.0 && num >= -2147483648.0;
+// Given a double, returns whether the number is a positive integer.
+inline bool IS_POSITIVE_INTEGER(double num) {
+	return floor(num) == num && num >= 0.0;
 }
 
 // Creates a stack-allocated std:string of the concatenation of 2 well-formed
@@ -81,14 +82,25 @@ inline bool IS_32BIT_INT(double num) {
 	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[index]);
 
 // If the argument of the given index is not a number, an error is thrown and
-// the caller returns. Otherwise, it is cast to a v8::Number and made available
+// the caller returns. Otherwise, it is cast to a double and made available
 // at the given variable name.
 #define REQUIRE_ARGUMENT_NUMBER(index, var)                                    \
 	if (info.Length() <= (index) || !info[index]->IsNumber()) {                \
 		return Nan::ThrowTypeError(                                            \
 			"Expected argument " #index " to be a number.");                   \
 	}                                                                          \
-	v8::Local<v8::Number> var = v8::Local<v8::Number>::Cast(info[index]);
+	double var = v8::Local<v8::Number>::Cast(info[index])->Value();
+
+// If the argument of the given index is not an int32, an error is thrown and
+// the caller returns. Otherwise, it is cast to an int32_t and made available
+// at the given variable name. Unlike other REQUIRE_ARGUMENT_ macros, the
+// resulting local variable must be declared outside of the macro.
+#define REQUIRE_ARGUMENT_INT32(index, var)                                     \
+	if (info.Length() <= (index) || !info[index]->IsInt32()) {                 \
+		return Nan::ThrowTypeError(                                            \
+			"Expected argument " #index " to be a 32-bit signed integer.");    \
+	}                                                                          \
+	var = v8::Local<v8::Int32>::Cast(info[index])->Value();
 
 // If the argument of the given index is not a function, an error is thrown and
 // the caller returns. Otherwise, it is cast to a v8::Function and made

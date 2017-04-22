@@ -71,9 +71,8 @@ NAN_METHOD(Database::CreateFunction) {
 		safe_integers = safe_ints;
 	}
 	if (!varargs) {
-		REQUIRE_ARGUMENT_NUMBER(6, argCount);
-		double arg_count = argCount->Value();
-		if (floor(arg_count) != arg_count || arg_count < 0.0) {
+		REQUIRE_ARGUMENT_NUMBER(6, arg_count);
+		if (!IS_POSITIVE_INTEGER(arg_count)) {
 			return Nan::ThrowTypeError("Expected function.length to be a positive integer.");
 		}
 		if (arg_count > 127.0) {

@@ -49,35 +49,29 @@ NAN_METHOD(Int64::New) {
 		return;
 	}
 	
-	double low;
-	double high;
+	int32_t low;
+	int32_t high;
 	
-	REQUIRE_ARGUMENT_NUMBER(0, low_number);
+	REQUIRE_ARGUMENT_INT32(0, low);
 	if (info.Length() > 1) {
-		REQUIRE_ARGUMENT_NUMBER(1, high_number);
-		high = high_number->Value();
+		REQUIRE_ARGUMENT_INT32(1, high);
 	} else {
 		high = 0;
 	}
-	low = low_number->Value();
 	
-	if (!IS_32BIT_INT(low) || !IS_32BIT_INT(high)) {
-		return Nan::ThrowTypeError("Expected both arguments to be 32 bit signed integers.");
-	}
-	
-	Int64* int64 = new Int64(static_cast<int32_t>(low), static_cast<int32_t>(high));
+	Int64* int64 = new Int64(low, high);
 	int64->Wrap(info.This());
 	info.GetReturnValue().Set(info.This());
 }
 
 NAN_GETTER(Int64::Low) {
 	info.GetReturnValue().Set(
-		Nan::New<v8::Number>(static_cast<double>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->low))
+		Nan::New<v8::Int32>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->low)
 	);
 }
 NAN_GETTER(Int64::High) {
 	info.GetReturnValue().Set(
-		Nan::New<v8::Number>(static_cast<double>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->high))
+		Nan::New<v8::Int32>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->high)
 	);
 }
 NAN_METHOD(Int64::ToString) {
