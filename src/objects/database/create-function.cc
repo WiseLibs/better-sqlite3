@@ -117,6 +117,7 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, sizeof(AggregateInfo)));
 	Database* db = function_info->db;
 	
+	// TODO (this isnt a reliable way of checking for the first invocation)
 	if (agg_info->ctx != ctx) {
 		Nan::HandleScope scope;
 		int status = agg_info->init(Nan::New(function_info->handle), function_info->state & VARARGS ? -1 : length);
