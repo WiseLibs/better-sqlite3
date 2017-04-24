@@ -117,12 +117,10 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, sizeof(AggregateInfo)));
 	Database* db = function_info->db;
 	
-	// TODO (this isnt a reliable way of checking for the first invocation)
-	if (agg_info->ctx != ctx) {
+	if (agg_info->ctx == NULL) {
 		Nan::HandleScope scope;
 		int status = agg_info->init(Nan::New(function_info->handle), function_info->state & VARARGS ? -1 : length);
 		if (status != GENERATOR_SUCCESS) {
-			agg_info->ctx = NULL;
 			if (status == GENERATOR_JS_ERROR) {
 				db->was_js_error = true;
 				return sqlite3_result_error(ctx, "", 0);
