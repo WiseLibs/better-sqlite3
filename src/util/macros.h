@@ -15,6 +15,7 @@
 #define SAFE_INTS 0x10
 #define PLUCK_COLUMN 0x20
 #define RETURNS_DATA 0x40
+#define VARARGS 0x80
 
 // Given a double, returns whether the number is a positive integer.
 inline bool IS_POSITIVE_INTEGER(double num) {
