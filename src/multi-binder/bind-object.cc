@@ -9,7 +9,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 	// Get array of properties.
 	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetOwnPropertyNames(obj);
 	if (maybeKeys.IsEmpty()) {
-		error = "An error was thrown while trying to get the property names of the given object.";
+		error = COPY("An error was thrown while trying to get the property names of the given object.");
 		return 0;
 	}
 	v8::Local<v8::Array> keys = maybeKeys.ToLocalChecked();
@@ -28,7 +28,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 		// Get current property name.
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);
 		if (maybeKey.IsEmpty()) {
-			error = "An error was thrown while trying to get the property names of the given object.";
+			error = COPY("An error was thrown while trying to get the property names of the given object.");
 			return bound_count;
 		}
 		v8::Local<v8::Value> key = maybeKey.ToLocalChecked();
@@ -41,7 +41,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
 		if (maybeValue.IsEmpty()) {
-			error = "An error was thrown while trying to get property values of the given object.";
+			error = COPY("An error was thrown while trying to get property values of the given object.");
 			return bound_count;
 		}
 		v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
@@ -81,9 +81,8 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 		// If no handles had this named parameter, provide an error.
 		if (!someoneHadNamedParameter) {
 			Nan::Utf8String utf8(key);
-			error = "The named parameter \"%s\" does not exist.";
-			error_extra = new char[utf8.length() + 1];
-			strlcpy(error_extra, *utf8, utf8.length() + 1);
+			CONCAT3(message, "The named parameter \"", *utf8, "\" does not exist.");
+			error = COPY(message.c_str());
 			return bound_count;
 		}
 	}

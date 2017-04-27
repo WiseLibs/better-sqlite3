@@ -7,7 +7,6 @@
 #include "database.h"
 #include "../statement/statement.h"
 #include "../transaction/transaction.h"
-#include "../../util/strlcpy.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/transaction-handles.h"

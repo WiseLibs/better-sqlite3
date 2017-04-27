@@ -2,11 +2,7 @@
 
 class FunctionInfo { public:
 	explicit FunctionInfo(Database* db, bool safe_integers, const char* func_name, v8::Local<v8::Function> func)
-	: db(db), safe_integers(safe_integers), handle(func) {
-		size_t bytes = strlen(func_name) + 1;
-		name = new char[bytes];
-		strlcpy(const_cast<char*>(name), func_name, bytes);
-	}
+	: db(db), safe_integers(safe_integers), name(COPY(func_name)), handle(func) {}
 	~FunctionInfo() {
 		delete[] name;
 		handle.Reset();

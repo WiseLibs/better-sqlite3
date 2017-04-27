@@ -8,19 +8,19 @@ void Binder::BindValue(v8::Local<v8::Value> value, int index) {
 	if (status != SQLITE_OK) {
 		switch (status) {
 			case -1:
-				error = "SQLite3 can only bind numbers, strings, Buffers, and null.";
+				error = COPY("SQLite3 can only bind numbers, strings, Buffers, and null.");
 				break;
 			case SQLITE_RANGE:
-				error = "Too many parameters were provided.";
+				error = COPY("Too many parameters were provided.");
 				break;
 			case SQLITE_TOOBIG:
-				error = "The bound string or Buffer is too big.";
+				error = COPY("The bound string or Buffer is too big.");
 				break;
 			case SQLITE_NOMEM:
-				error = "Out of memory.";
+				error = COPY("Out of memory.");
 				break;
 			default:
-				error = "An unexpected error occured while trying to bind parameters.";
+				error = COPY("An unexpected error occured while trying to bind parameters.");
 		}
 	}
 }

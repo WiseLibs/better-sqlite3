@@ -26,7 +26,7 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
-					error = "You cannot specify named parameters in two different objects.";
+					error = COPY("You cannot specify named parameters in two different objects.");
 					return;
 				}
 				bound_object = true;
@@ -54,9 +54,9 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 	
 	if (count != param_count_sum) {
 		if (count < param_count_sum) {
-			error = "Too few parameter values were given.";
+			error = COPY("Too few parameter values were given.");
 		} else {
-			error = "Too many parameter values were given.";
+			error = COPY("Too many parameter values were given.");
 		}
 	}
 	

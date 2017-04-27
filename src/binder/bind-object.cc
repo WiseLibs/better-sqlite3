@@ -8,7 +8,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 	// Get array of properties.
 	Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetOwnPropertyNames(obj);
 	if (maybeKeys.IsEmpty()) {
-		error = "An error was thrown while trying to get the property names of the given object.";
+		error = COPY("An error was thrown while trying to get the property names of the given object.");
 		return 0;
 	}
 	v8::Local<v8::Array> keys = maybeKeys.ToLocalChecked();
@@ -24,7 +24,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 		// Get current property name.
 		Nan::MaybeLocal<v8::Value> maybeKey = Nan::Get(keys, i);
 		if (maybeKey.IsEmpty()) {
-			error = "An error was thrown while trying to get the property names of the given object.";
+			error = COPY("An error was thrown while trying to get the property names of the given object.");
 			return i - symbol_count;
 		}
 		v8::Local<v8::Value> key = maybeKey.ToLocalChecked();
@@ -39,9 +39,8 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 		v8::Local<v8::Value> indexValue = Nan::Get(bindMap, v8::Local<v8::String>::Cast(key)).ToLocalChecked();
 		if (indexValue->IsUndefined()) {
 			Nan::Utf8String utf8(key);
-			error = "The named parameter \"%s\" does not exist.";
-			error_extra = new char[utf8.length() + 1];
-			strlcpy(error_extra, *utf8, utf8.length() + 1);
+			CONCAT3(message, "The named parameter \"", *utf8, "\" does not exist.");
+			error = COPY(message.c_str());
 			return i - symbol_count;
 		}
 		int index = static_cast<int>(v8::Local<v8::Number>::Cast(indexValue)->Value());
@@ -49,7 +48,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bindMap)
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
 		if (maybeValue.IsEmpty()) {
-			error = "An error was thrown while trying to get property values of the given object.";
+			error = COPY("An error was thrown while trying to get property values of the given object.");
 			return i - symbol_count;
 		}
 		

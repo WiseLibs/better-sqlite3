@@ -2,10 +2,12 @@
 #define BETTER_SQLITE3_MACROS_H
 
 #include <cstdint>
+#include <cstring>
 #include <cmath>
 #include <string>
 #include <sqlite3.h>
 #include <nan.h>
+#include "../util/strlcpy.h"
 
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
@@ -19,6 +21,14 @@
 // Given a double, returns whether the number is a positive integer.
 inline bool IS_POSITIVE_INTEGER(double num) {
 	return floor(num) == num && num >= 0.0;
+}
+
+// Copies a C-String into the heap and returns a pointer to it.
+inline const char* COPY(const char* source) {
+	size_t bytes = strlen(source) + 1;
+	char* dest = new char[bytes];
+	strlcpy(dest, source, bytes);
+	return dest;
 }
 
 // Creates a stack-allocated std:string of the concatenation of 2 well-formed
@@ -159,20 +169,18 @@ inline bool IS_POSITIVE_INTEGER(double num) {
 #define STATEMENT_BIND(stmt, info, info_length)                                \
 	Binder _binder(stmt->st_handle);                                           \
 	_binder.Bind(info, info_length, stmt);                                     \
-	const char* _err = _binder.GetError();                                     \
-	if (_err) {                                                                \
+	if (_binder.error) {                                                       \
 		STATEMENT_CLEAR_BINDINGS(stmt);                                        \
-		return Nan::ThrowError(_err);                                          \
+		return Nan::ThrowError(_binder.error);                                 \
 	}
 
 // Common bind logic for transactions.
 #define TRANSACTION_BIND(trans, info, info_length)                             \
 	MultiBinder _binder(trans->handles, trans->handle_count);                  \
 	_binder.Bind(info, info_length, trans);                                    \
-	const char* _err = _binder.GetError();                                     \
-	if (_err) {                                                                \
+	if (_binder.error) {                                                       \
 		TRANSACTION_CLEAR_BINDINGS(trans);                                     \
-		return Nan::ThrowError(_err);                                          \
+		return Nan::ThrowError(_binder.error);                                 \
 	}
 
 // The macro-instruction that runs before an SQLite request.
