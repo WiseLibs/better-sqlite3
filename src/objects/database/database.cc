@@ -1,6 +1,4 @@
 #include <cassert>
-#include <cstring>
-#include <algorithm>
 #include <stdint.h>
 #include <sqlite3.h>
 #include <nan.h>
@@ -30,13 +28,15 @@ Nan::Persistent<v8::Function> NullFactory;
 #include "util.cc"
 
 Database::Database(bool readonly) : Nan::ObjectWrap(),
-	db_handle(NULL),
 	t_handles(),
+	stmts(),
+	transs(),
+	db_handle(NULL),
 	open(true),
 	busy(false),
 	safe_ints(false),
-	readonly(readonly),
-	was_js_error(false) {}
+	was_js_error(false),
+	readonly(readonly) {}
 Database::~Database() {
 	// This is necessary in the case that a database and its statements are
 	// garbage collected at the same time. The database might be destroyed
@@ -96,7 +96,7 @@ int Database::OpenHandles(const char* filename) {
 	
 	assert(sqlite3_db_mutex(db_handle) == NULL);
 	sqlite3_busy_timeout(db_handle, 5000);
-	sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, (std::min)(max_buffer_size, max_string_size));
+	sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, max_buffer_size < max_string_size ? max_buffer_size : max_string_size);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, max_string_size);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, 0x7fffffff);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);

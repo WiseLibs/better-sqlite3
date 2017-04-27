@@ -38,13 +38,10 @@ class Statement : public Nan::ObjectWrap, public Query {
 		static NAN_METHOD(Each);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
 		
-		// Sqlite3 interfacing and state
+		sqlite3_uint64 id; // Unique Statement Id
 		Database* db;
 		sqlite3_stmt* st_handle;
 		uint8_t state;
-		
-		// Unique Statement Id
-		sqlite3_uint64 id;
 };
 
 #endif

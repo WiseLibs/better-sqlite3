@@ -42,20 +42,17 @@ class Database : public Nan::ObjectWrap {
 		void CloseChildHandles();
 		void ThrowError(const char* = NULL);
 		
-		// Sqlite3 interfacing
-		sqlite3* db_handle;
 		TransactionHandles t_handles;
+		std::set<Statement*, Statement::Compare> stmts;
+		std::set<Transaction*, Transaction::Compare> transs;
+		sqlite3* db_handle;
 		
 		// State
 		bool open;
 		bool busy;
 		bool safe_ints;
-		const bool readonly;
 		bool was_js_error;
-		
-		// Associated Statements and Transactions
-		std::set<Statement*, Statement::Compare> stmts;
-		std::set<Transaction*, Transaction::Compare> transs;
+		const bool readonly;
 };
 
 #endif

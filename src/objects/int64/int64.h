@@ -35,9 +35,9 @@ class Int64 : public Nan::ObjectWrap {
 		static NAN_GETTER(Low);
 		static sqlite3_int64* FastConstructInt;
 		
+		sqlite3_int64 full;
 		int32_t low;
 		int32_t high;
-		sqlite3_int64 full;
 };
 
 #endif
