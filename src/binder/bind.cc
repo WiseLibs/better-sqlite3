@@ -50,9 +50,9 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 	
 	if (count != param_count) {
 		if (count < param_count) {
-			error = COPY("Too few parameter values were given.");
+			error = COPY("Too few parameter values were provided.");
 		} else {
-			error = COPY("Too many parameter values were given.");
+			error = COPY("Too many parameter values were provided.");
 		}
 	}
 	

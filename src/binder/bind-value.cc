@@ -11,7 +11,7 @@ void Binder::BindValue(v8::Local<v8::Value> value, int index) {
 				error = COPY("SQLite3 can only bind numbers, strings, Buffers, and null.");
 				break;
 			case SQLITE_RANGE:
-				error = COPY("Too many parameters were provided.");
+				error = COPY("Too many parameter values were provided.");
 				break;
 			case SQLITE_TOOBIG:
 				error = COPY("The bound string or Buffer is too big.");
