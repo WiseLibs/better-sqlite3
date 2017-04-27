@@ -32,14 +32,11 @@ class Transaction : public Nan::ObjectWrap, public Query {
 		static NAN_METHOD(Run);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
 		
-		// Sqlite3 interfacing and state
+		sqlite3_uint64 id; // Unique Transaction Id
 		Database* db;
-		unsigned int handle_count;
 		sqlite3_stmt** handles;
+		unsigned int handle_count;
 		uint8_t state;
-		
-		// Unique Transaction Id
-		sqlite3_uint64 id;
 };
 
 #endif

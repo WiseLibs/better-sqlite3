@@ -4,8 +4,10 @@
 // Anonymous parameters are either directly in the arguments object, or in an
 // Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
+// Regardless of whether an error occurs, the return value is the number of
+// parameters that were bound.
 
-void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
+int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 	bool bound_object = false;
 	int count = 0;
 	
@@ -16,7 +18,7 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		if (arg->IsArray()) {
 			count += BindArray(v8::Local<v8::Array>::Cast(arg));
 			if (error) {
-				return;
+				return count;
 			}
 			continue;
 		}
@@ -26,14 +28,14 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
-					error = "You cannot specify named parameters in two different objects.";
-					return;
+					error = COPY("You cannot specify named parameters in two different objects.");
+					return count;
 				}
 				bound_object = true;
 				
 				count += BindObject(obj, query->GetBindMap());
 				if (error) {
-					return;
+					return count;
 				}
 				continue;
 			}
@@ -42,18 +44,10 @@ void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		// All other values
 		BindValue(arg);
 		if (error) {
-			return;
+			return count;
 		}
 		count += 1;
 		
-	} // for
-	
-	if (count != param_count) {
-		if (count < param_count) {
-			error = "Too few parameter values were given.";
-		} else {
-			error = "Too many parameter values were given.";
-		}
 	}
-	
+	return count;
 }

@@ -3,25 +3,21 @@
 class FunctionInfo { public:
 	explicit FunctionInfo(Database* db, bool safe_integers, bool varargs,
 		const char* func_name, v8::Local<v8::Function> func
-	)
-	: db(db), handle(func) {
+	) : handle(func), db(db), name(COPY(func_name)) {
 		state = (safe_integers ? SAFE_INTS : 0) | (varargs ? VARARGS : 0);
-		size_t bytes = strlen(func_name) + 1;
-		name = new char[bytes];
-		strlcpy(const_cast<char*>(name), func_name, bytes);
 	}
 	~FunctionInfo() {
-		delete[] name;
 		handle.Reset();
+		delete[] name;
 	}
 	static void DestroyFunction(void* x) {
 		Nan::HandleScope scope;
 		delete static_cast<FunctionInfo*>(x);
 	}
-	Database* db;
-	uint8_t state;
-	char* name;
 	Nan::Persistent<v8::Function> handle;
+	Database* db;
+	const char* name;
+	uint8_t state;
 };
 
 void ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {

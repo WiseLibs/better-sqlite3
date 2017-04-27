@@ -4,31 +4,27 @@
 #include <sqlite3.h>
 #include <nan.h>
 class Query;
-class Int64;
 
 class Binder {
 	public:
 		explicit Binder(sqlite3_stmt*);
 		~Binder();
 		virtual void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
-		const char* GetError();
+		
+		const char* error;
 		
 	protected:
+		static bool IsPlainObject(v8::Local<v8::Object>);
 		virtual int NextAnonIndex();
 		
 		void BindValue(v8::Local<v8::Value>, int = 0);
 		int BindArray(v8::Local<v8::Array>);
 		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once
-		
-		static bool IsPlainObject(v8::Local<v8::Object>);
+		int BindArgs(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		
 		sqlite3_stmt* handle;
 		int param_count;
-		
 		int anon_index; // This value should only be used by NextAnonIndex()
-		const char* error;
-		char* error_extra;
-		const char* error_full;
 };
 
 #endif
