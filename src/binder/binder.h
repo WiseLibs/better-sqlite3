@@ -4,7 +4,6 @@
 #include <sqlite3.h>
 #include <nan.h>
 class Query;
-class Int64;
 
 class Binder {
 	public:
@@ -21,6 +20,7 @@ class Binder {
 		void BindValue(v8::Local<v8::Value>, int = 0);
 		int BindArray(v8::Local<v8::Array>);
 		virtual int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once
+		int BindArgs(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
 		
 		sqlite3_stmt* handle;
 		int param_count;

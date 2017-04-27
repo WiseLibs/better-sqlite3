@@ -4,8 +4,10 @@
 // Anonymous parameters are either directly in the arguments object, or in an
 // Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
+// Regardless of whether an error occurs, the return value is the number of
+// parameters that were bound.
 
-void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
+int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 	bool bound_object = false;
 	int count = 0;
 	
@@ -16,7 +18,7 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		if (arg->IsArray()) {
 			count += BindArray(v8::Local<v8::Array>::Cast(arg));
 			if (error) {
-				return;
+				return count;
 			}
 			continue;
 		}
@@ -27,13 +29,13 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
 					error = COPY("You cannot specify named parameters in two different objects.");
-					return;
+					return count;
 				}
 				bound_object = true;
 				
 				count += BindObject(obj, query->GetBindMap());
 				if (error) {
-					return;
+					return count;
 				}
 				continue;
 			}
@@ -42,22 +44,10 @@ void MultiBinder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		// All other values
 		BindValue(arg);
 		if (error) {
-			return;
+			return count;
 		}
 		count += 1;
 		
-	} // for
-	
-	while (handle_index + 1 < handle_count) {
-		param_count_sum += sqlite3_bind_parameter_count(handles[++handle_index]);
 	}
-	
-	if (count != param_count_sum) {
-		if (count < param_count_sum) {
-			error = COPY("Too few parameter values were provided.");
-		} else {
-			error = COPY("Too many parameter values were provided.");
-		}
-	}
-	
+	return count;
 }

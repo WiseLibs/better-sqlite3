@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <sqlite3.h>
 #include <nan.h>
 #include "../objects/int64/int64.h"

@@ -10,7 +10,7 @@
 #include "bind-value.cc"
 #include "bind-array.cc"
 #include "bind-object.cc"
-#include "bind.cc"
+#include "bind-args.cc"
 
 Binder::Binder(sqlite3_stmt* handle)
 	: error(NULL)
@@ -20,4 +20,15 @@ Binder::Binder(sqlite3_stmt* handle)
 
 Binder::~Binder() {
 	delete[] error;
+}
+
+void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
+  int count = BindArgs(info, len, query);
+  if (!error && count != param_count) {
+    if (count < param_count) {
+      error = COPY("Too few parameter values were provided.");
+    } else {
+      error = COPY("Too many parameter values were provided.");
+    }
+  }
 }
