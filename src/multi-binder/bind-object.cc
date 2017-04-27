@@ -31,12 +31,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 			error = COPY("An error was thrown while trying to get the property names of the given object.");
 			return bound_count;
 		}
-		v8::Local<v8::Value> key = maybeKey.ToLocalChecked();
-		
-		// If this property is a symbol, ignore it.
-		if (key->IsSymbol()) {
-			continue;
-		}
+		v8::Local<v8::String> key = v8::Local<v8::String>::Cast(maybeKey.ToLocalChecked());
 		
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
@@ -59,7 +54,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, v8::Local<v8::Object> bin
 			if (currentMap->IsUndefined()) {
 				continue;
 			}
-			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(currentMap), v8::Local<v8::String>::Cast(key)).ToLocalChecked();
+			v8::Local<v8::Value> indexValue = Nan::Get(v8::Local<v8::Object>::Cast(currentMap), key).ToLocalChecked();
 			if (!indexValue->IsUndefined()) {
 				int index = static_cast<int>(v8::Local<v8::Number>::Cast(indexValue)->Value());
 				
