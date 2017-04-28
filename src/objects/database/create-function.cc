@@ -1,5 +1,20 @@
 // .register([object options], function implementation) -> this
 
+#define EXECUTE_FUNCTION(var, function_info, func, errorAction)                \
+	Database* db = function_info->db;                                          \
+	v8::Local<v8::Value>* args = Data::GetArgumentsJS(                         \
+		values, length, (function_info->state & SAFE_INTS) != 0);              \
+	bool was_busy = db->busy;                                                  \
+	db->busy = true;                                                           \
+	v8::MaybeLocal<v8::Value> var = func->Call(Nan::Null(), length, args);     \
+	db->busy = was_busy;                                                       \
+	delete[] args;                                                             \
+	if (var.IsEmpty()) {                                                       \
+		errorAction;                                                           \
+		db->was_js_error = true;                                               \
+		return sqlite3_result_error(ctx, "", 0);                               \
+	}
+
 class FunctionInfo { public:
 	explicit FunctionInfo(Database* db, bool safe_integers, bool varargs,
 		const char* func_name, v8::Local<v8::Function> func
@@ -23,21 +38,7 @@ class FunctionInfo { public:
 void ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
-	v8::Local<v8::Function> func = Nan::New(function_info->handle);
-	Database* db = function_info->db;
-	
-	bool was_busy = db->busy;
-	v8::Local<v8::Value>* args = Data::GetArgumentsJS(values, length, (function_info->state & SAFE_INTS) != 0);
-	
-	db->busy = true;
-	v8::MaybeLocal<v8::Value> maybe_return_value = func->Call(Nan::Null(), length, args);
-	db->busy = was_busy;
-	delete[] args;
-	
-	if (maybe_return_value.IsEmpty()) {
-		db->was_js_error = true;
-		return sqlite3_result_error(ctx, "", 0);
-	}
+	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->handle),);
 	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info->name);
 }
 
@@ -51,7 +52,6 @@ class AggregateInfo { public:
 	Nan::Persistent<v8::Object> generator;
 	Nan::Persistent<v8::Function> next;
 	Nan::Persistent<v8::Function> callback;
-	sqlite3_context* ctx;
 	int init(v8::Local<v8::Function> genFunc, int argc) {
 		v8::MaybeLocal<v8::Value> maybe_gen_object = genFunc->Call(Nan::Null(), 0, NULL);
 		v8::Local<v8::Object> generatorObject = v8::Local<v8::Object>::Cast(maybe_gen_object.ToLocalChecked());
@@ -111,14 +111,12 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, sizeof(AggregateInfo)));
-	Database* db = function_info->db;
-	
-	if (agg_info->ctx == NULL) {
+	if (agg_info->generator.IsEmpty()) {
 		Nan::HandleScope scope;
 		int status = agg_info->init(Nan::New(function_info->handle), function_info->state & VARARGS ? -1 : length);
 		if (status != GENERATOR_SUCCESS) {
 			if (status == GENERATOR_JS_ERROR) {
-				db->was_js_error = true;
+				function_info->db->was_js_error = true;
 				return sqlite3_result_error(ctx, "", 0);
 			}
 			if (status == GENERATOR_DIDNT_YIELD_FUNCTION_ERROR) {
@@ -130,24 +128,8 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 				return sqlite3_result_error(ctx, message.c_str(), -1);
 			}
 		}
-		agg_info->ctx = ctx;
 	}
-	v8::Local<v8::Function> func = Nan::New(agg_info->callback);
-	
-	bool was_busy = db->busy;
-	v8::Local<v8::Value>* args = Data::GetArgumentsJS(values, length, (function_info->state & SAFE_INTS) != 0);
-	
-	db->busy = true;
-	v8::MaybeLocal<v8::Value> maybe_return_value = func->Call(Nan::Null(), length, args);
-	db->busy = was_busy;
-	delete[] args;
-	
-	if (maybe_return_value.IsEmpty()) {
-		agg_info->ctx = NULL;
-		agg_info->release();
-		db->was_js_error = true;
-		return sqlite3_result_error(ctx, "", 0);
-	}
+	EXECUTE_FUNCTION(_v, function_info, Nan::New(agg_info->callback), agg_info->release());
 }
 
 void FinishAggregate(sqlite3_context* ctx) {
@@ -157,7 +139,7 @@ void FinishAggregate(sqlite3_context* ctx) {
 		// TODO
 		return sqlite3_result_null(ctx);
 	}
-	if (agg_info->ctx == NULL) {
+	if (agg_info->generator.IsEmpty()) {
 		return;
 	}
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
