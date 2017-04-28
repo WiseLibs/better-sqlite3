@@ -5,6 +5,7 @@
 #include <nan.h>
 #include "../binder/binder.h"
 class Query;
+class BindMap;
 
 class MultiBinder : public Binder {
 	public:
@@ -13,7 +14,7 @@ class MultiBinder : public Binder {
 		
 	protected:
 		int NextAnonIndex();
-		int BindObject(v8::Local<v8::Object>, v8::Local<v8::Object>); // This should only be invoked once per handle
+		int BindObject(v8::Local<v8::Object>, BindMap); // This should only be invoked once per handle
 		
 		sqlite3_stmt** const handles;
 		unsigned int const handle_count;

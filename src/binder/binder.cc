@@ -4,6 +4,7 @@
 #include "../objects/query.h"
 #include "../util/macros.h"
 #include "../util/data.h"
+#include "../util/bind-map.h"
 
 #include "is-plain-object.cc"
 #include "next-anon-index.cc"

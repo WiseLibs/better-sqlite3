@@ -12,11 +12,10 @@
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
 #define BOUND 0x02
-#define USED_BIND_MAP 0x4
-#define HAS_BIND_MAP 0x8
-#define SAFE_INTS 0x10
-#define PLUCK_COLUMN 0x20
-#define RETURNS_DATA 0x40
+#define HAS_BIND_MAP 0x4
+#define SAFE_INTS 0x8
+#define PLUCK_COLUMN 0x10
+#define RETURNS_DATA 0x20
 
 // Given a double, returns whether the number is a positive integer.
 inline bool IS_POSITIVE_INTEGER(double num) {

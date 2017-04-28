@@ -1,4 +1,5 @@
 #include <set>
+#include <string>
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement.h"
@@ -7,6 +8,7 @@
 #include "../int64/int64.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
+#include "../../util/bind-map.h"
 #include "../../binder/binder.h"
 
 #include "new.cc"
@@ -20,6 +22,7 @@
 
 Statement::Statement() : Nan::ObjectWrap(),
 	st_handle(NULL),
+	bind_pairs(NULL),
 	state(0) {}
 Statement::~Statement() {
 	if (CloseHandles()) {
@@ -49,6 +52,7 @@ CONSTRUCTOR(Statement::constructor);
 // Returns true if the handles have not been previously closed.
 bool Statement::CloseHandles() {
 	if (st_handle) {
+		delete[] bind_pairs;
 		if (state & BOUND) {sqlite3_clear_bindings(st_handle);}
 		sqlite3_finalize(st_handle);
 		st_handle = NULL;

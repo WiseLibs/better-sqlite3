@@ -4,6 +4,7 @@
 #include "../binder/binder.h"
 #include "../objects/query.h"
 #include "../util/macros.h"
+#include "../util/bind-map.h"
 
 #include "next-anon-index.cc"
 #include "bind-object.cc"

@@ -8,6 +8,7 @@
 #include "../query.h"
 #include "../../util/macros.h"
 class Database;
+class BindMap;
 
 // Class Declaration
 class Statement : public Nan::ObjectWrap, public Query {
@@ -19,7 +20,7 @@ class Statement : public Nan::ObjectWrap, public Query {
 		class Compare { public:
 			bool operator() (const Statement*, const Statement*) const;
 		};
-		v8::Local<v8::Object> GetBindMap();
+		BindMap GetBindMap();
 		
 		// Friends
 		friend class Compare;
@@ -41,6 +42,8 @@ class Statement : public Nan::ObjectWrap, public Query {
 		sqlite3_uint64 id; // Unique Statement Id
 		Database* db;
 		sqlite3_stmt* st_handle;
+		BindPair* bind_pairs;
+		int bind_pair_count;
 		uint8_t state;
 };
 

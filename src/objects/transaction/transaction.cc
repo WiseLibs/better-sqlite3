@@ -14,6 +14,7 @@
 
 Transaction::Transaction() : Nan::ObjectWrap(),
 	handles(NULL),
+	bind_pairs(NULL),
 	state(0) {}
 Transaction::~Transaction() {
 	if (CloseHandles()) {
@@ -38,6 +39,7 @@ CONSTRUCTOR(Transaction::constructor);
 // Returns true if the handles have not been previously closed.
 bool Transaction::CloseHandles() {
 	if (handles) {
+		delete[] bind_pairs;
 		if (state & BOUND) {
 			for (unsigned int i=0; i<handle_count; ++i) {
 				sqlite3_clear_bindings(handles[i]);
