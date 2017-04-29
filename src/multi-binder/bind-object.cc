@@ -5,7 +5,7 @@
 // parameters that were bound. Unlike the normal Binder, this will bind
 // parameters to all handles, not just the current one.
 
-int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap bindMap) {
+int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 	// Get array of properties.
 	// Nan::MaybeLocal<v8::Array> maybeKeys = Nan::GetOwnPropertyNames(obj);
 	// if (maybeKeys.IsEmpty()) {

@@ -1,13 +1,7 @@
-// Used by std::set to organize the pointers it holds.
-bool Transaction::Compare::operator() (const Transaction* a, const Transaction* b) const {
-	return a->id < b->id;
-}
-
-// Builds a JavaScript array that has an object for each sqlite3_stmt handle
-// that has bind parameters. Each object maps the handle's parameter names
-// to their respective parameter index. After the first invocation, a cached
-// version is returned, rather than rebuilding it.
-BindMap Transaction::GetBindMap() {
+// Fills the transaction's bind_map and returns a pointer to the bind_map.
+// After the first invocation, a cached version is returned, rather than
+// rebuilding it.
+BindMap* Transaction::GetBindMap() {
 	// v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
 	// v8::Local<v8::Object> array = Nan::New<v8::Object>();
 	// for (unsigned int h=0; h<handle_count; ++h) {
@@ -25,7 +19,7 @@ BindMap Transaction::GetBindMap() {
 	// 	}
 	// }
 	// return array;
-	return BindMap(NULL, 0);
+	return &extras->bind_map;
 }
 
 // .safeIntegers(boolean) -> this

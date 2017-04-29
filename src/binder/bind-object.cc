@@ -4,16 +4,15 @@
 // Regardless of whether an error occurs, the return value is the number of
 // parameters that were bound.
 
-int Binder::BindObject(v8::Local<v8::Object> obj, BindMap bindMap) {
-	int len = bindMap.length;
-	BindPair* pairs  = bindMap.pairs;
-	v8::Local<v8::Context> context = Nan::GetCurrentContext();
+int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
+	int len = bindMap->length;
+	BindPair* pairs = bindMap->pairs;
 	
 	for (int i=0; i<len; ++i) {
 		v8::Local<v8::String> key = Nan::New(pairs[i].name).ToLocalChecked();
 		
 		// Check if the named parameter was provided.
-		v8::Maybe<bool> has_property = obj->HasOwnProperty(context, key);
+		v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
 		if (has_property.IsNothing()) {
 			error = COPY("An error was thrown while invoking hasOwnProperty() on the given object.");
 			return i;

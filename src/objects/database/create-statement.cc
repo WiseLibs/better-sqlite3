@@ -51,7 +51,7 @@ NAN_METHOD(Database::CreateStatement) {
 	if (db->safe_ints) {stmt->state |= SAFE_INTS;}
 	
 	// Pushes onto stmts set.
-	stmt->id = NEXT_STATEMENT_ID++;
+	stmt->extras->id = NEXT_STATEMENT_ID++;
 	db->stmts.insert(db->stmts.end(), stmt);
 	
 	info.GetReturnValue().Set(statement);

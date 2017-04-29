@@ -43,8 +43,8 @@ class Database : public Nan::ObjectWrap {
 		void ThrowError(const char* = NULL);
 		
 		TransactionHandles t_handles;
-		std::set<Statement*, Statement::Compare> stmts;
-		std::set<Transaction*, Transaction::Compare> transs;
+		std::set<Statement*, Query::Compare> stmts;
+		std::set<Transaction*, Query::Compare> transs;
 		sqlite3* db_handle;
 		
 		// State

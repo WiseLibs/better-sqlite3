@@ -9,17 +9,22 @@ typedef struct BindPair {
 } BindPair;
 
 class BindMap { public:
-	explicit BindMap(BindPair* pairs, int length) : pairs(pairs), length(length) {}
-	static BindPair* Grow(BindPair* source, int* source_length) {
-		int len = *source_length;
-		int grow_by = (len << 1) | 2;
-		BindPair* dest = new BindPair[len + grow_by];
-		for (int i=0; i<len; ++i) {
-			dest[i] = source[i];
+	explicit BindMap() : pairs(NULL), length(0) {}
+	~BindMap() {delete[] pairs;}
+	void Add(std::string name, int index) {
+		pairs[length].name = name;
+		pairs[length].index = index;
+		length += 1;
+	}
+	void Grow(int* capacity) {
+		int new_capacity = (*capacity << 1) | 2;
+		BindPair* new_pairs = new BindPair[new_capacity];
+		for (int i=0; i<length; ++i) {
+			new_pairs[i] = pairs[i];
 		}
-		delete[] source;
-		*source_length += grow_by;
-		return dest;
+		delete[] pairs;
+		pairs = new_pairs;
+		*capacity = new_capacity;
 	}
 	BindPair* pairs;
 	int length;

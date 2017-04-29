@@ -14,7 +14,7 @@ class MultiBinder : public Binder {
 		
 	protected:
 		int NextAnonIndex();
-		int BindObject(v8::Local<v8::Object>, BindMap); // This should only be invoked once per handle
+		int BindObject(v8::Local<v8::Object>, BindMap*); // This should only be invoked once per handle
 		
 		sqlite3_stmt** const handles;
 		unsigned int const handle_count;

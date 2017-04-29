@@ -87,7 +87,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	if (db->safe_ints) {trans->state |= SAFE_INTS;}
 	
 	// Pushes onto transs set.
-	trans->id = NEXT_TRANSACTION_ID++;
+	trans->extras->id = NEXT_TRANSACTION_ID++;
 	db->transs.insert(db->transs.end(), trans);
 	
 	info.GetReturnValue().Set(transaction);

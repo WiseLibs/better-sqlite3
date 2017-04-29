@@ -16,13 +16,9 @@ class Transaction : public Nan::ObjectWrap, public Query {
 		~Transaction();
 		static void Init();
 		
-		class Compare { public:
-			bool operator() (const Transaction*, const Transaction*) const;
-		};
-		BindMap GetBindMap();
+		BindMap* GetBindMap();
 		
 		// Friends
-		friend class Compare;
 		friend class Database;
 		
 	private:
@@ -33,12 +29,9 @@ class Transaction : public Nan::ObjectWrap, public Query {
 		static NAN_METHOD(Run);
 		bool CloseHandles(); // Returns true if the handles were not previously closed
 		
-		sqlite3_uint64 id; // Unique Transaction Id
 		Database* db;
 		sqlite3_stmt** handles;
-		BindPair* bind_pairs;
 		unsigned int handle_count;
-		int bind_pair_count;
 		uint8_t state;
 };
 

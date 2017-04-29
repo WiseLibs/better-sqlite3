@@ -1,31 +1,25 @@
-// Used by std::set to organize the pointers it holds.
-bool Statement::Compare::operator() (const Statement* a, const Statement* b) const {
-	return a->id < b->id;
-}
-
-// Builds a JavaScript object that maps the statement's parameter names with
-// the parameter index of each one. After the second invocation, a cached version
-// is returned, rather than rebuilding it.
-BindMap Statement::GetBindMap() {
+// Fills the statement's bind_map and returns a pointer to the bind_map.
+// After the first invocation, a cached version is returned, rather than
+// rebuilding it.
+BindMap* Statement::GetBindMap() {
 	if (!(state & HAS_BIND_MAP)) {
 		int param_count = sqlite3_bind_parameter_count(st_handle);
-			int capacity = 0;
-			bind_pair_count = 0;
-			
-			for (int i=1; i<=param_count; ++i) {
-				const char* name = sqlite3_bind_parameter_name(st_handle, i);
-				if (name != NULL) {
-					if (bind_pair_count == capacity) {
-						bind_pairs = BindMap::Grow(bind_pairs, &capacity);
-					}
-					bind_pairs[bind_pair_count].name = std::string(name + 1);
-					bind_pairs[bind_pair_count].index = i;
-					bind_pair_count += 1;
+		int capacity = 0;
+		BindMap* bind_map = &extras->bind_map;
+		
+		for (int i=1; i<=param_count; ++i) {
+			const char* name = sqlite3_bind_parameter_name(st_handle, i);
+			if (name != NULL) {
+				if (bind_map->length == capacity) {
+					bind_map->Grow(&capacity);
 				}
+				bind_map->Add(std::string(name + 1), i);
 			}
-			state |= HAS_BIND_MAP;
+		}
+		state |= HAS_BIND_MAP;
+		return bind_map;
 	}
-	return BindMap(bind_pairs, bind_pair_count);
+	return &extras->bind_map;
 }
 
 // get .returnsData -> boolean
