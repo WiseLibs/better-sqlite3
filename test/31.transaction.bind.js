@@ -80,14 +80,24 @@ describe('Transaction#bind()', function () {
 		}).to.throw(Error);
 		
 		expect(function () {
-			trans.bind({a: '123', b: null}, null);
-		}).to.throw(Error);
-		
-		expect(function () {
 			trans.bind({a: '123'}, null, null);
 		}).to.throw(Error);
 		
 		trans.bind({a: '123'}, null);
+		
+		trans = db.transaction(['INSERT INTO entries VALUES (@a, @a, ?)']);
+		trans.bind({a: '123', b: null}, null);
+	});
+	it('should propagate exceptions thrown while accessing array/object members', function () {
+		var arr = [22];
+		var obj = {};
+		var err = new TypeError('foobar');
+		Object.defineProperty(arr, '0', {get: function () {throw err;}})
+		Object.defineProperty(obj, 'baz', {get: function () {throw err;}})
+		var trans1 = db.transaction(['INSERT INTO entries VALUES (NULL, ?, NULL)']);
+		var trans2 = db.transaction(['INSERT INTO entries VALUES (NULL, @baz, NULL)']);
+		expect(function () {trans1.bind(arr);}).to.throw(err);
+		expect(function () {trans2.bind(obj);}).to.throw(err);
 	});
 });
 

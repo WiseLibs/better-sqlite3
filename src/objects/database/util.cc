@@ -1,4 +1,4 @@
-// .defaultSafeIntegers(boolean) -> this
+// .defaultSafeIntegers([boolean state]) -> this
 NAN_METHOD(Database::DefaultSafeIntegers) {
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	

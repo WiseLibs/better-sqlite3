@@ -12,7 +12,6 @@
 
 // Globals
 extern bool CONSTRUCTING_PRIVILEGES;
-extern Nan::Persistent<v8::Function> NullFactory;
 
 // Class Declaration
 class Database : public Nan::ObjectWrap {
@@ -43,8 +42,8 @@ class Database : public Nan::ObjectWrap {
 		void ThrowError(const char* = NULL);
 		
 		TransactionHandles t_handles;
-		std::set<Statement*, Statement::Compare> stmts;
-		std::set<Transaction*, Transaction::Compare> transs;
+		std::set<Statement*, Query::Compare> stmts;
+		std::set<Transaction*, Query::Compare> transs;
 		sqlite3* db_handle;
 		
 		// State

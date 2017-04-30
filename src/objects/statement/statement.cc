@@ -1,4 +1,5 @@
 #include <set>
+#include <string>
 #include <sqlite3.h>
 #include <nan.h>
 #include "statement.h"
@@ -7,18 +8,18 @@
 #include "../int64/int64.h"
 #include "../../util/macros.h"
 #include "../../util/data.h"
+#include "../../util/bind-map.h"
 #include "../../binder/binder.h"
 
 #include "new.cc"
 #include "bind.cc"
-#include "pluck.cc"
 #include "run.cc"
 #include "get.cc"
 #include "all.cc"
 #include "each.cc"
 #include "util.cc"
 
-Statement::Statement() : Nan::ObjectWrap(),
+Statement::Statement() : Nan::ObjectWrap(), Query(),
 	st_handle(NULL),
 	state(0) {}
 Statement::~Statement() {

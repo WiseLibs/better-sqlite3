@@ -8,6 +8,7 @@
 #include "../../util/macros.h"
 #include "../../util/data.h"
 #include "../../util/transaction-handles.h"
+#include "../../util/bind-map.h"
 
 const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
 const int max_string_size = v8::String::kMaxLength;
@@ -15,7 +16,6 @@ const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::Dont
 bool CONSTRUCTING_PRIVILEGES = false;
 sqlite3_uint64 NEXT_STATEMENT_ID = 0;
 sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
-Nan::Persistent<v8::Function> NullFactory;
 
 #include "new.cc"
 #include "close.cc"
@@ -66,11 +66,6 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	
 	Nan::Set(exports, Nan::New("Database").ToLocalChecked(),
 		Nan::GetFunction(t).ToLocalChecked());
-	
-	// Save NullFactory to persistent handle.
-	v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(Nan::Get(module, Nan::New("require").ToLocalChecked()).ToLocalChecked());
-	v8::Local<v8::Value> args[1] = {Nan::New("../../lib/null-factory.js").ToLocalChecked()};
-	NullFactory.Reset(v8::Local<v8::Function>::Cast(Nan::Call(require, module, 1, args).ToLocalChecked()));
 }
 
 // Returns an SQLite3 result code.
@@ -100,7 +95,7 @@ int Database::OpenHandles(const char* filename) {
 	sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, max_string_size);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, 0x7fffffff);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
-	sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 0x7fffffff);
+	sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, parameter_mask);
 	
 	return t_handles.open(db_handle);
 }

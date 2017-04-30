@@ -12,7 +12,7 @@
 #include "run.cc"
 #include "util.cc"
 
-Transaction::Transaction() : Nan::ObjectWrap(),
+Transaction::Transaction() : Nan::ObjectWrap(), Query(),
 	handles(NULL),
 	state(0) {}
 Transaction::~Transaction() {

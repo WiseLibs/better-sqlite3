@@ -10,7 +10,7 @@ int Binder::BindArray(v8::Local<v8::Array> arr) {
 	for (int i=0; i<len; ++i) {
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
 		if (maybeValue.IsEmpty()) {
-			error = COPY("An error was thrown while trying to get values from the given array.");
+			error = COPY("");
 			return i;
 		}
 		BindValue(maybeValue.ToLocalChecked());

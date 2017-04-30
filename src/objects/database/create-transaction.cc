@@ -15,10 +15,13 @@ NAN_METHOD(Database::CreateTransaction) {
 	}
 	
 	unsigned int len = sources->Length();
-	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);
 	if (!(len > 0)) {
 		return Nan::ThrowTypeError("No SQL statements were provided.");
 	}
+	if (len > max_transaction_length) {
+		return Nan::ThrowTypeError("Too many SQL statements were provided.");
+	}
+	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);
 	
 	// Validate and digest source strings.
 	v8::Local<v8::String> semicolon = Nan::New(";").ToLocalChecked();
@@ -83,11 +86,11 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 	}
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
-	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);
+	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("database"), info.This(), FROZEN);
 	if (db->safe_ints) {trans->state |= SAFE_INTS;}
 	
 	// Pushes onto transs set.
-	trans->id = NEXT_TRANSACTION_ID++;
+	trans->extras->id = NEXT_TRANSACTION_ID++;
 	db->transs.insert(db->transs.end(), trans);
 	
 	info.GetReturnValue().Set(transaction);

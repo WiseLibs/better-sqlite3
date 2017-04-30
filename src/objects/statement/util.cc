@@ -1,39 +1,47 @@
-// Used by std::set to organize the pointers it holds.
-bool Statement::Compare::operator() (const Statement* a, const Statement* b) const {
-	return a->id < b->id;
-}
-
-// Builds a JavaScript object that maps the statement's parameter names with
-// the parameter index of each one. After the second invocation, a cached version
-// is returned, rather than rebuilding it.
-v8::Local<v8::Object> Statement::GetBindMap() {
-	if (state & HAS_BIND_MAP) {
-		return v8::Local<v8::Object>::Cast(Nan::GetPrivate(handle(), Nan::EmptyString()).ToLocalChecked());
-	}
-	int param_count = sqlite3_bind_parameter_count(st_handle);
-	v8::Local<v8::Function> cons = Nan::New<v8::Function>(NullFactory);
-	v8::Local<v8::Object> namedParams = Nan::NewInstance(cons).ToLocalChecked();
-	for (int i=1; i<=param_count; ++i) {
-		const char* name = sqlite3_bind_parameter_name(st_handle, i);
-		if (name != NULL) {
-			Nan::Set(namedParams, NEW_INTERNAL_STRING8(name + 1), Nan::New<v8::Number>(static_cast<double>(i)));
+// Fills the statement's bind_map and returns a pointer to the bind_map.
+// After the first invocation, a cached version is returned, rather than
+// rebuilding it.
+BindMap* Statement::GetBindMap() {
+	if (!(state & HAS_BIND_MAP)) {
+		int param_count = sqlite3_bind_parameter_count(st_handle);
+		int capacity = 0;
+		BindMap* bind_map = &extras->bind_map;
+		
+		for (int i=1; i<=param_count; ++i) {
+			const char* name = sqlite3_bind_parameter_name(st_handle, i);
+			if (name != NULL) {
+				if (bind_map->length == capacity) {
+					bind_map->Grow(&capacity);
+				}
+				bind_map->Add(std::string(name + 1), i);
+			}
 		}
-	}
-	if (state & USED_BIND_MAP) {
-		Nan::SetPrivate(handle(), Nan::EmptyString(), namedParams);
 		state |= HAS_BIND_MAP;
-	} else {
-		state |= USED_BIND_MAP;
+		return bind_map;
 	}
-	return namedParams;
+	return &extras->bind_map;
 }
 
-// get .returnsData -> boolean
-NAN_GETTER(Statement::ReturnsData) {
-	info.GetReturnValue().Set((Nan::ObjectWrap::Unwrap<Statement>(info.This())->state & RETURNS_DATA) ? true : false);
+// .pluck([boolean state]) -> this
+NAN_METHOD(Statement::Pluck) {
+	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (stmt->db->busy) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
+	if (!(stmt->state & RETURNS_DATA)) {
+		return Nan::ThrowTypeError("The pluck() method can only be used by statements that return data.");
+	}
+	
+	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
+		stmt->state |= PLUCK_COLUMN;
+	} else {
+		stmt->state &= ~PLUCK_COLUMN;
+	}
+	
+	info.GetReturnValue().Set(info.This());
 }
 
-// .safeIntegers(boolean) -> this
+// .safeIntegers([boolean state]) -> this
 NAN_METHOD(Statement::SafeIntegers) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (stmt->db->busy) {
@@ -47,4 +55,9 @@ NAN_METHOD(Statement::SafeIntegers) {
 	}
 	
 	info.GetReturnValue().Set(info.This());
+}
+
+// get .returnsData -> boolean
+NAN_GETTER(Statement::ReturnsData) {
+	info.GetReturnValue().Set((Nan::ObjectWrap::Unwrap<Statement>(info.This())->state & RETURNS_DATA) ? true : false);
 }
