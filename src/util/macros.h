@@ -67,9 +67,9 @@ inline const char* COPY(const char* source) {
 // is thrown and the caller returns.
 #define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
 	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeValue = _method->Call(obj, argc, argv);   \
-	if (_maybeValue.IsEmpty()) {return;}                                       \
-	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
+	Nan::MaybeLocal<v8::Value> _maybeVal = Nan::Call(_method, obj, argc, argv);\
+	if (_maybeVal.IsEmpty()) {return;}                                         \
+	v8::Local<v8::Value> result = _maybeVal.ToLocalChecked();
 
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available
