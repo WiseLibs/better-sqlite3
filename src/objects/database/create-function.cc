@@ -56,16 +56,12 @@ class AggregateInfo { public:
 		
 		Nan::MaybeLocal<v8::Value> maybe_yielded_value = GetNextValue();
 		if (maybe_yielded_value.IsEmpty()) {
-			Release();
-			function_info->db->was_js_error = true;
-			sqlite3_result_error(ctx, "", 0);
+			ThrowJSError(ctx, function_info);
 			return false;
 		}
 		v8::Local<v8::Value> yieldedValue = maybe_yielded_value.ToLocalChecked();
 		if (done || !yieldedValue->IsFunction()) {
-			Release();
-			CONCAT3(message, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
-			sqlite3_result_error(ctx, message.c_str(), -1);
+			ThrowError(ctx, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
 			return false;
 		}
 		v8::Local<v8::Function> callbackFunction = v8::Local<v8::Function>::Cast(yieldedValue);
@@ -73,21 +69,27 @@ class AggregateInfo { public:
 		if (argc != -1) {
 			Nan::MaybeLocal<v8::Value> maybe_length = Nan::Get(callbackFunction, NEW_INTERNAL_STRING_FAST("length"));
 			if (maybe_length.IsEmpty()) {
-				Release();
-				function_info->db->was_js_error = true;
-				sqlite3_result_error(ctx, "", 0);
+				ThrowJSError(ctx, function_info);
 				return false;
 			}
 			v8::Local<v8::Value> localLength = maybe_length.ToLocalChecked();
 			if (!localLength->IsInt32() || argc != v8::Local<v8::Int32>::Cast(localLength)->Value()) {
-				Release();
-				CONCAT3(message, "Wrong number of arguments passed to custom aggregate \"", function_info->name, "\".");
-				sqlite3_result_error(ctx, message.c_str(), -1);
+				ThrowError(ctx, "Wrong number of arguments passed to custom aggregate \"", function_info->name, "\".");
 				return false;
 			}
 		}
 		callback.Reset(callbackFunction);
 		return true;
+	}
+	void ThrowError(sqlite3_context* ctx, const char* a, const char* b, const char* c) {
+		Release();
+		CONCAT3(message, a, b, c);
+		sqlite3_result_error(ctx, message.c_str(), -1);
+	}
+	void ThrowJSError(sqlite3_context* ctx, FunctionInfo* function_info) {
+		Release();
+		function_info->db->was_js_error = true;
+		sqlite3_result_error(ctx, "", 0);
 	}
 	void Release() {
 		generator.Reset();
@@ -135,18 +137,18 @@ void FinishAggregate(sqlite3_context* ctx) {
 	}
 	
 	Nan::MaybeLocal<v8::Value> maybe_result = agg_info->GetNextValue();
-	bool done = agg_info->done;
+	if (maybe_result.IsEmpty()) {
+		agg_info->ThrowJSError(ctx, function_info);
+		if (no_rows) {delete agg_info;}
+		return;
+	}
+	if (!agg_info->done) {
+		agg_info->ThrowError(ctx, "Custom aggregate \"", function_info->name, "\" should only yield once.");
+		if (no_rows) {delete agg_info;}
+		return;
+	}
 	agg_info->Release();
 	if (no_rows) {delete agg_info;}
-	
-	if (maybe_result.IsEmpty()) {
-		function_info->db->was_js_error = true;
-		return sqlite3_result_error(ctx, "", 0);
-	}
-	if (!done) {
-		CONCAT3(message, "Custom aggregate \"", function_info->name, "\" should only yield once.");
-		return sqlite3_result_error(ctx, message.c_str(), -1);
-	}
 	Data::ResultValueFromJS(ctx, maybe_result.ToLocalChecked(), function_info->name);
 }
 
