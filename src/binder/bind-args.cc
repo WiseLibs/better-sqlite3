@@ -24,7 +24,7 @@ int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		}
 		
 		// Objects
-		if (arg->IsObject() && !arg->IsArrayBufferView()) {
+		if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
