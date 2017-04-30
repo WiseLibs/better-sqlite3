@@ -12,7 +12,6 @@ exports.default = [
 ];
 
 exports.searchable = [
-	{type: 'bind', table: 'allSmall', columns: ['integer']},
 	{type: 'select', table: 'allSmall', columns: ['integer']},
 	{type: 'select', table: 'allSmall', columns: ['real']},
 	{type: 'select', table: 'allSmall', columns: ['text']},
