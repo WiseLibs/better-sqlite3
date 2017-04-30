@@ -21,6 +21,8 @@ sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 #include "close.cc"
 #include "create-statement.cc"
 #include "create-transaction.cc"
+#include "custom-functions.cc"
+#include "custom-aggregates.cc"
 #include "create-function.cc"
 #include "exec.cc"
 #include "pragma.cc"
