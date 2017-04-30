@@ -120,11 +120,10 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 
 void FinishAggregate(sqlite3_context* ctx) {
 	Nan::HandleScope scope;
-	FunctionInfo* function_info;
+	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, 0));
-	bool no_rows;
+	bool no_rows = false;
 	if (agg_info == NULL) {
-		function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 		agg_info = new AggregateInfo;
 		if (!agg_info->Init(ctx, function_info, Nan::New(function_info->handle), -1)) {
 			delete agg_info;
@@ -133,9 +132,6 @@ void FinishAggregate(sqlite3_context* ctx) {
 		no_rows = true;
 	} else if (agg_info->generator.IsEmpty()) {
 		return;
-	} else {
-		function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
-		no_rows = false;
 	}
 	
 	Nan::MaybeLocal<v8::Value> maybe_result = agg_info->GetNextValue();
