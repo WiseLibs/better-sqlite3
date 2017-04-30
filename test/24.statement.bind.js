@@ -103,6 +103,17 @@ describe('Statement#bind()', function () {
 		stmt = db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
 		stmt.bind({a: '123', b: null}, null);
 	});
+	it('should propagate exceptions thrown while accessing array/object members', function () {
+		var arr = [22];
+		var obj = {};
+		var err = new TypeError('foobar');
+		Object.defineProperty(arr, '0', {get: function () {throw err;}})
+		Object.defineProperty(obj, 'baz', {get: function () {throw err;}})
+		var stmt1 = db.prepare('SELECT ?');
+		var stmt2 = db.prepare('SELECT @baz');
+		expect(function () {stmt1.bind(arr);}).to.throw(err);
+		expect(function () {stmt2.bind(obj);}).to.throw(err);
+	});
 });
 
 function bufferOfSize(size) {

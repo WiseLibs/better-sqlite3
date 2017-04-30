@@ -14,7 +14,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 		// Check if the named parameter was provided.
 		v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
 		if (has_property.IsNothing()) {
-			error = COPY("An error was thrown while invoking hasOwnProperty() on the given object.");
+			error = COPY("");
 			return i;
 		}
 		if (!has_property.FromJust()) {
@@ -26,7 +26,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 		// Get the current property value.
 		Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
 		if (maybeValue.IsEmpty()) {
-			error = COPY("An error was thrown while trying to get property values of the given object.");
+			error = COPY("");
 			return i;
 		}
 		

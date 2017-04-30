@@ -167,19 +167,22 @@ inline const char* COPY(const char* source) {
 // Common bind logic for statements.
 #define STATEMENT_BIND(stmt, info, info_length)                                \
 	Binder _binder(stmt->st_handle);                                           \
-	_binder.Bind(info, info_length, stmt);                                     \
-	if (_binder.error) {                                                       \
-		STATEMENT_CLEAR_BINDINGS(stmt);                                        \
-		return Nan::ThrowError(_binder.error);                                 \
-	}
+	QUERY_BIND(stmt, info, info_length, _binder, STATEMENT_CLEAR_BINDINGS);
 
 // Common bind logic for transactions.
 #define TRANSACTION_BIND(trans, info, info_length)                             \
 	MultiBinder _binder(trans->handles, trans->handle_count);                  \
-	_binder.Bind(info, info_length, trans);                                    \
-	if (_binder.error) {                                                       \
-		TRANSACTION_CLEAR_BINDINGS(trans);                                     \
-		return Nan::ThrowError(_binder.error);                                 \
+	QUERY_BIND(trans, info, info_length, _binder, TRANSACTION_CLEAR_BINDINGS);
+
+// Common bind logic for statements and transactions.
+#define QUERY_BIND(obj, info, info_length, binder, UNBIND_MACRO)               \
+	binder.Bind(info, info_length, obj);                                       \
+	if (binder.error) {                                                        \
+		UNBIND_MACRO(obj);                                                     \
+		if (binder.error[0] != 0) {                                            \
+			Nan::ThrowError(binder.error);                                     \
+		}                                                                      \
+		return;                                                                \
 	}
 
 // The macro-instruction that runs before an SQLite request.

@@ -5,7 +5,7 @@
 
 const int parameter_bits = 10;
 const int parameter_mask = (1 << parameter_bits) - 1;
-const int max_transaction_length = (1 << (32 - parameter_bits)) - 1;
+const int max_transaction_length = (1 << ((sizeof(int) * 8) - parameter_bits)) - 1;
 
 typedef struct BindPair {
 	std::string name;
@@ -21,12 +21,12 @@ class BindMap { public:
 	static inline int GetTransactionIndex(int index) {
 		return index >> parameter_bits;
 	}
-	void Add(std::string name, int index) {
+	inline void Add(std::string name, int index) {
 		pairs[length].name = name;
 		pairs[length].index = index;
 		length += 1;
 	}
-	void Add(std::string name, int parameter_index, int transaction_index) {
+	inline void Add(std::string name, int parameter_index, int transaction_index) {
 		pairs[length].name = name;
 		pairs[length].index = parameter_index | (transaction_index << parameter_bits);
 		length += 1;
