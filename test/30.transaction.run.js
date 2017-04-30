@@ -118,10 +118,8 @@ describe('Transaction#run()', function () {
 				.run({a: 25}, ['foo'], bufferOfSize(8).fill(0xdd), 'foo');
 		}).to.throw(Error);
 		
-		expect(function () {
-			db.transaction(['INSERT INTO entries VALUES (?, @a, @a, ?)', 'INSERT INTO entries VALUES (?, @a, @a, ?)'])
-				.run({a: 25, c: 25}, ['foo'], bufferOfSize(8).fill(0xdd), ['foo'], bufferOfSize(8).fill(0xdd));
-		}).to.throw(Error);
+		db.transaction(['INSERT INTO entries VALUES (?, @a, @a, ?)', 'INSERT INTO entries VALUES (?, @a, @a, ?)'])
+			.run({a: 25, c: 25}, ['foo'], bufferOfSize(8).fill(0xdd), ['foo'], bufferOfSize(8).fill(0xdd));
 		
 		expect(function () {
 			db.transaction(['INSERT INTO entries VALUES (?, @a, @a, ?)'])
@@ -133,10 +131,8 @@ describe('Transaction#run()', function () {
 				.run(25, 'foo', 25, bufferOfSize(8).fill(0xdd), 'foo', 25, 25, bufferOfSize(8).fill(0xdd));
 		}).to.throw(Error);
 		
-		expect(function () {
-			db.transaction(['INSERT INTO entries VALUES (?, ?, ?, ?)', 'INSERT INTO entries VALUES (?, ?, ?, ?)'])
-				.run('foo', 25, 25, bufferOfSize(8).fill(0xdd), 'foo', 25, 25, bufferOfSize(8).fill(0xdd), {foo: 'foo'});
-		}).to.throw(Error);
+		db.transaction(['INSERT INTO entries VALUES (?, ?, ?, ?)', 'INSERT INTO entries VALUES (?, ?, ?, ?)'])
+			.run('foo', 25, 25, bufferOfSize(8).fill(0xdd), 'foo', 25, 25, bufferOfSize(8).fill(0xdd), {foo: 'foo'});
 		
 		db.transaction(['INSERT INTO entries VALUES (?, ?, ?, ?)', 'INSERT INTO entries VALUES (?, ?, ?, ?)'])
 			.run('foo', 25, 25, bufferOfSize(8).fill(0xdd), 'foo', 25, 25, bufferOfSize(8).fill(0xdd), {});
@@ -186,7 +182,7 @@ describe('Transaction#run()', function () {
 		while (row = db.prepare('SELECT * FROM entries WHERE rowid=' + ++i).get()) {
 			expect(row).to.deep.equal({a: 'foo', b: 25, c: 25, d: bufferOfSize(8).fill(0xdd)});
 		}
-		expect(i).to.equal(17);
+		expect(i).to.equal(21);
 	});
 });
 

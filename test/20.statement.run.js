@@ -106,19 +106,15 @@ describe('Statement#run()', function () {
 		expect(function () {
 			db.prepare('INSERT INTO entries VALUES (?, @a, @a, ?)').run({a: 25}, ['foo']);
 		}).to.throw(Error);
-		expect(function () {
-			db.prepare('INSERT INTO entries VALUES (?, @a, @a, ?)').run({a: 25, c: 25}, ['foo'], bufferOfSize(8).fill(0xdd));
-		}).to.throw(Error);
+		db.prepare('INSERT INTO entries VALUES (?, @a, @a, ?)').run({a: 25, c: 25}, ['foo'], bufferOfSize(8).fill(0xdd));
 		expect(function () {
 			db.prepare('INSERT INTO entries VALUES (?, @a, @a, ?)').run({}, ['foo'], bufferOfSize(8).fill(0xdd));
 		}).to.throw(Error);
 		expect(function () {
 			db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run(25, 'foo', 25, bufferOfSize(8).fill(0xdd));
 		}).to.throw(Error);
-		expect(function () {
-			db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, bufferOfSize(8).fill(0xdd), {foo: 'foo'});
-		}).to.throw(Error);
 		db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, bufferOfSize(8).fill(0xdd), {});
+		db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, bufferOfSize(8).fill(0xdd), {foo: 'foo'});
 		expect(function () {
 			db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, {4: bufferOfSize(8).fill(0xdd)});
 		}).to.throw(Error);
@@ -150,7 +146,7 @@ describe('Statement#run()', function () {
 		while (row = db.prepare('SELECT * FROM entries WHERE rowid=' + ++i).get()) {
 			expect(row).to.deep.equal({a: 'foo', b: 25, c: 25, d: bufferOfSize(8).fill(0xdd)});
 		}
-		expect(i).to.equal(9);
+		expect(i).to.equal(11);
 	});
 });
 
