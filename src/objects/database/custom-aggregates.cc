@@ -36,7 +36,7 @@ public:
 				return ThrowJSError(ctx, function_info);
 			}
 			v8::Local<v8::Value> localLength = maybe_length.ToLocalChecked();
-			if (!localLength->IsInt32() || argc != v8::Local<v8::Int32>::Cast(localLength)->Value()) {
+			if (!localLength->IsUint32() || argc != v8::Local<v8::Int32>::Cast(localLength)->Value()) {
 				return ThrowError(ctx, "Wrong number of arguments passed to custom aggregate \"", function_info->name, "\".");
 			}
 		}
