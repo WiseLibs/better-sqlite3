@@ -14,13 +14,13 @@ function exec(SQL) {
 }
 
 describe('Database#register()', function () {
-	it('should throw an exception if a function is not provided', function () {
+	it('should throw if a function is not provided', function () {
 		expect(function () {db.register()}).to.throw(TypeError);
 		expect(function () {db.register(null)}).to.throw(TypeError);
 		expect(function () {db.register({})}).to.throw(TypeError);
 		expect(function () {db.register('foobar')}).to.throw(TypeError);
 	});
-	it('should throw an exception if the function name is empty', function () {
+	it('should throw if the function name is empty', function () {
 		expect(function () {db.register(function () {})}).to.throw(TypeError);
 	});
 	it('should register the given function', function () {
@@ -69,13 +69,13 @@ describe('Database#register()', function () {
 		expect(exec('f1(?, ?)', 4, 8)).to.equal(32);
 		expect(exec('f1(?, ?, ?, ?, ?, ?)', 2, 3, 4, 5, 6, 7)).to.equal(5040);
 	});
-	it('should throw an exception if name is not a valid string', function () {
+	it('should throw if name is not a valid string', function () {
 		expect(function () {db.register({name: ''}, function () {})}).to.throw(TypeError);
 		expect(function () {db.register({name: 123}, function () {})}).to.throw(TypeError);
 		expect(function () {db.register({name: {}}, function xa1() {})}).to.throw(TypeError);
 		expect(function () {db.register({name: new String('abc')}, function xa2() {})}).to.throw(TypeError);
 	});
-	it('should throw an exception if function.length is not a positive integer', function () {
+	it('should throw if function.length is not a positive integer', function () {
 		function length(n, fn) {
 			Object.defineProperty(fn, 'length', {value: n});
 			return fn;
@@ -86,7 +86,7 @@ describe('Database#register()', function () {
 		expect(function () {db.register(length(NaN, function xb4() {}))}).to.throw(TypeError);
 		expect(function () {db.register(length('2', function xb5() {}))}).to.throw(TypeError);
 	});
-	it('should throw an exception if function.length is larger than 127', function () {
+	it('should throw if function.length is larger than 127', function () {
 		function length(n, fn) {
 			Object.defineProperty(fn, 'length', {value: n});
 			return fn;
@@ -95,7 +95,7 @@ describe('Database#register()', function () {
 		expect(function () {db.register(length(0xe0000000f, function xc2() {}))}).to.throw(TypeError);
 		db.register(length(127, function ya1() {}));
 	});
-	it('should throw an exception if the database is busy', function () {
+	it('should throw if the database is busy', function () {
 		var ranOnce = false;
 		db.prepare('SELECT 2').pluck().each(function (a) {
 			expect(a).to.equal(2);
@@ -119,7 +119,7 @@ describe('Database#register()', function () {
 		db.pragma('cache_size');
 		db.register(function xe2() {});
 	});
-	it('should throw an exception if the function returns an invalid value', function () {
+	it('should throw if the function returns an invalid value', function () {
 		register(function h1(a) {return {};});
 		expect(function () {exec('h1(?)', 42);}).to.throw(Error);
 	});
@@ -184,5 +184,23 @@ describe('Database#register()', function () {
 			}
 			throw new TypeError('Expected the statement to throw an exception.');
 		});
+	});
+	describe('should accept the "aggregate" option', function () {
+		it('should throw if a generator function is not used');
+		it('should register the given generator function');
+		it('should propagate exceptions thrown before yielding');
+		it('should throw if the generator function never yields');
+		it('should throw if a non-function is yielded');
+		it('should have a strict number of arguments by default');
+		it('should accept a "varargs" option');
+		it('should throw if the yielded function.length is not a positive integer');
+		it('should throw if the yielded function.length is larger than 127');
+		it('should propagate exceptions thrown while getting function.length');
+		it('should propagate exceptions thrown in the yielded callback');
+		it('should throw if the generator function yields twice');
+		it('should propagate exceptions thrown after yielding');
+		it('should throw if the generator function returns an invaid value');
+		it('should result in the correct value when no rows are passed through');
+		it('should result in the correct when * is used as the argument');
 	});
 });
