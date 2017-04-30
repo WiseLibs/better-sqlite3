@@ -1,14 +1,20 @@
-class AggregateInfo { public:
+class AggregateInfo {
+private:
 	Nan::Persistent<v8::Object> generator;
 	Nan::Persistent<v8::Function> next;
 	Nan::Persistent<v8::Function> callback;
 	bool has_handles;
 	bool done;
+public:
+	// This is not needed if the object was created by sqlite3_aggregate_context
+	// because in that case all values will be zero anyways.
+	explicit AggregateInfo() : has_handles(false), done(false) {}
 	
 	// Attempts to initialize the handles and set has_handles to true.
 	// If something goes wrong, all handles are released, has_handles remains
-	// false, and a proper sqlite3 error is thrown.
+	// false, and an sqlite3 error is thrown.
 	void Init(sqlite3_context* ctx, FunctionInfo* function_info, v8::Local<v8::Function> genFunc, int argc) {
+		Nan::HandleScope scope;
 		v8::Local<v8::Object> generatorObject = v8::Local<v8::Object>::Cast(genFunc->Call(Nan::GetCurrentContext(), Nan::Null(), 0, NULL).ToLocalChecked());
 		v8::Local<v8::Function> nextFunction = v8::Local<v8::Function>::Cast(Nan::Get(generatorObject, NEW_INTERNAL_STRING_FAST("next")).ToLocalChecked());
 		generator.Reset(generatorObject);
@@ -45,7 +51,7 @@ class AggregateInfo { public:
 		CONCAT3(message, a, b, c);
 		sqlite3_result_error(ctx, message.c_str(), -1);
 	}
-	// Releases handles, sets has_handles to false, and throws a JS error.
+	// Releases handles, sets has_handles to false, and throws an sqlite3 error.
 	inline void ThrowJSError(sqlite3_context* ctx, FunctionInfo* function_info) {
 		Release();
 		function_info->db->was_js_error = true;
@@ -61,8 +67,20 @@ class AggregateInfo { public:
 	}
 	
 	// Returns true if the object has no valid handles.
-	inline bool isEmpty() {
+	inline bool IsEmpty() {
 		return !has_handles;
+	}
+	
+	// Returns true if an invocation of GetNextValue() resulted in a return
+	// rather than a yield.
+	inline bool IsDone() {
+		return done;
+	}
+	
+	// Returns the callback function stored by the persistent handle.
+	// This method should not be invoked if isEmpty() == true.
+	inline v8::Local<v8::Function> Callback() {
+		return Nan::New(callback);
 	}
 	
 	// Gets the next yield/return value from the generator, and returns it
@@ -82,44 +100,42 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, sizeof(AggregateInfo)));
 	if (agg_info->IsEmpty()) { // This will be true on the first invocation.
-		Nan::HandleScope scope;
 		agg_info->Init(ctx, function_info, Nan::New(function_info->handle), function_info->state & VARARGS ? -1 : length);
-		if (agg_info->IsEmpty()) {return;} // An error was thrown, so abort.
+		if (agg_info->IsEmpty()) {return;} // An sqlite3 error was thrown, so abort.
 	}
-	// If the callback ever throws as error, we must additionally invoke
-	// agg_info->Release() to release its handles so FinishAggregate can
-	// determine that an error was thrown.
-	EXECUTE_FUNCTION(_v, function_info, Nan::New(agg_info->callback), agg_info->Release());
+	// If the callback ever throws as sqlite3 error, we must additionally invoke
+	// agg_info->Release() so FinishAggregate can determine that an sqlite3
+	// error was thrown.
+	EXECUTE_FUNCTION(_v, function_info, agg_info->Callback(), agg_info->Release());
 }
 
 void FinishAggregate(sqlite3_context* ctx) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, 0));
-	bool no_rows = false;
+	AggregateInfo* temp_agg_info = NULL;
 	if (agg_info == NULL) {
-		agg_info = new AggregateInfo;
-		if (!agg_info->Init(ctx, function_info, Nan::New(function_info->handle), -1)) {
-			delete agg_info;
-			return;
-		}
-		no_rows = true;
-	} else if (agg_info->generator.IsEmpty()) {
-		return;
+		temp_agg_info = agg_info = new AggregateInfo();
+		agg_info->Init(ctx, function_info, Nan::New(function_info->handle), -1);
 	}
 	
+	// An sqlite3 error was thrown either in StepAggregate or just now.
+	if (agg_info->IsEmpty()) {
+		return delete temp_agg_info;
+	}
+	
+	// Get the result value and handle errors appropriately.
 	Nan::MaybeLocal<v8::Value> maybe_result = agg_info->GetNextValue();
 	if (maybe_result.IsEmpty()) {
 		agg_info->ThrowJSError(ctx, function_info);
-		if (no_rows) {delete agg_info;}
-		return;
+		return delete temp_agg_info;
 	}
-	if (!agg_info->done) {
+	if (!agg_info->IsDone()) {
 		agg_info->ThrowError(ctx, "Custom aggregate \"", function_info->name, "\" should only yield once.");
-		if (no_rows) {delete agg_info;}
-		return;
+		return delete temp_agg_info;
 	}
+	
 	agg_info->Release();
-	if (no_rows) {delete agg_info;}
+	delete temp_agg_info;
 	Data::ResultValueFromJS(ctx, maybe_result.ToLocalChecked(), function_info->name);
 }
