@@ -4,8 +4,9 @@
 // Anonymous parameters are either directly in the arguments object, or in an
 // Array (or Array-like object).
 // If an error occurs, error is set to an appropriately descriptive string.
-// Regardless of whether an error occurs, the return value is the number of
-// parameters that were bound.
+// Regardless of whether an error occurs, the return value is a number whose
+// first bit indicates whether it tried to bind an object, and whose other 31
+// bits describe the number of parameters that were bound.
 
 int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 	bool bound_object = false;
@@ -49,5 +50,5 @@ int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 		count += 1;
 		
 	}
-	return count;
+	return (count << 1) | static_cast<int>(bound_object);
 }

@@ -86,7 +86,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 	}
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);
-	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("database"),  info.This(), FROZEN);
+	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("database"), info.This(), FROZEN);
 	if (db->safe_ints) {trans->state |= SAFE_INTS;}
 	
 	// Pushes onto transs set.

@@ -24,12 +24,17 @@ Binder::~Binder() {
 }
 
 void Binder::Bind(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
-  int count = BindArgs(info, len, query);
-  if (!error && count != param_count) {
-    if (count < param_count) {
-      error = COPY("Too few parameter values were provided.");
-    } else {
-      error = COPY("Too many parameter values were provided.");
-    }
-  }
+	int result = BindArgs(info, len, query);
+	int count = result >> 1;
+	if (!error && count != param_count) {
+		if (count < param_count) {
+			if (!(result & 1) && query->GetBindMap()->length) {
+				error = COPY("Missing named parameters.");
+			} else {
+				error = COPY("Too few parameter values were provided.");
+			}
+		} else {
+			error = COPY("Too many parameter values were provided.");
+		}
+	}
 }
