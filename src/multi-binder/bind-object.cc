@@ -6,6 +6,7 @@
 // parameters to all handles, not just the current one.
 
 int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
+	Nan::HandleScope scope;
 	int len = bindMap->length;
 	BindPair* pairs = bindMap->pairs;
 	

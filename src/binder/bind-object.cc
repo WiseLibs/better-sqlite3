@@ -5,6 +5,7 @@
 // parameters that were bound.
 
 int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
+	Nan::HandleScope scope;
 	int len = bindMap->length;
 	BindPair* pairs = bindMap->pairs;
 	
