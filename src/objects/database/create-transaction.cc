@@ -16,10 +16,10 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	unsigned int len = sources->Length();
 	if (!(len > 0)) {
-		return Nan::ThrowTypeError("No SQL statements were provided.");
+		return Nan::ThrowRangeError("No SQL statements were provided.");
 	}
 	if (len > max_transaction_length) {
-		return Nan::ThrowTypeError("Too many SQL statements were provided.");
+		return Nan::ThrowRangeError("Too many SQL statements were provided.");
 	}
 	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);
 	
@@ -79,7 +79,7 @@ NAN_METHOD(Database::CreateTransaction) {
 			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
 		}
 		if (tail != (const void*)(*utf16 + utf16.length())) {
-			return Nan::ThrowTypeError("Each provided string may only contain a single SQL statement.");
+			return Nan::ThrowRangeError("Each provided string may only contain a single SQL statement.");
 		}
 		if (sqlite3_stmt_readonly(trans->handles[i])) {
 			return Nan::ThrowTypeError("Transactions cannot contain read-only statements.");

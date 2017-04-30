@@ -26,7 +26,7 @@ public:
 		}
 		v8::Local<v8::Value> yieldedValue = maybe_yielded_value.ToLocalChecked();
 		if (done || !yieldedValue->IsFunction()) {
-			return ThrowError(ctx, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
+			return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
 		}
 		v8::Local<v8::Function> callbackFunction = v8::Local<v8::Function>::Cast(yieldedValue);
 		
@@ -37,7 +37,7 @@ public:
 			}
 			v8::Local<v8::Value> localLength = maybe_length.ToLocalChecked();
 			if (!localLength->IsUint32() || argc != v8::Local<v8::Int32>::Cast(localLength)->Value()) {
-				return ThrowError(ctx, "Wrong number of arguments passed to custom aggregate \"", function_info->name, "\".");
+				return ThrowRangeError(ctx, function_info, "Wrong number of arguments passed to custom aggregate \"", function_info->name, "\".");
 			}
 		}
 		
@@ -46,12 +46,16 @@ public:
 	}
 	
 	// Releases handles, sets has_handles to false, and throws an sqlite3 error.
-	inline void ThrowError(sqlite3_context* ctx, const char* a, const char* b, const char* c) {
-		Release();
+	inline void ThrowTypeError(sqlite3_context* ctx, FunctionInfo* function_info, const char* a, const char* b, const char* c) {
 		CONCAT3(message, a, b, c);
-		sqlite3_result_error(ctx, message.c_str(), -1);
+		Nan::ThrowTypeError(message.c_str());
+		ThrowJSError(ctx, function_info);
 	}
-	// Releases handles, sets has_handles to false, and throws an sqlite3 error.
+	inline void ThrowRangeError(sqlite3_context* ctx, FunctionInfo* function_info, const char* a, const char* b, const char* c) {
+		CONCAT3(message, a, b, c);
+		Nan::ThrowRangeError(message.c_str());
+		ThrowJSError(ctx, function_info);
+	}
 	inline void ThrowJSError(sqlite3_context* ctx, FunctionInfo* function_info) {
 		Release();
 		function_info->db->was_js_error = true;
@@ -131,7 +135,7 @@ void FinishAggregate(sqlite3_context* ctx) {
 		return delete temp_agg_info;
 	}
 	if (!agg_info->IsDone()) {
-		agg_info->ThrowError(ctx, "Custom aggregate \"", function_info->name, "\" should only yield once.");
+		agg_info->ThrowRangeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" should only yield once.");
 		return delete temp_agg_info;
 	}
 	

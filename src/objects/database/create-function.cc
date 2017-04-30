@@ -39,7 +39,7 @@ NAN_METHOD(Database::CreateFunction) {
 				return Nan::ThrowTypeError("Expected function.length to be a positive integer.");
 			}
 			if (arg_count > 127.0) {
-				return Nan::ThrowTypeError("Cannot create an SQL function with more than 127 arguments.");
+				return Nan::ThrowRangeError("Cannot create an SQL function with more than 127 arguments.");
 			}
 			argc = static_cast<int>(arg_count);
 		}
