@@ -87,7 +87,6 @@ class AggregateInfo { public:
 			}
 		}
 		callback.Reset(callbackFunction);
-		done = false;
 		return true;
 	}
 	void Release() {
