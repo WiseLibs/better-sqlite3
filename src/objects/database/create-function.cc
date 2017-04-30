@@ -134,19 +134,37 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 
 void FinishAggregate(sqlite3_context* ctx) {
 	Nan::HandleScope scope;
+	FunctionInfo* function_info;
 	AggregateInfo* agg_info = static_cast<AggregateInfo*>(sqlite3_aggregate_context(ctx, 0));
+	bool no_rows;
 	if (agg_info == NULL) {
-		// TODO
-		return sqlite3_result_null(ctx);
-	}
-	if (agg_info->generator.IsEmpty()) {
+		function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
+		agg_info = new AggregateInfo;
+		int status = agg_info->init(Nan::New(function_info->handle), -1);
+		if (status != GENERATOR_SUCCESS) {
+			if (status == GENERATOR_JS_ERROR) {
+				function_info->db->was_js_error = true;
+				delete agg_info;
+				return sqlite3_result_error(ctx, "", 0);
+			}
+			if (status == GENERATOR_DIDNT_YIELD_FUNCTION_ERROR) {
+				CONCAT3(message, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
+				delete agg_info;
+				return sqlite3_result_error(ctx, message.c_str(), -1);
+			}
+		}
+		no_rows = true;
+	} else if (agg_info->generator.IsEmpty()) {
 		return;
+	} else {
+		function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
+		no_rows = false;
 	}
-	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	
 	v8::Local<v8::Value> result;
 	int status = agg_info->getNextValue(&result);
 	agg_info->release();
+	if (no_rows) {delete agg_info;}
 	
 	if (status != GENERATOR_SUCCESS) {
 		if (status == GENERATOR_JS_ERROR) {
