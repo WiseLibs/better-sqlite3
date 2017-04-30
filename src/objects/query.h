@@ -1,6 +1,7 @@
 #ifndef BETTER_SQLITE3_QUERY_H
 #define BETTER_SQLITE3_QUERY_H
 
+#include <sqlite3.h>
 #include "../util/bind-map.h"
 
 class QueryExtras { public:
