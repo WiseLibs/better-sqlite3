@@ -12,7 +12,6 @@
 
 // Globals
 extern bool CONSTRUCTING_PRIVILEGES;
-extern Nan::Persistent<v8::Function> NullFactory;
 
 // Class Declaration
 class Database : public Nan::ObjectWrap {

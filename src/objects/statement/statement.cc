@@ -13,7 +13,6 @@
 
 #include "new.cc"
 #include "bind.cc"
-#include "pluck.cc"
 #include "run.cc"
 #include "get.cc"
 #include "all.cc"

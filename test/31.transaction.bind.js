@@ -80,14 +80,13 @@ describe('Transaction#bind()', function () {
 		}).to.throw(Error);
 		
 		expect(function () {
-			trans.bind({a: '123', b: null}, null);
-		}).to.throw(Error);
-		
-		expect(function () {
 			trans.bind({a: '123'}, null, null);
 		}).to.throw(Error);
 		
 		trans.bind({a: '123'}, null);
+		
+		trans = db.transaction(['INSERT INTO entries VALUES (@a, @a, ?)']);
+		trans.bind({a: '123', b: null}, null);
 	});
 });
 

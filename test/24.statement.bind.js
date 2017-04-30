@@ -95,14 +95,13 @@ describe('Statement#bind()', function () {
 		}).to.throw(Error);
 		
 		expect(function () {
-			stmt.bind({a: '123', b: null}, null);
-		}).to.throw(Error);
-		
-		expect(function () {
 			stmt.bind({a: '123'}, null, null);
 		}).to.throw(Error);
 		
 		stmt.bind({a: '123'}, null);
+		
+		stmt = db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		stmt.bind({a: '123', b: null}, null);
 	});
 });
 

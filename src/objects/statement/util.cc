@@ -22,12 +22,26 @@ BindMap* Statement::GetBindMap() {
 	return &extras->bind_map;
 }
 
-// get .returnsData -> boolean
-NAN_GETTER(Statement::ReturnsData) {
-	info.GetReturnValue().Set((Nan::ObjectWrap::Unwrap<Statement>(info.This())->state & RETURNS_DATA) ? true : false);
+// .pluck([boolean state]) -> this
+NAN_METHOD(Statement::Pluck) {
+	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
+	if (stmt->db->busy) {
+		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+	}
+	if (!(stmt->state & RETURNS_DATA)) {
+		return Nan::ThrowTypeError("The pluck() method can only be used by statements that return data.");
+	}
+	
+	if (info.Length() == 0 || info[0]->BooleanValue() == true) {
+		stmt->state |= PLUCK_COLUMN;
+	} else {
+		stmt->state &= ~PLUCK_COLUMN;
+	}
+	
+	info.GetReturnValue().Set(info.This());
 }
 
-// .safeIntegers(boolean) -> this
+// .safeIntegers([boolean state]) -> this
 NAN_METHOD(Statement::SafeIntegers) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (stmt->db->busy) {
@@ -41,4 +55,9 @@ NAN_METHOD(Statement::SafeIntegers) {
 	}
 	
 	info.GetReturnValue().Set(info.This());
+}
+
+// get .returnsData -> boolean
+NAN_GETTER(Statement::ReturnsData) {
+	info.GetReturnValue().Set((Nan::ObjectWrap::Unwrap<Statement>(info.This())->state & RETURNS_DATA) ? true : false);
 }
