@@ -14,7 +14,7 @@ NAN_METHOD(Database::Exec) {
 	}
 	
 	// Prepares the SQL string.
-	Nan::Utf8String utf8(source);
+	v8::String::Utf8Value utf8(source);
 	char* err;
 	
 	// Executes the SQL on the database handle.

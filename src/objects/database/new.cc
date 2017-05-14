@@ -12,7 +12,7 @@ NAN_METHOD(Database::New) {
 	Nan::ForceSet(info.This(), NEW_INTERNAL_STRING_FAST("readonly"), readonly ? Nan::True() : Nan::False(), FROZEN);
 	Nan::ForceSet(info.This(), NEW_INTERNAL_STRING_FAST("name"), filenameGiven, FROZEN);
 	
-	Nan::Utf8String utf8(filename);
+	v8::String::Utf8Value utf8(filename);
 	if (db->OpenHandles(*utf8) != SQLITE_OK) {
 		db->ThrowError();
 		db->CloseHandles();

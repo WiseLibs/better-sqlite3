@@ -39,7 +39,7 @@ NAN_METHOD(Database::Pragma) {
 	
 	// Prepares the SQL string.
 	v8::Local<v8::String> sql = v8::String::Concat(Nan::New("PRAGMA ").ToLocalChecked(), source);
-	Nan::Utf8String utf8(sql);
+	v8::String::Utf8Value utf8(sql);
 	char* err;
 	
 	// Executes the SQL on the database handle.

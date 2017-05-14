@@ -16,7 +16,7 @@ NAN_METHOD(Database::CreateFunction) {
 		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
-	Nan::Utf8String name(nameString);
+	v8::String::Utf8Value name(nameString);
 	int argc = static_cast<int>(argCount);
 	int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 	bool safe_integers = db->safe_ints;
