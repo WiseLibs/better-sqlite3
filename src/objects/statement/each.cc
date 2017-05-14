@@ -9,7 +9,7 @@ NAN_METHOD(Statement::Each) {
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);
 	const bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	const bool pluck = (stmt->state & PLUCK_COLUMN) != 0;
-	v8::Isolate* const isolate = v8::Isolate::GetCurrent();
+	v8::Isolate* const isolate = info.GetIsolate();
 	
 	stmt->db->busy = true;
 	
