@@ -95,7 +95,7 @@ int BindValueFromJS(sqlite3_stmt* handle, int index, v8::Local<v8::Value> value)
 
 void ResultValueFromJS(sqlite3_context* ctx, v8::Local<v8::Value> value, const char* function_name) {
 	JS_VALUE_TO_SQLITE(result, value, {
-		CONCAT3(message, "The custom function \"", function_name, "\" returned an invalid value.");
+		CONCAT3(message, "Custom function \"", function_name, "\" returned an invalid value.");
 		sqlite3_result_error(ctx, message.c_str(), -1);
 	},, ctx);
 }

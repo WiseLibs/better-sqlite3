@@ -4,13 +4,33 @@ var db;
 
 before(function () {
 	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
+	db.prepare('CREATE TABLE data (x)').run();
+	db.prepare('INSERT INTO data VALUES (?)').run(3);
+	db.prepare('INSERT INTO data VALUES (?)').run(5);
+	db.prepare('INSERT INTO data VALUES (?)').run(7);
+	db.prepare('INSERT INTO data VALUES (?)').run(11);
+	db.prepare('INSERT INTO data VALUES (?)').run(13);
+	db.prepare('INSERT INTO data VALUES (?)').run(17);
+	db.prepare('INSERT INTO data VALUES (?)').run(19);
 });
 
 function register() {
 	expect(db.register.apply(db, arguments)).to.equal(db);
 }
+function aggregate() {
+	var args = Array.prototype.slice.call(arguments);
+	if (typeof args[0] === 'object' && args[0] !== null) {
+		args[0].aggregate = true;
+	} else {
+		args.unshift({aggregate: true});
+	}
+	expect(db.register.apply(db, args)).to.equal(db);
+}
 function exec(SQL) {
 	return db.prepare('SELECT ' + SQL).pluck().get([].slice.call(arguments, 1));
+}
+function execAggregate(SQL) {
+	return exec(SQL + ' FROM data');
 }
 
 describe('Database#register()', function () {
@@ -123,7 +143,7 @@ describe('Database#register()', function () {
 	});
 	it('should throw if the function returns an invalid value', function () {
 		register(function h1(a) {return {};});
-		expect(function () {exec('h1(?)', 42);}).to.throw(Error);
+		expect(function () {exec('h1(?)', 42);}).to.throw(TypeError);
 	});
 	it('should propagate exceptions thrown in the registered function', function () {
 		function expectError(name, exception) {
@@ -187,33 +207,231 @@ describe('Database#register()', function () {
 			throw new TypeError('Expected the statement to throw an exception.');
 		});
 	});
-	describe('should accept the "aggregate" option', function () {
+	describe('should be able to register aggregate functions', function () {
 		describe('while registering', function () {
-			it('should throw if a generator function is not used');
-			it('should register the given generator function');
-			it('should have a strict number of arguments by default');
-			it('should accept a "varargs" option');
-			it('should throw if the yielded function.length is not a positive integer');
-			it('should throw if the yielded function.length is larger than 127');
-			it('should propagate exceptions thrown while getting function.length');
-			it('should throw if the generator function never yields');
-			it('should throw if a non-function is yielded');
-			it('should throw if the generator function yields twice');
-			it('should propagate exceptions thrown before yielding');
-			it('should propagate exceptions thrown after yielding');
+			it('should throw if a generator function is not used', function () {
+				expect(function () {aggregate(function aa1() {})}).to.throw(TypeError);
+			});
+			it('should register the given generator function', function () {
+				aggregate(function* ab1() {
+					yield function () {};
+				});
+			});
+			it('should throw if the yielded function.length is not a positive integer', function () {
+				function length(n) {
+					var fn = function () {};
+					Object.defineProperty(fn, 'length', {value: n});
+					return fn;
+				}
+				expect(function () {aggregate(function* ac1() {
+					yield length(-1);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* ac2() {
+					yield length(1.2);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* ac3() {
+					yield length(Infinity);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* ac4() {
+					yield length(NaN);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* ac5() {
+					yield length('2');
+				})}).to.throw(TypeError);
+			});
+			it('should throw if the yielded function.length is larger than 127', function () {
+				function length(n) {
+					var fn = function () {};
+					Object.defineProperty(fn, 'length', {value: n});
+					return fn;
+				}
+				expect(function () {aggregate(function* ad1() {
+					yield length(128);
+				})}).to.throw(RangeError);
+				expect(function () {aggregate(function* ad2() {
+					yield length(0xe0000000f);
+				})}).to.throw(RangeError);
+				aggregate(function* ad3() {yield length(127);})
+			});
+			it('should propagate exceptions thrown while getting function.length', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* ae1() {
+						var fn = function () {};
+						Object.defineProperty(fn, 'length', {get: function () {
+							throw err;
+						}});
+						yield fn;
+					});
+				}).to.throw(err);
+			});
+			it('should throw if the generator function never yields', function () {
+				expect(function () {aggregate(function* af1() {
+					// no yield
+				})}).to.throw(TypeError);
+			});
+			it('should throw if a non-function is yielded', function () {
+				expect(function () {aggregate(function* af1() {
+					yield;
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* af1() {
+					yield 123;
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* af1() {
+					yield 'foobar';
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* af1() {
+					yield {length: 0, name: ''};
+				})}).to.throw(TypeError);
+			});
+			it('should throw if the generator function yields twice', function () {
+				expect(function () {aggregate(function* ag1() {
+					var fn = function () {};
+					yield fn;
+					yield fn;
+				})}).to.throw(TypeError);
+			});
+			it('should propagate exceptions thrown before yielding', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* ah1() {
+						throw err;
+						yield function () {};
+					});
+				}).to.throw(err);
+			});
+			it('should propagate exceptions thrown after yielding', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* ai1() {
+						yield function () {};
+						throw err;
+					});
+				}).to.throw(err);
+			});
 		});
-		describe('after registering', function () {
-			it('should throw if the generator function never yields');
-			it('should throw if a non-function is yielded');
-			it('should throw if the generator function yields twice');
-			it('should propagate exceptions thrown before yielding');
-			it('should propagate exceptions thrown after yielding');
-			it('should propagate exceptions thrown while getting function.length');
-			it('should throw if the yielded function.length is inconsistent');
+		describe('before executing', function () {
+			it('should throw if the generator function never yields', function () {
+				var first = true;
+				aggregate(function* aj1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					}
+				});
+				expect(function () {execAggregate('aj1(x)');}).to.throw(TypeError);
+			});
+			it('should throw if a non-function is yielded', function () {
+				function registerAggregate(name, value) {
+					var first = true;
+					aggregate({name: name}, function* () {
+						if (first) {
+							first = false;
+							yield function (x) {};
+						} else {
+							yield value;
+						}
+					});
+				}
+				registerAggregate('ak1');
+				registerAggregate('ak2', 123);
+				registerAggregate('ak3', 'foobar');
+				registerAggregate('ak4', {length: 0, name: ''});
+				registerAggregate('ak5', function (x) {});
+				expect(function () {execAggregate('ak1(x)');}).to.throw(TypeError);
+				expect(function () {execAggregate('ak2(x)');}).to.throw(TypeError);
+				expect(function () {execAggregate('ak3(x)');}).to.throw(TypeError);
+				expect(function () {execAggregate('ak4(x)');}).to.throw(TypeError);
+				execAggregate('ak5(x)');
+			});
+			it('should throw if the generator function yields twice', function () {
+				var first = true;
+				aggregate(function* al1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x) {};
+						yield function (x) {};
+					}
+				});
+				expect(function () {execAggregate('al1(x)');}).to.throw(TypeError);
+			});
+			it('should propagate exceptions thrown before yielding', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* am1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						throw err;
+						yield function (x) {};
+					}
+				});
+				expect(function () {execAggregate('am1(x)');}).to.throw(err);
+			});
+			it('should propagate exceptions thrown after yielding', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* ama1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x) {};
+						throw err;
+					}
+				});
+				expect(function () {execAggregate('ama1(x)');}).to.throw(err);
+			});
+			it('should propagate exceptions thrown while getting function.length', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* an1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						var fn = function (x) {};
+						Object.defineProperty(fn, 'length', {get: function () {
+							throw err;
+						}});
+						yield fn;
+					}
+				});
+				expect(function () {execAggregate('an1(x)');}).to.throw(err);
+			});
+			it('should throw if the yielded function.length is inconsistent', function () {
+				var first = true;
+				aggregate(function* ao1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x, y) {};
+					}
+				});
+				expect(function () {execAggregate('ao1(x)');}).to.throw(TypeError);
+			});
 		});
 		describe('while executing', function () {
-			it('should propagate exceptions thrown in the yielded callback');
-			it('should throw if the generator function returns an invalid value');
+			it('should propagate exceptions thrown in the yielded callback', function () {
+				var err = new Error('foobar');
+				aggregate(function* ap1() {
+					yield function (x) {throw err;};
+				});
+				expect(function () {execAggregate('ap1(x)');}).to.throw(err);
+			});
+			it('should throw if the generator function returns an invalid value', function () {
+				var err = new Error('foobar');
+				aggregate(function* aq1() {yield function (x) {}; return {};});
+				aggregate(function* aq2() {yield function (x) {}; return 123;});
+				expect(function () {execAggregate('aq1(x)');}).to.throw(TypeError);
+				execAggregate('aq2(x)');
+			});
+			it('should have a strict number of arguments by default');
+			it('should accept a "varargs" option');
 			it('should result in the correct value when no rows are passed through');
 			it('should result in the correct when * is used as the argument');
 		});
