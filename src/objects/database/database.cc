@@ -56,7 +56,7 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->SetClassName(Nan::New("Database").ToLocalChecked());
+	t->SetClassName(NEW_INTERNAL_STRING_FAST("Database"));
 	
 	Nan::SetPrototypeMethod(t, "close", Close);
 	Nan::SetPrototypeMethod(t, "prepare", CreateStatement);
@@ -66,10 +66,9 @@ void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Nan::SetPrototypeMethod(t, "pragma", Pragma);
 	Nan::SetPrototypeMethod(t, "checkpoint", Checkpoint);
 	Nan::SetPrototypeMethod(t, "defaultSafeIntegers", DefaultSafeIntegers);
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("open").ToLocalChecked(), Open);
+	Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("open"), Open);
 	
-	Nan::Set(exports, Nan::New("Database").ToLocalChecked(),
-		Nan::GetFunction(t).ToLocalChecked());
+	Nan::Set(exports, NEW_INTERNAL_STRING_FAST("Database"), Nan::GetFunction(t).ToLocalChecked());
 }
 
 // Returns an SQLite3 result code.

@@ -32,9 +32,9 @@ void Statement::Init() {
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->SetClassName(Nan::New("Statement").ToLocalChecked());
+	t->SetClassName(NEW_INTERNAL_STRING_FAST("Statement"));
 	
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("returnsData").ToLocalChecked(), ReturnsData);
+	Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), ReturnsData);
 	Nan::SetPrototypeMethod(t, "safeIntegers", SafeIntegers);
 	Nan::SetPrototypeMethod(t, "bind", Bind);
 	Nan::SetPrototypeMethod(t, "pluck", Pluck);

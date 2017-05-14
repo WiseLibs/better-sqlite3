@@ -1,6 +1,7 @@
 // .transaction(Array sqls) -> Transaction
 
 NAN_METHOD(Database::CreateTransaction) {
+	GET_ISOLATE();
 	REQUIRE_ARGUMENT_ARRAY(0, sources);
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
@@ -39,7 +40,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	// Join the source strings together.
 	size_t joined_length = rope.GetConcatLength();
 	const uint16_t* joined_sources = rope.Concat(joined_length);
-	v8::Local<v8::String> joinedSources = v8::String::NewFromTwoByte(info.GetIsolate(), joined_sources, v8::NewStringType::kNormal, joined_length).ToLocalChecked();
+	v8::Local<v8::String> joinedSources = StringFromUtf16(isolate, joined_sources, joined_length);
 	delete[] joined_sources;
 	
 	

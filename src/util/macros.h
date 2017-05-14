@@ -18,6 +18,7 @@
 
 // Shorthands for common v8 tasks.
 #define v8HandleScope v8::HandleScope scope(v8::Isolate::GetCurrent());
+#define GET_ISOLATE() v8::Isolate* const isolate = info.GetIsolate();
 
 // Copies a C-String into the heap and returns a pointer to it.
 inline const char* COPY(const char* source) {
@@ -25,6 +26,19 @@ inline const char* COPY(const char* source) {
 	char* dest = new char[bytes];
 	strlcpy(dest, source, bytes);
 	return dest;
+}
+
+inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kNormal, length).ToLocalChecked();
+}
+inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
+}
+inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
+}
+inline v8::Local<v8::String> StringFromUtf16(v8::Isolate* isolate, const uint16_t* data, int length) {
+	return v8::String::NewFromTwoByte(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
 
 // Creates a stack-allocated std:string of the concatenation of 2 well-formed
@@ -189,20 +203,9 @@ inline const char* COPY(const char* source) {
 	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}                            \
 	return;
 
-// Creates a new internalized string from UTF-8 data.
-#define NEW_INTERNAL_STRING8(string)                                           \
-	v8::String::NewFromUtf8(                                                   \
-		v8::Isolate::GetCurrent(),                                             \
-		string,                                                                \
-		v8::NewStringType::kInternalized                                       \
-	).ToLocalChecked()
-
 // Creates a new internalized string, but only works with Latin-1 characters.
-#define NEW_INTERNAL_STRING_FAST(string)                                       \
-	v8::String::NewFromOneByte(                                                \
-		v8::Isolate::GetCurrent(),                                             \
-		(const uint8_t*)string,                                                \
-		v8::NewStringType::kInternalized                                       \
-	).ToLocalChecked()
+inline v8::Local<v8::String> NEW_INTERNAL_STRING_FAST(const char* data) {
+	return v8::String::NewFromOneByte(v8::Isolate::GetCurrent(), reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
+}
 
 #endif

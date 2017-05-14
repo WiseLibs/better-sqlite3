@@ -25,7 +25,7 @@ void Transaction::Init() {
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->SetClassName(Nan::New("Transaction").ToLocalChecked());
+	t->SetClassName(NEW_INTERNAL_STRING_FAST("Transaction"));
 	
 	Nan::SetPrototypeMethod(t, "safeIntegers", SafeIntegers);
 	Nan::SetPrototypeMethod(t, "bind", Bind);

@@ -7,9 +7,10 @@
 int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 	int len = bindMap->length;
 	BindPair* pairs = bindMap->pairs;
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 	
 	for (int i=0; i<len; ++i) {
-		v8::Local<v8::String> key = Nan::New(pairs[i].name).ToLocalChecked();
+		v8::Local<v8::String> key = StringFromUtf8(isolate, pairs[i].name.c_str(), pairs[i].name.length());
 		
 		// Check if the named parameter was provided.
 		v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
@@ -18,7 +19,7 @@ int Binder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 			return i;
 		}
 		if (!has_property.FromJust()) {
-			CONCAT3(message, "Missing named parameter \"", pairs[i].name, "\"");
+			CONCAT3(message, "Missing named parameter \"", pairs[i].name.c_str(), "\"");
 			error = COPY(message.c_str());
 			return i;
 		}
