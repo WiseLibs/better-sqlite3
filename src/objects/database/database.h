@@ -23,7 +23,8 @@ class Database : public Nan::ObjectWrap {
 		// Friends
 		friend class Statement;
 		friend class Transaction;
-		friend void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
+		friend class FunctionInfo;
+		friend class AggregateInfo;
 		
 	private:
 		static NAN_METHOD(New);
@@ -36,6 +37,11 @@ class Database : public Nan::ObjectWrap {
 		static NAN_METHOD(Pragma);
 		static NAN_METHOD(Checkpoint);
 		static NAN_METHOD(DefaultSafeIntegers);
+		
+		static void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
+		static void StepAggregate(sqlite3_context*, int, sqlite3_value**);
+		static void FinishAggregate(sqlite3_context*);
+		
 		int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 		int CloseHandles();
 		void CloseChildHandles();

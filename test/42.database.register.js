@@ -4,23 +4,41 @@ var db;
 
 before(function () {
 	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
+	db.prepare('CREATE TABLE data (x)').run();
+	db.prepare('CREATE TABLE empty (x)').run();
+	db.prepare('INSERT INTO data VALUES (?)').run(3);
+	db.prepare('INSERT INTO data VALUES (?)').run(5);
+	db.prepare('INSERT INTO data VALUES (?)').run(7);
+	db.prepare('INSERT INTO data VALUES (?)').run(11);
+	db.prepare('INSERT INTO data VALUES (?)').run(13);
+	db.prepare('INSERT INTO data VALUES (?)').run(17);
+	db.prepare('INSERT INTO data VALUES (?)').run(19);
 });
 
 function register() {
 	expect(db.register.apply(db, arguments)).to.equal(db);
+}
+function aggregate() {
+	var args = Array.prototype.slice.call(arguments);
+	if (typeof args[0] === 'object' && args[0] !== null) {
+		args[0].aggregate = true;
+	} else {
+		args.unshift({aggregate: true});
+	}
+	expect(db.register.apply(db, args)).to.equal(db);
 }
 function exec(SQL) {
 	return db.prepare('SELECT ' + SQL).pluck().get([].slice.call(arguments, 1));
 }
 
 describe('Database#register()', function () {
-	it('should throw an exception if a function is not provided', function () {
+	it('should throw if a function is not provided', function () {
 		expect(function () {db.register()}).to.throw(TypeError);
 		expect(function () {db.register(null)}).to.throw(TypeError);
 		expect(function () {db.register({})}).to.throw(TypeError);
 		expect(function () {db.register('foobar')}).to.throw(TypeError);
 	});
-	it('should throw an exception if the function name is empty', function () {
+	it('should throw if the function name is empty', function () {
 		expect(function () {db.register(function () {})}).to.throw(TypeError);
 	});
 	it('should register the given function', function () {
@@ -34,17 +52,19 @@ describe('Database#register()', function () {
 		expect(exec('b1(?, ?, ?)', 'foo', 'z', 12)).to.equal('fooz12');
 		
 		// undefined is interpreted as null
-		register(function b2(a, b) {});
+		register(function b2(a, b) {return null;});
+		register(function b3(a, b) {});
 		expect(exec('b2(?, ?)', 2, 10)).to.equal(null);
+		expect(exec('b3(?, ?)', 2, 10)).to.equal(null);
 		
 		// buffers
-		register(function b3(a) {return a;});
-		var buffer = exec('b3(?)', Buffer.alloc(8).fill(0xdd));
+		register(function b4(a) {return a;});
+		var buffer = exec('b4(?)', Buffer.alloc(8).fill(0xdd));
 		expect(buffer.equals(Buffer.alloc(8).fill(0xdd))).to.be.ok;
 		
 		// zero arguments
-		register(function b4() {return 12;});
-		expect(exec('b4()')).to.equal(12);
+		register(function b5() {return 12;});
+		expect(exec('b5()')).to.equal(12);
 	});
 	it('should have a strict number of arguments by default', function () {
 		register(function c1(a, b) {});
@@ -69,13 +89,13 @@ describe('Database#register()', function () {
 		expect(exec('f1(?, ?)', 4, 8)).to.equal(32);
 		expect(exec('f1(?, ?, ?, ?, ?, ?)', 2, 3, 4, 5, 6, 7)).to.equal(5040);
 	});
-	it('should throw an exception if name is not a valid string', function () {
+	it('should throw if name is not a valid string', function () {
 		expect(function () {db.register({name: ''}, function () {})}).to.throw(TypeError);
 		expect(function () {db.register({name: 123}, function () {})}).to.throw(TypeError);
 		expect(function () {db.register({name: {}}, function xa1() {})}).to.throw(TypeError);
 		expect(function () {db.register({name: new String('abc')}, function xa2() {})}).to.throw(TypeError);
 	});
-	it('should throw an exception if function.length is not a positive integer', function () {
+	it('should throw if function.length is not a positive integer', function () {
 		function length(n, fn) {
 			Object.defineProperty(fn, 'length', {value: n});
 			return fn;
@@ -86,16 +106,16 @@ describe('Database#register()', function () {
 		expect(function () {db.register(length(NaN, function xb4() {}))}).to.throw(TypeError);
 		expect(function () {db.register(length('2', function xb5() {}))}).to.throw(TypeError);
 	});
-	it('should throw an exception if function.length is larger than 127', function () {
+	it('should throw if function.length is larger than 127', function () {
 		function length(n, fn) {
 			Object.defineProperty(fn, 'length', {value: n});
 			return fn;
 		}
-		expect(function () {db.register(length(128, function xc1() {}))}).to.throw(TypeError);
-		expect(function () {db.register(length(0xe0000000f, function xc2() {}))}).to.throw(TypeError);
+		expect(function () {db.register(length(128, function xc1() {}))}).to.throw(RangeError);
+		expect(function () {db.register(length(0xe0000000f, function xc2() {}))}).to.throw(RangeError);
 		db.register(length(127, function ya1() {}));
 	});
-	it('should throw an exception if the database is busy', function () {
+	it('should throw if the database is busy', function () {
 		var ranOnce = false;
 		db.prepare('SELECT 2').pluck().each(function (a) {
 			expect(a).to.equal(2);
@@ -119,9 +139,9 @@ describe('Database#register()', function () {
 		db.pragma('cache_size');
 		db.register(function xe2() {});
 	});
-	it('should throw an exception if the function returns an invalid value', function () {
+	it('should throw if the function returns an invalid value', function () {
 		register(function h1(a) {return {};});
-		expect(function () {exec('h1(?)', 42);}).to.throw(Error);
+		expect(function () {exec('h1(?)', 42);}).to.throw(TypeError);
 	});
 	it('should propagate exceptions thrown in the registered function', function () {
 		function expectError(name, exception) {
@@ -141,6 +161,24 @@ describe('Database#register()', function () {
 		expectError('i5', '');
 		expectError('i6', null);
 		expectError('i7', 123.4);
+	});
+	it('should be able to register multiple functions with the same name', function () {
+		register(function ia1() {return 0;});
+		register(function ia1(a) {return 1;});
+		register(function ia1(a, b) {return 2;});
+		register(function ia1(a, b, c) {return 3;});
+		register(function ia1(a, b, c, d) {return 4;});
+		expect(exec('ia1()')).to.equal(0);
+		expect(exec('ia1(555)')).to.equal(1);
+		expect(exec('ia1(555, 555)')).to.equal(2);
+		expect(exec('ia1(555, 555, 555)')).to.equal(3);
+		expect(exec('ia1(555, 555, 555, 555)')).to.equal(4);
+		register(function ia1(a, b) {return 'foobar';});
+		expect(exec('ia1()')).to.equal(0);
+		expect(exec('ia1(555)')).to.equal(1);
+		expect(exec('ia1(555, 555)')).to.equal('foobar');
+		expect(exec('ia1(555, 555, 555)')).to.equal(3);
+		expect(exec('ia1(555, 555, 555, 555)')).to.equal(4);
 	});
 	it('should not be able to affect bound buffers mid-query', function () {
 		var buffer = Buffer.alloc(1024 * 8).fill(0xbb);
@@ -183,6 +221,285 @@ describe('Database#register()', function () {
 				return;
 			}
 			throw new TypeError('Expected the statement to throw an exception.');
+		});
+	});
+	describe('should be able to register aggregate functions', function () {
+		describe('while registering', function () {
+			it('should throw if a generator function is not used', function () {
+				expect(function () {aggregate(function za1() {})}).to.throw(TypeError);
+			});
+			it('should register the given generator function', function () {
+				aggregate(function* zb1() {
+					yield function () {};
+				});
+			});
+			it('should throw if the yielded function.length is not a positive integer', function () {
+				function length(n) {
+					var fn = function () {};
+					Object.defineProperty(fn, 'length', {value: n});
+					return fn;
+				}
+				expect(function () {aggregate(function* zc1() {
+					yield length(-1);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zc2() {
+					yield length(1.2);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zc3() {
+					yield length(Infinity);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zc4() {
+					yield length(NaN);
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zc5() {
+					yield length('2');
+				})}).to.throw(TypeError);
+			});
+			it('should throw if the yielded function.length is larger than 127', function () {
+				function length(n) {
+					var fn = function () {};
+					Object.defineProperty(fn, 'length', {value: n});
+					return fn;
+				}
+				expect(function () {aggregate(function* zd1() {
+					yield length(128);
+				})}).to.throw(RangeError);
+				expect(function () {aggregate(function* zd2() {
+					yield length(0xe0000000f);
+				})}).to.throw(RangeError);
+				aggregate(function* zd3() {yield length(127);})
+			});
+			it('should propagate exceptions thrown while getting function.length', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* ze1() {
+						var fn = function () {};
+						Object.defineProperty(fn, 'length', {get: function () {
+							throw err;
+						}});
+						yield fn;
+					});
+				}).to.throw(err);
+			});
+			it('should throw if the generator function never yields', function () {
+				expect(function () {aggregate(function* zf1() {
+					// no yield
+				})}).to.throw(TypeError);
+			});
+			it('should throw if a non-function is yielded', function () {
+				expect(function () {aggregate(function* zf1() {
+					yield;
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zf1() {
+					yield 123;
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zf1() {
+					yield 'foobar';
+				})}).to.throw(TypeError);
+				expect(function () {aggregate(function* zf1() {
+					yield {length: 0, name: ''};
+				})}).to.throw(TypeError);
+			});
+			it('should throw if the generator function yields twice', function () {
+				expect(function () {aggregate(function* zg1() {
+					var fn = function () {};
+					yield fn;
+					yield fn;
+				})}).to.throw(TypeError);
+			});
+			it('should propagate exceptions thrown before yielding', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* zh1() {
+						throw err;
+						yield function () {};
+					});
+				}).to.throw(err);
+			});
+			it('should propagate exceptions thrown after yielding', function () {
+				var err = new Error('foobar');
+				expect(function () {
+					aggregate(function* zi1() {
+						yield function () {};
+						throw err;
+					});
+				}).to.throw(err);
+			});
+		});
+		describe('before executing', function () {
+			it('should throw if the generator function never yields', function () {
+				var first = true;
+				aggregate(function* zj1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					}
+				});
+				expect(function () {exec('zj1(x) FROM data');}).to.throw(TypeError);
+			});
+			it('should throw if a non-function is yielded', function () {
+				function registerAggregate(name, value) {
+					var first = true;
+					aggregate({name: name}, function* () {
+						if (first) {
+							first = false;
+							yield function (x) {};
+						} else {
+							yield value;
+						}
+					});
+				}
+				registerAggregate('zk1');
+				registerAggregate('zk2', 123);
+				registerAggregate('zk3', 'foobar');
+				registerAggregate('zk4', {length: 0, name: ''});
+				registerAggregate('zk5', function (x) {});
+				expect(function () {exec('zk1(x) FROM data');}).to.throw(TypeError);
+				expect(function () {exec('zk2(x) FROM data');}).to.throw(TypeError);
+				expect(function () {exec('zk3(x) FROM data');}).to.throw(TypeError);
+				expect(function () {exec('zk4(x) FROM data');}).to.throw(TypeError);
+				exec('zk5(x) FROM data');
+			});
+			it('should throw if the generator function yields twice', function () {
+				var first = true;
+				aggregate(function* zl1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x) {};
+						yield function (x) {};
+					}
+				});
+				expect(function () {exec('zl1(x) FROM data');}).to.throw(TypeError);
+			});
+			it('should propagate exceptions thrown before yielding', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* zm1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						throw err;
+						yield function (x) {};
+					}
+				});
+				expect(function () {exec('zm1(x) FROM data');}).to.throw(err);
+			});
+			it('should propagate exceptions thrown after yielding', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* zma1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x) {};
+						throw err;
+					}
+				});
+				expect(function () {exec('zma1(x) FROM data');}).to.throw(err);
+			});
+			it('should propagate exceptions thrown while getting function.length', function () {
+				var first = true;
+				var err = new Error('foobar');
+				aggregate(function* zn1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						var fn = function (x) {};
+						Object.defineProperty(fn, 'length', {get: function () {
+							throw err;
+						}});
+						yield fn;
+					}
+				});
+				expect(function () {exec('zn1(x) FROM data');}).to.throw(err);
+			});
+			it('should throw if the yielded function.length is inconsistent', function () {
+				var first = true;
+				aggregate(function* zo1() {
+					if (first) {
+						first = false;
+						yield function (x) {};
+					} else {
+						yield function (x, y) {};
+					}
+				});
+				expect(function () {exec('zo1(x) FROM data');}).to.throw(TypeError);
+			});
+		});
+		describe('while executing', function () {
+			it('should propagate exceptions thrown in the yielded callback', function () {
+				var err = new Error('foobar');
+				aggregate(function* zp1() {
+					yield function (x) {throw err;};
+				});
+				expect(function () {exec('zp1(x) FROM data');}).to.throw(err);
+			});
+			it('should throw if the generator function returns an invalid value', function () {
+				var err = new Error('foobar');
+				aggregate(function* zq1() {yield function (x) {}; return {};});
+				aggregate(function* zq2() {yield function (x) {}; return 123;});
+				expect(function () {exec('zq1(x) FROM data');}).to.throw(TypeError);
+				exec('zq2(x) FROM data');
+			});
+			it('should be invoked for each row', function () {
+				aggregate(function* zr1() {
+					var result = 1;
+					yield function (x) {result *= x;};
+					return result + 5;
+				});
+				expect(exec('zr1(x) FROM data')).to.equal(4849850);
+			})
+			it('should result in the correct value when no rows are passed through', function () {
+				aggregate(function* zra1() {
+					var result = 5;
+					yield function (x) {result = 999;};
+					return result + 2;
+				});
+				expect(exec('zra1(x) FROM empty')).to.equal(7);
+			});
+			it('should have a strict number of arguments by default', function () {
+				aggregate(function* zs1() {
+					var result = 0;
+					yield function (x, y) {result += x + y};
+					return result;
+				});
+				expect(function () {exec('zs1() FROM data');}).to.throw(Error);
+				expect(function () {exec('zs1(x) FROM data');}).to.throw(Error);
+				expect(function () {exec('zs1(x, ?, ?) FROM data', 8, 3);}).to.throw(Error);
+				expect(exec('zs1(x, ?) FROM data', 2)).to.equal(89);
+			});
+			it('should accept a "varargs" option', function () {
+				aggregate({varargs: true}, function* zt1() {
+					var result = 0;
+					yield function () {
+						result += [].slice.call(arguments).reduce(function (a, b) {return a + b;}, 0);
+					};
+					return result;
+				});
+				expect(exec('zt1() FROM data')).to.equal(0);
+				expect(exec('zt1(x) FROM data')).to.equal(75);
+				expect(exec('zt1(x, x) FROM data')).to.equal(150);
+				expect(exec('zt1(x, ?, ?, ?, ?, ?, ?) FROM data', 2, 3, 4, 5, 6, 7)).to.equal(264);
+			});
+			it('should result in the correct value when * is used as the argument', function () {
+				aggregate(function* zu1() {
+					var result = 1;
+					yield function () {
+						expect(arguments.length).to.equal(0);
+						result += 2;
+					};
+					return result + 1000;
+				});
+				expect(exec('zu1(*) FROM data')).to.equal(1015);
+				expect(exec('zu1() FROM data')).to.equal(1015);
+				expect(exec('zu1(*) FROM empty')).to.equal(1001);
+				expect(exec('zu1() FROM empty')).to.equal(1001);
+			});
 		});
 	});
 });

@@ -37,14 +37,14 @@ describe('Database#prepare()', function () {
 	});
 	it('should throw an exception if no statements are provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.prepare('');}).to.throw(TypeError);
-		expect(function () {db.prepare(';');}).to.throw(TypeError);
+		expect(function () {db.prepare('');}).to.throw(RangeError);
+		expect(function () {db.prepare(';');}).to.throw(RangeError);
 	});
 	it('should throw an exception if more than one statement is provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)');}).to.throw(TypeError);
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT); ');}).to.throw(TypeError);
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT);;');}).to.throw(TypeError);
+		expect(function () {db.prepare('CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)');}).to.throw(RangeError);
+		expect(function () {db.prepare('CREATE TABLE people (name TEXT); ');}).to.throw(RangeError);
+		expect(function () {db.prepare('CREATE TABLE people (name TEXT);;');}).to.throw(RangeError);
 	});
 	it('should create a prepared Statement object', function () {
 		var db = new Database(util.next());

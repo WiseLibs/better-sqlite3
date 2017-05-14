@@ -1,9 +1,10 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "../objects/int64/int64.h"
-#include "../util/macros.h"
+#include "./macros.h"
+#include "./functor.h"
 
-#define JS_VALUE_TO_SQLITE(to, value, errorStatements, errorValue, ...)        \
+#define JS_VALUE_TO_SQLITE(to, value, errorAction, errorValue, ...)            \
 	if (value->IsNumber()) {                                                   \
 		return sqlite3_##to##_double(__VA_ARGS__,                              \
 			v8::Local<v8::Number>::Cast(value)->Value()                        \
@@ -33,7 +34,7 @@
 				)->GetValue()                                                  \
 			);                                                                 \
 		}                                                                      \
-		errorStatements;                                                       \
+		errorAction;                                                           \
 		return errorValue;                                                     \
 	}
 
@@ -82,6 +83,9 @@ v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, bool safe_integers) {
 }
 
 v8::Local<v8::Value>* GetArgumentsJS(sqlite3_value** values, int argument_count, bool safe_integers) {
+	if (argument_count == 0) {
+		return NULL;
+	}
 	v8::Local<v8::Value>* args = new v8::Local<v8::Value>[argument_count];
 	for (int i=0; i<argument_count; ++i) {
 		args[i] = Data::GetValueJS(values[i], safe_integers);
@@ -93,11 +97,8 @@ int BindValueFromJS(sqlite3_stmt* handle, int index, v8::Local<v8::Value> value)
 	JS_VALUE_TO_SQLITE(bind, value,, -1, handle, index);
 }
 
-void ResultValueFromJS(sqlite3_context* ctx, v8::Local<v8::Value> value, const char* function_name) {
-	JS_VALUE_TO_SQLITE(result, value, {
-		CONCAT3(message, "The custom function \"", function_name, "\" returned an invalid value.");
-		sqlite3_result_error(ctx, message.c_str(), -1);
-	},, ctx);
+void ResultValueFromJS(sqlite3_context* ctx, v8::Local<v8::Value> value, Functor* errorAction) {
+	JS_VALUE_TO_SQLITE(result, value, errorAction->Invoke(ctx),, ctx);
 }
 
 }

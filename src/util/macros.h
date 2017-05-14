@@ -3,11 +3,10 @@
 
 #include <cstdint>
 #include <cstring>
-#include <cmath>
 #include <string>
 #include <sqlite3.h>
 #include <nan.h>
-#include "../util/strlcpy.h"
+#include "./strlcpy.h"
 
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
@@ -16,11 +15,6 @@
 #define SAFE_INTS 0x8
 #define PLUCK_COLUMN 0x10
 #define RETURNS_DATA 0x20
-
-// Given a double, returns whether the number is a positive integer.
-inline bool IS_POSITIVE_INTEGER(double num) {
-	return floor(num) == num && num >= 0.0;
-}
 
 // Copies a C-String into the heap and returns a pointer to it.
 inline const char* COPY(const char* source) {
@@ -66,9 +60,9 @@ inline const char* COPY(const char* source) {
 // is thrown and the caller returns.
 #define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
 	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeValue = _method->Call(obj, argc, argv);   \
-	if (_maybeValue.IsEmpty()) {return;}                                       \
-	v8::Local<v8::Value> result = _maybeValue.ToLocalChecked();
+	Nan::MaybeLocal<v8::Value> _maybeVal = Nan::Call(_method, obj, argc, argv);\
+	if (_maybeVal.IsEmpty()) {return;}                                         \
+	v8::Local<v8::Value> result = _maybeVal.ToLocalChecked();
 
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available

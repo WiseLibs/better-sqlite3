@@ -34,10 +34,10 @@ NAN_METHOD(Database::CreateStatement) {
 		return Nan::ThrowError(message.c_str());
 	}
 	if (stmt->st_handle == NULL) {
-		return Nan::ThrowTypeError("The supplied SQL string contains no statements.");
+		return Nan::ThrowRangeError("The supplied SQL string contains no statements.");
 	}
 	if (tail != (const void*)(*utf16 + utf16.length())) {
-		return Nan::ThrowTypeError("The supplied SQL string contains more than one statement.");
+		return Nan::ThrowRangeError("The supplied SQL string contains more than one statement.");
 	}
 	
 	// Determine if the sqlite3_stmt returns data or not.

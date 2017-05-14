@@ -9,6 +9,7 @@
 #include "../../util/data.h"
 #include "../../util/transaction-handles.h"
 #include "../../util/bind-map.h"
+#include "../../util/functor.h"
 
 const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
 const int max_string_size = v8::String::kMaxLength;
@@ -21,6 +22,8 @@ sqlite3_uint64 NEXT_TRANSACTION_ID = 0;
 #include "close.cc"
 #include "create-statement.cc"
 #include "create-transaction.cc"
+#include "custom-functions.cc"
+#include "custom-aggregates.cc"
 #include "create-function.cc"
 #include "exec.cc"
 #include "pragma.cc"

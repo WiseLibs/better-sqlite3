@@ -26,7 +26,7 @@ public:
 		return &extras->bind_map;
 	}
 protected:
-	QueryExtras* extras;
+	QueryExtras* const extras;
 };
 
 #endif
