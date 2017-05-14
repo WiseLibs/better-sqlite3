@@ -91,8 +91,8 @@ describe('Database#register()', function () {
 			Object.defineProperty(fn, 'length', {value: n});
 			return fn;
 		}
-		expect(function () {db.register(length(128, function xc1() {}))}).to.throw(TypeError);
-		expect(function () {db.register(length(0xe0000000f, function xc2() {}))}).to.throw(TypeError);
+		expect(function () {db.register(length(128, function xc1() {}))}).to.throw(RangeError);
+		expect(function () {db.register(length(0xe0000000f, function xc2() {}))}).to.throw(RangeError);
 		db.register(length(127, function ya1() {}));
 	});
 	it('should throw if the database is busy', function () {

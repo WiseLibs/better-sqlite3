@@ -28,7 +28,7 @@ describe('Database#transaction()', function () {
 	});
 	it('should throw an exception if no strings are provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.transaction([]);}).to.throw(TypeError);
+		expect(function () {db.transaction([]);}).to.throw(RangeError);
 	});
 	it('should propagate exceptions thrown from array accessors', function () {
 		var db = new Database(util.next());
@@ -51,9 +51,9 @@ describe('Database#transaction()', function () {
 	});
 	it('should throw an exception if multiple statements exist in one string', function () {
 		var db = new Database(util.next());
-		expect(function () {db.transaction(['CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)']);}).to.throw(TypeError);
-		expect(function () {db.transaction(['CREATE TABLE people (name TEXT); ']);}).to.throw(TypeError);
-		expect(function () {db.transaction(['CREATE TABLE people (name TEXT);;']);}).to.throw(TypeError);
+		expect(function () {db.transaction(['CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)']);}).to.throw(RangeError);
+		expect(function () {db.transaction(['CREATE TABLE people (name TEXT); ']);}).to.throw(RangeError);
+		expect(function () {db.transaction(['CREATE TABLE people (name TEXT);;']);}).to.throw(RangeError);
 	});
 	it('should throw an exception if any read-only statements are provided', function () {
 		var db = new Database(util.next());
