@@ -45,7 +45,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	// Create joined source string.
 	v8::Local<v8::Value> joinArgs[1] = {Nan::New("\n").ToLocalChecked()};
-	INVOKE_METHOD(joinedSource, digestedSources, "join", 1, joinArgs)
+	INVOKE_METHOD(joinedSource, digestedSources, "join", 1, joinArgs);
 	if (!joinedSource->IsString()) {
 		return Nan::ThrowTypeError("Expected Array.prototype.join to return a string");
 	}
