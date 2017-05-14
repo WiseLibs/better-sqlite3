@@ -21,7 +21,7 @@ Transaction::~Transaction() {
 	}
 }
 void Transaction::Init() {
-	Nan::HandleScope scope;
+	v8HandleScope;
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);

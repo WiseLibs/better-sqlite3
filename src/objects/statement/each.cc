@@ -9,12 +9,13 @@ NAN_METHOD(Statement::Each) {
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);
 	const bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	const bool pluck = (stmt->state & PLUCK_COLUMN) != 0;
+	v8::Isolate* const isolate = v8::Isolate::GetCurrent();
 	
 	stmt->db->busy = true;
 	
 	// Retrieve and feed rows.
 	while (sqlite3_step(stmt->st_handle) == SQLITE_ROW) {
-		Nan::HandleScope scope;
+		v8::HandleScope scope(isolate);
 		
 		v8::Local<v8::Value> args[1];
 		args[0] = pluck ? Data::GetValueJS(stmt->st_handle, 0, safe_integers)

@@ -13,7 +13,7 @@ class FunctionInfo : public Functor { public:
 		sqlite3_result_error(static_cast<sqlite3_context*>(ctx), "", 0);
 	}
 	static void DestroyFunction(void* x) {
-		Nan::HandleScope scope;
+		v8HandleScope;
 		delete static_cast<FunctionInfo*>(x);
 	}
 	Nan::Persistent<v8::Function> handle;
@@ -40,7 +40,7 @@ class FunctionInfo : public Functor { public:
 	}
 
 void Database::ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
-	Nan::HandleScope scope;
+	v8HandleScope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->handle),);
 	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info);

@@ -10,7 +10,7 @@ public:
 	// If something goes wrong, Release() is invoked and an sqlite3 error is
 	// thrown.
 	void Init(sqlite3_context* ctx, FunctionInfo* function_info) {
-		Nan::HandleScope scope;
+		v8HandleScope;
 		v8::Local<v8::Function> genFunc = Nan::New(function_info->handle);
 		v8::Local<v8::Object> generatorObject = v8::Local<v8::Object>::Cast(genFunc->Call(Nan::GetCurrentContext(), Nan::Null(), 0, NULL).ToLocalChecked());
 		v8::Local<v8::Function> nextFunction = v8::Local<v8::Function>::Cast(Nan::Get(generatorObject, NEW_INTERNAL_STRING_FAST("next")).ToLocalChecked());
@@ -93,7 +93,7 @@ public:
 };
 
 #define GET_INFO_OBJECTS()                                                     \
-	Nan::HandleScope scope;                                                    \
+	v8HandleScope;                                                             \
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(                  \
 		sqlite3_user_data(ctx)                                                 \
 	);                                                                         \
@@ -101,7 +101,7 @@ public:
 		sqlite3_aggregate_context(ctx, sizeof(AggregateInfo))                  \
 	);                                                                         \
 	if (agg_info == NULL) {                                                    \
-		Nan::ThrowError("Out of memory");                                     \
+		Nan::ThrowError("Out of memory");                                      \
 		function_info->db->was_js_error = true;                                \
 		return sqlite3_result_error(ctx, "", 0);                               \
 	}

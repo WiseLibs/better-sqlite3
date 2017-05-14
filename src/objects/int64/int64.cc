@@ -19,7 +19,7 @@ Int64::Int64(sqlite3_int64 full) : Nan::ObjectWrap(),
 		high = (int32_t)((uint32_t)(((sqlite3_uint64)full) >> 32));
 	}
 void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
-	Nan::HandleScope scope;
+	v8HandleScope;
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);

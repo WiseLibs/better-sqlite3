@@ -5,7 +5,7 @@
 #include "objects/transaction/transaction.h"
 
 void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
-	Nan::HandleScope scope;
+	v8HandleScope;
 	
 	Int64::Init(exports, module);
 	Database::Init(exports, module);

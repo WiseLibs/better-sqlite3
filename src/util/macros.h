@@ -16,6 +16,9 @@
 #define PLUCK_COLUMN 0x10
 #define RETURNS_DATA 0x20
 
+// Shorthands for common v8 tasks.
+#define v8HandleScope v8::HandleScope scope(v8::Isolate::GetCurrent());
+
 // Copies a C-String into the heap and returns a pointer to it.
 inline const char* COPY(const char* source) {
 	size_t bytes = strlen(source) + 1;
