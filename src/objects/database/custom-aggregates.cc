@@ -1,11 +1,10 @@
-enum class AggregateState { uninitialized = 0, active = 1, released = 2 };
-
 class AggregateInfo {
 private:
+	enum class State { uninitialized = 0, active = 1, released = 2 };
 	Nan::Persistent<v8::Object> generator;
 	Nan::Persistent<v8::Function> next;
 	Nan::Persistent<v8::Function> callback;
-	AggregateState state;
+	State state;
 public:
 	// Attempts to initialize the handles, switching to an active state.
 	// If something goes wrong, Release() is invoked and an sqlite3 error is
@@ -23,7 +22,7 @@ public:
 			return ThrowJSError(ctx, function_info);
 		}
 		v8::Local<v8::Value> yieldedValue = maybe_yielded_value.ToLocalChecked();
-		if (state == AggregateState::released || !yieldedValue->IsFunction()) {
+		if (state == State::released || !yieldedValue->IsFunction()) {
 			return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
 		}
 		v8::Local<v8::Function> callbackFunction = v8::Local<v8::Function>::Cast(yieldedValue);
@@ -41,7 +40,7 @@ public:
 		}
 		
 		callback.Reset(callbackFunction);
-		state = AggregateState::active;
+		state = State::active;
 	}
 	
 	// Throws an sqlite3 error and invokes Release().
@@ -61,15 +60,15 @@ public:
 		generator.Reset();
 		next.Reset();
 		callback.Reset();
-		state = AggregateState::released;
+		state = State::released;
 	}
 	
 	// Returns the state of the object.
 	inline bool IsUninitialized() {
-		return state == AggregateState::uninitialized;
+		return state == State::uninitialized;
 	}
 	inline bool IsActive() {
-		return state == AggregateState::active;
+		return state == State::active;
 	}
 	
 	// Returns the callback function stored by the persistent handle.
