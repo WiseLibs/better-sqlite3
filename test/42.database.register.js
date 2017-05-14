@@ -34,17 +34,19 @@ describe('Database#register()', function () {
 		expect(exec('b1(?, ?, ?)', 'foo', 'z', 12)).to.equal('fooz12');
 		
 		// undefined is interpreted as null
-		register(function b2(a, b) {});
+		register(function b2(a, b) {return null;});
+		register(function b3(a, b) {});
 		expect(exec('b2(?, ?)', 2, 10)).to.equal(null);
+		expect(exec('b3(?, ?)', 2, 10)).to.equal(null);
 		
 		// buffers
-		register(function b3(a) {return a;});
-		var buffer = exec('b3(?)', Buffer.alloc(8).fill(0xdd));
+		register(function b4(a) {return a;});
+		var buffer = exec('b4(?)', Buffer.alloc(8).fill(0xdd));
 		expect(buffer.equals(Buffer.alloc(8).fill(0xdd))).to.be.ok;
 		
 		// zero arguments
-		register(function b4() {return 12;});
-		expect(exec('b4()')).to.equal(12);
+		register(function b5() {return 12;});
+		expect(exec('b5()')).to.equal(12);
 	});
 	it('should have a strict number of arguments by default', function () {
 		register(function c1(a, b) {});
@@ -186,21 +188,34 @@ describe('Database#register()', function () {
 		});
 	});
 	describe('should accept the "aggregate" option', function () {
-		it('should throw if a generator function is not used');
-		it('should register the given generator function');
-		it('should propagate exceptions thrown before yielding');
-		it('should throw if the generator function never yields');
-		it('should throw if a non-function is yielded');
-		it('should have a strict number of arguments by default');
-		it('should accept a "varargs" option');
-		it('should throw if the yielded function.length is not a positive integer');
-		it('should throw if the yielded function.length is larger than 127');
-		it('should propagate exceptions thrown while getting function.length');
-		it('should propagate exceptions thrown in the yielded callback');
-		it('should throw if the generator function yields twice');
-		it('should propagate exceptions thrown after yielding');
-		it('should throw if the generator function returns an invaid value');
-		it('should result in the correct value when no rows are passed through');
-		it('should result in the correct when * is used as the argument');
+		describe('while registering', function () {
+			it('should throw if a generator function is not used');
+			it('should register the given generator function');
+			it('should have a strict number of arguments by default');
+			it('should accept a "varargs" option');
+			it('should throw if the yielded function.length is not a positive integer');
+			it('should throw if the yielded function.length is larger than 127');
+			it('should propagate exceptions thrown while getting function.length');
+			it('should throw if the generator function never yields');
+			it('should throw if a non-function is yielded');
+			it('should throw if the generator function yields twice');
+			it('should propagate exceptions thrown before yielding');
+			it('should propagate exceptions thrown after yielding');
+		});
+		describe('after registering', function () {
+			it('should throw if the generator function never yields');
+			it('should throw if a non-function is yielded');
+			it('should throw if the generator function yields twice');
+			it('should propagate exceptions thrown before yielding');
+			it('should propagate exceptions thrown after yielding');
+			it('should propagate exceptions thrown while getting function.length');
+			it('should throw if the yielded function.length is inconsistent');
+		});
+		describe('while executing', function () {
+			it('should propagate exceptions thrown in the yielded callback');
+			it('should throw if the generator function returns an invalid value');
+			it('should result in the correct value when no rows are passed through');
+			it('should result in the correct when * is used as the argument');
+		});
 	});
 });
