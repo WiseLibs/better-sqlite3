@@ -107,7 +107,7 @@ public:
 		return sqlite3_result_error(ctx, "", 0);                               \
 	}
 
-void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
+void Database::StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	GET_INFO_OBJECTS();
 	if (agg_info->IsUninitialized()) {
 		agg_info->Init(ctx, function_info);
@@ -118,7 +118,7 @@ void StepAggregate(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	EXECUTE_FUNCTION(_v, function_info, agg_info->Callback(), agg_info->Release());
 }
 
-void FinishAggregate(sqlite3_context* ctx) {
+void Database::FinishAggregate(sqlite3_context* ctx) {
 	GET_INFO_OBJECTS();
 	if (agg_info->IsUninitialized()) {
 		agg_info->Init(ctx, function_info);

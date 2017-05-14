@@ -29,10 +29,10 @@ NAN_METHOD(Database::CreateFunction) {
 		safe_integers = safe_ints;
 	}
 	if (!aggregate) {
-		xFunc = ExecuteFunction;
+		xFunc = Database::ExecuteFunction;
 	} else {
-		xStep = StepAggregate;
-		xFinal = FinishAggregate;
+		xStep = Database::StepAggregate;
+		xFinal = Database::FinishAggregate;
 	}
 	
 	int status = sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new FunctionInfo(db, func, *name, argc, safe_integers), xFunc, xStep, xFinal, FunctionInfo::DestroyFunction);

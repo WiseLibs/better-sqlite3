@@ -24,7 +24,7 @@ public:
 	
 	virtual BindMap* GetBindMap() = 0;
 protected:
-	QueryExtras* extras;
+	QueryExtras* const extras;
 };
 
 #endif

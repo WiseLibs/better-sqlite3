@@ -17,10 +17,10 @@ class FunctionInfo : public Functor { public:
 		delete static_cast<FunctionInfo*>(x);
 	}
 	Nan::Persistent<v8::Function> handle;
-	Database* db;
-	const char* name;
-	int argc;
-	bool safe_integers;
+	Database* const db;
+	const char* const name;
+	const int argc;
+	const bool safe_integers;
 };
 
 #define EXECUTE_FUNCTION(var, function_info, func, errorAction)                \
@@ -39,7 +39,7 @@ class FunctionInfo : public Functor { public:
 		return sqlite3_result_error(ctx, "", 0);                               \
 	}
 
-void ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
+void Database::ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->handle),);
