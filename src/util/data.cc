@@ -1,9 +1,10 @@
 #include <sqlite3.h>
 #include <nan.h>
 #include "../objects/int64/int64.h"
-#include "../util/macros.h"
+#include "./macros.h"
+#include "./functor.h"
 
-#define JS_VALUE_TO_SQLITE(to, value, errorStatements, errorValue, ...)        \
+#define JS_VALUE_TO_SQLITE(to, value, errorAction, errorValue, ...)            \
 	if (value->IsNumber()) {                                                   \
 		return sqlite3_##to##_double(__VA_ARGS__,                              \
 			v8::Local<v8::Number>::Cast(value)->Value()                        \
@@ -33,7 +34,7 @@
 				)->GetValue()                                                  \
 			);                                                                 \
 		}                                                                      \
-		errorStatements;                                                       \
+		errorAction;                                                           \
 		return errorValue;                                                     \
 	}
 
@@ -93,11 +94,8 @@ int BindValueFromJS(sqlite3_stmt* handle, int index, v8::Local<v8::Value> value)
 	JS_VALUE_TO_SQLITE(bind, value,, -1, handle, index);
 }
 
-void ResultValueFromJS(sqlite3_context* ctx, v8::Local<v8::Value> value, const char* function_name) {
-	JS_VALUE_TO_SQLITE(result, value, {
-		CONCAT3(message, "Custom function \"", function_name, "\" returned an invalid value.");
-		sqlite3_result_error(ctx, message.c_str(), -1);
-	},, ctx);
+void ResultValueFromJS(sqlite3_context* ctx, v8::Local<v8::Value> value, Functor* errorAction) {
+	JS_VALUE_TO_SQLITE(result, value, errorAction->Invoke(ctx),, ctx);
 }
 
 }

@@ -22,9 +22,7 @@ public:
 	};
 	friend class Compare;
 	
-	virtual BindMap* GetBindMap() {
-		return &extras->bind_map;
-	}
+	virtual BindMap* GetBindMap() = 0;
 protected:
 	QueryExtras* extras;
 };

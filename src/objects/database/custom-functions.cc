@@ -1,10 +1,16 @@
-class FunctionInfo { public:
+class FunctionInfo : public Functor { public:
 	explicit FunctionInfo(Database* db, v8::Local<v8::Function> func,
 		const char* name, int argc, bool safe_integers
 	) : handle(func), db(db), name(COPY(name)), argc(argc), safe_integers(safe_integers) {}
 	~FunctionInfo() {
 		handle.Reset();
 		delete[] name;
+	}
+	void Invoke(void* ctx) {
+		CONCAT3(message, "Custom function \"", name, "\" returned an invalid value.");
+		Nan::ThrowTypeError(message.c_str());
+		db->was_js_error = true;
+		sqlite3_result_error(static_cast<sqlite3_context*>(ctx), "", 0);
 	}
 	static void DestroyFunction(void* x) {
 		Nan::HandleScope scope;
@@ -37,5 +43,5 @@ void ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	Nan::HandleScope scope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
 	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->handle),);
-	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info->name);
+	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info);
 }

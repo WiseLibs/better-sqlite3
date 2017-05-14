@@ -9,6 +9,7 @@
 #include "../../util/data.h"
 #include "../../util/transaction-handles.h"
 #include "../../util/bind-map.h"
+#include "../../util/functor.h"
 
 const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
 const int max_string_size = v8::String::kMaxLength;

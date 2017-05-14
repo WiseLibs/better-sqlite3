@@ -138,5 +138,5 @@ void FinishAggregate(sqlite3_context* ctx) {
 		return;
 	}
 	
-	Data::ResultValueFromJS(ctx, maybe_result.ToLocalChecked(), function_info->name);
+	Data::ResultValueFromJS(ctx, maybe_result.ToLocalChecked(), function_info);
 }

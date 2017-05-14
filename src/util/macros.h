@@ -6,7 +6,7 @@
 #include <string>
 #include <sqlite3.h>
 #include <nan.h>
-#include "../util/strlcpy.h"
+#include "./strlcpy.h"
 
 // Bitwise flags
 #define CONFIG_LOCKED 0x01
