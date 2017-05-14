@@ -40,33 +40,6 @@ inline const char* COPY(const char* source) {
 	result += b;                                                               \
 	result += c;
 
-// Given a v8::Object and a C-string method name, retrieves the v8::Function
-// representing that method. If the getter throws, or if the property is not a
-// function, an error is thrown and the caller returns.
-// This should not be used to retrieve arbitrary methods, because it is
-// restricted by the limitations of NEW_INTERNAL_STRING_FAST().
-#define GET_METHOD(result, obj, methodName)                                    \
-	Nan::MaybeLocal<v8::Value> _maybeMethod =                                  \
-		Nan::Get(obj, NEW_INTERNAL_STRING_FAST(methodName));                   \
-	if (_maybeMethod.IsEmpty()) {return;}                                      \
-	v8::Local<v8::Value> _localMethod = _maybeMethod.ToLocalChecked();         \
-	if (!_localMethod->IsFunction()) {                                         \
-		return Nan::ThrowTypeError(                                            \
-			"" #obj "[" #methodName "]() is not a function");                  \
-	}                                                                          \
-	v8::Local<v8::Function> result =                                           \
-		v8::Local<v8::Function>::Cast(_localMethod);
-
-// Given a v8::Object and a C-string method name, retrieves the v8::Function
-// representing that method, and invokes it with the given args. If the getter
-// throws, if the property is not a function, or if the method throws, an error
-// is thrown and the caller returns.
-#define INVOKE_METHOD(result, obj, methodName, argc, argv)                     \
-	GET_METHOD(_method, obj, methodName);                                      \
-	Nan::MaybeLocal<v8::Value> _maybeVal = Nan::Call(_method, obj, argc, argv);\
-	if (_maybeVal.IsEmpty()) {return;}                                         \
-	v8::Local<v8::Value> result = _maybeVal.ToLocalChecked();
-
 // If the argument of the given index is not a boolean, an error is thrown and
 // the caller returns. Otherwise, it is cast to a c++ bool and made available
 // at the given variable name.
