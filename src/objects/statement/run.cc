@@ -3,7 +3,7 @@
 NAN_METHOD(Statement::Run) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (stmt->state & RETURNS_DATA) {
-		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead.");
+		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead");
 	}
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
 	

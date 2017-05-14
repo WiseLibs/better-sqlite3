@@ -23,7 +23,7 @@ public:
 		}
 		v8::Local<v8::Value> yieldedValue = maybe_yielded_value.ToLocalChecked();
 		if (state == State::released || !yieldedValue->IsFunction()) {
-			return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" did not yield a function.");
+			return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" did not yield a function");
 		}
 		v8::Local<v8::Function> callbackFunction = v8::Local<v8::Function>::Cast(yieldedValue);
 		
@@ -35,7 +35,7 @@ public:
 			}
 			v8::Local<v8::Value> localLength = maybe_length.ToLocalChecked();
 			if (!localLength->IsInt32() || argc != v8::Local<v8::Int32>::Cast(localLength)->Value()) {
-				return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" has an inconsistent function.length.");
+				return ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" has an inconsistent function.length");
 			}
 		}
 		
@@ -101,7 +101,7 @@ public:
 		sqlite3_aggregate_context(ctx, sizeof(AggregateInfo))                  \
 	);                                                                         \
 	if (agg_info == NULL) {                                                    \
-		Nan::ThrowError("Out of memory.");                                     \
+		Nan::ThrowError("Out of memory");                                     \
 		function_info->db->was_js_error = true;                                \
 		return sqlite3_result_error(ctx, "", 0);                               \
 	}
@@ -133,7 +133,7 @@ void Database::FinishAggregate(sqlite3_context* ctx) {
 		return;
 	}
 	if (agg_info->IsActive()) {
-		agg_info->ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" should only yield once.");
+		agg_info->ThrowTypeError(ctx, function_info, "Custom aggregate \"", function_info->name, "\" should only yield once");
 		return;
 	}
 	

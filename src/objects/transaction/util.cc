@@ -30,7 +30,7 @@ BindMap* Transaction::GetBindMap() {
 NAN_METHOD(Transaction::SafeIntegers) {
 	Transaction* trans = Nan::ObjectWrap::Unwrap<Transaction>(info.This());
 	if (trans->db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
 	if (info.Length() == 0 || info[0]->BooleanValue() == true) {

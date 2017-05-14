@@ -7,7 +7,7 @@ class FunctionInfo : public Functor { public:
 		delete[] name;
 	}
 	void Invoke(void* ctx) {
-		CONCAT3(message, "Custom function \"", name, "\" returned an invalid value.");
+		CONCAT3(message, "Custom function \"", name, "\" returned an invalid value");
 		Nan::ThrowTypeError(message.c_str());
 		db->was_js_error = true;
 		sqlite3_result_error(static_cast<sqlite3_context*>(ctx), "", 0);

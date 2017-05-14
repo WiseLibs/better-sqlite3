@@ -10,10 +10,10 @@ NAN_METHOD(Database::CreateFunction) {
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
 	Nan::Utf8String name(nameString);
@@ -37,7 +37,7 @@ NAN_METHOD(Database::CreateFunction) {
 	
 	int status = sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new FunctionInfo(db, func, *name, argc, safe_integers), xFunc, xStep, xFinal, FunctionInfo::DestroyFunction);
 	if (status != SQLITE_OK) {
-		CONCAT3(message, "Failed to register SQL function (", sqlite3_errmsg(db->db_handle), ").");
+		CONCAT3(message, "Failed to register SQL function (", sqlite3_errmsg(db->db_handle), ")");
 		return Nan::ThrowError(message.c_str());
 	}
 	

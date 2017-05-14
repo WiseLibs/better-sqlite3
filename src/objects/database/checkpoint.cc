@@ -4,10 +4,10 @@ NAN_METHOD(Database::Checkpoint) {
 	TRUTHINESS_OF_ARGUMENT(0, force);
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
 	int total_frames;

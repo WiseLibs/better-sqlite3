@@ -3,7 +3,7 @@
 NAN_METHOD(Statement::All) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (!(stmt->state & RETURNS_DATA)) {
-		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
+		return Nan::ThrowTypeError("This statement does not return data. Use run() instead");
 	}
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, info.Length());
 	const bool safe_integers = (stmt->state & SAFE_INTS) != 0;

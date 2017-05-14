@@ -70,7 +70,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_BOOLEAN(index, var)                                   \
 	if (info.Length() <= (index) || !info[index]->IsBoolean()) {               \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a boolean.");                  \
+			"Expected argument " #index " to be a boolean");                   \
 	}                                                                          \
 	bool var = v8::Local<v8::Boolean>::Cast(info[index])->Value();
 
@@ -80,7 +80,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_STRING(index, var)                                    \
 	if (info.Length() <= (index) || !info[index]->IsString()) {                \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a string.");                   \
+			"Expected argument " #index " to be a string");                    \
 	}                                                                          \
 	v8::Local<v8::String> var = v8::Local<v8::String>::Cast(info[index]);
 
@@ -90,7 +90,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_NUMBER(index, var)                                    \
 	if (info.Length() <= (index) || !info[index]->IsNumber()) {                \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a number.");                   \
+			"Expected argument " #index " to be a number");                    \
 	}                                                                          \
 	double var = v8::Local<v8::Number>::Cast(info[index])->Value();
 
@@ -101,7 +101,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_INT32(index, var)                                     \
 	if (info.Length() <= (index) || !info[index]->IsInt32()) {                 \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a 32-bit signed integer.");    \
+			"Expected argument " #index " to be a 32-bit signed integer");     \
 	}                                                                          \
 	var = v8::Local<v8::Int32>::Cast(info[index])->Value();
 
@@ -111,7 +111,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_FUNCTION(index, var)                                  \
 	if (info.Length() <= (index) || !info[index]->IsFunction()) {              \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be a function.");                 \
+			"Expected argument " #index " to be a function");                  \
 	}                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[index]);
 
@@ -122,7 +122,7 @@ inline const char* COPY(const char* source) {
 	int indexOut = info.Length() - 1;                                          \
 	if (indexOut < 0 || !info[indexOut]->IsFunction()) {                       \
 		return Nan::ThrowTypeError(                                            \
-			"Expected the final argument to be a function.");                  \
+			"Expected the final argument to be a function");                   \
 	}                                                                          \
 	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[indexOut]);
 
@@ -132,7 +132,7 @@ inline const char* COPY(const char* source) {
 #define REQUIRE_ARGUMENT_ARRAY(index, var)                                     \
 	if (info.Length() <= (index) || !info[index]->IsArray()) {                 \
 		return Nan::ThrowTypeError(                                            \
-			"Expected argument " #index " to be an array.");                   \
+			"Expected argument " #index " to be an array");                    \
 	}                                                                          \
 	v8::Local<v8::Array> var = v8::Local<v8::Array>::Cast(info[index]);
 
@@ -183,18 +183,18 @@ inline const char* COPY(const char* source) {
 #define QUERY_START(obj, object_name, BIND_MACRO, info, info_length)           \
 	if (!obj->db->open) {                                                      \
 		return Nan::ThrowTypeError(                                            \
-			"The associated database connection is closed.");                  \
+			"The associated database connection is closed");                   \
 	}                                                                          \
 	if (obj->db->busy) {                                                       \
 		return Nan::ThrowTypeError(                                            \
-			"This database connection is busy executing a query.");            \
+			"This database connection is busy executing a query");             \
 	}                                                                          \
 	if (!(obj->state & CONFIG_LOCKED)) {obj->state |= CONFIG_LOCKED;}          \
 	if (!(obj->state & BOUND)) {                                               \
 		BIND_MACRO(obj, info, info_length);                                    \
 	} else if (info_length > 0) {                                              \
 		return Nan::ThrowTypeError(                                            \
-			"This " #object_name " already has bound parameters.");            \
+			"This " #object_name " already has bound parameters");             \
 	}
 
 // Like QUERY_THROW, but does not return from the caller function.

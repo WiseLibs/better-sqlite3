@@ -5,10 +5,10 @@ NAN_METHOD(Database::CreateStatement) {
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
 	// Construct Statement object.
@@ -30,21 +30,21 @@ NAN_METHOD(Database::CreateStatement) {
 	
 	// Validates the newly created statement.
 	if (status != SQLITE_OK) {
-		CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ").");
+		CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ")");
 		return Nan::ThrowError(message.c_str());
 	}
 	if (stmt->st_handle == NULL) {
-		return Nan::ThrowRangeError("The supplied SQL string contains no statements.");
+		return Nan::ThrowRangeError("The supplied SQL string contains no statements");
 	}
 	if (tail != (const void*)(*utf16 + utf16.length())) {
-		return Nan::ThrowRangeError("The supplied SQL string contains more than one statement.");
+		return Nan::ThrowRangeError("The supplied SQL string contains more than one statement");
 	}
 	
 	// Determine if the sqlite3_stmt returns data or not.
 	if (sqlite3_stmt_readonly(stmt->st_handle) && sqlite3_column_count(stmt->st_handle) >= 1) {
 		stmt->state |= RETURNS_DATA;
 	} else if (db->readonly) {
-		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode");
 	}
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("source"), source, FROZEN);
 	Nan::ForceSet(statement, NEW_INTERNAL_STRING_FAST("database"), info.This(), FROZEN);

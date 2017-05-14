@@ -31,10 +31,10 @@ NAN_METHOD(Database::Pragma) {
 	TRUTHINESS_OF_ARGUMENT(1, simple_result);
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	
 	// Prepares the SQL string.

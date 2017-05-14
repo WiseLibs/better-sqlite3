@@ -3,7 +3,7 @@
 NAN_METHOD(Statement::Each) {
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (!(stmt->state & RETURNS_DATA)) {
-		return Nan::ThrowTypeError("This statement does not return data. Use run() instead.");
+		return Nan::ThrowTypeError("This statement does not return data. Use run() instead");
 	}
 	REQUIRE_LAST_ARGUMENT_FUNCTION(func_index, callback);
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);

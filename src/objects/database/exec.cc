@@ -4,13 +4,13 @@ NAN_METHOD(Database::Exec) {
 	REQUIRE_ARGUMENT_STRING(0, source);
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	if (db->readonly) {
-		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode");
 	}
 	
 	// Prepares the SQL string.

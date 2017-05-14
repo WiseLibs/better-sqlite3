@@ -152,7 +152,7 @@ describe('Database#register()', function () {
 				expect(ex).to.equal(exception);
 				return;
 			}
-			throw new TypeError('Expected registered function to throw an exception.');
+			throw new TypeError('Expected registered function to throw an exception');
 		}
 		expectError('i1', new TypeError('foobar'));
 		expectError('i2', new Error('baz'));
@@ -220,7 +220,7 @@ describe('Database#register()', function () {
 				expect(ex.message.indexOf('SQLite: ')).to.equal(0);
 				return;
 			}
-			throw new TypeError('Expected the statement to throw an exception.');
+			throw new TypeError('Expected the statement to throw an exception');
 		});
 	});
 	describe('should be able to register aggregate functions', function () {

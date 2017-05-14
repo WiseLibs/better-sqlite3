@@ -29,7 +29,7 @@ int Binder::BindArgs(Nan::NAN_METHOD_ARGS_TYPE info, int len, Query* query) {
 			v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 			if (IsPlainObject(obj)) {
 				if (bound_object) {
-					error = COPY("You cannot specify named parameters in two different objects.");
+					error = COPY("You cannot specify named parameters in two different objects");
 					return count;
 				}
 				bound_object = true;

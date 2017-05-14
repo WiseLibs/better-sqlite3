@@ -5,21 +5,21 @@ NAN_METHOD(Database::CreateTransaction) {
 	
 	Database* db = Nan::ObjectWrap::Unwrap<Database>(info.This());
 	if (!db->open) {
-		return Nan::ThrowTypeError("The database connection is not open.");
+		return Nan::ThrowTypeError("The database connection is not open");
 	}
 	if (db->busy) {
-		return Nan::ThrowTypeError("This database connection is busy executing a query.");
+		return Nan::ThrowTypeError("This database connection is busy executing a query");
 	}
 	if (db->readonly) {
-		return Nan::ThrowTypeError("This operation is not available while in readonly mode.");
+		return Nan::ThrowTypeError("This operation is not available while in readonly mode");
 	}
 	
 	unsigned int len = sources->Length();
 	if (!(len > 0)) {
-		return Nan::ThrowRangeError("No SQL statements were provided.");
+		return Nan::ThrowRangeError("No SQL statements were provided");
 	}
 	if (len > max_transaction_length) {
-		return Nan::ThrowRangeError("Too many SQL statements were provided.");
+		return Nan::ThrowRangeError("Too many SQL statements were provided");
 	}
 	v8::Local<v8::Array> digestedSources = Nan::New<v8::Array>(len);
 	
@@ -32,7 +32,7 @@ NAN_METHOD(Database::CreateTransaction) {
 		}
 		v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
 		if (!value->IsString()) {
-			return Nan::ThrowTypeError("Expected each item in the given array to be a string.");
+			return Nan::ThrowTypeError("Expected each item in the given array to be a string");
 		}
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast(value);
 		v8::String::Value utf16(source);
@@ -47,7 +47,7 @@ NAN_METHOD(Database::CreateTransaction) {
 	v8::Local<v8::Value> joinArgs[1] = {Nan::New("\n").ToLocalChecked()};
 	INVOKE_METHOD(joinedSource, digestedSources, "join", 1, joinArgs)
 	if (!joinedSource->IsString()) {
-		return Nan::ThrowTypeError("Expected Array.prototype.join to return a string.");
+		return Nan::ThrowTypeError("Expected Array.prototype.join to return a string");
 	}
 	
 	
@@ -72,17 +72,17 @@ NAN_METHOD(Database::CreateTransaction) {
 		
 		// Validates the newly created statement.
 		if (status != SQLITE_OK) {
-			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ").");
+			CONCAT3(message, "Failed to construct SQL statement (", sqlite3_errmsg(db->db_handle), ")");
 			return Nan::ThrowError(message.c_str());
 		}
 		if (trans->handles[i] == NULL) {
-			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements.");
+			return Nan::ThrowTypeError("One of the supplied SQL strings contains no statements");
 		}
 		if (tail != (const void*)(*utf16 + utf16.length())) {
-			return Nan::ThrowRangeError("Each provided string may only contain a single SQL statement.");
+			return Nan::ThrowRangeError("Each provided string may only contain a single SQL statement");
 		}
 		if (sqlite3_stmt_readonly(trans->handles[i])) {
-			return Nan::ThrowTypeError("Transactions cannot contain read-only statements.");
+			return Nan::ThrowTypeError("Transactions cannot contain read-only statements");
 		}
 	}
 	Nan::ForceSet(transaction, NEW_INTERNAL_STRING_FAST("source"), joinedSource, FROZEN);

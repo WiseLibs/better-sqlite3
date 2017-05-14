@@ -23,7 +23,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 			return i;
 		}
 		if (!has_property.FromJust()) {
-			CONCAT3(message, "Missing named parameter \"", pairs[i].name, "\".");
+			CONCAT3(message, "Missing named parameter \"", pairs[i].name, "\"");
 			error = COPY(message.c_str());
 			return i;
 		}

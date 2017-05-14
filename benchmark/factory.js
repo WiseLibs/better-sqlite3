@@ -61,7 +61,7 @@ var getFakeData = (function () {
 	function getColumn(column) {
 		if (!this.hasOwnProperty(column)) {
 			var table = this === largeData ? 'large' : 'small';
-			throw new TypeError('No data defined for column "' + table + '.' + column + '".');
+			throw new TypeError('No data defined for column "' + table + '.' + column + '"');
 		}
 		return this[column];
 	}

@@ -105,10 +105,10 @@ describe('Statement#each()', function () {
 	it('should not invoke the callback when no rows were found', function () {
 		var stmt = db.prepare("SELECT * FROM entries WHERE b == 999");
 		stmt.each(function () {
-			throw new Error('This callback should not have been invoked.')
+			throw new Error('This callback should not have been invoked')
 		});
 		stmt.pluck().each(function () {
-			throw new Error('This callback should not have been invoked.')
+			throw new Error('This callback should not have been invoked')
 		});
 	});
 	it('should not allow other database operations to execute in the callback', function () {
@@ -162,7 +162,7 @@ describe('Statement#each()', function () {
 		shouldHave(SQL2, row, [{a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: undefined}])
 		
 		db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xaa), e: undefined}, function () {
-			throw new Error('This callback should not have been invoked.');
+			throw new Error('This callback should not have been invoked');
 		});
 		
 		expect(function () {
