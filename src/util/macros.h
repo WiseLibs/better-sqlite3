@@ -3,7 +3,6 @@
 
 #include <cstdint>
 #include <cstring>
-#include <cmath>
 #include <string>
 #include <sqlite3.h>
 #include <nan.h>
@@ -16,12 +15,6 @@
 #define SAFE_INTS 0x8
 #define PLUCK_COLUMN 0x10
 #define RETURNS_DATA 0x20
-#define VARARGS 0x40
-
-// Given a double, returns whether the number is a positive integer.
-inline bool IS_POSITIVE_INTEGER(double num) {
-	return floor(num) == num && num >= 0.0;
-}
 
 // Copies a C-String into the heap and returns a pointer to it.
 inline const char* COPY(const char* source) {
