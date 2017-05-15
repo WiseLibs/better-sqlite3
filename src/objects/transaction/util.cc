@@ -16,7 +16,7 @@ BindMap* Transaction::GetBindMap() {
 					if (bind_map->length == capacity) {
 						bind_map->Grow(&capacity);
 					}
-					bind_map->Add(std::string(name + 1), i, h);
+					bind_map->Add(name + 1, i, h);
 				}
 			}
 		}

@@ -21,13 +21,13 @@ class BindMap { public:
 	static inline int GetTransactionIndex(int index) {
 		return index >> parameter_bits;
 	}
-	inline void Add(std::string name, int index) {
-		pairs[length].name = name;
+	inline void Add(const char* name, int index) {
+		pairs[length].name = std::string(name);
 		pairs[length].index = index;
 		length += 1;
 	}
-	inline void Add(std::string name, int parameter_index, int transaction_index) {
-		pairs[length].name = name;
+	inline void Add(const char* name, int parameter_index, int transaction_index) {
+		pairs[length].name = std::string(name);
 		pairs[length].index = parameter_index | (transaction_index << parameter_bits);
 		length += 1;
 	}

@@ -13,7 +13,7 @@ BindMap* Statement::GetBindMap() {
 				if (bind_map->length == capacity) {
 					bind_map->Grow(&capacity);
 				}
-				bind_map->Add(std::string(name + 1), i);
+				bind_map->Add(name + 1, i);
 			}
 		}
 		state |= HAS_BIND_MAP;
