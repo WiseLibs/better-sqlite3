@@ -15,14 +15,14 @@ const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
 const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
 const sqlite3_uint64 U32_in_U64 = (sqlite3_uint64)0xffffffff;
 
-class Int64 : public node::ObjectWrap {
+class Int64 : public Nan::ObjectWrap {
 public:
-	explicit Int64(int32_t _low, int32_t _high) : node::ObjectWrap() {
+	explicit Int64(int32_t _low, int32_t _high) : Nan::ObjectWrap() {
 		low = _low;
 		high = _high;
 		full = (sqlite3_int64)((((sqlite3_uint64)((uint32_t)_high)) << 32) | (uint32_t)_low);
 	}
-	explicit Int64(sqlite3_int64 _full) : node::ObjectWrap() {
+	explicit Int64(sqlite3_int64 _full) : Nan::ObjectWrap() {
 		low = (int32_t)((uint32_t)(((sqlite3_uint64)_full) & U32_in_U64));
 		high = (int32_t)((uint32_t)(((sqlite3_uint64)_full) >> 32));
 		full = _full;
@@ -39,6 +39,7 @@ public:
 		
 		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
 		constructorTemplate.Reset(exports->GetIsolate(), t);
+		fast_construct_int = NULL;
 		
 		Nan::Set(exports, NEW_INTERNAL_STRING_FAST("Int64"), Nan::GetFunction(t).ToLocalChecked());
 	}
@@ -46,7 +47,7 @@ public:
 	static inline v8::Local<v8::Value> NewProperInteger(sqlite3_int64 value, bool safe_integers) {
 		v8::Isolate* isolate = v8::Isolate::GetCurrent();
 		if (safe_integers) {
-			FastConstructInt = &value;
+			fast_construct_int = &value;
 			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
 		}
 		return v8::Number::New(isolate, static_cast<double>(value));
@@ -65,16 +66,16 @@ public:
 private:
 	static v8::Persistent<v8::Function> constructor;
 	static v8::Persistent<v8::FunctionTemplate> constructorTemplate;
-	static sqlite3_int64* FastConstructInt;
+	static sqlite3_int64* fast_construct_int;
 	
 	sqlite3_int64 full;
 	int32_t low;
 	int32_t high;
 	
-	static NAN_METHOD(JS_new) {
-		if (FastConstructInt != NULL) {
-			Int64* int64 = new Int64(*FastConstructInt);
-			FastConstructInt = NULL;
+	static void JS_new(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+		if (fast_construct_int != NULL) {
+			Int64* int64 = new Int64(*fast_construct_int);
+			fast_construct_int = NULL;
 			int64->Wrap(info.This());
 			return info.GetReturnValue().Set(info.This());
 		}
@@ -104,19 +105,19 @@ private:
 		int64->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	}
-	static NAN_GETTER(JS_low) {
-		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), node::ObjectWrap::Unwrap<Int64>(info.This())->low));
+	static void JS_low(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info) {
+		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), Nan::ObjectWrap::Unwrap<Int64>(info.This())->low));
 	}
-	static NAN_GETTER(JS_high) {
-		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), node::ObjectWrap::Unwrap<Int64>(info.This())->high));
+	static void JS_high(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info) {
+		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), Nan::ObjectWrap::Unwrap<Int64>(info.This())->high));
 	}
-	static NAN_METHOD(JS_toString) {
+	static void JS_toString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
 		v8::Isolate* const isolate = info.GetIsolate();
-		std::string string = std::to_string(static_cast<long long>(node::ObjectWrap::Unwrap<Int64>(info.This())->full));
+		std::string string = std::to_string(static_cast<long long>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full));
 		info.GetReturnValue().Set(StringFromLatin1(isolate, string.c_str(), string.length()));
 	}
-	static NAN_METHOD(JS_valueOf) {
-		sqlite3_int64 full = node::ObjectWrap::Unwrap<Int64>(info.This())->full;
+	static void JS_valueOf(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+		sqlite3_int64 full = Nan::ObjectWrap::Unwrap<Int64>(info.This())->full;
 		if (full <= MAX_SAFE && full >= MIN_SAFE) {
 			info.GetReturnValue().Set(v8::Number::New(info.GetIsolate(), static_cast<double>(full)));
 		} else {
@@ -124,7 +125,3 @@ private:
 		}
 	}
 };
-
-sqlite3_int64* Int64::FastConstructInt = NULL;
-v8::Persistent<v8::Function> Int64::constructor;
-v8::Persistent<v8::FunctionTemplate> Int64::constructorTemplate;
