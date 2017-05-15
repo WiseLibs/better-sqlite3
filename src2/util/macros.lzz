@@ -1,4 +1,5 @@
-#define NODE_METHOD(name) static void name(const Nan::FunctionCallbackInfo<v8::Value>& info)
+#define Arguments const Nan::FunctionCallbackInfo<v8::Value>&
+#define NODE_METHOD(name) static void name(Arguments info)
 #define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info)
 #define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Local<v8::Object> exports)
 
@@ -26,13 +27,13 @@ inline void ThrowTypeError(const char* message) {
 	isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
 
-#define REQUIRE_ARGUMENT(at, var, Type, message, after)                        \
+#define _REQUIRE_ARGUMENT(at, var, Type, message, after)                       \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
 		return ThrowTypeError("Expected "#at" arguement to be a "#message);    \
 	var = v8::Local<v8::Type>::Cast(info[at()])after
 
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \
-	REQUIRE_ARGUMENT(at, var, Int32, 32-bit signed integer, ->Value())
+	_REQUIRE_ARGUMENT(at, var, Int32, 32-bit signed integer, ->Value())
 
 #define first() 0
 #define second() 1
@@ -44,4 +45,31 @@ inline void ThrowTypeError(const char* message) {
 #define eighth() 7
 #define ninth() 8
 #define tenth() 9
+
+// Copies a C-String into the heap and returns a pointer to it.
+inline const char* COPY(const char* source) {
+	size_t bytes = strlen(source) + 1;
+	char* dest = new char[bytes];
+	strlcpy(dest, source, bytes);
+	return dest;
+}
+
+// Creates a stack-allocated std:string of the concatenation of 2 well-formed
+// C-strings.
+#define CONCAT2(result, a, b)                                                  \
+	std::string result(a);                                                     \
+	result += b
+
+// Creates a stack-allocated std:string of the concatenation of 3 well-formed
+// C-strings.
+#define CONCAT3(result, a, b, c)                                               \
+	std::string result(a);                                                     \
+	result += b;                                                               \
+	result += c
+
+#define ALLOC_ARRAY(Type, count)                                               \
+	static_cast<Type*>(::operator new[]((count) * sizeof(Type)))
+
+#define FREE_ARRAY(array_pointer)                                              \
+	::operator delete[](array_pointer)
 

@@ -1,7 +1,6 @@
 #ifndef BETTER_SQLITE3_SQL_ROPE_H
 #define BETTER_SQLITE3_SQL_ROPE_H
 
-#include <cstdlib>
 #include <cstring>
 #include <stdint.h>
 
@@ -19,11 +18,11 @@ class RopeNode { public:
 class SQLRope {
 public:
 	explicit SQLRope(unsigned int capacity) : weight(0), length(0) {
-		nodes = static_cast<RopeNode*>(malloc(capacity * sizeof(RopeNode)));
+		nodes = ALLOC_ARRAY(RopeNode, capacity);
 	}
 	~SQLRope() {
 		while (length) {nodes[--length].~RopeNode();}
-		free(nodes);
+		FREE_ARRAY(nodes);
 	}
 	inline void Push(v8::Local<v8::String> string) {
 		RopeNode* node = new (nodes + length++) RopeNode(string);

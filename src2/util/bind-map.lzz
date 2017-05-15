@@ -1,0 +1,78 @@
+class BindMap {
+public:
+	
+	class Pair {
+		friend class BindMap;
+		public:
+			
+			inline int GetIndex() {
+				return index;
+			}
+			
+			inline v8::Local<v8::String> GetName(v8::Isolate* isolate) {
+				return v8::Local<v8::String>::New(isolate, name);
+			}
+			
+		private:
+			explicit Pair(v8::Isolate* isolate, const char* _name, int _index)
+				: name(isolate, InternalizedFromUtf8(isolate, _name, -1)), index(_index) {}
+			
+			explicit Pair(v8::Isolate* isolate, Pair* pair)
+				: name(isolate, pair->name), index(pair->index) {}
+			
+			~Pair() {name.Reset();}
+			
+			v8::Persistent<v8::String> name;
+			const int index;
+	};
+	
+	explicit BindMap() {
+		pairs = NULL;
+		capacity = 0;
+		length = 0;
+	}
+	
+	~BindMap() {
+		while (length) {pairs[--length].~Pair();}
+		FREE_ARRAY(pairs);
+	}
+	
+	inline Pair* GetPairs() {return pairs;}
+	inline int GetLength() {return length;}
+	
+	void Add(v8::Isolate* isolate, const char* name, int index) {
+		if (capacity == length) Grow(isolate);
+		new (pairs + length++) Pair(isolate, name, index);
+	}
+	
+	void Add(v8::Isolate* isolate, const char* name, int parameter_index, int transaction_index) {
+		Add(isolate, name, parameter_index | (transaction_index << parameter_bits));
+	}
+	
+	static const int parameter_bits = 10;
+	static const int parameter_mask = (1 << parameter_bits) - 1;
+	static const int max_transaction_length = (1 << ((sizeof(int) * 8) - parameter_bits)) - 1;
+	
+	static inline int GetParameterIndex(int index) {
+		return index & parameter_mask;
+	}
+	static inline int GetTransactionIndex(int index) {
+		return index >> parameter_bits;
+	}
+	
+private:
+	void Grow(v8::Isolate* isolate) {
+		assert(capacity == length);
+		capacity = (capacity << 1) | 2;
+		Pair* new_pairs = ALLOC_ARRAY(Pair, capacity);
+		for (int i=0; i<length; ++i) {
+			new (new_pairs + i) Pair(isolate, pairs + i);
+		}
+		delete[] pairs;
+		pairs = new_pairs;
+	}
+	
+	Pair* pairs;
+	int capacity;
+	int length;
+};

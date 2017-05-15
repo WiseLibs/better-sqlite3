@@ -7,7 +7,10 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #end
 
 #insert "util/macros.lzz"
+#insert "util/bind-map.lzz"
 #insert "objects/int64/int64.lzz"
+#insert "objects/query.lzz"
+#insert "binder/binder.lzz"
 
 void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	EasyHandleScope;

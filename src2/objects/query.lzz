@@ -1,0 +1,25 @@
+class Query {
+public:
+	
+	virtual BindMap* GetBindMap() {
+		return &extras->bind_map;
+	}
+	
+	class Compare { public:
+		bool operator() (const Query* a, const Query* b) const {
+			return a->extras->id < b->extras->id;
+		}
+	};
+	
+protected:
+	class QueryExtras { private: friend class Query;
+		explicit QueryExtras() : bind_map() {}
+		BindMap bind_map;
+		sqlite3_uint64 id;
+	};
+	
+	explicit Query() : extras(new QueryExtras()) {}
+	~Query() {delete extras;}
+	
+	QueryExtras* const extras;
+};

@@ -1,0 +1,188 @@
+class Binder {
+public:
+	
+	explicit Binder(sqlite3_stmt* _handle) {
+		handle = _handle;
+		error = NULL;
+		param_count = sqlite3_bind_parameter_count(_handle);
+		anon_index = 0;
+	}
+	
+	~Binder() {
+		delete[] error;
+	}
+	
+	inline const char* GetError() {
+		return error;
+	}
+	
+	virtual void Bind(Arguments info, int argc, Query* query) {
+		assert(anon_index == 0);
+		int result = BindArgs(info, argc, query);
+		int count = result >> 1;
+		if (!error && count != param_count) {
+			if (count < param_count) {
+				if (!(result & 1) && query->GetBindMap()->GetLength()) {
+					SetError("Missing named parameters");
+				} else {
+					SetError("Too few parameter values were provided");
+				}
+			} else {
+				SetError("Too many parameter values were provided");
+			}
+		}
+	}
+	
+protected:
+	static bool IsPlainObject(v8::Local<v8::Object> obj) {
+		v8::Local<v8::Value> proto = obj->GetPrototype();
+		v8::Local<v8::Context> ctx = obj->CreationContext();
+		ctx->Enter();
+		EasyIsolate;
+		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
+		ctx->Exit();
+		return proto->StrictEquals(baseProto) || proto->StrictEquals(Nan::Null());
+	}
+	
+	void SetError(const char* message) {
+		assert(error == NULL);
+		assert(message != NULL);
+		error = COPY(message);
+	}
+	
+	virtual int NextAnonIndex() {
+		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+		return anon_index;
+	}
+	
+	// Binds the value at the given index or sets an appropriate error message.
+	void BindValue(v8::Local<v8::Value> value, int index) {
+		int status = Data::BindValueFromJS(handle, index, value);
+		if (status != SQLITE_OK) {
+			switch (status) {
+				case -1:
+					return SetError("SQLite3 can only bind numbers, strings, Buffers, and null");
+				case SQLITE_RANGE:
+					return SetError("Too many parameter values were provided");
+				case SQLITE_TOOBIG:
+					return SetError("The bound string or Buffer is too big");
+				case SQLITE_NOMEM:
+					return SetError("Out of memory");
+				default:
+					return SetError("An unexpected error occured while trying to bind parameters");
+			}
+		}
+	}
+	
+	// Binds each value in the array or sets an appropriate error message.
+	// The number of successfully bound parameters is returned.
+	int BindArray(v8::Local<v8::Array> arr) {
+		unsigned int length = arr->Length();
+		if (length > 0x7ffffffeU) {
+			SetError("Too many parameter values were provided");
+			return 0;
+		}
+		int len = static_cast<int>(length);
+		for (int i=0; i<len; ++i) {
+			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
+			if (maybeValue.IsEmpty()) {
+				SetError("");
+				return i;
+			}
+			BindValue(maybeValue.ToLocalChecked(), NextAnonIndex());
+			if (error) {
+				return i;
+			}
+		}
+		return len;
+	}
+	
+	// Binds all named parameters using the values found in the given object.
+	// The number of successfully bound parameters is returned.
+	// If a named parameter is missing from the object, an error message is set.
+	// This should only be invoked once per instance.
+	virtual int BindObject(v8::Local<v8::Object> obj, BindMap* bind_map) {
+		int len = bind_map->GetLength();
+		BindMap::Pair* pairs = bind_map->GetPairs();
+		EasyIsolate;
+		
+		for (int i=0; i<len; ++i) {
+			v8::Local<v8::String> key = pairs[i].GetName(isolate);
+			
+			// Check if the named parameter was provided.
+			v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
+			if (has_property.IsNothing()) {
+				SetError("");
+				return i;
+			}
+			if (!has_property.FromJust()) {
+				v8::String::Utf8Value param_name(key);
+				CONCAT3(message, "Missing named parameter \"", *param_name, "\"");
+				SetError(message.c_str());
+				return i;
+			}
+			
+			// Get the current property value.
+			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
+			if (maybeValue.IsEmpty()) {
+				SetError("");
+				return i;
+			}
+			
+			BindValue(maybeValue.ToLocalChecked(), pairs[i].GetIndex());
+			if (error) {
+				return i;
+			}
+		}
+		
+		return len;
+	}
+	
+	// Binds all parameters using the values found in the Arguments object.
+	// Anonymous parameter values can be directly in the Arguemnts object or in an Array.
+	// Named parameter values can be provided in a plain Object argument.
+	// Only one plain Object argument may be provided.
+	// If an error occurs, an appropriate error message is set.
+	// The return value is a number whose first bit indicates whether it tried to bind an object,
+	// and whose other 31 bits indicate the number of parameters that were successfully bound.
+	int BindArgs(Arguments info, int argc, Query* query) {
+		bool bound_object = false;
+		int count = 0;
+		
+		for (int i=0; i<argc; ++i) {
+			v8::Local<v8::Value> arg = info[i];
+			
+			if (arg->IsArray()) {
+				count += BindArray(v8::Local<v8::Array>::Cast(arg));
+				if (error) break;
+				continue;
+			}
+			
+			if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
+				v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
+				if (IsPlainObject(obj)) {
+					if (bound_object) {
+						SetError("You cannot specify named parameters in two different objects");
+						break;
+					}
+					bound_object = true;
+					
+					count += BindObject(obj, query->GetBindMap());
+					if (error) break;
+					continue;
+				}
+			}
+			
+			BindValue(arg, NextAnonIndex());
+			if (error) break;
+			count += 1;
+		}
+		
+		return (count << 1) | static_cast<int>(bound_object);
+	}
+	
+	sqlite3_stmt* handle;
+	const char* error; // This value should only be set by SetError()
+	int param_count;
+	int anon_index; // This value should only be used by NextAnonIndex()
+};
