@@ -13,5 +13,5 @@ protected:
 	sqlite3_stmt** const handles;
 	unsigned int const handle_count;
 	unsigned int handle_index;
-	int param_count_sum;
+	unsigned int param_count_sum;
 };
