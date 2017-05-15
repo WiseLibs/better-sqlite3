@@ -1,0 +1,22 @@
+#define NODE_METHOD(name) static void name(const Nan::FunctionCallbackInfo<v8::Value>& info)
+#define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info)
+#define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Local<v8::Object> exports)
+
+#define EasyHandleScope v8::HandleScope scope(v8::Isolate::GetCurrent())
+#define NewHandleScope v8::HandleScope scope(isolate)
+#define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
+#define UseIsolate v8::Isolate* isolate = info.GetIsolate()
+#define OnlyIsolate info.GetIsolate()
+
+inline v8::Local<v8::String> NEW_INTERNAL_STRING_FAST(const char* data) {
+	return v8::String::NewFromOneByte(v8::Isolate::GetCurrent(), reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
+}
+inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kNormal, length).ToLocalChecked();
+}
+inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
+}
+inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
+}

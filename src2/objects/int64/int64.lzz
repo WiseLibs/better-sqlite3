@@ -1,22 +1,25 @@
-inline v8::Local<v8::String> NEW_INTERNAL_STRING_FAST(const char* data) {
-	return v8::String::NewFromOneByte(v8::Isolate::GetCurrent(), reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
-}
-inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* data, int length) {
-	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kNormal, length).ToLocalChecked();
-}
-inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
-	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
-}
-inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
-	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
-}
-
-const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
-const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
-const sqlite3_uint64 U32_in_U64 = (sqlite3_uint64)0xffffffff;
-
 class Int64 : public Nan::ObjectWrap {
 public:
+	
+	static inline v8::Local<v8::Value> NewProperInteger(sqlite3_int64 value, bool safe_integers) {
+		EasyIsolate;
+		if (safe_integers) {
+			fast_construct_int = &value;
+			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+		}
+		return v8::Number::New(isolate, static_cast<double>(value));
+	}
+	
+	static inline bool HasInstance(v8::Local<v8::Value> value) {
+		EasyIsolate;
+		return v8::Local<v8::FunctionTemplate>::New(isolate, constructorTemplate)->HasInstance(value);
+	}
+	
+	inline sqlite3_int64 GetValue() {
+		return full;
+	}
+	
+private:
 	explicit Int64(int32_t _low, int32_t _high) : Nan::ObjectWrap() {
 		low = _low;
 		high = _high;
@@ -27,7 +30,7 @@ public:
 		high = (int32_t)((uint32_t)(((sqlite3_uint64)_full) >> 32));
 		full = _full;
 	}
-	static void Init(v8::Local<v8::Object> exports) {
+	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(NEW_INTERNAL_STRING_FAST("Int64"));
@@ -43,36 +46,7 @@ public:
 		
 		Nan::Set(exports, NEW_INTERNAL_STRING_FAST("Int64"), Nan::GetFunction(t).ToLocalChecked());
 	}
-	
-	static inline v8::Local<v8::Value> NewProperInteger(sqlite3_int64 value, bool safe_integers) {
-		v8::Isolate* isolate = v8::Isolate::GetCurrent();
-		if (safe_integers) {
-			fast_construct_int = &value;
-			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
-		}
-		return v8::Number::New(isolate, static_cast<double>(value));
-	}
-	
-	static inline bool HasInstance(v8::Local<v8::Value> value) {
-		v8::Isolate* isolate = v8::Isolate::GetCurrent();
-		v8::Local<v8::FunctionTemplate> Int64Template = v8::Local<v8::FunctionTemplate>::New(isolate, constructorTemplate);
-		return Int64Template->HasInstance(value);
-	}
-	
-	inline sqlite3_int64 GetValue() {
-		return full;
-	}
-	
-private:
-	static v8::Persistent<v8::Function> constructor;
-	static v8::Persistent<v8::FunctionTemplate> constructorTemplate;
-	static sqlite3_int64* fast_construct_int;
-	
-	sqlite3_int64 full;
-	int32_t low;
-	int32_t high;
-	
-	static void JS_new(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+	NODE_METHOD(JS_new) {
 		if (fast_construct_int != NULL) {
 			Int64* int64 = new Int64(*fast_construct_int);
 			fast_construct_int = NULL;
@@ -105,23 +79,33 @@ private:
 		int64->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	}
-	static void JS_low(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info) {
-		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), Nan::ObjectWrap::Unwrap<Int64>(info.This())->low));
+	NODE_GETTER(JS_low) {
+		info.GetReturnValue().Set(v8::Int32::New(OnlyIsolate, Nan::ObjectWrap::Unwrap<Int64>(info.This())->low));
 	}
-	static void JS_high(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info) {
-		info.GetReturnValue().Set(v8::Int32::New(info.GetIsolate(), Nan::ObjectWrap::Unwrap<Int64>(info.This())->high));
+	NODE_GETTER(JS_high) {
+		info.GetReturnValue().Set(v8::Int32::New(OnlyIsolate, Nan::ObjectWrap::Unwrap<Int64>(info.This())->high));
 	}
-	static void JS_toString(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-		v8::Isolate* const isolate = info.GetIsolate();
+	NODE_METHOD(JS_toString) {
 		std::string string = std::to_string(static_cast<long long>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full));
-		info.GetReturnValue().Set(StringFromLatin1(isolate, string.c_str(), string.length()));
+		info.GetReturnValue().Set(StringFromLatin1(OnlyIsolate, string.c_str(), string.length()));
 	}
-	static void JS_valueOf(const Nan::FunctionCallbackInfo<v8::Value>& info) {
+	NODE_METHOD(JS_valueOf) {
 		sqlite3_int64 full = Nan::ObjectWrap::Unwrap<Int64>(info.This())->full;
 		if (full <= MAX_SAFE && full >= MIN_SAFE) {
-			info.GetReturnValue().Set(v8::Number::New(info.GetIsolate(), static_cast<double>(full)));
+			info.GetReturnValue().Set(v8::Number::New(OnlyIsolate, static_cast<double>(full)));
 		} else {
-			info.GetReturnValue().Set(v8::Number::New(info.GetIsolate(), std::numeric_limits<double>::quiet_NaN()));
+			info.GetReturnValue().Set(v8::Number::New(OnlyIsolate, std::numeric_limits<double>::quiet_NaN()));
 		}
 	}
+	
+	static const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
+	static const sqlite3_int64 MIN_SAFE = (sqlite3_int64)-9007199254740991;
+	static const sqlite3_uint64 U32_in_U64 = (sqlite3_uint64)0xffffffff;
+	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::FunctionTemplate> constructorTemplate;
+	static sqlite3_int64* fast_construct_int;
+	
+	sqlite3_int64 full;
+	int32_t low;
+	int32_t high;
 };
