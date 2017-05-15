@@ -51,7 +51,7 @@ Database::~Database() {
 	
 	CloseHandles();
 }
-void Database::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
+void Database::Init(v8::Local<v8::Object> exports) {
 	v8HandleScope;
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);

@@ -17,14 +17,7 @@
         ],
       },
       "sources": [
-        "src/objects/int64/int64.cc",
-        "src/util/data.cc",
-        "src/objects/database/database.cc",
-        "src/objects/statement/statement.cc",
-        "src/objects/transaction/transaction.cc",
-        "src/binder/binder.cc",
-        "src/multi-binder/multi-binder.cc",
-        "src/better_sqlite3.cc"
+        "src2/better_sqlite3.cpp"
       ]
     }
   ]

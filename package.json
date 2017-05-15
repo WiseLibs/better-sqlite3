@@ -30,7 +30,7 @@
     "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
     "posttest": "rm -r ./temp/",
     "benchmark": "node benchmark",
-    "rebuild": "CI=true ./tools/build && node tools/install",
+    "rebuild": "CI=true ./tools/build && node tools/install"
   },
   "license": "MIT",
   "keywords": [
