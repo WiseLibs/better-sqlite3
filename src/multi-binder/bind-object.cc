@@ -14,7 +14,7 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 	sqlite3_stmt* current_handle = handle;
 	
 	for (int i=0; i<len; ++i) {
-		v8::Local<v8::String> key = pairs[i].name.Get(isolate);
+		v8::Local<v8::String> key = v8::Local<v8::String>::New(isolate, pairs[i].name);
 		
 		// Check if the named parameter was provided.
 		v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
