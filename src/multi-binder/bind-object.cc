@@ -8,12 +8,13 @@
 int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 	int len = bindMap->length;
 	BindPair* pairs = bindMap->pairs;
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
 	
 	// Save current handle.
 	sqlite3_stmt* current_handle = handle;
 	
 	for (int i=0; i<len; ++i) {
-		v8::Local<v8::String> key = Nan::New(pairs[i].name).ToLocalChecked();
+		v8::Local<v8::String> key = v8::Local<v8::String>::New(isolate, pairs[i].name);
 		
 		// Check if the named parameter was provided.
 		v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
@@ -22,7 +23,8 @@ int MultiBinder::BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 			return i;
 		}
 		if (!has_property.FromJust()) {
-			CONCAT3(message, "Missing named parameter \"", pairs[i].name, "\"");
+			v8::String::Utf8Value param_name(key);
+			CONCAT3(message, "Missing named parameter \"", *param_name, "\"");
 			error = COPY(message.c_str());
 			return i;
 		}

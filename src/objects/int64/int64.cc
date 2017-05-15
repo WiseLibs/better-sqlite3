@@ -23,18 +23,17 @@ void Int64::Init(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	
 	v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(New);
 	t->InstanceTemplate()->SetInternalFieldCount(1);
-	t->SetClassName(Nan::New("Int64").ToLocalChecked());
+	t->SetClassName(NEW_INTERNAL_STRING_FAST("Int64"));
 	
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("low").ToLocalChecked(), Low);
-	Nan::SetAccessor(t->InstanceTemplate(), Nan::New("high").ToLocalChecked(), High);
+	Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("low"), Low);
+	Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("high"), High);
 	Nan::SetPrototypeMethod(t, "toString", ToString);
 	Nan::SetPrototypeMethod(t, "valueOf", ValueOf);
 	
 	constructor.Reset(Nan::GetFunction(t).ToLocalChecked());
 	constructorTemplate.Reset(t);
 	
-	Nan::Set(exports, Nan::New("Int64").ToLocalChecked(),
-		Nan::GetFunction(t).ToLocalChecked());
+	Nan::Set(exports, NEW_INTERNAL_STRING_FAST("Int64"), Nan::GetFunction(t).ToLocalChecked());
 }
 sqlite3_int64* Int64::FastConstructInt = NULL;
 CONSTRUCTOR(Int64::constructor);
@@ -75,9 +74,9 @@ NAN_GETTER(Int64::High) {
 	);
 }
 NAN_METHOD(Int64::ToString) {
-	info.GetReturnValue().Set(Nan::New(
-		std::to_string(static_cast<long long>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full)).c_str()
-	).ToLocalChecked());
+	GET_ISOLATE();
+	std::string string = std::to_string(static_cast<long long>(Nan::ObjectWrap::Unwrap<Int64>(info.This())->full));
+	info.GetReturnValue().Set(StringFromLatin1(isolate, string.c_str(), string.length()));
 }
 NAN_METHOD(Int64::ValueOf) {
 	Int64* int64 = Nan::ObjectWrap::Unwrap<Int64>(info.This());

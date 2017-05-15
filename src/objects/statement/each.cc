@@ -1,6 +1,7 @@
 // .each(...any boundValues, function callback) -> undefined
 
 NAN_METHOD(Statement::Each) {
+	GET_ISOLATE();
 	Statement* stmt = Nan::ObjectWrap::Unwrap<Statement>(info.This());
 	if (!(stmt->state & RETURNS_DATA)) {
 		return Nan::ThrowTypeError("This statement does not return data. Use run() instead");
@@ -9,7 +10,6 @@ NAN_METHOD(Statement::Each) {
 	QUERY_START(stmt, statement, STATEMENT_BIND, info, func_index);
 	const bool safe_integers = (stmt->state & SAFE_INTS) != 0;
 	const bool pluck = (stmt->state & PLUCK_COLUMN) != 0;
-	v8::Isolate* const isolate = info.GetIsolate();
 	
 	stmt->db->busy = true;
 	

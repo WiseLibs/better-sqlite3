@@ -48,12 +48,11 @@
 	case SQLITE_FLOAT:                                                         \
 		return Nan::New<v8::Number>(sqlite3_##from##_double(__VA_ARGS__));     \
 	case SQLITE_TEXT:                                                          \
-		return v8::String::NewFromUtf8(                                        \
+		return StringFromUtf8(                                                 \
 			v8::Isolate::GetCurrent(),                                         \
 			reinterpret_cast<const char*>(sqlite3_##from##_text(__VA_ARGS__)), \
-			v8::NewStringType::kNormal,                                        \
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
-		).ToLocalChecked();                                                    \
+		);                                                                     \
 	case SQLITE_BLOB:                                                          \
 		return Nan::CopyBuffer(                                                \
 			static_cast<const char*>(sqlite3_##from##_blob(__VA_ARGS__)),      \
@@ -77,7 +76,9 @@ v8::Local<v8::Value> GetRowJS(sqlite3_stmt* handle, bool safe_integers) {
 	int column_count = sqlite3_column_count(handle);
 	v8::Local<v8::Object> row = Nan::New<v8::Object>();
 	for (int i=0; i<column_count; ++i) {
-		Nan::Set(row, NEW_INTERNAL_STRING8(sqlite3_column_name(handle, i)), Data::GetValueJS(handle, i, safe_integers));
+		Nan::Set(row,
+			InternalizedFromUtf8(v8::Isolate::GetCurrent(), sqlite3_column_name(handle, i), -1)
+		, Data::GetValueJS(handle, i, safe_integers));
 	}
 	return row;
 }
