@@ -1,0 +1,17 @@
+class MultiBinder : public Binder {
+public:
+	
+	explicit MultiBinder(sqlite3_stmt**, unsigned int);
+	void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
+	
+protected:
+	int NextAnonIndex();
+	
+	// This should only be invoked once per instance.
+	int BindObject(v8::Local<v8::Object>, BindMap*);
+	
+	sqlite3_stmt** const handles;
+	unsigned int const handle_count;
+	unsigned int handle_index;
+	int param_count_sum;
+};
