@@ -20,3 +20,16 @@ inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* da
 inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
+
+inline void ThrowTypeError(const char* message) {
+	EasyIsolate;
+	isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
+}
+
+#define REQUIRE_ARGUMENT(n, var, Type, message, after)                         \
+	if (info.Length() <= (n) || !info[n]->Is##Type())                          \
+		return ThrowTypeError("Expected arguement "#n" to be a "#message);     \
+	var = v8::Local<v8::Type>::Cast(info[n])after
+
+#define REQUIRE_ARGUMENT_INT32(n, var)                                         \
+	REQUIRE_ARGUMENT(n, var, Int32, 32-bit signed integer, ->Value())
