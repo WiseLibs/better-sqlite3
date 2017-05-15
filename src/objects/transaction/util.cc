@@ -5,6 +5,7 @@ BindMap* Transaction::GetBindMap() {
 	if (!(state & HAS_BIND_MAP)) {
 		int capacity = 0;
 		BindMap* bind_map = &extras->bind_map;
+		v8::Isolate* isolate = v8::Isolate::GetCurrent();
 		
 		for (unsigned int h=0; h<handle_count; ++h) {
 			sqlite3_stmt* handle = handles[h];
@@ -14,9 +15,9 @@ BindMap* Transaction::GetBindMap() {
 				const char* name = sqlite3_bind_parameter_name(handle, i);
 				if (name != NULL) {
 					if (bind_map->length == capacity) {
-						bind_map->Grow(&capacity);
+						bind_map->Grow(isolate, &capacity);
 					}
-					bind_map->Add(name + 1, i, h);
+					bind_map->Add(isolate, name + 1, i, h);
 				}
 			}
 		}

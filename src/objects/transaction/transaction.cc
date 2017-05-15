@@ -1,5 +1,4 @@
 #include <set>
-#include <string>
 #include <sqlite3.h>
 #include <nan.h>
 #include "transaction.h"
