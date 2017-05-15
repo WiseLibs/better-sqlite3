@@ -26,7 +26,8 @@ public:
 			const int index;
 	};
 	
-	explicit BindMap() {
+	explicit BindMap(char _) {
+		assert(_ == 0);
 		pairs = NULL;
 		capacity = 0;
 		length = 0;
