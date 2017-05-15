@@ -57,9 +57,9 @@ private:
 		int32_t low;
 		int32_t high;
 		
-		REQUIRE_ARGUMENT_INT32(0, low);
+		REQUIRE_ARGUMENT_INT32(first, low);
 		if (info.Length() > 1) {
-			REQUIRE_ARGUMENT_INT32(1, high);
+			REQUIRE_ARGUMENT_INT32(second, high);
 		} else {
 			high = 0;
 		}

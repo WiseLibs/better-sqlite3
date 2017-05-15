@@ -26,10 +26,21 @@ inline void ThrowTypeError(const char* message) {
 	isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
 
-#define REQUIRE_ARGUMENT(n, var, Type, message, after)                         \
-	if (info.Length() <= (n) || !info[n]->Is##Type())                          \
-		return ThrowTypeError("Expected arguement "#n" to be a "#message);     \
-	var = v8::Local<v8::Type>::Cast(info[n])after
+#define first() 0
+#define second() 1
+#define third() 2
+#define fourth() 3
+#define fifth() 4
+#define sixth() 5
+#define seventh() 6
+#define eighth() 7
+#define ninth() 8
+#define tenth() 9
+#define REQUIRE_ARGUMENT(at, var, Type, message, after)                        \
+	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
+		return ThrowTypeError("Expected "#at" arguement to be a "#message);    \
+	var = v8::Local<v8::Type>::Cast(info[at()])after
 
-#define REQUIRE_ARGUMENT_INT32(n, var)                                         \
-	REQUIRE_ARGUMENT(n, var, Int32, 32-bit signed integer, ->Value())
+#define REQUIRE_ARGUMENT_INT32(at, var)                                        \
+	REQUIRE_ARGUMENT(at, var, Int32, 32-bit signed integer, ->Value())
+
