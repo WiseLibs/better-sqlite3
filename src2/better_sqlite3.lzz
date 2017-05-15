@@ -2,6 +2,10 @@
 #include <sqlite3.h>
 #include <nan.h>
 #end
+#src
+NODE_MODULE(better_sqlite3, RegisterModule);
+#end
+
 #insert "util/macros.lzz"
 #insert "objects/int64/int64.lzz"
 
@@ -9,6 +13,3 @@ void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	EasyHandleScope;
 	Int64::Init(exports);
 }
-#src
-NODE_MODULE(better_sqlite3, RegisterModule);
-#end
