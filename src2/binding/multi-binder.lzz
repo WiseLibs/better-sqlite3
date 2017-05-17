@@ -55,6 +55,7 @@ protected:
 	// This should only be invoked once per instance.
 	int BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
 		EasyIsolate;
+		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 		BindMap::Pair* pairs = bindMap->GetPairs();
 		int len = bindMap->GetLength();
 		
@@ -65,7 +66,7 @@ protected:
 			v8::Local<v8::String> key = pairs[i].GetName(isolate);
 			
 			// Check if the named parameter was provided.
-			v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
+			v8::Maybe<bool> has_property = obj->HasOwnProperty(ctx, key);
 			if (has_property.IsNothing()) {
 				SetError("");
 				return i;
@@ -78,7 +79,7 @@ protected:
 			}
 			
 			// Get the current property value.
-			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
+			v8::MaybeLocal<v8::Value> maybeValue = obj->Get(ctx, key);
 			if (maybeValue.IsEmpty()) {
 				SetError("");
 				return i;

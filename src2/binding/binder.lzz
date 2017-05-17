@@ -87,6 +87,8 @@ protected:
 	// Binds each value in the array or sets an appropriate error message.
 	// The number of successfully bound parameters is returned.
 	int BindArray(v8::Local<v8::Array> arr) {
+		EasyIsolate;
+		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 		unsigned int length = arr->Length();
 		if (length > INT_MAX) {
 			SetError("Too many parameter values were provided");
@@ -94,7 +96,7 @@ protected:
 		}
 		int len = static_cast<int>(length);
 		for (int i=0; i<len; ++i) {
-			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(arr, i);
+			v8::MaybeLocal<v8::Value> maybeValue = arr->Get(ctx, i);
 			if (maybeValue.IsEmpty()) {
 				SetError("");
 				return i;
@@ -113,6 +115,7 @@ protected:
 	// This should only be invoked once per instance.
 	virtual int BindObject(v8::Local<v8::Object> obj, BindMap* bind_map) {
 		EasyIsolate;
+		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 		BindMap::Pair* pairs = bind_map->GetPairs();
 		int len = bind_map->GetLength();
 		
@@ -120,7 +123,7 @@ protected:
 			v8::Local<v8::String> key = pairs[i].GetName(isolate);
 			
 			// Check if the named parameter was provided.
-			v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
+			v8::Maybe<bool> has_property = obj->HasOwnProperty(ctx, key);
 			if (has_property.IsNothing()) {
 				SetError("");
 				return i;
@@ -133,7 +136,7 @@ protected:
 			}
 			
 			// Get the current property value.
-			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
+			v8::MaybeLocal<v8::Value> maybeValue = obj->Get(ctx, key);
 			if (maybeValue.IsEmpty()) {
 				SetError("");
 				return i;
