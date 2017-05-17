@@ -1,5 +1,5 @@
-#define Arguments const Nan::FunctionCallbackInfo<v8::Value>&
-#define NODE_METHOD(name) static void name(Arguments info)
+#define NODE_ARGUMENTS const Nan::FunctionCallbackInfo<v8::Value>&
+#define NODE_METHOD(name) static void name(NODE_ARGUMENTS info)
 #define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info)
 #define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Local<v8::Object> exports)
 

@@ -16,7 +16,7 @@ public:
 		return error;
 	}
 	
-	void Bind(Arguments info, int argc, Query* query) {
+	void Bind(NODE_ARGUMENTS info, int argc, Query* query) {
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
 		if (!error && result.count != param_count) {
@@ -143,14 +143,14 @@ protected:
 		return len;
 	}
 	
-	// Binds all parameters using the values found in the Arguments object.
-	// Anonymous parameter values can be directly in the Arguemnts object or in an Array.
+	// Binds all parameters using the values found in the arguments object.
+	// Anonymous parameter values can be directly in the arguments object or in an Array.
 	// Named parameter values can be provided in a plain Object argument.
 	// Only one plain Object argument may be provided.
 	// If an error occurs, an appropriate error message is set.
 	// The return value is a struct indicating how many parameters were successfully bound
 	// and whether or not it tried to bind an object.
-	Result BindArgs(Arguments info, int argc, Query* query) {
+	Result BindArgs(NODE_ARGUMENTS info, int argc, Query* query) {
 		int count = 0;
 		bool bound_object = false;
 		

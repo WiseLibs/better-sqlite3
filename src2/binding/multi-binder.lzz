@@ -7,7 +7,7 @@ public:
 		handle_index(0),
 		param_count_sum(param_count) {}
 	
-	void Bind(Arguments info, int argc, Query* query) {
+	void Bind(NODE_ARGUMENTS info, int argc, Query* query) {
 		assert(handle_index == 0);
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
