@@ -44,7 +44,7 @@
 		);                                                                     \
 	case SQLITE_BLOB:                                                          \
 		return node::Buffer::Copy(                                             \
-			node::Environment::GetCurrent(isolate),                            \
+			isolate,                                                           \
 			static_cast<const char*>(sqlite3_##from##_blob(__VA_ARGS__)),      \
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
 		).ToLocalChecked();                                                    \
@@ -71,7 +71,7 @@ namespace Data {
 		for (int i=0; i<column_count; ++i) {
 			row->Set(ctx,
 				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1)
-			, Data::GetValueJS(handle, i, safe_integers));
+			, Data::GetValueJS(handle, i, safe_integers)).FromJust();
 		}
 		return row;
 	}
