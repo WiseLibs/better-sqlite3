@@ -1,12 +1,11 @@
 class MultiBinder : public Binder {
 public:
 	
-	explicit MultiBinder(sqlite3_stmt** _handles, int _handle_count) : Binder(_handles[0]) {
-		handles = _handles;
-		handle_count = _handle_count;
-		handle_index = 0;
-		param_count_sum = param_count;
-	}
+	explicit MultiBinder(sqlite3_stmt** _handles, int _handle_count) : Binder(_handles[0]),
+		handles(_handles),
+		handle_count(_handle_count),
+		handle_index(0),
+		param_count_sum(param_count) {}
 	
 	void Bind(Arguments info, int argc, Query* query) {
 		assert(handle_index == 0);
@@ -31,10 +30,71 @@ public:
 	}
 	
 protected:
-	int NextAnonIndex();
+	int NextAnonIndex() {
+		startloop:
+		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+		if (anon_index > param_count) {
+			while (handle_index + 1 < handle_count) {
+				handle = handles[++handle_index];
+				param_count = sqlite3_bind_parameter_count(handle);
+				if (param_count != 0) {
+					anon_index = 1;
+					param_count_sum += param_count;
+					if (sqlite3_bind_parameter_name(handle, anon_index) == NULL) {
+						break;
+					}
+					goto startloop;
+				}
+			}
+		}
+		return anon_index;
+	}
 	
+	// Same as Binder::BindObject except that the object is used to bind the named parameters of
+	// every handle that was given to the MultiBinder.
 	// This should only be invoked once per instance.
-	int BindObject(v8::Local<v8::Object>, BindMap*);
+	int BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
+		EasyIsolate;
+		BindMap::Pair* pairs = bindMap->GetPairs();
+		int len = bindMap->GetLength();
+		
+		// Save current handle.
+		sqlite3_stmt* current_handle = handle;
+		
+		for (int i=0; i<len; ++i) {
+			v8::Local<v8::String> key = pairs[i].GetName(isolate);
+			
+			// Check if the named parameter was provided.
+			v8::Maybe<bool> has_property = Nan::HasOwnProperty(obj, key);
+			if (has_property.IsNothing()) {
+				SetError("");
+				return i;
+			}
+			if (!has_property.FromJust()) {
+				v8::String::Utf8Value param_name(key);
+				CONCAT3(message, "Missing named parameter \"", *param_name, "\"");
+				SetError(message.c_str());
+				return i;
+			}
+			
+			// Get the current property value.
+			Nan::MaybeLocal<v8::Value> maybeValue = Nan::Get(obj, key);
+			if (maybeValue.IsEmpty()) {
+				SetError("");
+				return i;
+			}
+			
+			int index = pairs[i].GetIndex();
+			handle = handles[BindMap::GetTransactionIndex(index)];
+			BindValue(maybeValue.ToLocalChecked(), BindMap::GetParameterIndex(index));
+			if (error) {
+				return i;
+			}
+		}
+		
+		handle = current_handle;
+		return len;
+	}
 	
 	sqlite3_stmt** const handles;
 	int const handle_count;
