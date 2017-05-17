@@ -1,8 +1,7 @@
 class Int64 : public Nan::ObjectWrap {
 public:
 	
-	static inline v8::Local<v8::Value> NewProperInteger(sqlite3_int64 value, bool safe_integers) {
-		EasyIsolate;
+	static inline v8::Local<v8::Value> NewProperInteger(v8::Isolate* isolate, sqlite3_int64 value, bool safe_integers) {
 		if (safe_integers) {
 			fast_construct_int = &value;
 			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
