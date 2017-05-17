@@ -8,23 +8,23 @@ public:
 		param_count_sum = param_count;
 	}
 	
-	void Bind(Arguments info, int len, Query* query) {
+	void Bind(Arguments info, int argc, Query* query) {
 		assert(handle_index == 0);
 		assert(anon_index == 0);
-		Result result = BindArgs(info, len, query);
+		Result result = BindArgs(info, argc, query);
 		if (!error) {
 			while (handle_index + 1 < handle_count) {
 				param_count_sum += sqlite3_bind_parameter_count(handles[++handle_index]);
 			}
 			if (result.count != param_count_sum) {
 				if (result.count < param_count_sum) {
-					if (!result.bound_object && query->GetBindMap()->length) {
-						error = COPY("Missing named parameters");
+					if (!result.bound_object && query->GetBindMap()->GetLength()) {
+						SetError("Missing named parameters");
 					} else {
-						error = COPY("Too few parameter values were provided");
+						SetError("Too few parameter values were provided");
 					}
 				} else {
-					error = COPY("Too many parameter values were provided");
+					SetError("Too many parameter values were provided");
 				}
 			}
 		}

@@ -16,7 +16,7 @@ public:
 		return error;
 	}
 	
-	virtual void Bind(Arguments info, int argc, Query* query) {
+	void Bind(Arguments info, int argc, Query* query) {
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
 		if (!error && result.count != param_count) {
