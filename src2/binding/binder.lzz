@@ -42,6 +42,11 @@ protected:
 		v8::Local<v8::Value> proto = obj->GetPrototype();
 		v8::Local<v8::Context> ctx = obj->CreationContext();
 		ctx->Enter();
+		/*
+			TODO:
+			Check if this works when the isolate is retrieved before ctx->Enter().
+			If so, also check that StrictEquals(Nan::Null()) works with v8::Null(isolate).
+		 */
 		EasyIsolate;
 		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
 		ctx->Exit();
