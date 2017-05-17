@@ -79,7 +79,7 @@ protected:
 	// The number of successfully bound parameters is returned.
 	int BindArray(v8::Local<v8::Array> arr) {
 		unsigned int length = arr->Length();
-		if (length > 0x7ffffffeU) {
+		if (length > INT_MAX) {
 			SetError("Too many parameter values were provided");
 			return 0;
 		}

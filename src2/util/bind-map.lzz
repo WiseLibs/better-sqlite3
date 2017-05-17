@@ -52,7 +52,8 @@ public:
 	
 	static const int parameter_bits = 10;
 	static const int parameter_mask = (1 << parameter_bits) - 1;
-	static const int max_transaction_length = (1 << ((sizeof(int) * 8) - parameter_bits)) - 1;
+	static const int max_transaction_length = (1 << ((sizeof(int) * 8) - parameter_bits - 1)) - 1;
+	// parameter_mask * max_transaction_length is guaranteed to be smaller than INT_MAX.
 	
 	static inline int GetParameterIndex(int index) {
 		return index & parameter_mask;

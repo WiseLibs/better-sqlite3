@@ -12,7 +12,7 @@
 #include "../../util/functor.h"
 #include "../../util/sql-rope.h"
 
-const int max_buffer_size = node::Buffer::kMaxLength > 0x7fffffffU ? 0x7fffffff : static_cast<int>(node::Buffer::kMaxLength);
+const int max_buffer_size = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 const int max_string_size = v8::String::kMaxLength;
 const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 bool CONSTRUCTING_PRIVILEGES = false;
@@ -96,8 +96,8 @@ int Database::OpenHandles(const char* filename) {
 	sqlite3_busy_timeout(db_handle, 5000);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, max_buffer_size < max_string_size ? max_buffer_size : max_string_size);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, max_string_size);
-	sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, 0x7fffffff);
-	sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, 0x7fffffff);
+	sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, INT_MAX);
+	sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, parameter_mask);
 	
 	return t_handles.open(db_handle);
