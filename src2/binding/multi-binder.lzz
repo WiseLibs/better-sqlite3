@@ -1,8 +1,34 @@
 class MultiBinder : public Binder {
 public:
 	
-	explicit MultiBinder(sqlite3_stmt**, unsigned int);
-	void Bind(Nan::NAN_METHOD_ARGS_TYPE, int, Query*);
+	explicit MultiBinder(sqlite3_stmt** _handles, int _handle_count) : Binder(_handles[0]) {
+		handles = _handles;
+		handle_count = _handle_count;
+		handle_index = 0;
+		param_count_sum = param_count;
+	}
+	
+	void Bind(Arguments info, int len, Query* query) {
+		assert(handle_index == 0);
+		assert(anon_index == 0);
+		Result result = BindArgs(info, len, query);
+		if (!error) {
+			while (handle_index + 1 < handle_count) {
+				param_count_sum += sqlite3_bind_parameter_count(handles[++handle_index]);
+			}
+			if (result.count != param_count_sum) {
+				if (result.count < param_count_sum) {
+					if (!result.bound_object && query->GetBindMap()->length) {
+						error = COPY("Missing named parameters");
+					} else {
+						error = COPY("Too few parameter values were provided");
+					}
+				} else {
+					error = COPY("Too many parameter values were provided");
+				}
+			}
+		}
+	}
 	
 protected:
 	int NextAnonIndex();
@@ -11,7 +37,7 @@ protected:
 	int BindObject(v8::Local<v8::Object>, BindMap*);
 	
 	sqlite3_stmt** const handles;
-	unsigned int const handle_count;
-	unsigned int handle_index;
-	unsigned int param_count_sum;
+	int const handle_count;
+	int handle_index;
+	int param_count_sum;
 };

@@ -18,11 +18,10 @@ public:
 	
 	virtual void Bind(Arguments info, int argc, Query* query) {
 		assert(anon_index == 0);
-		int result = BindArgs(info, argc, query);
-		int count = result >> 1;
-		if (!error && count != param_count) {
-			if (count < param_count) {
-				if (!(result & 1) && query->GetBindMap()->GetLength()) {
+		Result result = BindArgs(info, argc, query);
+		if (!error && result.count != param_count) {
+			if (result.count < param_count) {
+				if (!result.bound_object && query->GetBindMap()->GetLength()) {
 					SetError("Missing named parameters");
 				} else {
 					SetError("Too few parameter values were provided");
@@ -34,6 +33,11 @@ public:
 	}
 	
 protected:
+	struct Result {
+		int count;
+		bool bound_object;
+	};
+	
 	static bool IsPlainObject(v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
 		v8::Local<v8::Context> ctx = obj->CreationContext();
@@ -103,9 +107,9 @@ protected:
 	// If a named parameter is missing from the object, an error message is set.
 	// This should only be invoked once per instance.
 	virtual int BindObject(v8::Local<v8::Object> obj, BindMap* bind_map) {
-		int len = bind_map->GetLength();
-		BindMap::Pair* pairs = bind_map->GetPairs();
 		EasyIsolate;
+		BindMap::Pair* pairs = bind_map->GetPairs();
+		int len = bind_map->GetLength();
 		
 		for (int i=0; i<len; ++i) {
 			v8::Local<v8::String> key = pairs[i].GetName(isolate);
@@ -144,11 +148,11 @@ protected:
 	// Named parameter values can be provided in a plain Object argument.
 	// Only one plain Object argument may be provided.
 	// If an error occurs, an appropriate error message is set.
-	// The return value is a number whose first bit indicates whether it tried to bind an object,
-	// and whose other 31 bits indicate the number of parameters that were successfully bound.
-	int BindArgs(Arguments info, int argc, Query* query) {
-		bool bound_object = false;
+	// The return value is a struct indicating how many parameters were successfully bound
+	// and whether or not it tried to bind an object.
+	Result BindArgs(Arguments info, int argc, Query* query) {
 		int count = 0;
+		bool bound_object = false;
 		
 		for (int i=0; i<argc; ++i) {
 			v8::Local<v8::Value> arg = info[i];
@@ -179,7 +183,7 @@ protected:
 			count += 1;
 		}
 		
-		return (count << 1) | static_cast<int>(bound_object);
+		return Result {count, bound_object};
 	}
 	
 	sqlite3_stmt* handle;
