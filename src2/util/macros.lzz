@@ -73,3 +73,7 @@ inline const char* COPY(const char* source) {
 #define FREE_ARRAY(array_pointer)                                              \
 	::operator delete[](array_pointer)
 
+class Functor { public:
+	virtual ~Functor() {}
+	virtual void Invoke(void* ctx) = 0;
+};
