@@ -22,10 +22,13 @@ inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const ch
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 
-inline void ThrowTypeError(const char* message) {
+template<ErrorFactory T> inline void ThrowException(const char* message) {
 	EasyIsolate;
-	isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
+	isolate->ThrowException(T(StringFromUtf8(isolate, message, -1)));
 }
+
+#define ThrowError ThrowException<v8::Exception::Error>
+#define ThrowTypeError ThrowException<v8::Exception::TypeError>
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, after)                       \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
@@ -79,6 +82,6 @@ class Functor { public:
 };
 
 #hdr
-template <class T>
-using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+typedef v8::Local<v8::Value> (*ErrorFactory)(v8::Local<v8::String>);
+template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end

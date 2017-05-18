@@ -45,19 +45,19 @@ public:
 	}
 	
 	void Add(v8::Isolate* isolate, const char* name, int parameter_index, int transaction_index) {
-		Add(isolate, name, parameter_index | (transaction_index << parameter_bits));
+		Add(isolate, name, parameter_index | (transaction_index << PARAMETER_BITS));
 	}
 	
-	static const int parameter_bits = 10;
-	static const int parameter_mask = (1 << parameter_bits) - 1;
-	static const int max_transaction_length = (1 << ((sizeof(int) * 8) - parameter_bits - 1)) - 1;
-	// parameter_mask * max_transaction_length is guaranteed to be smaller than INT_MAX.
+	static const int PARAMETER_BITS = 10;
+	static const int PARAMETER_MASK = (1 << PARAMETER_BITS) - 1;
+	static const int MAX_TRANSACTION_LENGTH = (1 << ((sizeof(int) * 8) - PARAMETER_BITS - 1)) - 1;
+	// PARAMETER_MASK * MAX_TRANSACTION_LENGTH is guaranteed to be smaller than INT_MAX.
 	
 	static inline int GetParameterIndex(int index) {
-		return index & parameter_mask;
+		return index & PARAMETER_MASK;
 	}
 	static inline int GetTransactionIndex(int index) {
-		return index >> parameter_bits;
+		return index >> PARAMETER_BITS;
 	}
 	
 private:
