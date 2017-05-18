@@ -45,7 +45,7 @@ class Database : public Nan::ObjectWrap {
 		int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 		int CloseHandles();
 		void CloseChildHandles();
-		void ThrowError(const char* = NULL);
+		void Throw(const char* = NULL);
 		
 		TransactionHandles t_handles;
 		std::set<Statement*, Query::Compare> stmts;

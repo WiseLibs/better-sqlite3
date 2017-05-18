@@ -20,7 +20,7 @@ NAN_METHOD(Database::Exec) {
 	// Executes the SQL on the database handle.
 	sqlite3_exec(db->db_handle, *utf8, NULL, NULL, &err);
 	if (err != NULL) {
-		db->ThrowError(err);
+		db->Throw(err);
 		return sqlite3_free(err);
 	}
 	

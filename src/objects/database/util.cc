@@ -16,7 +16,7 @@ NAN_GETTER(Database::Open) {
 	info.GetReturnValue().Set(Nan::ObjectWrap::Unwrap<Database>(info.This())->open);
 }
 
-void Database::ThrowError(const char* err) {
+void Database::Throw(const char* err) {
 	if (was_js_error) {
 		was_js_error = false;
 	} else {

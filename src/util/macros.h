@@ -189,7 +189,7 @@ inline v8::Local<v8::String> StringFromUtf16(v8::Isolate* isolate, const uint16_
 
 // Like QUERY_THROW, but does not return from the caller function.
 #define QUERY_THROW_STAY(obj, UNBIND_MACRO)                                    \
-	obj->db->ThrowError();                                                     \
+	obj->db->Throw();                                                          \
 	if (!(obj->state & BOUND)) {UNBIND_MACRO(obj);}
 
 // The macro-instruction that runs after a failed SQLite request.

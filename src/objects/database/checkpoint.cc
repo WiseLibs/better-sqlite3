@@ -21,7 +21,7 @@ NAN_METHOD(Database::Checkpoint) {
 	);
 	
 	if (status != SQLITE_OK) {
-		return db->ThrowError();
+		return db->Throw();
 	}
 	
 	if (checkpointed_frames < 0 || total_frames < 0) {
