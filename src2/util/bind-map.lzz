@@ -20,9 +20,7 @@ public:
 			explicit Pair(v8::Isolate* isolate, Pair* pair)
 				: name(isolate, pair->name), index(pair->index) {}
 			
-			~Pair() {name.Reset();}
-			
-			v8::Persistent<v8::String> name;
+			const Persistent<v8::String> name;
 			const int index;
 	};
 	

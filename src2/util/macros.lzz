@@ -77,3 +77,8 @@ class Functor { public:
 	virtual ~Functor() {}
 	virtual void Invoke(void* ctx) = 0;
 };
+
+#hdr
+template <class T>
+using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+#end

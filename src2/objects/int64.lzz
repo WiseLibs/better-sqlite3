@@ -19,15 +19,15 @@ public:
 	}
 	
 private:
-	explicit Int64(int32_t _low, int32_t _high) : Nan::ObjectWrap() {
-		low = _low;
-		high = _high;
-		full = (sqlite3_int64)((((sqlite3_uint64)((uint32_t)_high)) << 32) | (uint32_t)_low);
+	explicit Int64(int32_t _low, int32_t _high) : Nan::ObjectWrap(),
+		full((sqlite3_int64)((((sqlite3_uint64)((uint32_t)_high)) << 32) | (uint32_t)_low)),
+		low(_low),
+		high(_high) {
 	}
-	explicit Int64(sqlite3_int64 _full) : Nan::ObjectWrap() {
-		low = (int32_t)((uint32_t)(((sqlite3_uint64)_full) & U32_in_U64));
-		high = (int32_t)((uint32_t)(((sqlite3_uint64)_full) >> 32));
-		full = _full;
+	explicit Int64(sqlite3_int64 _full) : Nan::ObjectWrap(),
+		full(_full),
+		low((int32_t)((uint32_t)(((sqlite3_uint64)_full) & U32_in_U64))),
+		high((int32_t)((uint32_t)(((sqlite3_uint64)_full) >> 32))) {
 	}
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
@@ -93,7 +93,7 @@ private:
 	static v8::Persistent<v8::FunctionTemplate> constructorTemplate;
 	static sqlite3_int64* fast_construct_int;
 	
-	sqlite3_int64 full;
-	int32_t low;
-	int32_t high;
+	const sqlite3_int64 full;
+	const int32_t low;
+	const int32_t high;
 };
