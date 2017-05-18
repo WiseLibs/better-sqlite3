@@ -1,0 +1,83 @@
+// WORK IN PROGRESS
+class Database : public Nan::ObjectWrap {
+private:
+	
+	class DatabaseExtras { private: friend class Database;
+		explicit DatabaseExtras(sqlite3* db_handle) : stmts(), transs(), t_handles(db_handle) {}
+		std::set<Statement*, Query::Compare> stmts;
+		std::set<Transaction*, Query::Compare> transs;
+		TransactionHandles t_handles;
+	};
+	
+	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
+	static const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
+	static bool constructing_privileges = false;
+	static sqlite3_uint64 next_statement_id = 0;
+	static sqlite3_uint64 next_transaction_id = 0;
+	
+	static sqlite3* OpenHandle(const char* filename) {
+		sqlite3* db_handle;
+		if (sqlite3_open(filename, &db_handle) != SQLITE_OK) {
+			CONCAT2(message, "SQLite: ", sqlite3_errmsg(db_handle));
+			ThrowError(message.c_str());
+			sqlite3_close(handle);
+			return NULL;
+		}
+		
+		assert(sqlite3_db_mutex(db_handle) == NULL);
+		sqlite3_busy_timeout(db_handle, 5000);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, INT_MAX);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, BindMap::PARAMETER_MASK);
+		
+		return db_handle;
+	}
+	
+	explicit Database(const char* filename, bool _readonly) : Nan::ObjectWrap(),
+		db_handle(OpenHandle(filename)),
+		extras(new DatabaseExtras(db_handle)),
+		open(db_handle != NULL),
+		busy(false),
+		safe_ints(false),
+		was_js_error(false),
+		readonly(_readonly) {}
+	
+	~Database();
+	
+	static void Init(v8::Local<v8::Object>, v8::Local<v8::Object>);
+	
+	static NAN_METHOD(New);
+	static NAN_GETTER(Open);
+	static NAN_METHOD(Close);
+	static NAN_METHOD(CreateStatement);
+	static NAN_METHOD(CreateTransaction);
+	static NAN_METHOD(CreateFunction);
+	static NAN_METHOD(Exec);
+	static NAN_METHOD(Pragma);
+	static NAN_METHOD(Checkpoint);
+	static NAN_METHOD(DefaultSafeIntegers);
+	
+	static bool CONSTRUCTING_PRIVILEGES;
+	
+	static void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
+	static void StepAggregate(sqlite3_context*, int, sqlite3_value**);
+	static void FinishAggregate(sqlite3_context*);
+	
+	int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
+	int CloseHandles();
+	void CloseChildHandles();
+	void Throw(const char* = NULL);
+	
+	sqlite3* const db_handle;
+	DatabaseExtras* const extras;
+	
+	// State
+	bool open;
+	bool busy;
+	bool safe_ints;
+	bool was_js_error;
+	const bool readonly;
+};
