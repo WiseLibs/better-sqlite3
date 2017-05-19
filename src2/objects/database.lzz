@@ -73,9 +73,9 @@ private:
 		
 		Database* db = new Database(&handles, readonly);
 		db->Wrap(info.This());
-		info.This()->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST("memory"), in_memory ? v8::True(isolate) : v8::False(isolate), FROZEN).FromJust();
-		info.This()->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST("readonly"), readonly ? v8::True(isolate) : v8::False(isolate), FROZEN).FromJust();
-		info.This()->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST("name"), filenameGiven, FROZEN).FromJust();
+		SetFrozen(ctx, info.This(), "memory", in_memory ? v8::True(isolate) : v8::False(isolate));
+		SetFrozen(ctx, info.This(), "readonly", readonly ? v8::True(isolate) : v8::False(isolate));
+		SetFrozen(ctx, info.This(), "name", filenameGiven);
 		
 		info.GetReturnValue().Set(info.This());
 	}
@@ -171,18 +171,13 @@ private:
 		info.GetReturnValue().Set(result);
 	}
 	
+	NODE_METHOD(JS_register);
+	NODE_METHOD(JS_close);
+	NODE_METHOD(JS_defaultSafeIntegers);
+	NODE_GETTER(JS_open);
+	
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
-	static const v8::PropertyAttribute FROZEN = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
-	static sqlite3_uint64 next_statement_id = 0;
-	static sqlite3_uint64 next_transaction_id = 0;
-	
-	NODE_GETTER(JS_open);
-	NODE_METHOD(JS_close);
-	NODE_METHOD(JS_register);
-	NODE_METHOD(JS_defaultSafeIntegers);
-	
-	static bool CONSTRUCTING_PRIVILEGES;
 	
 	static void ExecuteFunction(sqlite3_context*, int, sqlite3_value**);
 	static void StepAggregate(sqlite3_context*, int, sqlite3_value**);

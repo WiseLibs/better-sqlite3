@@ -41,6 +41,11 @@ inline v8::Local<v8::String> StringFromUtf16(v8::Isolate* isolate, const uint16_
 	return v8::String::NewFromTwoByte(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
 
+inline void SetFrozen(v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, const char* key, v8::Local<v8::Value> value) {
+	static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
+	obj->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST(key), value, FROZEN_PROPERTY).FromJust();
+}
+
 // Creates a stack-allocated std:string of the concatenation of 2 well-formed
 // C-strings.
 #define CONCAT2(result, a, b)                                                  \
