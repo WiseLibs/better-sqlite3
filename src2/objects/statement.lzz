@@ -27,7 +27,7 @@ public:
 	}
 	
 private:
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_statement_id++),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handle(_handle),
 		alive(true),
@@ -59,7 +59,7 @@ private:
 		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), JS_returnsData);
 		
 		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
-		next_statement_id = 0;
+		next_id = 0;
 		constructing_privileges = false;
 	}
 	
@@ -114,7 +114,7 @@ private:
 	NODE_GETTER(JS_returnsData); // TODO
 	
 	static v8::Persistent<v8::Function> constructor;
-	static sqlite3_uint64 next_statement_id;
+	static sqlite3_uint64 next_id;
 	static bool constructing_privileges;
 	
 	Database* const db;

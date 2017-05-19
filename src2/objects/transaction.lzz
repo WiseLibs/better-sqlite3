@@ -17,6 +17,10 @@ private:
 	NODE_METHOD(JS_bind); // TODO
 	NODE_METHOD(JS_safeIntegers); // TODO
 	
+	static v8::Persistent<v8::Function> constructor; // TODO (Init)
+	static sqlite3_uint64 next_id; // TODO (Init)
+	static bool constructing_privileges; // TODO (Init)
+	
 	Database* const db;
 	sqlite3_stmt** const handles;
 	const int handle_count;
