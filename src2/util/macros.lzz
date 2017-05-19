@@ -14,7 +14,8 @@
 #define Unwrap Nan::ObjectWrap::Unwrap
 
 inline v8::Local<v8::String> NEW_INTERNAL_STRING_FAST(const char* data) {
-	return v8::String::NewFromOneByte(v8::Isolate::GetCurrent(), reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
+	EasyIsolate;
+	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
 }
 inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kNormal, length).ToLocalChecked();
