@@ -127,7 +127,7 @@ private:
 		REQUIRE_DATABASE_NOT_READONLY(db);
 		static auto get_ratio = [](int tf, int cf) {
 			return (cf < 0 || tf <= 0) ? 1.0 : (static_cast<double>(cf) / static_cast<double>(tf));
-		}
+		};
 		
 		v8::String::Utf8Value only_database(onlyDatabase);
 		int mode = force ? SQLITE_CHECKPOINT_RESTART : SQLITE_CHECKPOINT_PASSIVE;
@@ -159,9 +159,9 @@ private:
 		for (std::string const &name : database_names) {
 			int status = sqlite3_wal_checkpoint_v2(db->db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
 			if (status == SQLITE_OK) {
-				result->Set(ctx, InternalizedFromUtf8(name.c_str()), v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames)));
+				result->Set(ctx, InternalizedFromUtf8(isolate, name.c_str(), name.length()), v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames))).FromJust();
 			} else if (status == SQLITE_BUSY) {
-				result->Set(ctx, InternalizedFromUtf8(name.c_str()), v8::Number::New(isolate, 0.0));
+				result->Set(ctx, InternalizedFromUtf8(isolate, name.c_str(), name.length()), v8::Number::New(isolate, 0.0)).FromJust();
 			} else {
 				return db->ThrowDatabaseError();
 			}

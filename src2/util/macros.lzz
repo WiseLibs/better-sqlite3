@@ -27,24 +27,29 @@ inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const ch
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 
+inline void SetFrozen(v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, const char* key, v8::Local<v8::Value> value) {
+	static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
+	obj->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST(key), value, FROZEN_PROPERTY).FromJust();
+}
+
 template<ErrorFactory T> inline void ThrowException(const char* message) {
 	EasyIsolate;
 	isolate->ThrowException(T(StringFromUtf8(isolate, message, -1)));
 }
 
-#define _REQUIRE_ARGUMENT(at, var, Type, message, after)                       \
+#define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
 		return ThrowTypeError("Expected "#at" arguement to be "#message);      \
-	var = v8::Local<v8::Type>::Cast(info[at()])after
+	var = v8::Local<v8::Type>::Cast(info[at()])__VA_ARGS__
 
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \
 	_REQUIRE_ARGUMENT(at, var, Int32, a 32-bit signed integer, ->Value())
 #define REQUIRE_ARGUMENT_BOOLEAN(at, var)                                      \
 	_REQUIRE_ARGUMENT(at, var, Boolean, a boolean, ->Value())
 #define REQUIRE_ARGUMENT_STRING(at, var)                                       \
-	_REQUIRE_ARGUMENT(at, var, String, a string,)
+	_REQUIRE_ARGUMENT(at, var, String, a string)
 #define REQUIRE_ARGUMENT_ARRAY(at, var)                                        \
-	_REQUIRE_ARGUMENT(at, var, Array, an array,)
+	_REQUIRE_ARGUMENT(at, var, Array, an array)
 
 #define REQUIRE_DATABASE_OPEN(db)                                              \
 	if (!db->open)                                                             \

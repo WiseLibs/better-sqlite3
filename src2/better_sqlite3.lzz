@@ -1,4 +1,5 @@
 #hdr
+#include <set>
 #include <sqlite3.h>
 #include <nan.h>
 #include "util/strlcpy.h"
@@ -13,10 +14,16 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/data.lzz"
 #insert "objects/int64.lzz"
 #insert "objects/query.lzz"
+#insert "objects/database.lzz"
+#insert "objects/statement.lzz"
+#insert "objects/transaction.lzz"
 #insert "binding/binder.lzz"
 #insert "binding/multi-binder.lzz"
 
 void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	EasyHandleScope;
 	Int64::Init(exports);
+	Database::Init(exports);
+	Statement::Init(exports);
+	Transaction::Init(exports);
 }

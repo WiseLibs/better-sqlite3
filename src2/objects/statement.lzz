@@ -1,0 +1,10 @@
+class Statement : public Nan::ObjectWrap {
+public:
+	
+	static v8::MaybeLocal<v8::Object> New(Database* db, v8::Isolate* isolate, v8::Local<v8::String> source) {
+		return v8::Object::New(isolate);
+	}
+	
+private:
+	REGISTER(Init) {}
+};
