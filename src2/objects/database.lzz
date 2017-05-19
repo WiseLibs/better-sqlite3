@@ -224,10 +224,10 @@ private:
 	
 	sqlite3* const db_handle;
 	DatabaseExtras* const extras;
-	bool open;
-	bool busy;
-	bool pragma_mode;
-	bool safe_ints;
-	bool was_js_error;
-	const bool readonly;
+	bool open :1;
+	bool busy :1;
+	bool pragma_mode :1;
+	bool safe_ints :1;
+	bool was_js_error :1;
+	const bool readonly :1;
 };

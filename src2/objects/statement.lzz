@@ -11,4 +11,12 @@ public:
 	
 private:
 	REGISTER(Init) {}
+	
+	bool bound :1;
+	bool has_bind_map :1;
+	bool safe_ints_setting :1;
+	bool safe_ints :1;
+	bool pluck_setting :1;
+	bool pluck :1;
+	const bool returns_data :1;
 };

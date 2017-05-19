@@ -15,19 +15,15 @@ public:
 	}
 	
 	inline sqlite3_int64 GetValue() {
-		return full;
+		return value;
 	}
 	
 private:
-	explicit Int64(int32_t _low, int32_t _high) : Nan::ObjectWrap(),
-		full((sqlite3_int64)((((sqlite3_uint64)((uint32_t)_high)) << 32) | (uint32_t)_low)),
-		low(_low),
-		high(_high) {
+	explicit Int64(int32_t low, int32_t high) : Nan::ObjectWrap(),
+		value((sqlite3_int64)((((sqlite3_uint64)((uint32_t)high)) << 32) | (uint32_t)low)) {
 	}
-	explicit Int64(sqlite3_int64 _full) : Nan::ObjectWrap(),
-		full(_full),
-		low((int32_t)((uint32_t)(((sqlite3_uint64)_full) & U32_in_U64))),
-		high((int32_t)((uint32_t)(((sqlite3_uint64)_full) >> 32))) {
+	explicit Int64(sqlite3_int64 _value) : Nan::ObjectWrap(),
+		value(_value) {
 	}
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
@@ -68,23 +64,25 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 	NODE_GETTER(JS_low) {
-		info.GetReturnValue().Set(Unwrap<Int64>(info.This())->low);
+		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
+		info.GetReturnValue().Set((int32_t)((uint32_t)(((sqlite3_uint64)value) & U32_in_U64)));
 	}
 	NODE_GETTER(JS_high) {
-		info.GetReturnValue().Set(Unwrap<Int64>(info.This())->high);
+		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
+		info.GetReturnValue().Set((int32_t)((uint32_t)(((sqlite3_uint64)value) >> 32)));
 	}
 	NODE_METHOD(JS_toString) {
-		std::string string = std::to_string(static_cast<long long>(Unwrap<Int64>(info.This())->full));
+		std::string string = std::to_string(static_cast<long long>(Unwrap<Int64>(info.This())->value));
 		info.GetReturnValue().Set(StringFromLatin1(OnlyIsolate, string.c_str(), string.length()));
 	}
 	NODE_METHOD(JS_valueOf) {
-		sqlite3_int64 full = Unwrap<Int64>(info.This())->full;
-		if (full > MAX_SAFE || full < MIN_SAFE) {
-			std::string string = std::to_string(static_cast<long long>(full));
+		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
+		if (value > MAX_SAFE || value < MIN_SAFE) {
+			std::string string = std::to_string(static_cast<long long>(value));
 			std::string message = CONCAT("Cannot losslessly convert ", string.c_str(), " to a number");
 			return ThrowRangeError(message.c_str());
 		}
-		info.GetReturnValue().Set(static_cast<double>(full));
+		info.GetReturnValue().Set(static_cast<double>(value));
 	}
 	
 	static const sqlite3_int64 MAX_SAFE = (sqlite3_int64)9007199254740991;
@@ -94,7 +92,5 @@ private:
 	static v8::Persistent<v8::FunctionTemplate> constructorTemplate;
 	static sqlite3_int64* fast_construct_int;
 	
-	const sqlite3_int64 full;
-	const int32_t low;
-	const int32_t high;
+	const sqlite3_int64 value;
 };
