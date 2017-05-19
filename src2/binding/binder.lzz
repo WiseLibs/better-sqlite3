@@ -86,9 +86,7 @@ protected:
 	
 	// Binds each value in the array or sets an appropriate error message.
 	// The number of successfully bound parameters is returned.
-	int BindArray(v8::Local<v8::Array> arr) {
-		EasyIsolate;
-		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+	int BindArray(v8::Local<v8::Context> ctx, v8::Local<v8::Array> arr) {
 		unsigned int length = arr->Length();
 		if (length > INT_MAX) {
 			SetError("Too many parameter values were provided");
@@ -113,9 +111,9 @@ protected:
 	// The number of successfully bound parameters is returned.
 	// If a named parameter is missing from the object, an error message is set.
 	// This should only be invoked once per instance.
-	virtual int BindObject(v8::Local<v8::Object> obj, BindMap* bind_map) {
-		EasyIsolate;
-		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+	virtual int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
+		UseContext;
+		BindMap* bind_map = static_cast<Statement*>(query)->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();
 		int len = bind_map->GetLength();
 		
@@ -166,7 +164,7 @@ protected:
 			v8::Local<v8::Value> arg = info[i];
 			
 			if (arg->IsArray()) {
-				count += BindArray(v8::Local<v8::Array>::Cast(arg));
+				count += BindArray(OnlyIsolateAndContext, v8::Local<v8::Array>::Cast(arg));
 				if (error) break;
 				continue;
 			}
@@ -180,7 +178,7 @@ protected:
 					}
 					bound_object = true;
 					
-					count += BindObject(obj, query->GetBindMap());
+					count += BindObject(OnlyIsolate, obj, query);
 					if (error) break;
 					continue;
 				}

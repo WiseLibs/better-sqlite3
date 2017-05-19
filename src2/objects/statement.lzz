@@ -10,7 +10,7 @@ public:
 		return maybe_statement;
 	}
 	
-	BindMap* GetBindMap(); // TODO
+	BindMap* GetBindMap(v8::Isolate* isolate); // TODO
 	
 	void CloseHandles() {
 		if (alive) {

@@ -5,7 +5,7 @@ public:
 		return v8::Object::New(isolate); // TODO
 	}
 	
-	BindMap* GetBindMap(); // TODO
+	BindMap* GetBindMap(v8::Isolate* isolate); // TODO
 	void CloseHandles(); // TODO
 	~Transaction(); // TODO
 	

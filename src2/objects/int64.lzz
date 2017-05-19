@@ -4,7 +4,7 @@ public:
 	static inline v8::Local<v8::Value> NewProperInteger(v8::Isolate* isolate, sqlite3_int64 value, bool safe_integers) {
 		if (safe_integers) {
 			fast_construct_int = &value;
-			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(isolate->GetCurrentContext()).ToLocalChecked();
+			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(OnlyContext).ToLocalChecked();
 		}
 		return v8::Number::New(isolate, static_cast<double>(value));
 	}

@@ -53,9 +53,9 @@ protected:
 	// Same as Binder::BindObject except that the object is used to bind the named parameters of
 	// every handle that was given to the MultiBinder.
 	// This should only be invoked once per instance.
-	int BindObject(v8::Local<v8::Object> obj, BindMap* bindMap) {
-		EasyIsolate;
-		v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
+	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
+		UseContext;
+		BindMap* bind_map = static_cast<Transaction*>(query)->GetBindMap(isolate);
 		BindMap::Pair* pairs = bindMap->GetPairs();
 		int len = bindMap->GetLength();
 		

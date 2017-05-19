@@ -6,9 +6,12 @@
 #define EasyHandleScope v8::HandleScope scope(v8::Isolate::GetCurrent())
 #define NewHandleScope v8::HandleScope scope(isolate)
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
-#define UseIsolateAndContext v8::Isolate* isolate = info.GetIsolate(); v8::Local<v8::Context> ctx = isolate->GetCurrentContext()
+#define UseIsolate v8::Isolate* isolate = info.GetIsolate()
+#define UseContext v8::Local<v8::Context> ctx = isolate->GetCurrentContext()
+#define UseIsolateAndContext UseIsolate; UseContext
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
+#define OnlyIsolateAndContext info.GetIsolate()->GetCurrentContext()
 
 #define Unwrap Nan::ObjectWrap::Unwrap
 
