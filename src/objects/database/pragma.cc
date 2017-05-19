@@ -49,7 +49,7 @@ NAN_METHOD(Database::Pragma) {
 	PragmaInfo pragma_info = {Nan::New<v8::Array>(), isolate, simple_result, false};
 	sqlite3_exec(db->db_handle, *utf8, PragmaCallback, &pragma_info, &err);
 	if (err != NULL) {
-		db->Throw(err);
+		db->ThrowDatabaseError(err);
 		return sqlite3_free(err);
 	}
 	

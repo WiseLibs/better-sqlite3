@@ -14,7 +14,7 @@ NAN_METHOD(Database::New) {
 	
 	v8::String::Utf8Value utf8(filename);
 	if (db->OpenHandles(*utf8) != SQLITE_OK) {
-		db->Throw();
+		db->ThrowDatabaseError();
 		db->CloseHandles();
 		return;
 	}

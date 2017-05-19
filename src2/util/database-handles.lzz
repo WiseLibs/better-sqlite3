@@ -1,0 +1,39 @@
+class DatabaseHandles { friend class Database;
+	
+	explicit DatabaseHandles(v8::Local<v8::String> filename) {
+		db_handle = NULL;
+		begin = NULL;
+		commit = NULL;
+		rollback = NULL;
+		error = NULL;
+		
+		v8::String::Utf8Value utf8(filename);
+		
+		if (sqlite3_open(*utf8, &db_handle) != SQLITE_OK) {
+			error = COPY(sqlite3_errmsg(db_handle));
+		} else if (sqlite3_prepare_v2(db_handle, "BEGIN TRANSACTION;", -1, &begin, NULL) != SQLITE_OK) {
+			error = COPY(sqlite3_errmsg(db_handle));
+		} else if (sqlite3_prepare_v2(db_handle, "COMMIT TRANSACTION;", -1, &commit, NULL) != SQLITE_OK) {
+			error = COPY(sqlite3_errmsg(db_handle));
+		} else if (sqlite3_prepare_v2(db_handle, "ROLLBACK TRANSACTION;", -1, &rollback, NULL) != SQLITE_OK) {
+			error = COPY(sqlite3_errmsg(db_handle));
+		}
+	}
+	
+	~DatabaseHandles() {
+		if (error) {
+			delete[] error;
+			sqlite3_finalize(begin);
+			sqlite3_finalize(commit);
+			sqlite3_finalize(rollback);
+			int status = sqlite3_close(db_handle);
+			assert(status = SQLITE_OK);
+		}
+	}
+	
+	sqlite3* db_handle;
+	sqlite3_stmt* begin;
+	sqlite3_stmt* commit;
+	sqlite3_stmt* rollback;
+	const char* error;
+};

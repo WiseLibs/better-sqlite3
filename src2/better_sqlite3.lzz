@@ -8,6 +8,7 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #end
 
 #insert "util/macros.lzz"
+#insert "util/database-handles.lzz"
 #insert "util/bind-map.lzz"
 #insert "util/data.lzz"
 #insert "objects/int64.lzz"

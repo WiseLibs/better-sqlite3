@@ -20,9 +20,7 @@
 		);                                                                     \
 	} else if (Int64::HasInstance(value)) {                                    \
 		return sqlite3_##to##_int64(__VA_ARGS__,                               \
-			Nan::ObjectWrap::Unwrap<Int64>(                                    \
-				v8::Local<v8::Object>::Cast(value)                             \
-			)->GetValue()                                                      \
+			Unwrap<Int64>(v8::Local<v8::Object>::Cast(value))->GetValue()      \
 		);                                                                     \
 	}
 
