@@ -48,6 +48,8 @@ template<ErrorFactory T> inline void ThrowException(const char* message) {
 	_REQUIRE_ARGUMENT(at, var, Boolean, a boolean, ->Value())
 #define REQUIRE_ARGUMENT_STRING(at, var)                                       \
 	_REQUIRE_ARGUMENT(at, var, String, a string)
+#define REQUIRE_ARGUMENT_OBJECT(at, var)                                       \
+	_REQUIRE_ARGUMENT(at, var, Object, an object)
 #define REQUIRE_ARGUMENT_ARRAY(at, var)                                        \
 	_REQUIRE_ARGUMENT(at, var, Array, an array)
 

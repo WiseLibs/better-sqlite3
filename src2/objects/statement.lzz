@@ -1,25 +1,14 @@
 class Statement : public Nan::ObjectWrap {
 public:
 	
-	// static v8::MaybeLocal<v8::Object> New(Database* db, v8::Isolate* isolate, v8::Local<v8::String> source) {
-	// 	REQUIRE_DATABASE_OPEN(db);
-	// 	REQUIRE_DATABASE_NOT_BUSY(db);
-		
-		
-	// 	v8::String::Value sql(source);
-	// 	const void* tail;
-	// 	int status = sqlite3_prepare16_v2(db->db_handle, *utf16, utf16.length() * sizeof(uint16_t) + 1, &stmt->st_handle, &tail);
-		
-		
-	// 	UseContext;
-	// 	constructing_privileges = true;
-	// 	v8::Local<v8::Object> statement = v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(ctx).ToLocalChecked();
-	// 	constructing_privileges = false;
-		
-		
-		
-	// 	return v8::Object::New(isolate);
-	// }
+	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> source) {
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
+		v8::Local<v8::Value> args[2] = { database, source };
+		constructing_privileges = true;
+		v8::MaybeLocal<v8::Object> maybe_statement = c->NewInstance(OnlyContext, 2, args);
+		constructing_privileges = false;
+		return maybe_statement;
+	}
 	
 	void CloseHandles() {
 		if (alive) {
@@ -54,12 +43,6 @@ private:
 	// 	blueprint.st_handle = NULL;
 	// }
 	
-	// class StatementBlueprint { friend class Statement;
-	// 	Database* db;
-	// 	sqlite3_stmt* st_handle;
-	// 	bool returns_data;
-	// }
-	
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -75,7 +58,6 @@ private:
 		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), JS_returnsData);
 		
 		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
-		// blueprint = StatementBlueprint { NULL, NULL, false };
 		constructing_privileges = false;
 	}
 	
@@ -83,13 +65,19 @@ private:
 		if (!constructing_privileges) {
 			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
 		}
+		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
+		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> source);
+		
+		
+		
+		
+		
 		Statement* stmt = new Statement(0);
 		stmt->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
 	}
 	
 	static v8::Persistent<v8::Function> constructor;
-	// static StatementBlueprint blueprint;
 	static bool constructing_privileges;
 	
 	Database* const db;
