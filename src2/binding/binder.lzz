@@ -16,12 +16,12 @@ public:
 		return error;
 	}
 	
-	void Bind(NODE_ARGUMENTS info, int argc, Query* query) {
+	void Bind(NODE_ARGUMENTS info, int argc, Statement* query) {
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
 		if (!error && result.count != param_count) {
 			if (result.count < param_count) {
-				if (!result.bound_object && query->GetBindMap()->GetLength()) {
+				if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetLength()) {
 					SetError("Missing named parameters");
 				} else {
 					SetError("Too few parameter values were provided");

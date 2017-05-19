@@ -7,7 +7,7 @@ public:
 		handle_index(0),
 		param_count_sum(param_count) {}
 	
-	void Bind(NODE_ARGUMENTS info, int argc, Query* query) {
+	void Bind(NODE_ARGUMENTS info, int argc, Transaction* query) {
 		assert(handle_index == 0);
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
@@ -17,7 +17,7 @@ public:
 			}
 			if (result.count != param_count_sum) {
 				if (result.count < param_count_sum) {
-					if (!result.bound_object && query->GetBindMap()->GetLength()) {
+					if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetLength()) {
 						SetError("Missing named parameters");
 					} else {
 						SetError("Too few parameter values were provided");
@@ -56,8 +56,8 @@ protected:
 	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
 		UseContext;
 		BindMap* bind_map = static_cast<Transaction*>(query)->GetBindMap(isolate);
-		BindMap::Pair* pairs = bindMap->GetPairs();
-		int len = bindMap->GetLength();
+		BindMap::Pair* pairs = bind_map->GetPairs();
+		int len = bind_map->GetLength();
 		
 		// Save current handle.
 		sqlite3_stmt* current_handle = handle;

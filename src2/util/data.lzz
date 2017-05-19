@@ -61,7 +61,7 @@ namespace Data {
 		SQLITE_VALUE_TO_JS(value, safe_integers, value);
 	}
 	
-	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::sqlite3_stmt* handle, bool safe_integers) {
+	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_integers) {
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
 		int column_count = sqlite3_column_count(handle);
 		for (int i=0; i<column_count; ++i) {

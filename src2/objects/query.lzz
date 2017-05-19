@@ -17,5 +17,9 @@ protected:
 	explicit Query(sqlite3_uint64 id) : extras(new QueryExtras(id)) {}
 	~Query() {delete extras;}
 	
+	inline BindMap* GetBindMap() {
+		return &extras->bind_map;
+	}
+	
 	QueryExtras* const extras;
 };
