@@ -1,17 +1,100 @@
 class Statement : public Nan::ObjectWrap {
 public:
 	
-	static v8::MaybeLocal<v8::Object> New(Database* db, v8::Isolate* isolate, v8::Local<v8::String> source) {
-		return v8::Object::New(isolate);
-	}
+	// static v8::MaybeLocal<v8::Object> New(Database* db, v8::Isolate* isolate, v8::Local<v8::String> source) {
+	// 	REQUIRE_DATABASE_OPEN(db);
+	// 	REQUIRE_DATABASE_NOT_BUSY(db);
+		
+		
+	// 	v8::String::Value sql(source);
+	// 	const void* tail;
+	// 	int status = sqlite3_prepare16_v2(db->db_handle, *utf16, utf16.length() * sizeof(uint16_t) + 1, &stmt->st_handle, &tail);
+		
+		
+	// 	UseContext;
+	// 	constructing_privileges = true;
+	// 	v8::Local<v8::Object> statement = v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(ctx).ToLocalChecked();
+	// 	constructing_privileges = false;
+		
+		
+		
+	// 	return v8::Object::New(isolate);
+	// }
 	
 	void CloseHandles() {
-		
+		if (alive) {
+			alive = false;
+			if (bound) sqlite3_clear_bindings(st_handle);
+			sqlite3_finalize(st_handle);
+		}
+	}
+	
+	~Statement() {
+		bool was_alive = alive;
+		CloseHandles();
+		if (was_alive) db->stmts.erase(this);
 	}
 	
 private:
-	REGISTER(Init) {}
+	// explicit Statement(char _) : Nan::ObjectWrap(), Query(),
+	// 	db(blueprint.db),
+	// 	st_handle(blueprint.st_handle),
+	// 	alive(true),
+	// 	bound(false),
+	// 	has_bind_map(false),
+	// 	safe_ints_setting(db->safe_ints),
+	// 	safe_ints(safe_ints_setting),
+	// 	pluck_setting(false),
+	// 	pluck(false),
+	// 	returns_data(blueprint.returns_data) {
+	// 	assert(_ == 0);
+	// 	assert(blueprint.db != NULL);
+	// 	assert(blueprint.st_handle != NULL);
+	// 	blueprint.db = NULL;
+	// 	blueprint.st_handle = NULL;
+	// }
 	
+	// class StatementBlueprint { friend class Statement;
+	// 	Database* db;
+	// 	sqlite3_stmt* st_handle;
+	// 	bool returns_data;
+	// }
+	
+	REGISTER(Init) {
+		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
+		t->InstanceTemplate()->SetInternalFieldCount(1);
+		t->SetClassName(NEW_INTERNAL_STRING_FAST("Statement"));
+		
+		Nan::SetPrototypeMethod(t, "run", JS_run);
+		Nan::SetPrototypeMethod(t, "get", JS_get);
+		Nan::SetPrototypeMethod(t, "all", JS_all);
+		Nan::SetPrototypeMethod(t, "each", JS_each);
+		Nan::SetPrototypeMethod(t, "pluck", JS_pluck);
+		Nan::SetPrototypeMethod(t, "bind", JS_bind);
+		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
+		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), JS_returnsData);
+		
+		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
+		// blueprint = StatementBlueprint { NULL, NULL, false };
+		constructing_privileges = false;
+	}
+	
+	NODE_METHOD(JS_new) {
+		if (!constructing_privileges) {
+			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
+		}
+		Statement* stmt = new Statement(0);
+		stmt->Wrap(info.This());
+		info.GetReturnValue().Set(info.This());
+	}
+	
+	static v8::Persistent<v8::Function> constructor;
+	// static StatementBlueprint blueprint;
+	static bool constructing_privileges;
+	
+	Database* const db;
+	sqlite3_stmt* const st_handle;
+	bool alive :1;
 	bool bound :1;
 	bool has_bind_map :1;
 	bool safe_ints_setting :1;

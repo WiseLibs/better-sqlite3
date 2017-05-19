@@ -1,8 +1,14 @@
 class Statement;
 class Transaction;
 class Database : public Nan::ObjectWrap {
-private:
+public:
 	
+	~Database() {
+		CloseHandles();
+		delete extras;
+	}
+	
+private:
 	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),
 		extras(new DatabaseExtras(handles)),
@@ -13,11 +19,6 @@ private:
 		was_js_error(false),
 		readonly(_readonly) {
 		assert(handles->error == NULL);
-	}
-	
-	~Database() {
-		CloseHandles();
-		delete extras;
 	}
 	
 	class DatabaseExtras { friend class Database;
