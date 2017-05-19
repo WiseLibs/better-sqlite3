@@ -169,7 +169,7 @@ private:
 		info.GetReturnValue().Set(result);
 	}
 	
-	NODE_METHOD(JS_register);
+	NODE_METHOD(JS_register); // TODO
 	
 	NODE_METHOD(JS_close) {
 		Database* db = Unwrap<Database>(info.This());
