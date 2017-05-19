@@ -129,7 +129,6 @@ private:
 			return (cf < 0 || tf <= 0) ? 1.0 : (static_cast<double>(cf) / static_cast<double>(tf));
 		}
 		
-		UseIsolate;
 		v8::String::Utf8Value only_database(onlyDatabase);
 		int mode = force ? SQLITE_CHECKPOINT_RESTART : SQLITE_CHECKPOINT_PASSIVE;
 		int total_frames;
@@ -154,6 +153,7 @@ private:
 			return db->ThrowDatabaseError();
 		}
 		
+		UseIsolate;
 		UseContext;
 		v8::Local<v8::Object> result = v8::Object::New(isolate);
 		for (std::string const &name : database_names) {
