@@ -10,11 +10,13 @@ public:
 		return maybe_statement;
 	}
 	
+	BindMap* GetBindMap(); // TODO
+	
 	void CloseHandles() {
 		if (alive) {
 			alive = false;
-			if (bound) sqlite3_clear_bindings(st_handle);
-			sqlite3_finalize(st_handle);
+			if (bound) sqlite3_clear_bindings(handle);
+			sqlite3_finalize(handle);
 		}
 	}
 	
@@ -25,9 +27,9 @@ public:
 	}
 	
 private:
-	explicit Statement(Database* _db, sqlite3_stmt* _st_handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_statement_id++),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_statement_id++),
 		db(_db),
-		st_handle(_st_handle),
+		handle(_handle),
 		alive(true),
 		bound(false),
 		has_bind_map(false),
@@ -36,7 +38,7 @@ private:
 		pluck_setting(false),
 		pluck(false),
 		returns_data(_returns_data) {
-		assert(st_handle != NULL);
+		assert(handle != NULL);
 		assert(db->open);
 		assert(!db->busy);
 		db->extras->stmts.insert(db->extras->stmts.end(), this);
@@ -73,28 +75,28 @@ private:
 		
 		v8::String::Value sql(source);
 		const void* tail;
-		sqlite3_stmt* st_handle;
+		sqlite3_stmt* handle;
 		bool returns_data;
 		
-		if (sqlite3_prepare16_v2(db->db_handle, *sql, sql.length() * sizeof(uint16_t) + 1, &st_handle, &tail) != SQLITE_OK) {
+		if (sqlite3_prepare16_v2(db->db_handle, *sql, sql.length() * sizeof(uint16_t) + 1, &handle, &tail) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
-		if (st_handle == NULL) {
+		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
 		if (tail != (const void*)(*sql + sql.length())) {
-			sqlite3_finalize(st_handle);
+			sqlite3_finalize(handle);
 			return ThrowRangeError("The supplied SQL string contains more than one statement");
 		}
-		if (sqlite3_stmt_readonly(st_handle) && sqlite3_column_count(st_handle) >= 1) {
+		if (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) {
 			returns_data = true;
 		} else {
-			REQUIRE_DATABASE_NOT_READONLY(db, sqlite3_finalize(st_handle));
+			REQUIRE_DATABASE_NOT_READONLY(db, sqlite3_finalize(handle));
 			returns_data = db->pragma_mode;
 		}
 		
 		UseIsolateAndContext;
-		Statement* stmt = new Statement(db, st_handle, returns_data);
+		Statement* stmt = new Statement(db, handle, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(ctx, info.This(), "source", source);
 		SetFrozen(ctx, info.This(), "database", database);
@@ -116,7 +118,7 @@ private:
 	static bool constructing_privileges;
 	
 	Database* const db;
-	sqlite3_stmt* const st_handle;
+	sqlite3_stmt* const handle;
 	bool alive :1;
 	bool bound :1;
 	bool has_bind_map :1;

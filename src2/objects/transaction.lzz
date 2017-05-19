@@ -2,13 +2,27 @@ class Transaction : public Nan::ObjectWrap, public Query {
 public:
 	
 	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::Array> sources) {
-		return v8::Object::New(isolate);
+		return v8::Object::New(isolate); // TODO
 	}
 	
-	void CloseHandles() {
-		
-	}
+	BindMap* GetBindMap(); // TODO
+	void CloseHandles(); // TODO
+	~Transaction(); // TODO
 	
 private:
-	REGISTER(Init) {}
+	explicit Transaction(); // TODO
+	REGISTER(Init); // TODO
+	NODE_METHOD(JS_new); // TODO
+	NODE_METHOD(JS_run); // TODO
+	NODE_METHOD(JS_bind); // TODO
+	NODE_METHOD(JS_safeIntegers); // TODO
+	
+	Database* const db;
+	sqlite3_stmt** const handles;
+	const int handle_count;
+	bool alive :1;
+	bool bound :1;
+	bool has_bind_map :1;
+	bool safe_ints_setting :1;
+	bool safe_ints :1;
 };

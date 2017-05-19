@@ -152,15 +152,15 @@ private:
 			return db->ThrowDatabaseError();
 		}
 		
-		sqlite3_stmt* st_handle;
-		if (sqlite3_prepare_v2(db->db_handle, "PRAGMA database_list", -1, &st_handle, NULL) != SQLITE_OK) {
+		sqlite3_stmt* stmt;
+		if (sqlite3_prepare_v2(db->db_handle, "PRAGMA database_list", -1, &stmt, NULL) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		std::vector<std::string> database_names;
-		while (sqlite3_step(st_handle) == SQLITE_ROW) {
-			database_names.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(st_handle, 1)), sqlite3_column_bytes(st_handle, 1));
+		while (sqlite3_step(stmt) == SQLITE_ROW) {
+			database_names.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
 		}
-		if (sqlite3_finalize(st_handle) != SQLITE_OK) {
+		if (sqlite3_finalize(stmt) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		

@@ -11,7 +11,7 @@ public:
 	// thrown.
 	void Init(sqlite3_context* ctx, FunctionInfo* function_info) {
 		v8HandleScope;
-		v8::Local<v8::Function> genFunc = Nan::New(function_info->handle);
+		v8::Local<v8::Function> genFunc = Nan::New(function_info->func);
 		v8::Local<v8::Object> generatorObject = v8::Local<v8::Object>::Cast(genFunc->Call(Nan::GetCurrentContext(), Nan::Null(), 0, NULL).ToLocalChecked());
 		v8::Local<v8::Function> nextFunction = v8::Local<v8::Function>::Cast(Nan::Get(generatorObject, NEW_INTERNAL_STRING_FAST("next")).ToLocalChecked());
 		generator.Reset(generatorObject);

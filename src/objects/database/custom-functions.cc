@@ -1,9 +1,9 @@
 class FunctionInfo : public Functor { public:
 	explicit FunctionInfo(Database* db, v8::Local<v8::Function> func,
 		const char* name, int argc, bool safe_integers
-	) : handle(func), db(db), name(COPY(name)), argc(argc), safe_integers(safe_integers) {}
+	) : func(func), db(db), name(COPY(name)), argc(argc), safe_integers(safe_integers) {}
 	~FunctionInfo() {
-		handle.Reset();
+		func.Reset();
 		delete[] name;
 	}
 	void Invoke(void* ctx) {
@@ -16,7 +16,7 @@ class FunctionInfo : public Functor { public:
 		v8HandleScope;
 		delete static_cast<FunctionInfo*>(x);
 	}
-	Nan::Persistent<v8::Function> handle;
+	Nan::Persistent<v8::Function> func;
 	Database* const db;
 	const char* const name;
 	const int argc;
@@ -42,6 +42,6 @@ class FunctionInfo : public Functor { public:
 void Database::ExecuteFunction(sqlite3_context* ctx, int length, sqlite3_value** values) {
 	v8HandleScope;
 	FunctionInfo* function_info = static_cast<FunctionInfo*>(sqlite3_user_data(ctx));
-	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->handle),);
+	EXECUTE_FUNCTION(maybe_return_value, function_info, Nan::New(function_info->func),);
 	Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), function_info);
 }
