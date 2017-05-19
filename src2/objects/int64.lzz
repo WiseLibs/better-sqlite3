@@ -81,7 +81,7 @@ private:
 		sqlite3_int64 full = Unwrap<Int64>(info.This())->full;
 		if (full > MAX_SAFE || full < MIN_SAFE) {
 			std::string string = std::to_string(static_cast<long long>(full));
-			CONCAT3(message, "Cannot losslessly convert ", string.c_str(), " to a number");
+			std::string message = CONCAT("Cannot losslessly convert ", string.c_str(), " to a number");
 			return ThrowRangeError(message.c_str());
 		}
 		info.GetReturnValue().Set(static_cast<double>(full));

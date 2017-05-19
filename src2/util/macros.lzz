@@ -32,10 +32,6 @@ template<ErrorFactory T> inline void ThrowException(const char* message) {
 	isolate->ThrowException(T(StringFromUtf8(isolate, message, -1)));
 }
 
-#define ThrowError ThrowException<v8::Exception::Error>
-#define ThrowTypeError ThrowException<v8::Exception::TypeError>
-#define ThrowRangeError ThrowException<v8::Exception::RangeError>
-
 #define _REQUIRE_ARGUMENT(at, var, Type, message, after)                       \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
 		return ThrowTypeError("Expected "#at" arguement to be "#message);      \
@@ -79,18 +75,13 @@ inline const char* COPY(const char* source) {
 	return dest;
 }
 
-// Creates a stack-allocated std:string of the concatenation of 2 well-formed
-// C-strings.
-#define CONCAT2(result, a, b)                                                  \
-	std::string result(a);                                                     \
-	result += b
-
-// Creates a stack-allocated std:string of the concatenation of 3 well-formed
-// C-strings.
-#define CONCAT3(result, a, b, c)                                               \
-	std::string result(a);                                                     \
-	result += b;                                                               \
-	result += c
+// Returns a std:string of the concatenation of 2 or 3 well-formed C-strings.
+inline std::string CONCAT(const char* a, const char* b, const char* c = NULL) {
+	std::string result(a);
+	result += b;
+	if (c != NULL) result += c;
+	return result;
+}
 
 #define ALLOC_ARRAY(Type, count)                                               \
 	static_cast<Type*>(::operator new[]((count) * sizeof(Type)))
@@ -106,4 +97,9 @@ class Functor { public:
 #hdr
 typedef v8::Local<v8::Value> (*ErrorFactory)(v8::Local<v8::String>);
 template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+#end
+#src
+const auto& ThrowError = ThrowException<v8::Exception::Error>;
+const auto& ThrowTypeError = ThrowException<v8::Exception::TypeError>;
+const auto& ThrowRangeError = ThrowException<v8::Exception::RangeError>;
 #end

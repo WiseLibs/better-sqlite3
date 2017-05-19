@@ -58,7 +58,7 @@ private:
 		
 		DatabaseHandles handles(filename);
 		if (handles.error) {
-			CONCAT2(message, "SQLite: ", handles.error);
+			std::string message = CONCAT("SQLite: ", handles.error);
 			return ThrowError(message.c_str());
 		}
 		
@@ -212,7 +212,7 @@ private:
 			if (err == NULL) {
 				err = sqlite3_errmsg(db_handle);
 			}
-			CONCAT2(message, "SQLite: ", err);
+			std::string message = CONCAT("SQLite: ", err);
 			ThrowError(message.c_str());
 		}
 	}

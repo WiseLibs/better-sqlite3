@@ -73,7 +73,7 @@ protected:
 			}
 			if (!has_property.FromJust()) {
 				v8::String::Utf8Value param_name(key);
-				CONCAT3(message, "Missing named parameter \"", *param_name, "\"");
+				std::string message = CONCAT("Missing named parameter \"", *param_name, "\"");
 				SetError(message.c_str());
 				return i;
 			}
