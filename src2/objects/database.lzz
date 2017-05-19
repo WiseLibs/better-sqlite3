@@ -1,3 +1,5 @@
+class Statement;
+class Transaction;
 class Database : public Nan::ObjectWrap {
 private:
 	

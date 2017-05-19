@@ -5,6 +5,10 @@ public:
 		return v8::Object::New(isolate);
 	}
 	
+	void CloseHandles() {
+		
+	}
+	
 private:
 	REGISTER(Init) {}
 };
