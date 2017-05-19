@@ -131,23 +131,24 @@ private:
 			return (cf < 0 || tf <= 0) ? 1.0 : (static_cast<double>(cf) / static_cast<double>(tf));
 		}
 		
+		UseIsolate;
 		v8::String::Utf8Value only_database(onlyDatabase);
 		int mode = force ? SQLITE_CHECKPOINT_RESTART : SQLITE_CHECKPOINT_PASSIVE;
 		int total_frames;
 		int checkpointed_frames;
 		
 		if (only_database.length() != 0) {
-			if (sqlite3_wal_checkpoint_v2(db->db_handle, *only_database, mode, &total_frames, &checkpointed_frames) != SQLITE_OK) {
-				return db->ThrowDatabaseError();
-			}
-			return info.GetReturnValue().Set(v8::Number::New(OnlyIsolate, get_ratio(total_frames, checkpointed_frames)));
+			int status = sqlite3_wal_checkpoint_v2(db->db_handle, *only_database, mode, &total_frames, &checkpointed_frames);
+			if (status == SQLITE_OK) return info.GetReturnValue().Set(v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames)));
+			if (status == SQLITE_BUSY) return info.GetReturnValue().Set(v8::Number::New(isolate, 0.0));
+			return db->ThrowDatabaseError();
 		}
 		
-		std::vector<std::string> database_names;
 		sqlite3_stmt* st_handle;
 		if (sqlite3_prepare_v2(db->db_handle, "PRAGMA database_list", -1, &st_handle, NULL) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
+		std::vector<std::string> database_names;
 		while (sqlite3_step(st_handle) == SQLITE_ROW) {
 			database_names.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(st_handle, 1)), sqlite3_column_bytes(st_handle, 1));
 		}
@@ -155,16 +156,19 @@ private:
 			return db->ThrowDatabaseError();
 		}
 		
-		double ratio_sum = 0;
-		bool was_busy = false;
+		UseContext;
+		v8::Local<v8::Object> result = v8::Object::New(isolate);
 		for (std::string const &name : database_names) {
 			int status = sqlite3_wal_checkpoint_v2(db->db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
-			if (status == SQLITE_OK) ratio_sum += get_ratio(total_frames, checkpointed_frames);
-			else if (status == SQLITE_BUSY) was_busy = true;
-			else return db->ThrowDatabaseError();
+			if (status == SQLITE_OK) {
+				result->Set(ctx, InternalizedFromUtf8(name.c_str()), v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames)));
+			} else if (status == SQLITE_BUSY) {
+				result->Set(ctx, InternalizedFromUtf8(name.c_str()), v8::Number::New(isolate, 0.0));
+			} else {
+				return db->ThrowDatabaseError();
+			}
 		}
-		if (was_busy) return db->ThrowDatabaseError(sqlite3_errstr(SQLITE_BUSY));
-		info.GetReturnValue().Set(v8::Number::New(OnlyIsolate, ratio_sum / static_cast<double>(database_names.size())));
+		info.GetReturnValue().Set(result);
 	}
 	
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
