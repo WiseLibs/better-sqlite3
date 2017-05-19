@@ -139,8 +139,8 @@ private:
 		
 		if (only_database.length() != 0) {
 			int status = sqlite3_wal_checkpoint_v2(db->db_handle, *only_database, mode, &total_frames, &checkpointed_frames);
-			if (status == SQLITE_OK) return info.GetReturnValue().Set(v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames)));
-			if (status == SQLITE_BUSY) return info.GetReturnValue().Set(v8::Number::New(isolate, 0.0));
+			if (status == SQLITE_OK) return info.GetReturnValue().Set(get_ratio(total_frames, checkpointed_frames));
+			if (status == SQLITE_BUSY) return info.GetReturnValue().Set(0.0);
 			return db->ThrowDatabaseError();
 		}
 		
@@ -177,7 +177,9 @@ private:
 	
 	NODE_METHOD(JS_defaultSafeIntegers);
 	
-	NODE_GETTER(JS_open);
+	NODE_GETTER(JS_open) {
+		info.GetReturnValue().Set(Unwrap<Database>(info.This())->open);
+	}
 	
 	int OpenHandles(const char*); // If SQLITE_OK is not returned, CloseHandles should be invoked
 	int CloseHandles();

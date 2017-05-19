@@ -33,6 +33,7 @@ template<ErrorFactory T> inline void ThrowException(const char* message) {
 
 #define ThrowError ThrowException<v8::Exception::Error>
 #define ThrowTypeError ThrowException<v8::Exception::TypeError>
+#define ThrowRangeError ThrowException<v8::Exception::RangeError>
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, after)                       \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
