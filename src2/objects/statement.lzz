@@ -10,7 +10,17 @@ public:
 		return maybe_statement;
 	}
 	
-	BindMap* GetBindMap(v8::Isolate* isolate); // TODO
+	BindMap* GetBindMap(v8::Isolate* isolate) {
+		if (has_bind_map) return &extras->bind_map;
+		BindMap* bind_map = &extras->bind_map;
+		int param_count = sqlite3_bind_parameter_count(handle);
+		for (int i=1; i<=param_count; ++i) {
+			const char* name = sqlite3_bind_parameter_name(handle, i);
+			if (name != NULL) bind_map->Add(isolate, name + 1, i);
+		}
+		has_bind_map = true;
+		return bind_map;
+	}
 	
 	void CloseHandles() {
 		if (alive) {
