@@ -1,7 +1,7 @@
-class Transaction : public Nan::ObjectWrap {
+class Transaction : public Nan::ObjectWrap, public Query {
 public:
 	
-	static v8::MaybeLocal<v8::Object> New(Database* db, v8::Isolate* isolate, v8::Local<v8::Array> sources) {
+	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::Array> sources) {
 		return v8::Object::New(isolate);
 	}
 	

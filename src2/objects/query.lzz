@@ -13,12 +13,12 @@ public:
 	
 protected:
 	class QueryExtras { friend class Query;
-		explicit QueryExtras(char _) : bind_map(0) {assert(_ == 0);}
+		explicit QueryExtras(sqlite3_uint64 _id) : bind_map(0), id(_id) {}
 		BindMap bind_map;
-		sqlite3_uint64 id; // This must be initialized manually.
+		const sqlite3_uint64 id;
 	};
 	
-	explicit Query(char _) : extras(new QueryExtras(0)) {assert(_ == 0);}
+	explicit Query(sqlite3_uint64 id) : extras(new QueryExtras(id)) {}
 	~Query() {delete extras;}
 	
 	QueryExtras* const extras;

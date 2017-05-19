@@ -8,6 +8,19 @@ public:
 		delete extras;
 	}
 	
+	void ThrowDatabaseError(const char* err = NULL) {
+		if (was_js_error) {
+			assert(err == NULL);
+			was_js_error = false;
+		} else {
+			if (err == NULL) {
+				err = sqlite3_errmsg(db_handle);
+			}
+			std::string message = CONCAT("SQLite: ", err);
+			ThrowError(message.c_str());
+		}
+	}
+	
 private:
 	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),
@@ -56,8 +69,6 @@ private:
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> filenameGiven);
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool in_memory);
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
-		UseIsolate;
-		UseContext;
 		
 		DatabaseHandles handles(filename);
 		if (handles.error) {
@@ -73,6 +84,7 @@ private:
 		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
 		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, BindMap::PARAMETER_MASK);
 		
+		UseIsolateAndContext;
 		Database* db = new Database(&handles, readonly);
 		db->Wrap(info.This());
 		SetFrozen(ctx, info.This(), "memory", in_memory ? v8::True(isolate) : v8::False(isolate));
@@ -152,8 +164,7 @@ private:
 			return db->ThrowDatabaseError();
 		}
 		
-		UseIsolate;
-		UseContext;
+		UseIsolateAndContext;
 		v8::Local<v8::Object> result = v8::Object::New(isolate);
 		for (std::string const &name : database_names) {
 			int status = sqlite3_wal_checkpoint_v2(db->db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
@@ -200,19 +211,6 @@ private:
 			sqlite3_finalize(extras->rollback);
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK);
-		}
-	}
-	
-	void ThrowDatabaseError(const char* err = NULL) {
-		if (was_js_error) {
-			assert(err == NULL);
-			was_js_error = false;
-		} else {
-			if (err == NULL) {
-				err = sqlite3_errmsg(db_handle);
-			}
-			std::string message = CONCAT("SQLite: ", err);
-			ThrowError(message.c_str());
 		}
 	}
 	
