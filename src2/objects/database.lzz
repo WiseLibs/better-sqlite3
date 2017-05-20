@@ -76,9 +76,10 @@ private:
 	};
 	
 	REGISTER(Init) {
+		EasyIsolate;
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(NEW_INTERNAL_STRING_FAST("Database"));
+		t->SetClassName(CS::Get(isolate, CS::Database));
 		
 		Nan::SetPrototypeMethod(t, "prepare", JS_prepare);
 		Nan::SetPrototypeMethod(t, "transaction", JS_transaction);
@@ -88,9 +89,17 @@ private:
 		Nan::SetPrototypeMethod(t, "register", JS_register);
 		Nan::SetPrototypeMethod(t, "close", JS_close);
 		Nan::SetPrototypeMethod(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
-		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("open"), JS_open);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::prepare), JS_prepare);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::transaction), JS_transaction);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::exec), JS_exec);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::pragma), JS_pragma);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::checkpoint), JS_checkpoint);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::register_), JS_register);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::close), JS_close);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::defaultSafeIntegers), JS_defaultSafeIntegers);
+		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::open), JS_open);
 		
-		Nan::Set(exports, NEW_INTERNAL_STRING_FAST("Database"), Nan::GetFunction(t).ToLocalChecked());
+		Nan::Set(exports, CS::Get(isolate, CS::Database), Nan::GetFunction(t).ToLocalChecked());
 	}
 	
 	NODE_METHOD(JS_new) {
@@ -116,9 +125,9 @@ private:
 		UseIsolateAndContext;
 		Database* db = new Database(&handles, readonly);
 		db->Wrap(info.This());
-		SetFrozen(ctx, info.This(), "memory", in_memory ? v8::True(isolate) : v8::False(isolate));
-		SetFrozen(ctx, info.This(), "readonly", readonly ? v8::True(isolate) : v8::False(isolate));
-		SetFrozen(ctx, info.This(), "name", filenameGiven);
+		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
+		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
+		SetFrozen(isolate, ctx, info.This(), CS::name, filenameGiven);
 		
 		info.GetReturnValue().Set(info.This());
 	}

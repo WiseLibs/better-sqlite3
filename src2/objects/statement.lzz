@@ -59,9 +59,10 @@ private:
 	}
 	
 	REGISTER(Init) {
+		EasyIsolate;
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(NEW_INTERNAL_STRING_FAST("Statement"));
+		t->SetClassName(CS::Get(isolate, CS::Statement));
 		
 		Nan::SetPrototypeMethod(t, "run", JS_run);
 		Nan::SetPrototypeMethod(t, "get", JS_get);
@@ -70,7 +71,14 @@ private:
 		Nan::SetPrototypeMethod(t, "bind", JS_bind);
 		Nan::SetPrototypeMethod(t, "pluck", JS_pluck);
 		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
-		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), JS_returnsData);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::run), JS_run);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::get), JS_get);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::all), JS_all);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::each), JS_each);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::bind), JS_bind);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::pluck), JS_pluck);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::safeIntegers), JS_safeIntegers);
+		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::returnsData), JS_returnsData);
 		
 		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
 		next_id = 0;
@@ -112,8 +120,8 @@ private:
 		UseIsolateAndContext;
 		Statement* stmt = new Statement(db, handle, db->GetState()->safe_ints, returns_data);
 		stmt->Wrap(info.This());
-		SetFrozen(ctx, info.This(), "source", source);
-		SetFrozen(ctx, info.This(), "database", database);
+		SetFrozen(isolate, ctx, info.This(), CS::source, source);
+		SetFrozen(isolate, ctx, info.This(), CS::database, database);
 		
 		info.GetReturnValue().Set(info.This());
 	}
@@ -129,8 +137,8 @@ private:
 			sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 			UseIsolateAndContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, NEW_INTERNAL_STRING_FAST("changes"), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
-			result->Set(ctx, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Int64::NewProperInteger(isolate, id, stmt->safe_ints)).FromJust();
+			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
+			result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Int64::NewProperInteger(isolate, id, stmt->safe_ints)).FromJust();
 			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
 		}
 		QUERY_THROW(stmt, STATEMENT_UNBIND);
