@@ -26,6 +26,23 @@ public:
 	inline void AddTransaction(Transaction* trans) {extras->transs.insert(extras->transs.end(), trans);}
 	inline void RemoveTransaction(Transaction* trans) {extras->transs.erase(trans);}
 	
+	struct State {
+		const bool open;
+		bool busy;
+		const bool pragma_mode;
+		const bool safe_ints;
+		bool was_js_error;
+		const bool readonly;
+	};
+	
+	inline State* GetState() {
+		return reinterpret_cast<State*>(&open);
+	}
+	
+	inline sqlite3* GetHandle() {
+		return db_handle;
+	}
+	
 private:
 	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),
@@ -146,19 +163,20 @@ private:
 		};
 		
 		v8::String::Utf8Value only_database(onlyDatabase);
+		sqlite3* db_handle = db->db_handle;
 		int mode = force ? SQLITE_CHECKPOINT_RESTART : SQLITE_CHECKPOINT_PASSIVE;
 		int total_frames;
 		int checkpointed_frames;
 		
 		if (only_database.length() != 0) {
-			int status = sqlite3_wal_checkpoint_v2(db->db_handle, *only_database, mode, &total_frames, &checkpointed_frames);
+			int status = sqlite3_wal_checkpoint_v2(db_handle, *only_database, mode, &total_frames, &checkpointed_frames);
 			if (status == SQLITE_OK) return info.GetReturnValue().Set(get_ratio(total_frames, checkpointed_frames));
 			if (status == SQLITE_BUSY) return info.GetReturnValue().Set(0.0);
 			return db->ThrowDatabaseError();
 		}
 		
 		sqlite3_stmt* stmt;
-		if (sqlite3_prepare_v2(db->db_handle, "PRAGMA database_list", -1, &stmt, NULL) != SQLITE_OK) {
+		if (sqlite3_prepare_v2(db_handle, "PRAGMA database_list", -1, &stmt, NULL) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		std::vector<std::string> database_names;
@@ -172,7 +190,7 @@ private:
 		UseIsolateAndContext;
 		v8::Local<v8::Object> result = v8::Object::New(isolate);
 		for (std::string const &name : database_names) {
-			int status = sqlite3_wal_checkpoint_v2(db->db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
+			int status = sqlite3_wal_checkpoint_v2(db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
 			if (status == SQLITE_OK) {
 				result->Set(ctx, InternalizedFromUtf8(isolate, name.c_str(), name.length()), v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames))).FromJust();
 			} else if (status == SQLITE_BUSY) {

@@ -36,20 +36,21 @@ public:
 	}
 	
 private:
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _safe_ints, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handle(_handle),
 		alive(true),
 		bound(false),
 		has_bind_map(false),
-		safe_ints_setting(_db->safe_ints),
-		safe_ints(safe_ints_setting),
+		safe_ints_setting(_safe_ints),
+		safe_ints(_safe_ints),
 		pluck_setting(false),
 		pluck(false),
 		returns_data(_returns_data) {
+		assert(db != NULL);
 		assert(handle != NULL);
-		assert(db->open);
-		assert(!db->busy);
+		assert(db->GetState()->open);
+		assert(!db->GetState()->busy);
 		db->AddStatement(this);
 	}
 	
@@ -79,15 +80,15 @@ private:
 		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> source);
 		Database* db = Unwrap<Database>(database);
-		REQUIRE_DATABASE_OPEN(db);
-		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_OPEN(db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 		
 		v8::String::Value sql(source);
 		const void* tail;
 		sqlite3_stmt* handle;
 		bool returns_data;
 		
-		if (sqlite3_prepare16_v2(db->db_handle, *sql, sql.length() * sizeof(uint16_t) + 1, &handle, &tail) != SQLITE_OK) {
+		if (sqlite3_prepare16_v2(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, &handle, &tail) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		if (handle == NULL) {
@@ -100,12 +101,12 @@ private:
 		if (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) {
 			returns_data = true;
 		} else {
-			REQUIRE_DATABASE_NOT_READONLY(db, sqlite3_finalize(handle));
-			returns_data = db->pragma_mode;
+			REQUIRE_DATABASE_NOT_READONLY(db->GetState(), sqlite3_finalize(handle));
+			returns_data = db->GetState()->pragma_mode;
 		}
 		
 		UseIsolateAndContext;
-		Statement* stmt = new Statement(db, handle, returns_data);
+		Statement* stmt = new Statement(db, handle, db->GetState()->safe_ints, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(ctx, info.This(), "source", source);
 		SetFrozen(ctx, info.This(), "database", database);
@@ -115,7 +116,7 @@ private:
 	
 	NODE_METHOD(JS_run) {
 		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
-		sqlite3* db_handle = db->db_handle;
+		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
 		
 		sqlite3_step(handle);
@@ -181,7 +182,7 @@ private:
 		const bool pluck = stmt->pluck;
 		bool js_error = false;
 		
-		db->busy = true;
+		db_state->busy = true;
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			NewHandleScope;
 			v8::Local<v8::Value> arg = pluck
@@ -190,20 +191,20 @@ private:
 			v8::MaybeLocal<v8::Value> callback_return_value = callback->Call(ctx, Null, 1, &arg);
 			if (callback_return_value.IsEmpty()) {js_error = true; break;}
 		}
-		db->busy = false;
+		db_state->busy = false;
 		
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
 			QUERY_RETURN(stmt, STATEMENT_UNBIND, v8::Undefined(isolate));
 		}
-		if (js_error) db->was_js_error = true;
+		if (js_error) db_state->was_js_error = true;
 		QUERY_THROW(stmt, STATEMENT_UNBIND);
 	}
 	
 	NODE_METHOD(JS_bind) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
-		REQUIRE_DATABASE_OPEN(stmt->db);
-		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		REQUIRE_DATABASE_OPEN(stmt->db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 		sqlite3_stmt* handle = stmt->handle;
 		Binder binder(handle);
 		QUERY_BIND(stmt, info, info.Length(), STATEMENT_UNBIND);
@@ -214,14 +215,16 @@ private:
 	NODE_METHOD(JS_pluck) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
-		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		// TODO
 		stmt->pluck = info.Length() == 0 || info[0]->BooleanValue() == true;
 		info.GetReturnValue().Set(info.This());
 	}
 	
 	NODE_METHOD(JS_safeIntegers) {
 		Statement* stmt = Unwrap<Statement>(info.This());
-		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		// TODO
 		stmt->safe_ints = info.Length() == 0 || info[0]->BooleanValue() == true;
 		info.GetReturnValue().Set(info.This());
 	}

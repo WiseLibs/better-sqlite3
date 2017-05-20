@@ -28,8 +28,9 @@
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
 	RETURNS_DATA_CHECK(stmt);                                                  \
 	Database* db = stmt->db;                                                   \
-	REQUIRE_DATABASE_OPEN(db);                                                 \
-	REQUIRE_DATABASE_NOT_BUSY(db);                                             \
+	Database::State* db_state = db->GetState();                                \
+	REQUIRE_DATABASE_OPEN(db_state);                                           \
+	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	if (!stmt->bound) {                                                        \
 		Binder binder(handle);                                                 \
