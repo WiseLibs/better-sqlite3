@@ -184,7 +184,7 @@ private:
 		info.GetReturnValue().Set(result);
 	}
 	
-	NODE_METHOD(JS_register); // TODO
+	NODE_METHOD(JS_register) {} // TODO
 	
 	NODE_METHOD(JS_close) {
 		Database* db = Unwrap<Database>(info.This());
@@ -224,10 +224,10 @@ private:
 	
 	sqlite3* const db_handle;
 	DatabaseExtras* const extras;
-	bool open :1;
-	bool busy :1;
-	bool pragma_mode :1;
-	bool safe_ints :1;
-	bool was_js_error :1;
-	const bool readonly :1;
+	bool open;
+	bool busy;
+	bool pragma_mode;
+	bool safe_ints;
+	bool was_js_error;
+	const bool readonly;
 };

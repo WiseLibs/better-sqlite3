@@ -62,8 +62,8 @@ private:
 		Nan::SetPrototypeMethod(t, "get", JS_get);
 		Nan::SetPrototypeMethod(t, "all", JS_all);
 		Nan::SetPrototypeMethod(t, "each", JS_each);
-		Nan::SetPrototypeMethod(t, "pluck", JS_pluck);
 		Nan::SetPrototypeMethod(t, "bind", JS_bind);
+		Nan::SetPrototypeMethod(t, "pluck", JS_pluck);
 		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
 		Nan::SetAccessor(t->InstanceTemplate(), NEW_INTERNAL_STRING_FAST("returnsData"), JS_returnsData);
 		
@@ -113,14 +113,122 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 	
-	NODE_METHOD(JS_run); // TODO
-	NODE_METHOD(JS_get); // TODO
-	NODE_METHOD(JS_all); // TODO
-	NODE_METHOD(JS_each); // TODO
-	NODE_METHOD(JS_pluck); // TODO
-	NODE_METHOD(JS_bind); // TODO
-	NODE_METHOD(JS_safeIntegers); // TODO
-	NODE_GETTER(JS_returnsData); // TODO
+	NODE_METHOD(JS_run) {
+		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
+		sqlite3* db_handle = db->db_handle;
+		int total_changes_before = sqlite3_total_changes(db_handle);
+		
+		sqlite3_step(handle);
+		if (sqlite3_reset(handle) == SQLITE_OK) {
+			int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
+			sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
+			UseIsolateAndContext;
+			v8::Local<v8::Object> result = v8::Object::New(isolate);
+			result->Set(ctx, NEW_INTERNAL_STRING_FAST("changes"), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
+			result->Set(ctx, NEW_INTERNAL_STRING_FAST("lastInsertROWID"), Int64::NewProperInteger(isolate, id, stmt->safe_ints)).FromJust();
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+		}
+		QUERY_THROW(stmt, STATEMENT_UNBIND);
+	}
+	
+	NODE_METHOD(JS_get) {
+		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		UseIsolate;
+		int status = sqlite3_step(handle);
+		if (status == SQLITE_ROW) {
+			v8::Local<v8::Value> result = stmt->pluck
+				? Data::GetValueJS(isolate, handle, 0, stmt->safe_ints)
+				: Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints);
+			sqlite3_reset(handle);
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+		} else if (status == SQLITE_DONE) {
+			sqlite3_reset(handle);
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, v8::Undefined(isolate));
+		}
+		sqlite3_reset(handle);
+		QUERY_THROW(stmt, STATEMENT_UNBIND);
+	}
+	
+	NODE_METHOD(JS_all) {
+		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		UseIsolateAndContext;
+		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
+		unsigned int row_count = 0;
+		const bool safe_integers = stmt->safe_ints;
+		
+		if (stmt->pluck) {
+			while (sqlite3_step(handle) == SQLITE_ROW) {
+				result->Set(ctx, row_count++, Data::GetValueJS(isolate, handle, 0, safe_integers)).FromJust();
+			}
+		} else {
+			while (sqlite3_step(handle) == SQLITE_ROW) {
+				result->Set(ctx, row_count++, Data::GetRowJS(isolate, ctx, handle, safe_integers)).FromJust();
+			}
+		}
+		
+		if (sqlite3_reset(handle) == SQLITE_OK) {
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+		}
+		QUERY_THROW(stmt, STATEMENT_UNBIND);
+	}
+	
+	NODE_METHOD(JS_each) {
+		REQUIRE_LAST_ARGUMENT_FUNCTION(bind_args_count, callback);
+		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		UseIsolateAndContext;
+		v8::Local<v8::Primitive> Null = v8::Null(isolate);
+		const bool safe_integers = stmt->safe_ints;
+		const bool pluck = stmt->pluck;
+		bool js_error = false;
+		
+		db->busy = true;
+		while (sqlite3_step(handle) == SQLITE_ROW) {
+			NewHandleScope;
+			v8::Local<v8::Value> arg = pluck
+				? Data::GetValueJS(isolate, handle, 0, safe_integers)
+				: Data::GetRowJS(isolate, ctx, handle, safe_integers);
+			v8::MaybeLocal<v8::Value> callback_return_value = callback->Call(ctx, Null, 1, &arg);
+			if (callback_return_value.IsEmpty()) {js_error = true; break;}
+		}
+		db->busy = false;
+		
+		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, v8::Undefined(isolate));
+		}
+		if (js_error) db->was_js_error = true;
+		QUERY_THROW(stmt, STATEMENT_UNBIND);
+	}
+	
+	NODE_METHOD(JS_bind) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
+		REQUIRE_DATABASE_OPEN(stmt->db);
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		sqlite3_stmt* handle = stmt->handle;
+		Binder binder(handle);
+		QUERY_BIND(stmt, info, info.Length(), STATEMENT_UNBIND);
+		stmt->bound = true;
+		info.GetReturnValue().Set(info.This());
+	}
+	
+	NODE_METHOD(JS_pluck) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		stmt->pluck = info.Length() == 0 || info[0]->BooleanValue() == true;
+		info.GetReturnValue().Set(info.This());
+	}
+	
+	NODE_METHOD(JS_safeIntegers) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db);
+		stmt->safe_ints = info.Length() == 0 || info[0]->BooleanValue() == true;
+		info.GetReturnValue().Set(info.This());
+	}
+	
+	NODE_GETTER(JS_returnsData) {
+		info.GetReturnValue().Set(Unwrap<Statement>(info.This())->returns_data);
+	}
 	
 	static v8::Persistent<v8::Function> constructor;
 	static sqlite3_uint64 next_id;
@@ -128,12 +236,12 @@ private:
 	
 	Database* const db;
 	sqlite3_stmt* const handle;
-	bool alive :1;
-	bool bound :1;
-	bool has_bind_map :1;
-	bool safe_ints_setting :1;
-	bool safe_ints :1;
-	bool pluck_setting :1;
-	bool pluck :1;
-	const bool returns_data :1;
+	bool alive;
+	bool bound;
+	bool has_bind_map;
+	bool safe_ints_setting;
+	bool safe_ints;
+	bool pluck_setting;
+	bool pluck;
+	const bool returns_data;
 };

@@ -5,17 +5,21 @@ public:
 		return v8::Object::New(isolate); // TODO
 	}
 	
-	BindMap* GetBindMap(v8::Isolate* isolate); // TODO
-	void CloseHandles(); // TODO
-	~Transaction(); // TODO
+	BindMap* GetBindMap(v8::Isolate* isolate) {return NULL;} // TODO
+	void CloseHandles() {} // TODO
+	~Transaction() {} // TODO
 	
 private:
-	explicit Transaction(); // TODO
-	REGISTER(Init); // TODO
-	NODE_METHOD(JS_new); // TODO
-	NODE_METHOD(JS_run); // TODO
-	NODE_METHOD(JS_bind); // TODO
-	NODE_METHOD(JS_safeIntegers); // TODO
+	explicit Transaction() : Nan::ObjectWrap(), Query(next_id++),
+		db(NULL),
+		handles(NULL),
+		handle_count(0) {} // TODO
+	
+	REGISTER(Init) {} // TODO
+	NODE_METHOD(JS_new) {} // TODO
+	NODE_METHOD(JS_run) {} // TODO
+	NODE_METHOD(JS_bind) {} // TODO
+	NODE_METHOD(JS_safeIntegers) {} // TODO
 	
 	static v8::Persistent<v8::Function> constructor; // TODO (Init)
 	static sqlite3_uint64 next_id; // TODO (Init)
@@ -24,9 +28,9 @@ private:
 	Database* const db;
 	sqlite3_stmt** const handles;
 	const int handle_count;
-	bool alive :1;
-	bool bound :1;
-	bool has_bind_map :1;
-	bool safe_ints_setting :1;
-	bool safe_ints :1;
+	bool alive;
+	bool bound;
+	bool has_bind_map;
+	bool safe_ints_setting;
+	bool safe_ints;
 };

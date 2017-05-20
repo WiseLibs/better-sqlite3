@@ -80,8 +80,8 @@ protected:
 				default:
 					return SetError("An unexpected error occured while trying to bind parameters");
 			}
+			assert(false);
 		}
-		assert(false);
 	}
 	
 	// Binds each value in the array or sets an appropriate error message.
