@@ -21,7 +21,7 @@ public:
 		Result result = BindArgs(info, argc, query);
 		if (!error && result.count != param_count) {
 			if (result.count < param_count) {
-				if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetLength()) {
+				if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetSize()) {
 					SetError("Missing named parameters");
 				} else {
 					SetError("Too few parameter values were provided");
@@ -115,7 +115,7 @@ protected:
 		UseContext;
 		BindMap* bind_map = static_cast<Statement*>(query)->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();
-		int len = bind_map->GetLength();
+		int len = bind_map->GetSize();
 		
 		for (int i=0; i<len; ++i) {
 			v8::Local<v8::String> key = pairs[i].GetName(isolate);

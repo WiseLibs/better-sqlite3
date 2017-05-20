@@ -34,7 +34,7 @@ inline void SetFrozen(v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, con
 	obj->DefineOwnProperty(ctx, NEW_INTERNAL_STRING_FAST(key), value, FROZEN_PROPERTY).FromJust();
 }
 
-template<ErrorFactory T> inline void ThrowException(const char* message) {
+template<ErrorFactory T> void ThrowException(const char* message) {
 	EasyIsolate;
 	isolate->ThrowException(T(StringFromUtf8(isolate, message, -1)));
 }
@@ -94,17 +94,19 @@ inline const char* COPY(const char* source) {
 }
 
 // Returns a std:string of the concatenation of 2 or 3 well-formed C-strings.
-inline std::string CONCAT(const char* a, const char* b, const char* c = NULL) {
+std::string CONCAT(const char* a, const char* b, const char* c = NULL) {
 	std::string result(a);
 	result += b;
 	if (c != NULL) result += c;
 	return result;
 }
 
+// Allocates an empty array, without calling constructors/initializers.
 template<class T> inline T* ALLOC_ARRAY(size_t count) {
 	return static_cast<T*>(::operator new[](count * sizeof(T)));
 }
 
+// Deallocates an array, without calling destructors.
 template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
 }

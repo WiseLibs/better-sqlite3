@@ -1,3 +1,7 @@
+// A helper class for creating the handles necessary for constructing a
+// Database object. If an error occurs, ownership of those handles is not
+// relinquished, so they can be safely destroyed when this object goes out of
+// scope.
 class DatabaseHandles { friend class Database;
 	
 	explicit DatabaseHandles(v8::Local<v8::String> filename) {

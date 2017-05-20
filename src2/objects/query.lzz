@@ -8,12 +8,15 @@ public:
 	};
 	
 protected:
+	
+	// A class for holding values that are less often used.
 	class QueryExtras { friend class Query;
 		explicit QueryExtras(sqlite3_uint64 _id) : bind_map(0), id(_id) {}
 		BindMap bind_map;
 		const sqlite3_uint64 id;
 	};
 	
+	// Constructor and destructor ensuring always-complete initialization.
 	explicit Query(sqlite3_uint64 id) : extras(new QueryExtras(id)) {}
 	~Query() {delete extras;}
 	

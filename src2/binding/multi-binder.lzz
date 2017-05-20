@@ -17,7 +17,7 @@ public:
 			}
 			if (result.count != param_count_sum) {
 				if (result.count < param_count_sum) {
-					if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetLength()) {
+					if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetSize()) {
 						SetError("Missing named parameters");
 					} else {
 						SetError("Too few parameter values were provided");
@@ -57,7 +57,7 @@ protected:
 		UseContext;
 		BindMap* bind_map = static_cast<Transaction*>(query)->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();
-		int len = bind_map->GetLength();
+		int len = bind_map->GetSize();
 		
 		// Save current handle.
 		sqlite3_stmt* current_handle = handle;

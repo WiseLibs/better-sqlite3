@@ -1,6 +1,7 @@
 class Statement : public Nan::ObjectWrap, public Query {
 public:
 	
+	// Provides public access to the constructor.
 	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> source) {
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
 		v8::Local<v8::Value> args[2] = { database, source };
@@ -10,6 +11,7 @@ public:
 		return maybe_statement;
 	}
 	
+	// Returns the statement's bind map (creates it upon first execution).
 	BindMap* GetBindMap(v8::Isolate* isolate) {
 		if (has_bind_map) return BindMapPointer();
 		BindMap* bind_map = BindMapPointer();
@@ -22,6 +24,7 @@ public:
 		return bind_map;
 	}
 	
+	// This should only be used by Database::CloseHandles() and ~Statement().
 	void CloseHandles() {
 		if (alive) {
 			alive = false;

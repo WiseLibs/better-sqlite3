@@ -1,6 +1,10 @@
 class BindMap {
 public:
 	
+	// This class represents a mapping between a parameter name and its
+	// associated parameter index in a prepared statement.
+	// It can also support transactions by having its index field embed the
+	// position of the statement within the transaction.
 	class Pair {
 		friend class BindMap;
 		public:
@@ -37,22 +41,26 @@ public:
 	}
 	
 	inline Pair* GetPairs() {return pairs;}
-	inline int GetLength() {return length;}
+	inline int GetSize() {return length;}
 	
+	// Adds a pair to the bind map, expanding the capacity if necessary.
 	void Add(v8::Isolate* isolate, const char* name, int index) {
 		if (capacity == length) Grow(isolate);
 		new (pairs + length++) Pair(isolate, name, index);
 	}
 	
+	// Same as the simpler Add(), but the stored index is embedded with
+	// transaction information.
 	void Add(v8::Isolate* isolate, const char* name, int parameter_index, int transaction_index) {
 		Add(isolate, name, parameter_index | (transaction_index << PARAMETER_BITS));
 	}
 	
+	// PARAMETER_MASK * MAX_TRANSACTION_LENGTH is guaranteed to be smaller than INT_MAX.
 	static const int PARAMETER_BITS = 10;
 	static const int PARAMETER_MASK = (1 << PARAMETER_BITS) - 1;
 	static const int MAX_TRANSACTION_LENGTH = (1 << ((sizeof(int) * 8) - PARAMETER_BITS - 1)) - 1;
-	// PARAMETER_MASK * MAX_TRANSACTION_LENGTH is guaranteed to be smaller than INT_MAX.
 	
+	// Utility functions for splitting an embedded index into its two parts.
 	static inline int GetParameterIndex(int index) {
 		return index & PARAMETER_MASK;
 	}
