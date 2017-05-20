@@ -3,7 +3,7 @@ public:
 	
 	// This class represents a mapping between a parameter name and its
 	// associated parameter index in a prepared statement.
-	// It can also support transactions by having its index field embed the
+	// It can also support Transactions by having its index field embed the
 	// position of the statement within the transaction.
 	class Pair {
 		friend class BindMap;
@@ -50,7 +50,7 @@ public:
 	}
 	
 	// Same as the simpler Add(), but the stored index is embedded with
-	// transaction information.
+	// Transaction information.
 	void Add(v8::Isolate* isolate, const char* name, int parameter_index, int transaction_index) {
 		Add(isolate, name, parameter_index | (transaction_index << PARAMETER_BITS));
 	}

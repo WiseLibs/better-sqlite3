@@ -11,7 +11,7 @@ public:
 		return maybe_statement;
 	}
 	
-	// Returns the statement's bind map (creates it upon first execution).
+	// Returns the Statement's bind map (creates it upon first execution).
 	BindMap* GetBindMap(v8::Isolate* isolate) {
 		if (has_bind_map) return BindMapPointer();
 		BindMap* bind_map = BindMapPointer();
@@ -39,6 +39,7 @@ public:
 	}
 	
 private:
+	
 	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _safe_ints, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handle(_handle),

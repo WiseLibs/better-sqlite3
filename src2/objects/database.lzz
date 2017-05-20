@@ -3,14 +3,11 @@ class Transaction;
 class Database : public Nan::ObjectWrap {
 public:
 	
-	~Database() {
-		CloseHandles();
-		delete extras;
-	}
-	
+	// Proper error handling logic for when an sqlite3 operation fails.
+	// The err argument should be omitted unless this is after sqlite3_exec().
 	void ThrowDatabaseError(const char* err = NULL) {
 		if (was_js_error) {
-			assert(err == NULL);
+			assert(err == NULL || err[0] == 0);
 			was_js_error = false;
 		} else {
 			if (err == NULL) {
@@ -21,11 +18,15 @@ public:
 		}
 	}
 	
+	// Allow Statements and Transactions to manage themselves when created and
+	// garbage collected.
 	inline void AddStatement(Statement* stmt) {extras->stmts.insert(extras->stmts.end(), stmt);}
 	inline void RemoveStatement(Statement* stmt) {extras->stmts.erase(stmt);}
 	inline void AddTransaction(Transaction* trans) {extras->transs.insert(extras->transs.end(), trans);}
 	inline void RemoveTransaction(Transaction* trans) {extras->transs.erase(trans);}
 	
+	// A view for Statements and Transactions to see and modify Database state.
+	// The order of these fields must exactly match their actual order.
 	struct State {
 		const bool open;
 		bool busy;
@@ -38,12 +39,17 @@ public:
 	inline State* GetState() {
 		return reinterpret_cast<State*>(&open);
 	}
-	
 	inline sqlite3* GetHandle() {
 		return db_handle;
 	}
 	
+	~Database() {
+		CloseHandles();
+		delete extras;
+	}
+	
 private:
+	
 	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),
 		extras(new DatabaseExtras(handles)),
@@ -56,6 +62,7 @@ private:
 		assert(handles->error == NULL);
 	}
 	
+	// A class for holding values that are less often used.
 	class DatabaseExtras { friend class Database;
 		explicit DatabaseExtras(DatabaseHandles* handles)
 			: stmts(), transs(), begin(handles->begin), commit(handles->commit), rollback(handles->rollback) {

@@ -10,6 +10,7 @@ public:
 	~Transaction() {} // TODO
 	
 private:
+	
 	explicit Transaction() : Nan::ObjectWrap(), Query(next_id++),
 		db(NULL),
 		handles(NULL),
