@@ -75,7 +75,7 @@ namespace Data {
 		if (argument_count == 0) {
 			return NULL;
 		}
-		v8::Local<v8::Value>* args = ALLOC_ARRAY(v8::Local<v8::Value>, argument_count);
+		v8::Local<v8::Value>* args = ALLOC_ARRAY<v8::Local<v8::Value>>(argument_count);
 		for (int i=0; i<argument_count; ++i) {
 			args[i] = Data::GetValueJS(isolate, values[i], safe_integers);
 		}

@@ -33,7 +33,7 @@ public:
 	
 	~BindMap() {
 		while (length) {pairs[--length].~Pair();}
-		FREE_ARRAY(pairs);
+		FREE_ARRAY<Pair>(pairs);
 	}
 	
 	inline Pair* GetPairs() {return pairs;}
@@ -64,7 +64,7 @@ private:
 	void Grow(v8::Isolate* isolate) {
 		assert(capacity == length);
 		capacity = (capacity << 1) | 2;
-		Pair* new_pairs = ALLOC_ARRAY(Pair, capacity);
+		Pair* new_pairs = ALLOC_ARRAY<Pair>(capacity);
 		for (int i=0; i<length; ++i) {
 			new (new_pairs + i) Pair(isolate, pairs + i);
 		}

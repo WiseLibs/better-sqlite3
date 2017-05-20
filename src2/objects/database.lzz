@@ -21,6 +21,11 @@ public:
 		}
 	}
 	
+	inline void AddStatement(Statement* stmt) {extras->stmts.insert(extras->stmts.end(), stmt);}
+	inline void RemoveStatement(Statement* stmt) {extras->stmts.erase(stmt);}
+	inline void AddTransaction(Transaction* trans) {extras->transs.insert(extras->transs.end(), trans);}
+	inline void RemoveTransaction(Transaction* trans) {extras->transs.erase(trans);}
+	
 private:
 	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),

@@ -31,9 +31,8 @@ public:
 	}
 	
 	~Statement() {
-		bool was_alive = alive;
+		if (alive) db->RemoveStatement(this);
 		CloseHandles();
-		if (was_alive) db->extras->stmts.erase(this);
 	}
 	
 private:
@@ -51,7 +50,7 @@ private:
 		assert(handle != NULL);
 		assert(db->open);
 		assert(!db->busy);
-		db->extras->stmts.insert(db->extras->stmts.end(), this);
+		db->AddStatement(this);
 	}
 	
 	REGISTER(Init) {

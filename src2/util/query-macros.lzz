@@ -1,0 +1,40 @@
+#define QUERY_THROW(obj, UNBIND_ACTION)                                        \
+	db->ThrowDatabaseError();                                                  \
+	if (!obj->bound) {UNBIND_ACTION;}                                          \
+	return
+
+#define QUERY_RETURN(obj, UNBIND_ACTION, return_value)                         \
+	info.GetReturnValue().Set(return_value);                                   \
+	if (!obj->bound) {UNBIND_ACTION;}                                          \
+	return
+
+#define QUERY_BIND(obj, info, info_length, UNBIND_ACTION)                      \
+	_binder.Bind(info, info_length, obj);                                      \
+	if (_binder.GetError()) {                                                  \
+		UNBIND_ACTION;                                                         \
+		if (_binder.GetError()[0] != 0) ThrowError(_binder.GetError());        \
+		return;                                                                \
+	} ((void)0)
+
+#define REQUIRE_STATEMENT_RETURNS_DATA(stmt)                                   \
+	if (!stmt->returns_data)                                                   \
+		return Nan::ThrowTypeError("This statement does not return data. Use run() instead")
+
+#define REQUIRE_STATEMENT_DOESNT_RETURN_DATA(stmt)                             \
+	if (stmt->returns_data)                                                    \
+		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
+
+#define STATEMENT_START(info, info_length, RETURNS_DATA_CHECK)                 \
+	Statement* stmt = Unwrap<Statement>(info.This());                          \
+	RETURNS_DATA_CHECK(stmt);                                                  \
+	Database* db = stmt->db;                                                   \
+	REQUIRE_DATABASE_OPEN(db);                                                 \
+	REQUIRE_DATABASE_NOT_BUSY(db);                                             \
+	sqlite3_stmt* handle = stmt->handle;                                       \
+	if (!stmt->bound) {                                                        \
+		Binder _binder(handle);                                                \
+		QUERY_BIND(stmt, info, info_length, STATEMENT_UNBIND);                 \
+	} else if (info_length > 0)                                                \
+		return ThrowTypeError("This statement already has bound parameters")
+
+#define STATEMENT_UNBIND sqlite3_clear_bindings(handle)
