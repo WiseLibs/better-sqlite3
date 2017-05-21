@@ -32,6 +32,5 @@ private:
 	bool alive;
 	bool bound;
 	bool has_bind_map;
-	bool safe_ints_setting;
 	bool safe_ints;
 };

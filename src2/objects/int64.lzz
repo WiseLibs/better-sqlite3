@@ -33,6 +33,7 @@ private:
 		
 		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::low), JS_low);
 		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::high), JS_high);
+		Nan::SetPrototypeMethod(t, "isSafe", JS_isSafe);
 		Nan::SetPrototypeMethod(t, "toString", JS_toString);
 		Nan::SetPrototypeMethod(t, "valueOf", JS_valueOf);
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::toString), JS_toString);
@@ -46,6 +47,7 @@ private:
 	}
 	NODE_METHOD(JS_new) {
 		if (fast_construct_int != NULL) {
+			assert(info.IsConstructCall());
 			Int64* int64 = new Int64(*fast_construct_int);
 			fast_construct_int = NULL;
 			int64->Wrap(info.This());
@@ -62,9 +64,15 @@ private:
 			high = 0;
 		}
 		
-		Int64* int64 = new Int64(low, high);
-		int64->Wrap(info.This());
-		info.GetReturnValue().Set(info.This());
+		if (info.IsConstructCall()) {
+			Int64* int64 = new Int64(low, high);
+			int64->Wrap(info.This());
+			info.GetReturnValue().Set(info.This());
+		} else {
+			UseIsolateAndContext;
+			v8::Local<v8::Value> args[2] = { v8::Int32::New(isolate, low), v8::Int32::New(isolate, high) };
+			info.GetReturnValue().Set(v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(ctx, 2, args).ToLocalChecked());
+		}
 	}
 	NODE_GETTER(JS_low) {
 		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
@@ -73,6 +81,10 @@ private:
 	NODE_GETTER(JS_high) {
 		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
 		info.GetReturnValue().Set((int32_t)((uint32_t)(((sqlite3_uint64)value) >> 32)));
+	}
+	NODE_METHOD(JS_isSafe) {
+		sqlite3_int64 value = Unwrap<Int64>(info.This())->value;
+		info.GetReturnValue().Set(value <= MAX_SAFE && value >= MIN_SAFE);
 	}
 	NODE_METHOD(JS_toString) {
 		std::string string = std::to_string(static_cast<long long>(Unwrap<Int64>(info.This())->value));

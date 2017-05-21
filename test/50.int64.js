@@ -19,7 +19,14 @@ describe('Int64', function () {
 		expect(function () {new Int64(null, null)}).to.throw(TypeError);
 		expect(function () {new Int64(new Number(123), new Number(123))}).to.throw(TypeError);
 		expect(function () {new Int64(123, undefined)}).to.throw(TypeError);
+		expect(function () {Int64()}).to.throw(TypeError);
+		expect(function () {Int64('123', '123')}).to.throw(TypeError);
+		expect(function () {Int64('123')}).to.throw(TypeError);
+		expect(function () {Int64(null, null)}).to.throw(TypeError);
+		expect(function () {Int64(new Number(123), new Number(123))}).to.throw(TypeError);
+		expect(function () {Int64(123, undefined)}).to.throw(TypeError);
 		new Int64(123, 123);
+		Int64(123, 123);
 	});
 	it('should throw if the low and high components are not 32-bit integers', function () {
 		expect(function () {new Int64(123, 12.2)}).to.throw(TypeError);
@@ -31,6 +38,15 @@ describe('Int64', function () {
 		expect(function () {new Int64(NaN, 123)}).to.throw(TypeError);
 		expect(function () {new Int64(Infinity, 123)}).to.throw(TypeError);
 		expect(function () {new Int64(-Infinity, 123)}).to.throw(TypeError);
+		expect(function () {Int64(123, 12.2)}).to.throw(TypeError);
+		expect(function () {Int64(123, 2147483648)}).to.throw(TypeError);
+		expect(function () {Int64(123, -2147483649)}).to.throw(TypeError);
+		expect(function () {Int64(12.2, 123)}).to.throw(TypeError);
+		expect(function () {Int64(2147483648, 123)}).to.throw(TypeError);
+		expect(function () {Int64(-2147483649, 123)}).to.throw(TypeError);
+		expect(function () {Int64(NaN, 123)}).to.throw(TypeError);
+		expect(function () {Int64(Infinity, 123)}).to.throw(TypeError);
+		expect(function () {Int64(-Infinity, 123)}).to.throw(TypeError);
 	});
 	it('should expose the low and high components via getters', function () {
 		var int = new Int64(123, 123);
@@ -57,8 +73,8 @@ describe('Int64', function () {
 		expect(+(new Int64(123, 123))).to.equal(528280977531);
 		expect(+(new Int64(123, -123))).to.equal(-528280977285);
 	});
-	it('should cast to a NaN when the number is not a safe number', function () {
-		expect(+(new Int64(4243423, 234234234))).to.be.NaN;
+	it('should throw a RangeError when casting to a number is not safe', function () {
+		expect(function () {+(new Int64(4243423, 234234234))}).to.throw(RangeError);
 	});
 	it('should compare to other Int64s and other values via .equals()', function () {
 		var int = new Int64(123, 123);
@@ -71,7 +87,7 @@ describe('Int64', function () {
 		expect(int.equals(new Int64(4243423, 234234234))).to.be.true;
 		expect(int.equals(String(int))).to.be.true;
 		expect(int.equals(+String(int))).to.be.false;
-		expect(int.equals(+int)).to.be.false;
+		expect(int.equals(+(int.toString()))).to.be.false;
 	});
 	it('should bind to statements and transactions', function () {
 		var int = new Int64(4243423, 234234234);
