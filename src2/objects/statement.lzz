@@ -185,7 +185,7 @@ private:
 	
 	NODE_METHOD(JS_each) {
 		REQUIRE_LAST_ARGUMENT_FUNCTION(bind_args_count, callback);
-		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(info, bind_args_count, REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
 		v8::Local<v8::Primitive> Null = v8::Null(isolate);
 		const bool safe_integers = stmt->safe_ints;
