@@ -43,7 +43,7 @@
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
 	if (!stmt->returns_data)                                                   \
-		return Nan::ThrowTypeError("This statement does not return data. Use run() instead")
+		return ThrowTypeError("This statement does not return data. Use run() instead")
 #define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
 	if (stmt->returns_data)                                                    \
-		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
+		return ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
