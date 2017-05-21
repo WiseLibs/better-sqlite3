@@ -1,41 +1,45 @@
-#define QUERY_THROW(obj, UNBIND_ACTION)                                        \
+#define _QUERY_THROW(obj, UNBIND_ACTION)                                       \
 	db->ThrowDatabaseError();                                                  \
 	if (!obj->bound) {UNBIND_ACTION;}                                          \
 	return
 
-#define QUERY_RETURN(obj, UNBIND_ACTION, return_value)                         \
+#define _QUERY_RETURN(return_value, obj, UNBIND_ACTION)                        \
 	info.GetReturnValue().Set(return_value);                                   \
 	if (!obj->bound) {UNBIND_ACTION;}                                          \
 	return
 
-#define QUERY_BIND(obj, info, info_length, UNBIND_ACTION)                      \
-	binder.Bind(info, info_length, obj);                                       \
+#define _QUERY_BIND(obj, bind_args_count, UNBIND_ACTION)                       \
+	binder.Bind(info, bind_args_count, obj);                                   \
 	if (binder.GetError()) {                                                   \
 		UNBIND_ACTION;                                                         \
 		if (binder.GetError()[0] != 0) ThrowError(binder.GetError());          \
 		return;                                                                \
 	} ((void)0)
 
-#define REQUIRE_STATEMENT_RETURNS_DATA(stmt)                                   \
-	if (!stmt->returns_data)                                                   \
-		return Nan::ThrowTypeError("This statement does not return data. Use run() instead")
+#define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
 
-#define REQUIRE_STATEMENT_DOESNT_RETURN_DATA(stmt)                             \
-	if (stmt->returns_data)                                                    \
-		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
+#define STATEMENT_THROW() _QUERY_THROW(stmt, _STATEMENT_UNBIND(handle));
+#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, stmt, _STATEMENT_UNBIND(handle));
+#define STATEMENT_BIND(handle, bind_args_count)                                \
+	Binder binder(handle);                                                     \
+	_QUERY_BIND(stmt, bind_args_count, _STATEMENT_UNBIND(handle));
 
-#define STATEMENT_START(info, info_length, RETURNS_DATA_CHECK)                 \
+#define STATEMENT_START(bind_args_count, RETURNS_DATA_CHECK)                   \
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
-	RETURNS_DATA_CHECK(stmt);                                                  \
+	RETURNS_DATA_CHECK();                                                      \
 	Database* db = stmt->db;                                                   \
 	Database::State* db_state = db->GetState();                                \
 	REQUIRE_DATABASE_OPEN(db_state);                                           \
 	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	if (!stmt->bound) {                                                        \
-		Binder binder(handle);                                                 \
-		QUERY_BIND(stmt, info, info_length, STATEMENT_UNBIND);                 \
-	} else if (info_length > 0)                                                \
+		STATEMENT_BIND(handle, bind_args_count);                               \
+	} else if (bind_args_count > 0)                                            \
 		return ThrowTypeError("This statement already has bound parameters")
 
-#define STATEMENT_UNBIND sqlite3_clear_bindings(handle)
+#define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
+	if (!stmt->returns_data)                                                   \
+		return Nan::ThrowTypeError("This statement does not return data. Use run() instead")
+#define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
+	if (stmt->returns_data)                                                    \
+		return Nan::ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")

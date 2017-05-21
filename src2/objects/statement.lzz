@@ -125,7 +125,7 @@ private:
 	}
 	
 	NODE_METHOD(JS_run) {
-		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
+		STATEMENT_START(info.Length(), REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
 		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
 		
@@ -137,13 +137,13 @@ private:
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
 			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
 			result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Int64::NewProperInteger(isolate, id, stmt->safe_ints)).FromJust();
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+			STATEMENT_RETURN(result);
 		}
-		QUERY_THROW(stmt, STATEMENT_UNBIND);
+		STATEMENT_THROW();
 	}
 	
 	NODE_METHOD(JS_get) {
-		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolate;
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
@@ -151,17 +151,17 @@ private:
 				? Data::GetValueJS(isolate, handle, 0, stmt->safe_ints)
 				: Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints);
 			sqlite3_reset(handle);
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+			STATEMENT_RETURN(result);
 		} else if (status == SQLITE_DONE) {
 			sqlite3_reset(handle);
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, v8::Undefined(isolate));
+			STATEMENT_RETURN(v8::Undefined(isolate));
 		}
 		sqlite3_reset(handle);
-		QUERY_THROW(stmt, STATEMENT_UNBIND);
+		STATEMENT_THROW();
 	}
 	
 	NODE_METHOD(JS_all) {
-		STATEMENT_START(info, info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
 		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
 		unsigned int row_count = 0;
@@ -178,14 +178,14 @@ private:
 		}
 		
 		if (sqlite3_reset(handle) == SQLITE_OK) {
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, result);
+			STATEMENT_RETURN(result);
 		}
-		QUERY_THROW(stmt, STATEMENT_UNBIND);
+		STATEMENT_THROW();
 	}
 	
 	NODE_METHOD(JS_each) {
 		REQUIRE_LAST_ARGUMENT_FUNCTION(bind_args_count, callback);
-		STATEMENT_START(info, bind_args_count, REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(bind_args_count, REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
 		v8::Local<v8::Primitive> Undefined = v8::Undefined(isolate);
 		const bool safe_integers = stmt->safe_ints;
@@ -204,10 +204,10 @@ private:
 		db_state->busy = false;
 		
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, Undefined);
+			STATEMENT_RETURN(Undefined);
 		}
 		if (js_error) db_state->was_js_error = true;
-		QUERY_THROW(stmt, STATEMENT_UNBIND);
+		STATEMENT_THROW();
 	}
 	
 	NODE_METHOD(JS_bind) {
@@ -215,9 +215,7 @@ private:
 		if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
 		REQUIRE_DATABASE_OPEN(stmt->db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
-		sqlite3_stmt* handle = stmt->handle;
-		Binder binder(handle);
-		QUERY_BIND(stmt, info, info.Length(), STATEMENT_UNBIND);
+		STATEMENT_BIND(stmt->handle, info.Length());
 		stmt->bound = true;
 		info.GetReturnValue().Set(info.This());
 	}
