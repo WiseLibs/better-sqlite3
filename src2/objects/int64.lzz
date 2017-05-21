@@ -36,6 +36,7 @@ private:
 		Nan::SetPrototypeMethod(t, "isSafe", JS_isSafe);
 		Nan::SetPrototypeMethod(t, "toString", JS_toString);
 		Nan::SetPrototypeMethod(t, "valueOf", JS_valueOf);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::isSafe), JS_isSafe);
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::toString), JS_toString);
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::valueOf), JS_valueOf);
 		
