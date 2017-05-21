@@ -45,7 +45,8 @@
 			static_cast<const char*>(sqlite3_##from##_blob(__VA_ARGS__)),      \
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
 		).ToLocalChecked();                                                    \
-	default: /* SQLITE_NULL */                                                 \
+	default:                                                                   \
+		assert(type == SQLITE_NULL);                                           \
 		return v8::Null(isolate);                                              \
 	}                                                                          \
 	assert(false);

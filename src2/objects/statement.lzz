@@ -187,7 +187,7 @@ private:
 		REQUIRE_LAST_ARGUMENT_FUNCTION(bind_args_count, callback);
 		STATEMENT_START(info, bind_args_count, REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
-		v8::Local<v8::Primitive> Null = v8::Null(isolate);
+		v8::Local<v8::Primitive> Undefined = v8::Undefined(isolate);
 		const bool safe_integers = stmt->safe_ints;
 		const bool pluck = stmt->pluck;
 		bool js_error = false;
@@ -198,13 +198,13 @@ private:
 			v8::Local<v8::Value> arg = pluck
 				? Data::GetValueJS(isolate, handle, 0, safe_integers)
 				: Data::GetRowJS(isolate, ctx, handle, safe_integers);
-			v8::MaybeLocal<v8::Value> callback_return_value = callback->Call(ctx, Null, 1, &arg);
+			v8::MaybeLocal<v8::Value> callback_return_value = callback->Call(ctx, Undefined, 1, &arg);
 			if (callback_return_value.IsEmpty()) {js_error = true; break;}
 		}
 		db_state->busy = false;
 		
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
-			QUERY_RETURN(stmt, STATEMENT_UNBIND, v8::Undefined(isolate));
+			QUERY_RETURN(stmt, STATEMENT_UNBIND, Undefined);
 		}
 		if (js_error) db_state->was_js_error = true;
 		QUERY_THROW(stmt, STATEMENT_UNBIND);

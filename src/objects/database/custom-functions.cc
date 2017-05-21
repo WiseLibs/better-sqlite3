@@ -30,7 +30,7 @@ class FunctionInfo : public Functor { public:
 	bool was_busy = db->busy;                                                  \
 	db->busy = true;                                                           \
 	v8::MaybeLocal<v8::Value> var = func->Call(                                \
-		Nan::GetCurrentContext(), Nan::Null(), length, args);                  \
+		Nan::GetCurrentContext(), Nan::Undefined(), length, args);             \
 	db->busy = was_busy;                                                       \
 	delete[] args;                                                             \
 	if (var.IsEmpty()) {                                                       \
