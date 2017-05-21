@@ -16,26 +16,30 @@
 		return;                                                                \
 	} ((void)0)
 
-#define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
-
-#define STATEMENT_THROW() _QUERY_THROW(stmt, _STATEMENT_UNBIND(handle));
-#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, stmt, _STATEMENT_UNBIND(handle));
-#define STATEMENT_BIND(handle, bind_args_count)                                \
-	Binder binder(handle);                                                     \
-	_QUERY_BIND(stmt, bind_args_count, _STATEMENT_UNBIND(handle));
-
-#define STATEMENT_START(bind_args_count, RETURNS_DATA_CHECK)                   \
-	Statement* stmt = Unwrap<Statement>(info.This());                          \
-	RETURNS_DATA_CHECK();                                                      \
-	Database* db = stmt->db;                                                   \
+#define _QUERY_START(obj, object_name, bind_args_count, BIND_ACTION)           \
+	Database* db = obj->db;                                                    \
 	Database::State* db_state = db->GetState();                                \
 	REQUIRE_DATABASE_OPEN(db_state);                                           \
 	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
-	sqlite3_stmt* handle = stmt->handle;                                       \
-	if (!stmt->bound) {                                                        \
-		STATEMENT_BIND(handle, bind_args_count);                               \
+	if (!obj->bound) {                                                         \
+		BIND_ACTION;                                                           \
 	} else if (bind_args_count > 0)                                            \
-		return ThrowTypeError("This statement already has bound parameters")
+		return ThrowTypeError("This "#object_name" already has bound parameters")
+
+#define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
+
+#define STATEMENT_THROW() _QUERY_THROW(stmt, _STATEMENT_UNBIND(handle))
+#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, stmt, _STATEMENT_UNBIND(handle))
+#define STATEMENT_BIND(handle, bind_args_count)                                \
+	Binder binder(handle);                                                     \
+	_QUERY_BIND(stmt, bind_args_count, _STATEMENT_UNBIND(handle))
+#define STATEMENT_START(bind_args_count, RETURNS_DATA_CHECK)                   \
+	Statement* stmt = Unwrap<Statement>(info.This());                          \
+	RETURNS_DATA_CHECK();                                                      \
+	sqlite3_stmt* handle = stmt->handle;                                       \
+	_QUERY_START(stmt, statement, bind_args_count, STATEMENT_BIND(handle, bind_args_count))
+
+// TODO: TRANSACTION MACROS HERE
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
 	if (!stmt->returns_data)                                                   \
