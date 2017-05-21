@@ -1,30 +1,94 @@
 class Transaction : public Nan::ObjectWrap, public Query {
 public:
 	
+	// Provides public access to the constructor.
 	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::Array> sources) {
-		return v8::Object::New(isolate); // TODO
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
+		v8::Local<v8::Value> args[2] = { database, sources };
+		constructing_privileges = true;
+		v8::MaybeLocal<v8::Object> maybe_transaction = c->NewInstance(OnlyContext, 2, args);
+		constructing_privileges = false;
+		return maybe_transaction;
 	}
 	
-	BindMap* GetBindMap(v8::Isolate* isolate) {return NULL;} // TODO
-	void CloseHandles() {} // TODO
-	~Transaction() {} // TODO
+	// Returns the Transaction's bind map (creates it upon first execution).
+	BindMap* GetBindMap(v8::Isolate* isolate) {
+		if (has_bind_map) return BindMapPointer();
+		BindMap* bind_map = BindMapPointer();
+		for (int h=0; h<handle_count; ++h) {
+			sqlite3_stmt* handle = handles[h];
+			int param_count = sqlite3_bind_parameter_count(handle);
+			for (int i=1; i<=param_count; ++i) {
+				const char* name = sqlite3_bind_parameter_name(handle, i);
+				if (name != NULL) bind_map->Add(isolate, name + 1, i, h);
+			}
+		}
+		has_bind_map = true;
+		return bind_map;
+	}
+	
+	// This should only be used by Database::CloseHandles() and ~Transaction().
+	void CloseHandles() {
+		if (alive) {
+			alive = false;
+			for (int i=0; i<handle_count; ++i) {
+				if (bound) sqlite3_clear_bindings(handles[i]);
+				sqlite3_finalize(handles[i]);
+			}
+			delete[] handles;
+		}
+	}
+	
+	~Transaction() {
+		if (alive) db->RemoveTransaction(this);
+		CloseHandles();
+	}
 	
 private:
 	
-	explicit Transaction() : Nan::ObjectWrap(), Query(next_id++),
-		db(NULL),
-		handles(NULL),
-		handle_count(0) {} // TODO
+	explicit Transaction(Database* _db, bool _safe_ints) : Nan::ObjectWrap(), Query(next_id++),
+		db(_db),
+		handles(NULL), // TODO
+		handle_count(0), // TODO
+		alive(true),
+		bound(false),
+		has_bind_map(false),
+		safe_ints(_safe_ints) {
+		assert(db != NULL);
+		assert(handles != NULL);
+		assert(handle_count > 0);
+		assert(handle_count <= MAX_TRANSACTION_LENGTH);
+		assert(db->GetState()->open);
+		assert(!db->GetState()->busy);
+		db->AddTransaction(this);
+	}
 	
-	REGISTER(Init) {} // TODO
+	REGISTER(Init) {
+		EasyIsolate;
+		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
+		t->InstanceTemplate()->SetInternalFieldCount(1);
+		t->SetClassName(CS::Get(isolate, CS::Transaction));
+		
+		Nan::SetPrototypeMethod(t, "run", JS_run);
+		Nan::SetPrototypeMethod(t, "bind", JS_bind);
+		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::run), JS_run);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::bind), JS_bind);
+		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::safeIntegers), JS_safeIntegers);
+		
+		constructor.Reset(isolate, Nan::GetFunction(t).ToLocalChecked());
+		next_id = 0;
+		constructing_privileges = false;
+	}
+	
 	NODE_METHOD(JS_new) {} // TODO
 	NODE_METHOD(JS_run) {} // TODO
 	NODE_METHOD(JS_bind) {} // TODO
 	NODE_METHOD(JS_safeIntegers) {} // TODO
 	
-	static v8::Persistent<v8::Function> constructor; // TODO (Init)
-	static sqlite3_uint64 next_id; // TODO (Init)
-	static bool constructing_privileges; // TODO (Init)
+	static v8::Persistent<v8::Function> constructor;
+	static sqlite3_uint64 next_id;
+	static bool constructing_privileges;
 	
 	Database* const db;
 	sqlite3_stmt** const handles;

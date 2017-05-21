@@ -78,7 +78,7 @@ private:
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::safeIntegers), JS_safeIntegers);
 		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::returnsData), JS_returnsData);
 		
-		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
+		constructor.Reset(isolate, Nan::GetFunction(t).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
 	}

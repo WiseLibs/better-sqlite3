@@ -40,8 +40,8 @@ private:
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::toString), JS_toString);
 		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::valueOf), JS_valueOf);
 		
-		constructor.Reset(exports->GetIsolate(), Nan::GetFunction(t).ToLocalChecked());
-		constructorTemplate.Reset(exports->GetIsolate(), t);
+		constructor.Reset(isolate, Nan::GetFunction(t).ToLocalChecked());
+		constructorTemplate.Reset(isolate, t);
 		fast_construct_int = NULL;
 		
 		Nan::Set(exports, CS::Get(isolate, CS::Int64), Nan::GetFunction(t).ToLocalChecked());
