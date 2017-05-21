@@ -87,6 +87,7 @@ private:
 		if (!constructing_privileges) {
 			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
 		}
+		assert(info.IsConstructCall());
 		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> source);
 		Database* db = Unwrap<Database>(database);

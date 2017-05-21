@@ -103,6 +103,7 @@ private:
 	}
 	
 	NODE_METHOD(JS_new) {
+		assert(info.IsConstructCall());
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filename);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> filenameGiven);
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool in_memory);
