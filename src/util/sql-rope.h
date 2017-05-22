@@ -26,7 +26,8 @@ public:
 	}
 	inline void Push(v8::Local<v8::String> string) {
 		RopeNode* node = new (nodes + length++) RopeNode(string);
-		weight += node->value.length() + static_cast<int>(node->add_semicolon);
+		weight += node->value.length();
+		if (node->add_semicolon) weight += 1;
 	}
 	inline v8::String::Value* Get(unsigned int index) {
 		return &nodes[index].value;
