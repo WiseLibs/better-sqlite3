@@ -87,7 +87,7 @@ protected:
 	// Binds each value in the array or sets an appropriate error message.
 	// The number of successfully bound parameters is returned.
 	int BindArray(v8::Local<v8::Context> ctx, v8::Local<v8::Array> arr) {
-		unsigned int length = arr->Length();
+		uint32_t length = arr->Length();
 		if (length > INT_MAX) {
 			SetError("Too many parameter values were provided");
 			return 0;

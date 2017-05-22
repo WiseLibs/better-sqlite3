@@ -165,9 +165,10 @@ private:
 		STATEMENT_START(info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
 		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
-		unsigned int row_count = 0;
+		uint32_t row_count = 0;
 		const bool safe_integers = stmt->safe_ints;
 		
+		// TODO: safe guard against array overflows
 		if (stmt->pluck) {
 			while (sqlite3_step(handle) == SQLITE_ROW) {
 				result->Set(ctx, row_count++, Data::GetValueJS(isolate, handle, 0, safe_integers)).FromJust();
