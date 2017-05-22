@@ -40,13 +40,13 @@ public:
 	
 private:
 	
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _safe_ints, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handle(_handle),
 		alive(true),
 		bound(false),
 		has_bind_map(false),
-		safe_ints(_safe_ints),
+		safe_ints(_db->GetState()->safe_ints),
 		pluck(false),
 		returns_data(_returns_data) {
 		assert(db != NULL);
@@ -117,7 +117,7 @@ private:
 		}
 		
 		UseIsolateAndContext;
-		Statement* stmt = new Statement(db, handle, db->GetState()->safe_ints, returns_data);
+		Statement* stmt = new Statement(db, handle, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::source, source);
 		SetFrozen(isolate, ctx, info.This(), CS::database, database);

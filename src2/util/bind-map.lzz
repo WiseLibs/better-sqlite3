@@ -45,6 +45,8 @@ public:
 	
 	// Adds a pair to the bind map, expanding the capacity if necessary.
 	void Add(v8::Isolate* isolate, const char* name, int index) {
+		assert(name != NULL);
+		assert(length < PARAMETER_MASK * MAX_TRANSACTION_LENGTH);
 		if (capacity == length) Grow(isolate);
 		new (pairs + length++) Pair(isolate, name, index);
 	}
@@ -52,6 +54,8 @@ public:
 	// Same as the simpler Add(), but the stored index is embedded with
 	// Transaction information.
 	void Add(v8::Isolate* isolate, const char* name, int parameter_index, int transaction_index) {
+		assert((parameter_index | PARAMETER_MASK) == PARAMETER_MASK);
+		assert(transaction_index < MAX_TRANSACTION_LENGTH);
 		Add(isolate, name, parameter_index | (transaction_index << PARAMETER_BITS));
 	}
 	

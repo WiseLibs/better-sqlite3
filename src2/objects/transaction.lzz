@@ -46,18 +46,18 @@ public:
 	
 private:
 	
-	explicit Transaction(Database* _db, bool _safe_ints) : Nan::ObjectWrap(), Query(next_id++),
+	explicit Transaction(Database* _db, TransactionHandles* _handles) : Nan::ObjectWrap(), Query(next_id++),
 		db(_db),
-		handles(NULL), // TODO
-		handle_count(0), // TODO
+		handles(_handles->handles),
+		handle_count(_handles->handle_count),
 		alive(true),
 		bound(false),
 		has_bind_map(false),
-		safe_ints(_safe_ints) {
+		safe_ints(_db->GetState()->safe_ints) {
 		assert(db != NULL);
 		assert(handles != NULL);
 		assert(handle_count > 0);
-		assert(handle_count <= MAX_TRANSACTION_LENGTH);
+		assert(handle_count <= BindMap::MAX_TRANSACTION_LENGTH);
 		assert(db->GetState()->open);
 		assert(!db->GetState()->busy);
 		db->AddTransaction(this);
@@ -81,7 +81,52 @@ private:
 		constructing_privileges = false;
 	}
 	
-	NODE_METHOD(JS_new) {} // TODO
+	NODE_METHOD(JS_new) {
+		if (!constructing_privileges) {
+			return ThrowTypeError("Transactions can only be constructed by the db.transaction() method");
+		}
+		assert(info.IsConstructCall());
+		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
+		REQUIRE_ARGUMENT_ARRAY(second, v8::Local<v8::Array> sources);
+		Database* db = Unwrap<Database>(database);
+		REQUIRE_DATABASE_OPEN(db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
+		REQUIRE_DATABASE_NOT_READONLY(db->GetState());
+		uint32_t length = sources->Length();
+		if (length == 0) {
+			return ThrowRangeError("No SQL statements were provided");
+		}
+		if (length > BindMap::MAX_TRANSACTION_LENGTH) {
+			return ThrowRangeError("Too many SQL statements were provided");
+		}
+		
+		// UseIsolateAndContext;
+		// SQLRope rope(static_cast<int>(length));
+		// for (uint32_t i=0; i<length; ++i) {
+		// 	v8::MaybeLocal<v8::Value> maybeValue = sources->Get(ctx, i);
+		// 	if (maybeValue.IsEmpty()) {
+		// 		return;
+		// 	}
+		// 	v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
+		// 	if (!value->IsString()) {
+		// 		return ThrowTypeError("Expected each item in the given array to be a string");
+		// 	}
+		// 	rope.Push(v8::Local<v8::String>::Cast(value));
+		// }
+		
+		// TransactionHandles handles(db->GetHandle(), &rope);
+		// if (handles.had_error) {
+		// 	return db->ThrowDatabaseError();
+		// }
+		
+		Transaction* trans = new Transaction(db, &handles, db->GetState()->safe_ints);
+		trans->Wrap(info.This());
+		SetFrozen(isolate, ctx, info.This(), CS::source, rope->Concat(isolate));
+		SetFrozen(isolate, ctx, info.This(), CS::database, database);
+		
+		info.GetReturnValue().Set(info.This());
+	}
+	
 	NODE_METHOD(JS_run) {} // TODO
 	NODE_METHOD(JS_bind) {} // TODO
 	NODE_METHOD(JS_safeIntegers) {} // TODO
