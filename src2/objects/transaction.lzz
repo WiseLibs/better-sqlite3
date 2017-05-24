@@ -147,7 +147,16 @@ private:
 	}
 	
 	NODE_METHOD(JS_run) {} // TODO
-	NODE_METHOD(JS_bind) {} // TODO
+	
+	NODE_METHOD(JS_bind) {
+		Transaction* trans = Unwrap<Transaction>(info.This());
+		if (trans->bound) return ThrowTypeError("The bind() method can only be invoked once per transaction object");
+		REQUIRE_DATABASE_OPEN(trans->db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(trans->db->GetState());
+		TRANSACTION_BIND(trans->handles, trans->handle_count);
+		trans->bound = true;
+		info.GetReturnValue().Set(info.This());
+	}
 	
 	NODE_METHOD(JS_safeIntegers) {
 		Transaction* trans = Unwrap<Transaction>(info.This());
