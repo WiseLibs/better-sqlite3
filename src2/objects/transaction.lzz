@@ -114,10 +114,28 @@ private:
 			sql.AddStatement(v8::Local<v8::String>::Cast(value));
 		}
 		
-		// TransactionHandles handles(db->GetHandle(), &sql);
-		// if (handles.had_error) {
-		// 	return db->ThrowDatabaseError();
-		// }
+		// TransactionHandles handles(length);
+		sqlite3* db_handle = db->GetHandle();
+		for (uint32_t i=0; i<length; ++i) {
+			const void* tail;
+			sqlite3_stmt* handle;
+			const uint16_t* source = **sql.GetStatement(i);
+			int source_length = sql.GetStatement(i)->length();
+			
+			if (sqlite3_prepare16_v2(db_handle, source, source_length * sizeof(uint16_t) + 1, &handle, &tail) != SQLITE_OK) {
+				return db->ThrowDatabaseError();
+			}
+			if (handle == NULL) {
+				return ThrowRangeError("One of the SQL strings contains no statements");
+			}
+			handles.Add(handle);
+			if (tail != (const void*)(source + source_length)) {
+				return ThrowRangeError("One of the SQL strings contains more than one statement");
+			}
+			if (sqlite3_stmt_readonly(handle)) {
+				return ThrowTypeError("Transaction objects cannot contain read-only statements");
+			}
+		}
 		
 		Transaction* trans = new Transaction(db, &handles);
 		trans->Wrap(info.This());
