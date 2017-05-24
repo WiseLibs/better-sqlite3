@@ -36,11 +36,22 @@ public:
 		const bool readonly;
 	};
 	
+	// A container for the handles necessary for doing transactions.
+	// The order of these fields must exactly match their actual order.
+	struct TransactionController {
+		sqlite3_stmt* const begin;
+		sqlite3_stmt* const commit;
+		sqlite3_stmt* const rollback;
+	}
+	
 	inline State* GetState() {
 		return reinterpret_cast<State*>(&open);
 	}
 	inline sqlite3* GetHandle() {
 		return db_handle;
+	}
+	inline TransactionController GetTransactionController() {
+		return {extras->begin, extras->commit, extras->rollback};
 	}
 	
 	~Database() {

@@ -1,11 +1,12 @@
-#define _QUERY_THROW(obj, UNBIND_ACTION)                                       \
+#define _QUERY_THROW(obj, UNBIND_ACTION, ...)                                  \
 	db->ThrowDatabaseError();                                                  \
-	if (!obj->bound) {UNBIND_ACTION;}                                          \
+	__VA_ARGS__;                                                               \
+	if (!bound) {UNBIND_ACTION;}                                               \
 	return
 
 #define _QUERY_RETURN(return_value, obj, UNBIND_ACTION)                        \
 	info.GetReturnValue().Set(return_value);                                   \
-	if (!obj->bound) {UNBIND_ACTION;}                                          \
+	if (!bound) {UNBIND_ACTION;}                                               \
 	return
 
 #define _QUERY_BIND(obj, bind_args_count, UNBIND_ACTION)                       \
@@ -21,7 +22,8 @@
 	Database::State* db_state = db->GetState();                                \
 	REQUIRE_DATABASE_OPEN(db_state);                                           \
 	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
-	if (!obj->bound) {                                                         \
+	const bool bound = obj->bound;                                             \
+	if (!bound) {                                                              \
 		BIND_ACTION;                                                           \
 	} else if (bind_args_count > 0)                                            \
 		return ThrowTypeError("This "#object_name" already has bound parameters")
@@ -42,9 +44,16 @@
 
 #define _TRANSACTION_UNBIND(handles, handle_count)                             \
 	for (int i=0; i<handle_count; ++i) sqlite3_clear_bindings(handles[i])
+#define TRANSACTION_THROW(...) _QUERY_THROW(trans, _TRANSACTION_UNBIND(handles, handle_count), __VA_ARGS__)
+#define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, trans, _TRANSACTION_UNBIND(handles, handle_count))
 #define TRANSACTION_BIND(handles, handle_count)                                \
 	MultiBinder binder(handles, handle_count);                                 \
 	_QUERY_BIND(trans, info.Length(), _TRANSACTION_UNBIND(handles, handle_count))
+#define TRANSACTION_START()                                                    \
+	Transaction* trans = Unwrap<Transaction>(info.This());                     \
+	sqlite3_stmt** handles = trans->handles;                                   \
+	const int handle_count = trans->handle_count;                              \
+	_QUERY_START(trans, transaction, info.Length(), TRANSACTION_BIND(handles, handle_count))
 
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
