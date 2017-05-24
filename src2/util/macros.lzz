@@ -21,6 +21,9 @@ inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* 
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
+inline v8::Local<v8::String> StringFromUtf16(v8::Isolate* isolate, const uint16_t* data, int length) {
+	return v8::String::NewFromTwoByte(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
+}
 inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }

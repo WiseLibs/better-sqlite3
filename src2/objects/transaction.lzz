@@ -92,36 +92,36 @@ private:
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 		REQUIRE_DATABASE_NOT_READONLY(db->GetState());
-		// uint32_t length = sources->Length();
-		// if (length == 0) {
-		// 	return ThrowRangeError("No SQL statements were provided");
-		// }
-		// if (length > BindMap::MAX_TRANSACTION_LENGTH) {
-		// 	return ThrowRangeError("Too many SQL statements were provided");
-		// }
+		uint32_t length = sources->Length();
+		if (length == 0) {
+			return ThrowRangeError("No SQL statements were provided");
+		}
+		if (length > BindMap::MAX_TRANSACTION_LENGTH) {
+			return ThrowRangeError("Too many SQL statements were provided");
+		}
 		
-		// UseIsolateAndContext;
-		// SQLRope rope(static_cast<int>(length));
-		// for (uint32_t i=0; i<length; ++i) {
-		// 	v8::MaybeLocal<v8::Value> maybeValue = sources->Get(ctx, i);
-		// 	if (maybeValue.IsEmpty()) {
-		// 		return;
-		// 	}
-		// 	v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
-		// 	if (!value->IsString()) {
-		// 		return ThrowTypeError("Expected each item in the given array to be a string");
-		// 	}
-		// 	rope.Push(v8::Local<v8::String>::Cast(value));
-		// }
+		UseIsolateAndContext;
+		SQLString sql(length);
+		for (uint32_t i=0; i<length; ++i) {
+			v8::MaybeLocal<v8::Value> maybeValue = sources->Get(ctx, i);
+			if (maybeValue.IsEmpty()) {
+				return;
+			}
+			v8::Local<v8::Value> value = maybeValue.ToLocalChecked();
+			if (!value->IsString()) {
+				return ThrowTypeError("Expected each item in the given array to be a string");
+			}
+			sql.AddStatement(v8::Local<v8::String>::Cast(value));
+		}
 		
-		// TransactionHandles handles(db->GetHandle(), &rope);
+		// TransactionHandles handles(db->GetHandle(), &sql);
 		// if (handles.had_error) {
 		// 	return db->ThrowDatabaseError();
 		// }
 		
-		Transaction* trans = new Transaction(db, &handles, db->GetState()->safe_ints);
+		Transaction* trans = new Transaction(db, &handles);
 		trans->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::source, rope->Concat(isolate));
+		SetFrozen(isolate, ctx, info.This(), CS::source, sql->Concat(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::database, database);
 		
 		info.GetReturnValue().Set(info.This());
