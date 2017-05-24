@@ -4,16 +4,11 @@ class Database : public Nan::ObjectWrap {
 public:
 	
 	// Proper error handling logic for when an sqlite3 operation fails.
-	// The err argument should be omitted unless this is after sqlite3_exec().
-	void ThrowDatabaseError(const char* err = NULL) {
+	void ThrowDatabaseError() {
 		if (was_js_error) {
-			assert(err == NULL || err[0] == 0);
 			was_js_error = false;
 		} else {
-			if (err == NULL) {
-				err = sqlite3_errmsg(db_handle);
-			}
-			std::string message = CONCAT("SQLite: ", err);
+			std::string message = CONCAT("SQLite: ", sqlite3_errmsg(db_handle));
 			ThrowError(message.c_str());
 		}
 	}
@@ -164,12 +159,8 @@ private:
 		REQUIRE_DATABASE_NOT_READONLY(db);
 		
 		v8::String::Utf8Value sql(source);
-		char* err;
-		
-		sqlite3_exec(db->db_handle, *sql, NULL, NULL, &err);
-		if (err != NULL) {
-			db->ThrowDatabaseError(err);
-			return sqlite3_free(err);
+		if (sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL) != SQLITE_OK) {
+			return db->ThrowDatabaseError();
 		}
 		
 		info.GetReturnValue().Set(info.This());
