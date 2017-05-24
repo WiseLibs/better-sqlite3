@@ -114,7 +114,7 @@ private:
 			sql.AddStatement(v8::Local<v8::String>::Cast(value));
 		}
 		
-		// TransactionHandles handles(length);
+		TransactionHandles handles(static_cast<int>(length));
 		sqlite3* db_handle = db->GetHandle();
 		for (uint32_t i=0; i<length; ++i) {
 			const void* tail;
@@ -137,9 +137,10 @@ private:
 			}
 		}
 		
+		handles.success = true;
 		Transaction* trans = new Transaction(db, &handles);
 		trans->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::source, sql->Concat(isolate));
+		SetFrozen(isolate, ctx, info.This(), CS::source, sql.Concat(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::database, database);
 		
 		info.GetReturnValue().Set(info.This());

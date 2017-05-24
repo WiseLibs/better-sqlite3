@@ -12,6 +12,8 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/query-macros.lzz"
 #insert "util/constants.lzz"
 #insert "util/database-handles.lzz"
+#insert "util/transaction-handles.lzz"
+#insert "util/sql-string.lzz"
 #insert "util/bind-map.lzz"
 #insert "util/data.lzz"
 #insert "objects/int64.lzz"

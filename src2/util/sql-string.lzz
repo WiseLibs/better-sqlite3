@@ -18,7 +18,7 @@ public:
 		if (string->missing_semicolon) total_character_count += 1;
 	}
 	
-	inline v8::String::Value* GetStatement(uint32_t index) {
+	inline const v8::String::Value* GetStatement(uint32_t index) {
 		return &strings[index].value;
 	}
 	
