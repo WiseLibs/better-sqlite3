@@ -38,19 +38,13 @@ protected:
 		bool bound_object;
 	};
 	
-	static bool IsPlainObject(v8::Local<v8::Object> obj) {
+	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
 		v8::Local<v8::Context> ctx = obj->CreationContext();
 		ctx->Enter();
-		/*
-			TODO:
-			Check if this works when the isolate is retrieved before ctx->Enter().
-			If so, also check that StrictEquals(Nan::Null()) works with v8::Null(isolate).
-		 */
-		EasyIsolate;
 		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
 		ctx->Exit();
-		return proto->StrictEquals(baseProto) || proto->StrictEquals(Nan::Null());
+		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
 	}
 	
 	void SetError(const char* message) {
@@ -170,15 +164,16 @@ protected:
 			}
 			
 			if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
+				UseIsolate;
 				v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
-				if (IsPlainObject(obj)) {
+				if (IsPlainObject(isolate, obj)) {
 					if (bound_object) {
 						SetError("You cannot specify named parameters in two different objects");
 						break;
 					}
 					bound_object = true;
 					
-					count += BindObject(OnlyIsolate, obj, query);
+					count += BindObject(isolate, obj, query);
 					if (error) break;
 					continue;
 				}
