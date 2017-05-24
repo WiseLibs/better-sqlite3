@@ -167,21 +167,21 @@ private:
 		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
 		uint32_t row_count = 0;
 		const bool safe_integers = stmt->safe_ints;
+		const bool pluck = stmt->pluck;
+		bool js_error = false;
 		
-		// TODO: safe guard against array overflows
-		if (stmt->pluck) {
-			while (sqlite3_step(handle) == SQLITE_ROW) {
-				result->Set(ctx, row_count++, Data::GetValueJS(isolate, handle, 0, safe_integers)).FromJust();
-			}
-		} else {
-			while (sqlite3_step(handle) == SQLITE_ROW) {
-				result->Set(ctx, row_count++, Data::GetRowJS(isolate, ctx, handle, safe_integers)).FromJust();
-			}
+		while (sqlite3_step(handle) == SQLITE_ROW) {
+			if (row_count == 0xffffffff) {ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break;}
+			result->Set(ctx, row_count++, pluck
+				? Data::GetValueJS(isolate, handle, 0, safe_integers)
+				: Data::GetRowJS(isolate, ctx, handle, safe_integers)
+			).FromJust();
 		}
 		
-		if (sqlite3_reset(handle) == SQLITE_OK) {
+		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
 			STATEMENT_RETURN(result);
 		}
+		if (js_error) db_state->was_js_error = true;
 		STATEMENT_THROW();
 	}
 	
