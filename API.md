@@ -235,7 +235,7 @@ stmt.run(['John', 'Smith', 45]);
 stmt.run(['John'], ['Smith', 45]);
 ```
 
-You can also use named parameters. SQLite3 provides [4 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), **three** of which are supported by `better-sqlite3` (`@foo`, `:foo`, and `$foo`).
+You can also use named parameters. SQLite3 provides [3 different syntaxes for named parameters](https://www.sqlite.org/lang_expr.html), all of which are supported by `better-sqlite3` (`@foo`, `:foo`, and `$foo`).
 
 ```js
 // The following are equivalent.
