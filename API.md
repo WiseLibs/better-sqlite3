@@ -242,6 +242,7 @@ You can also use named parameters. SQLite3 provides [3 different syntaxes for na
 var stmt = db.prepare('INSERT INTO people VALUES (@firstName, @lastName, @age)');
 var stmt = db.prepare('INSERT INTO people VALUES (:firstName, :lastName, :age)');
 var stmt = db.prepare('INSERT INTO people VALUES ($firstName, $lastName, $age)');
+var stmt = db.prepare('INSERT INTO people VALUES (@firstName, :lastName, $age)');
 
 stmt.run({
 	firstName: 'John',
