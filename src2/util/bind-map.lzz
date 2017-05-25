@@ -79,8 +79,9 @@ private:
 		Pair* new_pairs = ALLOC_ARRAY<Pair>(capacity);
 		for (int i=0; i<length; ++i) {
 			new (new_pairs + i) Pair(isolate, pairs + i);
+			pairs[i].~Pair();
 		}
-		delete[] pairs;
+		FREE_ARRAY<Pair>(pairs);
 		pairs = new_pairs;
 	}
 	
