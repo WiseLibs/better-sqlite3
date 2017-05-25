@@ -53,6 +53,8 @@ template<ErrorFactory T> void ThrowException(const char* message) {
 	_REQUIRE_ARGUMENT(at, var, Object, an object)
 #define REQUIRE_ARGUMENT_ARRAY(at, var)                                        \
 	_REQUIRE_ARGUMENT(at, var, Array, an array)
+#define REQUIRE_ARGUMENT_FUNCTION(at, var)                                     \
+	_REQUIRE_ARGUMENT(at, var, Function, a function)
 
 #define REQUIRE_LAST_ARGUMENT_FUNCTION(ivar, var)                              \
 	int ivar = info.Length() - 1;                                              \
@@ -109,11 +111,6 @@ template<class T> inline T* ALLOC_ARRAY(size_t count) {
 template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
 }
-
-class Functor { public:
-	virtual ~Functor() {}
-	virtual void Invoke(void* ctx) = 0;
-};
 
 #hdr
 typedef v8::Local<v8::Value> (*ErrorFactory)(v8::Local<v8::String>);

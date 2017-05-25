@@ -1,0 +1,33 @@
+class CustomFunction {
+public:
+	
+	explicit CustomFunction(v8::Isolate* isolate, v8::Local<v8::Function> _fn, Database* _db, const char* _name, int _argc, bool _safe_ints)
+		: fn(isolate, _fn), db(_db), name(COPY(_name)), argc(_argc), safe_ints(_safe_ints) {}
+	
+	~CustomFunction() {
+		delete[] name;
+	}
+	
+	void ThrowResultValueError(sqlite3_context* ctx) {
+		std::string message = CONCAT("Custom function ", name, "() returned an invalid value");
+		ThrowTypeError(message.c_str());
+		db->GetState()->was_js_error = true;
+		sqlite3_result_error(ctx, "", 0);
+	}
+	
+	static void xDestroy(void* instance) {
+		EasyHandleScope;
+		delete static_cast<CustomFunction*>(instance);
+	}
+	
+	static void xFunc(sqlite3_context* ctx, int length, sqlite3_value** values) {} // TODO
+	static void xStep(sqlite3_context* ctx, int length, sqlite3_value** values) {} // TODO
+	static void xFinal(sqlite3_context* ctx) {} // TODO
+	
+private:
+	const Persistent<v8::Function> fn;
+	Database* const db;
+	const char* const name;
+	const int argc;
+	const bool safe_ints;
+};
