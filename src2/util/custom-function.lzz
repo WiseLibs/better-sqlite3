@@ -25,6 +25,7 @@ public:
 		FUNCTION_EXECUTE(maybe_return_value, v8::Local<v8::Function>::New(isolate, cf->fn));
 		Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), cf);
 	}
+	
 	static void xStep(sqlite3_context* ctx, int argc, sqlite3_value** argv) {} // TODO
 	static void xFinal(sqlite3_context* ctx) {} // TODO
 	
