@@ -91,6 +91,11 @@ describe('Statement#run()', function () {
 		var stmt = db.prepare("DROP TABLE people");
 		expect(stmt.run().changes).to.equal(2);
 	});
+	it('should obey the restrictions of readonly mode', function () {
+		var db2 = new Database(db.name, {readonly: true});
+		var stmt = db2.prepare('CREATE TABLE people (name TEXT)');
+		expect(function () {stmt.run()}).to.throw(Error);
+	});
 	it('should accept bind parameters', function () {
 		db.prepare("CREATE TABLE entries (a TEXT CHECK(typeof(a)=='text'), b INTEGER CHECK(typeof(b)=='integer' OR typeof(b)=='real'), c REAL CHECK(typeof(c)=='real' OR typeof(c)=='integer'), d BLOB CHECK(typeof(d)=='blob'))").run();
 		db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, bufferOfSize(8).fill(0xdd));

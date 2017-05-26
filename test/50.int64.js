@@ -83,11 +83,10 @@ describe('Int64', function () {
 		expect(int.equals({low: 123, high: 123})).to.be.true;
 		expect(int.equals(528280977531)).to.be.true;
 		expect(int.equals('528280977531')).to.be.true;
-		int = new Int64(4243423, 234234234);
-		expect(int.equals(new Int64(4243423, 234234234))).to.be.true;
+		int = new Int64(4243436, 234234234);
+		expect(int.equals(new Int64(4243436, 234234234))).to.be.true;
 		expect(int.equals(String(int))).to.be.true;
 		expect(int.equals(+String(int))).to.be.false;
-		expect(int.equals(+(int.toString()))).to.be.false;
 	});
 	it('should bind to statements and transactions', function () {
 		var int = new Int64(4243423, 234234234);

@@ -4,7 +4,7 @@
 // scope.
 class DatabaseHandles { friend class Database;
 	
-	explicit DatabaseHandles(v8::Local<v8::String> filename) {
+	explicit DatabaseHandles(v8::Local<v8::String> filename, bool readonly) {
 		db_handle = NULL;
 		begin = NULL;
 		commit = NULL;
@@ -12,8 +12,9 @@ class DatabaseHandles { friend class Database;
 		error = NULL;
 		
 		v8::String::Utf8Value utf8(filename);
+		int mask = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 		
-		if (sqlite3_open(*utf8, &db_handle) != SQLITE_OK) {
+		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
 			error = COPY(sqlite3_errmsg(db_handle));
 		} else if (sqlite3_prepare_v2(db_handle, "BEGIN TRANSACTION;", -1, &begin, NULL) != SQLITE_OK) {
 			error = COPY(sqlite3_errmsg(db_handle));
@@ -31,7 +32,7 @@ class DatabaseHandles { friend class Database;
 			sqlite3_finalize(commit);
 			sqlite3_finalize(rollback);
 			int status = sqlite3_close(db_handle);
-			assert(status = SQLITE_OK);
+			assert(status == SQLITE_OK);
 		}
 	}
 	

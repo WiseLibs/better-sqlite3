@@ -40,29 +40,6 @@ describe('Statement#bind()', function () {
 		stmt.bind();
 		expect(function () {stmt.bind();}).to.throw(TypeError);
 	});
-	it('should throw an exception when invoked after the first execution', function () {
-		var stmt = db.prepare('SELECT * FROM entries');
-		stmt.get();
-		expect(function () {stmt.bind();}).to.throw(TypeError);
-		
-		stmt = db.prepare('SELECT * FROM entries');
-		stmt.all();
-		expect(function () {stmt.bind();}).to.throw(TypeError);
-		
-		stmt = db.prepare('SELECT * FROM entries');
-		stmt.each(function () {});
-		expect(function () {stmt.bind();}).to.throw(TypeError);
-		
-		stmt = db.prepare("INSERT INTO entries VALUES ('foobar', 25, NULL)");
-		stmt.run();
-		expect(function () {stmt.bind();}).to.throw(TypeError);
-		
-		stmt = db.prepare('SELECT * FROM entries');
-		stmt.bind();
-		
-		stmt = db.prepare("INSERT INTO entries VALUES ('foobar', 25, NULL)");
-		stmt.bind();
-	});
 	it('should throw an exception when invalid parameters are given', function () {
 		var stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		

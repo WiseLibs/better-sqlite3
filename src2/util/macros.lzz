@@ -68,12 +68,6 @@ template<ErrorFactory T> void ThrowException(const char* message) {
 #define REQUIRE_DATABASE_NOT_BUSY(db)                                          \
 	if (db->busy)                                                              \
 		return ThrowTypeError("This database connection is busy executing a query")
-#define REQUIRE_DATABASE_NOT_READONLY(db, ...)                                 \
-	if (db->readonly) {                                                        \
-		__VA_ARGS__;                                                           \
-		return ThrowTypeError(                                                 \
-			"This operation is not available while in readonly mode");         \
-	} ((void)0)
 
 #define first() 0
 #define second() 1

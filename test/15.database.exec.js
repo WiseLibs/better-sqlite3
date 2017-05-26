@@ -17,9 +17,10 @@ describe('Database#exec()', function () {
 	it('should throw an exception if invalid SQL is provided', function () {
 		expect(function () {db.exec('CREATE TABLE entries (a TEXT, b INTEGER');}).to.throw(Error);
 	});
-	it('should throw an exception if used on a readonly database connection', function () {
-		var readonly = new Database(db.name, {readonly: true});
-		expect(function () {readonly.exec('CREATE TABLE entries (a TEXT, b INTEGER)');}).to.throw(TypeError);
+	it('should obey the restrictions of readonly mode', function () {
+		var db2 = new Database(db.name, {readonly: true});
+		expect(function () {db2.exec('CREATE TABLE people (name TEXT)');}).to.throw(Error);
+		db2.exec('SELECT 555');
 	});
 	it('should execute the SQL, returning the database object itself', function () {
 		var returnValues = [];

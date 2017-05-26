@@ -53,6 +53,9 @@ describe('new Database()', function () {
 	});
 	it('should allow readonly database connections to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		expect(function () {new Database(util.current(), {readonly: true});});
+		(new Database(util.current())).close();
+		fs.accessSync(util.current());
 		var db = new Database(util.current(), {readonly: true});
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;

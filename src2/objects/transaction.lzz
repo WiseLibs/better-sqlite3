@@ -91,7 +91,6 @@ private:
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
-		REQUIRE_DATABASE_NOT_READONLY(db->GetState());
 		uint32_t length = sources->Length();
 		if (length == 0) {
 			return ThrowRangeError("No SQL statements were provided");

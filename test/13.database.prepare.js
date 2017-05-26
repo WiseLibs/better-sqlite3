@@ -60,10 +60,4 @@ describe('Database#prepare()', function () {
 		var stmt = db.prepare('SELECT 555');
 		assertStmt(stmt, 'SELECT 555', db, true);
 	});
-	it('should obey the restrictions of readonly mode', function () {
-		var db = new Database(util.next(), {readonly: true});
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT)');}).to.throw(TypeError);
-		var stmt = db.prepare('SELECT 555');
-		assertStmt(stmt, 'SELECT 555', db, true);
-	});
 });

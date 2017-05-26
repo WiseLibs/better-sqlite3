@@ -28,7 +28,6 @@ public:
 		const bool pragma_mode;
 		const bool safe_ints;
 		bool was_js_error;
-		const bool readonly;
 	};
 	
 	// A container for the handles necessary for doing transactions.
@@ -56,15 +55,14 @@ public:
 	
 private:
 	
-	explicit Database(DatabaseHandles* handles, bool _readonly) : Nan::ObjectWrap(),
+	explicit Database(DatabaseHandles* handles) : Nan::ObjectWrap(),
 		db_handle(handles->db_handle),
 		extras(new DatabaseExtras(handles)),
 		open(true),
 		busy(false),
 		pragma_mode(false),
 		safe_ints(false),
-		was_js_error(false),
-		readonly(_readonly) {
+		was_js_error(false) {
 		assert(handles->error == NULL);
 	}
 	
@@ -115,7 +113,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool in_memory);
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		
-		DatabaseHandles handles(filename);
+		DatabaseHandles handles(filename, readonly);
 		if (handles.error) {
 			std::string message = CONCAT("SQLite: ", handles.error);
 			return ThrowError(message.c_str());
@@ -130,7 +128,7 @@ private:
 		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, BindMap::PARAMETER_MASK);
 		
 		UseIsolateAndContext;
-		Database* db = new Database(&handles, readonly);
+		Database* db = new Database(&handles);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
@@ -156,7 +154,6 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NOT_READONLY(db);
 		
 		v8::String::Utf8Value sql(source);
 		if (sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL) != SQLITE_OK) {
@@ -176,7 +173,6 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(second, bool force);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NOT_READONLY(db);
 		static auto get_ratio = [](int tf, int cf) {
 			return (cf < 0 || tf <= 0) ? 1.0 : (static_cast<double>(cf) / static_cast<double>(tf));
 		};
@@ -293,5 +289,4 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
-	const bool readonly;
 };

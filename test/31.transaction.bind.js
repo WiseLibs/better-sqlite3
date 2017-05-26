@@ -40,14 +40,6 @@ describe('Transaction#bind()', function () {
 		trans.bind();
 		expect(function () {trans.bind();}).to.throw(TypeError);
 	});
-	it('should throw an exception when invoked after the first execution', function () {
-		var trans = db.transaction(["INSERT INTO entries VALUES ('foobar', 25, NULL)"]);
-		trans.run();
-		expect(function () {trans.bind();}).to.throw(TypeError);
-		
-		trans = db.transaction(["INSERT INTO entries VALUES ('foobar', 25, NULL)"]);
-		trans.bind();
-	});
 	it('should throw an exception when invalid parameters are given', function () {
 		var trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
 		
