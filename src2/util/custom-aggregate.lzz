@@ -1,70 +1,78 @@
 class CustomAggregate {
 public:
 	
-	// void Init(v8::Isolate* isolate, CustomFunction* cf, sqlite3_context* sqlite3_ctx) {
-	// 	if (state != State::uninitialized) return;
-	// 	NewHandleScope;
-	// 	UseContext;
-	// 	v8::Local<v8::Function> generatorFunction = v8::Local<v8::Function>::New(isolate, cf->fn);
-	// 	v8::Local<v8::Object> _generator = v8::Local<v8::Object>::Cast(generatorFunction->Call(ctx, v8::Undefined(isolate), 0, NULL).ToLocalChecked());
-	// 	v8::Local<v8::Function> _next = v8::Local<v8::Function>::Cast(_generator->Get(ctx, CS::Get(CS::next)).ToLocalChecked());
-	// 	generator.Reset(_generator);
-	// 	next.Reset(_next);
-	// 	state = State::active;
-		
-	// 	v8::MaybeLocal<v8::Value> maybe_yielded_value = ProgressGenerator(isolate, ctx);
-	// 	if (maybe_yielded_value.IsEmpty()) {
-	// 		Release();
-	// 		return cf->PropagateJSError(sqlite3_ctx);
-	// 	}
-		
-	// 	v8::Local<v8::Value> yieldedValue = maybe_yielded_value.ToLocalChecked();
-	// 	if (state == State::released || !yieldedValue->IsFunction()) {
-	// 		Release();
-	// 		ThrowTypeError("Custom aggregate ", cf->name, "() did not yield a function");
-	// 		return cf->PropagateJSError(sqlite3_ctx);
-	// 	}
-		
-	// 	v8::Local<v8::Function> _fn = v8::Local<v8::Function>::Cast(yieldedValue);
-		
-	// 	int argc = cf->argc;
-	// 	if (argc >= 0) {
-	// 		v8::MaybeLocal<v8::Value> maybe_length = _fn->Get(ctx, CS::Get(CS::length));
-	// 		if (maybe_length.IsEmpty()) {
-	// 			Release();
-	// 			return cf->PropagateJSError(sqlite3_ctx);
-	// 		}
-	// 		v8::Local<v8::Value> lengthValue = maybe_length.ToLocalChecked();
-	// 		if (!lengthValue->IsInt32() || argc != v8::Local<v8::Int32>::Cast(lengthValue)->Value()) {
-	// 			Release();
-	// 			ThrowTypeError("Custom aggregate ", cf->name, "() has an inconsistent function.length");
-	// 			return cf->PropagateJSError(sqlite3_ctx);
-	// 		}
-	// 	}
-		
-	// 	fn.Reset(_fn);
-	// }
+	struct Entry {
+		v8::Local<v8::Value> value;
+		bool done;
+		bool threw;
+	};
 	
-	// inline void Release() {
-	// 	generator.Reset();
-	// 	next.Reset();
-	// 	fn.Reset();
-	// 	state = State::released;
-	// }
+	// Attempts to begin the generator function, switching to an active state.
+	// If a JavaScript error is thrown, this object is destroyed instead.
+	void Activate(v8::Isolate* isolate, CustomFunction* cf) {
+		assert(state == uninitialized);
+		NewHandleScope;
+		UseContext;
+		v8::Local<v8::Object> _generator = v8::Local<v8::Object>::Cast(v8::Local<v8::Function>::New(isolate, cf->fn)->Call(ctx, v8::Undefined(isolate), 0, NULL).ToLocalChecked());
+		v8::Local<v8::Function> _next = v8::Local<v8::Function>::Cast(_generator->Get(ctx, CS::Get(isolate, CS::next)).ToLocalChecked());
+		generator.Reset(isolate, _generator);
+		next.Reset(isolate, _next);
+		state = active;
+		
+		Entry entry = ProgressGenerator(isolate, ctx);
+		if (entry.threw) return Destroy();
+		if (entry.done || !entry.value->IsFunction()) {
+			std::string message = CONCAT("Custom aggregate ", cf->name, "() did not yield a function");
+			ThrowTypeError(message.c_str());
+			return Destroy();
+		}
+		v8::Local<v8::Function> _fn = v8::Local<v8::Function>::Cast(entry.value);
+		
+		int argc = cf->argc;
+		if (argc >= 0) {
+			v8::MaybeLocal<v8::Value> maybe_length = _fn->Get(ctx, CS::Get(isolate, CS::length));
+			if (maybe_length.IsEmpty()) return Destroy();
+			
+			v8::Local<v8::Value> lengthValue = maybe_length.ToLocalChecked();
+			if (!lengthValue->IsInt32() || argc != v8::Local<v8::Int32>::Cast(lengthValue)->Value()) {
+				std::string message = CONCAT("Custom aggregate ", cf->name, "() has an inconsistent function.length");
+				ThrowTypeError(message.c_str());
+				return Destroy();
+			}
+		}
+		fn.Reset(isolate, _fn);
+	}
 	
-	// v8::MaybeLocal<v8::Value> ProgressGenerator(v8::Isolate* isolate, v8::Local<v8::Context> ctx) {
-	// 	assert(state == State::active);
-	// 	v8::MaybeLocal<v8::Value> maybe_entry = v8::Local<v8::Function>::New(isolate, next)->Call(ctx, v8::Local<v8::Object>::New(isolate, generator), 0, NULL);
-	// 	if (maybe_entry.IsEmpty()) return maybe_entry;
-	// 	v8::Local<v8::Object> entry = v8::Local<v8::Object>::Cast(maybe_entry.ToLocalChecked());
-	// 	if (entry->Get(ctx, CS::Get(CS::done)).ToLocalChecked()->BooleanValue()) {
-	// 		Release();
-	// 	}
-	// 	return entry->Get(ctx, CS::Get(CS::done));
-	// }
+	inline void Destroy() {
+		assert(state == active);
+		generator.Reset();
+		next.Reset();
+		fn.Reset();
+		state = destroyed;
+	}
+	
+	inline bool IsUninitialized() {return state == uninitialized;}
+	inline bool IsActive() {return state == active;}
+	inline v8::Local<v8::Function> GetFn(v8::Isolate* isolate) {
+		return v8::Local<v8::Function>::New(isolate, fn);
+	}
+	
+	// Gets the next yield/return value from the generator and returns it along
+	// with other information about the action.
+	Entry ProgressGenerator(v8::Isolate* isolate, v8::Local<v8::Context> ctx) {
+		assert(state == active);
+		v8::MaybeLocal<v8::Value> maybe_entry = v8::Local<v8::Function>::New(isolate, next)->Call(ctx, v8::Local<v8::Object>::New(isolate, generator), 0, NULL);
+		if (maybe_entry.IsEmpty()) return { v8::Local<v8::Value>(), true, true };
+		v8::Local<v8::Object> entry = v8::Local<v8::Object>::Cast(maybe_entry.ToLocalChecked());
+		return {
+			entry->Get(ctx, CS::Get(isolate, CS::value)).ToLocalChecked(),
+			entry->Get(ctx, CS::Get(isolate, CS::done)).ToLocalChecked()->BooleanValue(),
+			false
+		};
+	}
 	
 private:
-	enum class State { uninitialized = 0, active = 1, released = 2 };
+	enum State { uninitialized = 0, active = 1, destroyed = 2 };
 	v8::Persistent<v8::Object> generator;
 	v8::Persistent<v8::Function> next;
 	v8::Persistent<v8::Function> fn;

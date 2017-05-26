@@ -25,8 +25,7 @@
 	}
 
 #define SQLITE_VALUE_TO_JS(from, isolate, safe_ints, ...)                      \
-	int type = sqlite3_##from##_type(__VA_ARGS__);                             \
-	switch (type) {                                                            \
+	switch (sqlite3_##from##_type(__VA_ARGS__)) {                              \
 	case SQLITE_INTEGER:                                                       \
 		return Int64::NewProperInteger(                                        \
 			isolate, sqlite3_##from##_int64(__VA_ARGS__), safe_ints            \
@@ -46,7 +45,7 @@
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
 		).ToLocalChecked();                                                    \
 	default:                                                                   \
-		assert(type == SQLITE_NULL);                                           \
+		assert(sqlite3_##from##_type(__VA_ARGS__) == SQLITE_NULL);             \
 		return v8::Null(isolate);                                              \
 	}                                                                          \
 	assert(false);

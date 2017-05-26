@@ -154,7 +154,7 @@ private:
 		
 		sqlite3_step(controller.begin);
 		if (sqlite3_reset(controller.begin) != SQLITE_OK) {
-			TRANSACTION_THROW();
+			TRANSACTION_THROW(((void)0));
 		}
 		
 		for (int i=0; i<handle_count; ++i) {

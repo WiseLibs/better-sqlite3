@@ -21,6 +21,7 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "objects/statement.lzz"
 #insert "objects/transaction.lzz"
 #insert "util/custom-function.lzz"
+#insert "util/custom-aggregate.lzz"
 #insert "util/data.lzz"
 #insert "binding/binder.lzz"
 #insert "binding/multi-binder.lzz"

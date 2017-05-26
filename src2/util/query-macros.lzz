@@ -44,7 +44,7 @@
 
 #define _TRANSACTION_UNBIND(handles, handle_count)                             \
 	for (int i=0; i<handle_count; ++i) sqlite3_clear_bindings(handles[i])
-#define TRANSACTION_THROW(...) _QUERY_THROW(trans, _TRANSACTION_UNBIND(handles, handle_count), __VA_ARGS__)
+#define TRANSACTION_THROW(ROLLBACK_ACTION) _QUERY_THROW(trans, _TRANSACTION_UNBIND(handles, handle_count), ROLLBACK_ACTION)
 #define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, trans, _TRANSACTION_UNBIND(handles, handle_count))
 #define TRANSACTION_BIND(handles, handle_count)                                \
 	MultiBinder binder(handles, handle_count);                                 \
@@ -73,10 +73,10 @@
 	FUNCTION_START(sqlite3_user_data(ctx));                                    \
 	CustomAggregate* ca = static_cast<CustomAggregate*>(                       \
 		sqlite3_aggregate_context(ctx, sizeof(CustomAggregate)));              \
-	if (ca == NULL) {                                                          \
-		ThrowError("Out of memory");                                           \
-		return cf->PropagateJSError(ctx);                                      \
-	} ((void)0)
+	if (ca->IsUninitialized()) {                                               \
+		ca->Activate(isolate, cf);                                             \
+		if (!ca->IsActive()) return cf->PropagateJSError(ctx);                 \
+	} /* no ((void)0) here because this pathway must remain open */
 
 #define FUNCTION_EXECUTE(var, fn, ...)                                         \
 	Database::State* db_state = cf->db->GetState();                            \
