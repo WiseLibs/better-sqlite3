@@ -8,11 +8,16 @@ public:
 		delete[] name;
 	}
 	
+	void PropagateJSError(sqlite3_context* ctx) {
+		assert(db->GetState()->was_js_error == false);
+		db->GetState()->was_js_error = true;
+		sqlite3_result_error(ctx, "", 0);
+	}
+	
 	void ThrowResultValueError(sqlite3_context* ctx) {
 		std::string message = CONCAT("Custom function ", name, "() returned an invalid value");
 		ThrowTypeError(message.c_str());
-		db->GetState()->was_js_error = true;
-		sqlite3_result_error(ctx, "", 0);
+		PropagateJSError(ctx);
 	}
 	
 	static void xDestroy(void* instance) {
@@ -26,8 +31,13 @@ public:
 		Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), cf);
 	}
 	
-	static void xStep(sqlite3_context* ctx, int argc, sqlite3_value** argv) {} // TODO
-	static void xFinal(sqlite3_context* ctx) {} // TODO
+	static void xStep(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+		AGGREGATE_START();
+	}
+	
+	static void xFinal(sqlite3_context* ctx) {
+		AGGREGATE_START();
+	}
 	
 private:
 	const Persistent<v8::Function> fn;

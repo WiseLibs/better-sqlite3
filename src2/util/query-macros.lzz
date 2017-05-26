@@ -69,6 +69,15 @@
 	v8::Isolate* isolate = cf->isolate;                                        \
 	NewHandleScope
 
+#define AGGREGATE_START()                                                      \
+	FUNCTION_START(sqlite3_user_data(ctx));                                    \
+	CustomAggregate* ca = static_cast<CustomAggregate*>(                       \
+		sqlite3_aggregate_context(ctx, sizeof(CustomAggregate)));              \
+	if (ca == NULL) {                                                          \
+		ThrowError("Out of memory");                                           \
+		return cf->PropagateJSError(ctx);                                      \
+	} ((void)0)
+
 #define FUNCTION_EXECUTE(var, fn, ...)                                         \
 	Database::State* db_state = cf->db->GetState();                            \
 	v8::Local<v8::Value>* args = Data::GetArgumentsJS(                         \
@@ -81,6 +90,5 @@
 	delete[] args;                                                             \
 	if (var.IsEmpty()) {                                                       \
 		__VA_ARGS__;                                                           \
-		db_state->was_js_error = true;                                         \
-		return sqlite3_result_error(ctx, "", 0);                               \
+		return cf->PropagateJSError(ctx);                                      \
 	} ((void)0)
