@@ -150,7 +150,7 @@ private:
 		TRANSACTION_START();
 		Database::TransactionController controller = db->GetTransactionController();
 		sqlite3* db_handle = db->GetHandle();
-		sqlite3_int64 changes = 0;
+		double changes = 0;
 		
 		sqlite3_step(controller.begin);
 		if (sqlite3_reset(controller.begin) != SQLITE_OK) {
@@ -165,7 +165,7 @@ private:
 				TRANSACTION_THROW(sqlite3_step(controller.rollback); sqlite3_reset(controller.rollback));
 			}
 			if (sqlite3_total_changes(db_handle) != total_changes_before) {
-				changes += sqlite3_changes(db_handle);
+				changes += static_cast<double>(sqlite3_changes(db_handle));
 			}
 		}
 		
@@ -177,9 +177,7 @@ private:
 		UseIsolateAndContext;
 		sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 		v8::Local<v8::Object> result = v8::Object::New(isolate);
-		// It's okay to cast the int64 to a double here because 0x7fffffff * MAX_TRANSACTION_LENGTH
-		// is less than 53 bits (the precision of an IEEE 754 double).
-		result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
+		result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, changes)).FromJust();
 		result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Int64::NewProperInteger(isolate, id, trans->safe_ints)).FromJust();
 		TRANSACTION_RETURN(result);
 	}
