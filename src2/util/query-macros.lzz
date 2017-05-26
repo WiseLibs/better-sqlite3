@@ -62,3 +62,25 @@
 #define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
 	if (stmt->returns_data)                                                    \
 		return ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
+
+
+#define FUNCTION_START(instance)                                               \
+	CustomFunction* cf = static_cast<CustomFunction*>(instance);               \
+	v8::Isolate* isolate = cf->isolate;                                        \
+	NewHandleScope
+
+#define FUNCTION_EXECUTE(var, fn, ...)                                         \
+	Database::State* db_state = cf->db->GetState();                            \
+	v8::Local<v8::Value>* args = Data::GetArgumentsJS(                         \
+		isolate, argv, argc, cf->safe_ints);                                   \
+	bool was_busy = db_state->busy;                                            \
+	db_state->busy = true;                                                     \
+	v8::MaybeLocal<v8::Value> var = fn->Call(                                  \
+		OnlyContext, v8::Undefined(isolate), argc, args);                      \
+	db_state->busy = was_busy;                                                 \
+	delete[] args;                                                             \
+	if (var.IsEmpty()) {                                                       \
+		__VA_ARGS__;                                                           \
+		db_state->was_js_error = true;                                         \
+		return sqlite3_result_error(ctx, "", 0);                               \
+	} ((void)0)

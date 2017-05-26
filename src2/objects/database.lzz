@@ -241,7 +241,7 @@ private:
 		if (default_safe_ints) safe_ints = db->safe_ints;
 		assert(name.length() > 0);
 		
-		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(OnlyIsolate, fn, db, *name, argc, safe_ints), xFunc, xStep, xFinal, CustomFunction::xDestroy) != SQLITE_OK) {
+		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(fn, OnlyIsolate, db, *name, argc, safe_ints), xFunc, xStep, xFinal, CustomFunction::xDestroy) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		info.GetReturnValue().Set(info.This());

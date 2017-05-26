@@ -1,8 +1,8 @@
 class CustomFunction {
 public:
 	
-	explicit CustomFunction(v8::Isolate* isolate, v8::Local<v8::Function> _fn, Database* _db, const char* _name, int _argc, bool _safe_ints)
-		: fn(isolate, _fn), db(_db), name(COPY(_name)), argc(_argc), safe_ints(_safe_ints) {}
+	explicit CustomFunction(v8::Local<v8::Function> _fn, v8::Isolate* _isolate, Database* _db, const char* _name, int _argc, bool _safe_ints)
+		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(COPY(_name)), argc(_argc), safe_ints(_safe_ints) {}
 	
 	~CustomFunction() {
 		delete[] name;
@@ -16,16 +16,21 @@ public:
 	}
 	
 	static void xDestroy(void* instance) {
-		EasyHandleScope;
-		delete static_cast<CustomFunction*>(instance);
+		FUNCTION_START(instance);
+		delete cf;
 	}
 	
-	static void xFunc(sqlite3_context* ctx, int length, sqlite3_value** values) {} // TODO
-	static void xStep(sqlite3_context* ctx, int length, sqlite3_value** values) {} // TODO
+	static void xFunc(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
+		FUNCTION_START(sqlite3_user_data(ctx));
+		FUNCTION_EXECUTE(maybe_return_value, v8::Local<v8::Function>::New(isolate, cf->fn));
+		Data::ResultValueFromJS(ctx, maybe_return_value.ToLocalChecked(), cf);
+	}
+	static void xStep(sqlite3_context* ctx, int argc, sqlite3_value** argv) {} // TODO
 	static void xFinal(sqlite3_context* ctx) {} // TODO
 	
 private:
 	const Persistent<v8::Function> fn;
+	v8::Isolate* const isolate;
 	Database* const db;
 	const char* const name;
 	const int argc;
