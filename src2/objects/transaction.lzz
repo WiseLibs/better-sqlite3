@@ -64,7 +64,6 @@ private:
 	}
 	
 	REGISTER(Init) {
-		EasyIsolate;
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(CS::Get(isolate, CS::Transaction));

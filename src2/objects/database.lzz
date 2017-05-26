@@ -80,7 +80,6 @@ private:
 	};
 	
 	REGISTER(Init) {
-		EasyIsolate;
 		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(CS::Get(isolate, CS::Database));
@@ -275,7 +274,7 @@ private:
 			sqlite3_finalize(extras->commit);
 			sqlite3_finalize(extras->rollback);
 			int status = sqlite3_close(db_handle);
-			assert(status == SQLITE_OK);
+			assert(status == SQLITE_OK); ((void)status);
 		}
 	}
 	

@@ -32,7 +32,7 @@ class DatabaseHandles { friend class Database;
 			sqlite3_finalize(commit);
 			sqlite3_finalize(rollback);
 			int status = sqlite3_close(db_handle);
-			assert(status == SQLITE_OK);
+			assert(status == SQLITE_OK); ((void)status);
 		}
 	}
 	

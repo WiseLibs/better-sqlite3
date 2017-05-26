@@ -36,51 +36,49 @@ namespace CS {
 	v8::Persistent<v8::String> pluck;
 	v8::Persistent<v8::String> safeIntegers;
 	
-	v8::Local<v8::String> _InternalizedFromLatin1(const char* data) {
-		EasyIsolate;
+	v8::Local<v8::String> _InternalizedFromLatin1(v8::Isolate* isolate, const char* data) {
 		return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
 	}
 	inline v8::Local<v8::String> Get(v8::Isolate* isolate, v8::Persistent<v8::String>& constant) {
 		return v8::Local<v8::String>::New(isolate, constant);
 	}
 	
-	void _Init() {
-		EasyIsolate;
-		CS::Database.Reset(isolate, CS::_InternalizedFromLatin1("Database"));
-		CS::database.Reset(isolate, CS::_InternalizedFromLatin1("database"));
-		CS::open.Reset(isolate, CS::_InternalizedFromLatin1("open"));
-		CS::source.Reset(isolate, CS::_InternalizedFromLatin1("source"));
-		CS::memory.Reset(isolate, CS::_InternalizedFromLatin1("memory"));
-		CS::readonly.Reset(isolate, CS::_InternalizedFromLatin1("readonly"));
-		CS::name.Reset(isolate, CS::_InternalizedFromLatin1("name"));
-		CS::Int64.Reset(isolate, CS::_InternalizedFromLatin1("Int64"));
-		CS::low.Reset(isolate, CS::_InternalizedFromLatin1("low"));
-		CS::high.Reset(isolate, CS::_InternalizedFromLatin1("high"));
-		CS::toString.Reset(isolate, CS::_InternalizedFromLatin1("toString"));
-		CS::valueOf.Reset(isolate, CS::_InternalizedFromLatin1("valueOf"));
-		CS::next.Reset(isolate, CS::_InternalizedFromLatin1("next"));
-		CS::length.Reset(isolate, CS::_InternalizedFromLatin1("length"));
-		CS::done.Reset(isolate, CS::_InternalizedFromLatin1("done"));
-		CS::value.Reset(isolate, CS::_InternalizedFromLatin1("value"));
-		CS::Statement.Reset(isolate, CS::_InternalizedFromLatin1("Statement"));
-		CS::returnsData.Reset(isolate, CS::_InternalizedFromLatin1("returnsData"));
-		CS::Transaction.Reset(isolate, CS::_InternalizedFromLatin1("Transaction"));
-		CS::changes.Reset(isolate, CS::_InternalizedFromLatin1("changes"));
-		CS::lastInsertROWID.Reset(isolate, CS::_InternalizedFromLatin1("lastInsertROWID"));
-		CS::prepare.Reset(isolate, CS::_InternalizedFromLatin1("prepare"));
-		CS::transaction.Reset(isolate, CS::_InternalizedFromLatin1("transaction"));
-		CS::exec.Reset(isolate, CS::_InternalizedFromLatin1("exec"));
-		CS::pragma.Reset(isolate, CS::_InternalizedFromLatin1("pragma"));
-		CS::checkpoint.Reset(isolate, CS::_InternalizedFromLatin1("checkpoint"));
-		CS::register_.Reset(isolate, CS::_InternalizedFromLatin1("register"));
-		CS::close.Reset(isolate, CS::_InternalizedFromLatin1("close"));
-		CS::defaultSafeIntegers.Reset(isolate, CS::_InternalizedFromLatin1("defaultSafeIntegers"));
-		CS::run.Reset(isolate, CS::_InternalizedFromLatin1("run"));
-		CS::get.Reset(isolate, CS::_InternalizedFromLatin1("get"));
-		CS::all.Reset(isolate, CS::_InternalizedFromLatin1("all"));
-		CS::each.Reset(isolate, CS::_InternalizedFromLatin1("each"));
-		CS::bind.Reset(isolate, CS::_InternalizedFromLatin1("bind"));
-		CS::pluck.Reset(isolate, CS::_InternalizedFromLatin1("pluck"));
-		CS::safeIntegers.Reset(isolate, CS::_InternalizedFromLatin1("safeIntegers"));
+	void _Init(v8::Isolate* isolate) {
+		CS::Database.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "Database"));
+		CS::database.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "database"));
+		CS::open.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "open"));
+		CS::source.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "source"));
+		CS::memory.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "memory"));
+		CS::readonly.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "readonly"));
+		CS::name.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "name"));
+		CS::Int64.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "Int64"));
+		CS::low.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "low"));
+		CS::high.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "high"));
+		CS::toString.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "toString"));
+		CS::valueOf.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "valueOf"));
+		CS::next.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "next"));
+		CS::length.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "length"));
+		CS::done.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "done"));
+		CS::value.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "value"));
+		CS::Statement.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "Statement"));
+		CS::returnsData.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "returnsData"));
+		CS::Transaction.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "Transaction"));
+		CS::changes.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "changes"));
+		CS::lastInsertROWID.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "lastInsertROWID"));
+		CS::prepare.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "prepare"));
+		CS::transaction.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "transaction"));
+		CS::exec.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "exec"));
+		CS::pragma.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "pragma"));
+		CS::checkpoint.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "checkpoint"));
+		CS::register_.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "register"));
+		CS::close.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "close"));
+		CS::defaultSafeIntegers.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "defaultSafeIntegers"));
+		CS::run.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "run"));
+		CS::get.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "get"));
+		CS::all.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "all"));
+		CS::each.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "each"));
+		CS::bind.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "bind"));
+		CS::pluck.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "pluck"));
+		CS::safeIntegers.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "safeIntegers"));
 	}
 }
