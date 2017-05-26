@@ -1,0 +1,12 @@
+class CustomAggregate {
+public:
+	
+	
+	
+private:
+	enum class State { uninitialized = 0, active = 1, released = 2 };
+	Persistent<v8::Object> generator;
+	Persistent<v8::Function> next;
+	Persistent<v8::Function> fn;
+	State state;
+};
