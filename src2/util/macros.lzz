@@ -27,15 +27,21 @@ inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const ch
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 
-inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, v8::Persistent<v8::String>& key, v8::Local<v8::Value> value) {
+inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, ConstantString& key, v8::Local<v8::Value> value) {
 	static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
 
-template<ErrorFactory T> void ThrowException(const char* message) {
+template<ErrorFactory T> void ThrowException(const char* message, int code = INT_MIN) {
 	EasyIsolate;
-	isolate->ThrowException(T(StringFromUtf8(isolate, message, -1)));
+	v8::Local<v8::Object> error = v8::Local<v8::Object>::Cast(T(StringFromUtf8(isolate, message, -1)));
+	v8::Local<v8::String> codeString = code == INT_MIN ? v8::String::Empty(isolate) : ResultCodes::Get(isolate, code);
+	error->Set(OnlyContext, CS::Get(isolate, CS::code), codeString).FromJust();
+	isolate->ThrowException(error);
 }
+#define ThrowError(...) ThrowException<v8::Exception::Error>(__VA_ARGS__)
+#define ThrowTypeError(...) ThrowException<v8::Exception::TypeError>(__VA_ARGS__)
+#define ThrowRangeError(...) ThrowException<v8::Exception::RangeError>(__VA_ARGS__)
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
@@ -107,10 +113,6 @@ template<class T> inline void FREE_ARRAY(T* array_pointer) {
 
 #hdr
 typedef v8::Local<v8::Value> (*ErrorFactory)(v8::Local<v8::String>);
+typedef v8::Persistent<v8::String> ConstantString;
 template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#end
-#src
-const auto& ThrowError = ThrowException<v8::Exception::Error>;
-const auto& ThrowTypeError = ThrowException<v8::Exception::TypeError>;
-const auto& ThrowRangeError = ThrowException<v8::Exception::RangeError>;
 #end

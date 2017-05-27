@@ -1,45 +1,46 @@
 namespace CS {
-	v8::Persistent<v8::String> Database;
-	v8::Persistent<v8::String> database;
-	v8::Persistent<v8::String> open;
-	v8::Persistent<v8::String> source;
-	v8::Persistent<v8::String> memory;
-	v8::Persistent<v8::String> readonly;
-	v8::Persistent<v8::String> name;
-	v8::Persistent<v8::String> Int64;
-	v8::Persistent<v8::String> low;
-	v8::Persistent<v8::String> high;
-	v8::Persistent<v8::String> toString;
-	v8::Persistent<v8::String> valueOf;
-	v8::Persistent<v8::String> next;
-	v8::Persistent<v8::String> length;
-	v8::Persistent<v8::String> done;
-	v8::Persistent<v8::String> value;
-	v8::Persistent<v8::String> Statement;
-	v8::Persistent<v8::String> returnsData;
-	v8::Persistent<v8::String> Transaction;
-	v8::Persistent<v8::String> changes;
-	v8::Persistent<v8::String> lastInsertROWID;
-	v8::Persistent<v8::String> prepare;
-	v8::Persistent<v8::String> transaction;
-	v8::Persistent<v8::String> exec;
-	v8::Persistent<v8::String> pragma;
-	v8::Persistent<v8::String> checkpoint;
-	v8::Persistent<v8::String> register_;
-	v8::Persistent<v8::String> close;
-	v8::Persistent<v8::String> defaultSafeIntegers;
-	v8::Persistent<v8::String> run;
-	v8::Persistent<v8::String> get;
-	v8::Persistent<v8::String> all;
-	v8::Persistent<v8::String> each;
-	v8::Persistent<v8::String> bind;
-	v8::Persistent<v8::String> pluck;
-	v8::Persistent<v8::String> safeIntegers;
+	ConstantString Database;
+	ConstantString database;
+	ConstantString open;
+	ConstantString source;
+	ConstantString memory;
+	ConstantString readonly;
+	ConstantString name;
+	ConstantString Int64;
+	ConstantString low;
+	ConstantString high;
+	ConstantString toString;
+	ConstantString valueOf;
+	ConstantString next;
+	ConstantString length;
+	ConstantString done;
+	ConstantString value;
+	ConstantString Statement;
+	ConstantString returnsData;
+	ConstantString Transaction;
+	ConstantString changes;
+	ConstantString lastInsertROWID;
+	ConstantString prepare;
+	ConstantString transaction;
+	ConstantString exec;
+	ConstantString pragma;
+	ConstantString checkpoint;
+	ConstantString register_;
+	ConstantString close;
+	ConstantString defaultSafeIntegers;
+	ConstantString run;
+	ConstantString get;
+	ConstantString all;
+	ConstantString each;
+	ConstantString bind;
+	ConstantString pluck;
+	ConstantString safeIntegers;
+	ConstantString code;
 	
 	v8::Local<v8::String> _InternalizedFromLatin1(v8::Isolate* isolate, const char* data) {
 		return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
 	}
-	inline v8::Local<v8::String> Get(v8::Isolate* isolate, v8::Persistent<v8::String>& constant) {
+	inline v8::Local<v8::String> Get(v8::Isolate* isolate, ConstantString& constant) {
 		return v8::Local<v8::String>::New(isolate, constant);
 	}
 	
@@ -80,5 +81,6 @@ namespace CS {
 		CS::bind.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "bind"));
 		CS::pluck.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "pluck"));
 		CS::safeIntegers.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "safeIntegers"));
+		CS::code.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "code"));
 	}
 }

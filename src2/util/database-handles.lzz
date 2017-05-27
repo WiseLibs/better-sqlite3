@@ -9,25 +9,24 @@ class DatabaseHandles { friend class Database;
 		begin = NULL;
 		commit = NULL;
 		rollback = NULL;
-		error = NULL;
+		success = true;
 		
 		v8::String::Utf8Value utf8(filename);
 		int mask = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 		
 		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
-			error = COPY(sqlite3_errmsg(db_handle));
+			success = false;
 		} else if (sqlite3_prepare_v2(db_handle, "BEGIN TRANSACTION;", -1, &begin, NULL) != SQLITE_OK) {
-			error = COPY(sqlite3_errmsg(db_handle));
+			success = false;
 		} else if (sqlite3_prepare_v2(db_handle, "COMMIT TRANSACTION;", -1, &commit, NULL) != SQLITE_OK) {
-			error = COPY(sqlite3_errmsg(db_handle));
+			success = false;
 		} else if (sqlite3_prepare_v2(db_handle, "ROLLBACK TRANSACTION;", -1, &rollback, NULL) != SQLITE_OK) {
-			error = COPY(sqlite3_errmsg(db_handle));
+			success = false;
 		}
 	}
 	
 	~DatabaseHandles() {
-		if (error) {
-			delete[] error;
+		if (success == false) {
 			sqlite3_finalize(begin);
 			sqlite3_finalize(commit);
 			sqlite3_finalize(rollback);
@@ -40,5 +39,5 @@ class DatabaseHandles { friend class Database;
 	sqlite3_stmt* begin;
 	sqlite3_stmt* commit;
 	sqlite3_stmt* rollback;
-	const char* error;
+	bool success;
 };

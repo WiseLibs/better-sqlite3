@@ -5,12 +5,8 @@ public:
 	
 	// Proper error handling logic for when an sqlite3 operation fails.
 	void ThrowDatabaseError() {
-		if (was_js_error) {
-			was_js_error = false;
-		} else {
-			std::string message = CONCAT("SQLite: ", sqlite3_errmsg(db_handle));
-			ThrowError(message.c_str());
-		}
+		if (was_js_error) was_js_error = false;
+		else ThrowErrorFromSqlite3(db_handle);
 	}
 	
 	// Allow Statements and Transactions to manage themselves when created and
@@ -63,14 +59,14 @@ private:
 		pragma_mode(false),
 		safe_ints(false),
 		was_js_error(false) {
-		assert(handles->error == NULL);
+		assert(handles->success);
 	}
 	
 	// A class for holding values that are less often used.
 	class DatabaseExtras { friend class Database;
 		explicit DatabaseExtras(DatabaseHandles* handles)
 			: stmts(), transs(), begin(handles->begin), commit(handles->commit), rollback(handles->rollback) {
-			assert(handles->error == NULL);
+			assert(handles->success);
 		}
 		std::set<Statement*, Query::Compare> stmts;
 		std::set<Transaction*, Query::Compare> transs;
@@ -113,10 +109,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		
 		DatabaseHandles handles(filename, readonly);
-		if (handles.error) {
-			std::string message = CONCAT("SQLite: ", handles.error);
-			return ThrowError(message.c_str());
-		}
+		if (!handles.success) return ThrowErrorFromSqlite3(handles.db_handle);
 		
 		assert(sqlite3_db_mutex(handles.db_handle) == NULL);
 		sqlite3_busy_timeout(handles.db_handle, 5000);
@@ -153,12 +146,10 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		
 		v8::String::Utf8Value sql(source);
 		if (sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
-		
 		info.GetReturnValue().Set(info.This());
 	}
 	
@@ -276,6 +267,12 @@ private:
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
+	}
+	
+	static void ThrowErrorFromSqlite3(sqlite3* db_handle) {
+		assert(db_handle != NULL);
+		std::string message = CONCAT("SQLite: ", sqlite3_errmsg(db_handle));
+		ThrowError(message.c_str(), sqlite3_extended_errcode(db_handle));
 	}
 	
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
