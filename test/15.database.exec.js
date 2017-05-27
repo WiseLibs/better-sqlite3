@@ -15,11 +15,11 @@ describe('Database#exec()', function () {
 		expect(function () {db.exec(new String('CREATE TABLE entries (a TEXT, b INTEGER)'));}).to.throw(TypeError);
 	});
 	it('should throw an exception if invalid SQL is provided', function () {
-		expect(function () {db.exec('CREATE TABLE entries (a TEXT, b INTEGER');}).to.throw(Error);
+		expect(function () {db.exec('CREATE TABLE entries (a TEXT, b INTEGER');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
 	});
 	it('should obey the restrictions of readonly mode', function () {
 		var db2 = new Database(db.name, {readonly: true});
-		expect(function () {db2.exec('CREATE TABLE people (name TEXT)');}).to.throw(Error);
+		expect(function () {db2.exec('CREATE TABLE people (name TEXT)');}).to.throw(Error).with.property('code', 'SQLITE_READONLY');
 		db2.exec('SELECT 555');
 	});
 	it('should execute the SQL, returning the database object itself', function () {

@@ -62,12 +62,12 @@ describe('Transaction#run()', function () {
 			"INSERT INTO ages VALUES (40, 1)",
 			"INSERT INTO ages VALUES (30, 3)"
 		]);
-		expect(function () {trans.run();}).to.throw(Error);
+		expect(function () {trans.run();}).to.throw(Error).with.property('code', 'SQLITE_CONSTRAINT_FOREIGNKEY');
 		trans = db.transaction([
 			"INSERT INTO ages VALUES (40, 1)",
 			"INSERT INTO ages VALUES (30, NULL)"
 		]);
-		expect(function () {trans.run();}).to.throw(Error);
+		expect(function () {trans.run();}).to.throw(Error).with.property('code', 'SQLITE_CONSTRAINT_NOTNULL');
 		expect(db.prepare('SELECT * FROM ages WHERE age==35').get()).to.not.be.undefined;
 		expect(db.prepare('SELECT * FROM ages WHERE age==40').get()).to.be.undefined;
 		db.transaction([
@@ -87,7 +87,7 @@ describe('Transaction#run()', function () {
 	it('should obey the restrictions of readonly mode', function () {
 		var db2 = new Database(db.name, {readonly: true});
 		var trans = db2.transaction(['CREATE TABLE people (name TEXT)']);
-		expect(function () {trans.run()}).to.throw(Error);
+		expect(function () {trans.run()}).to.throw(Error).with.property('code', 'SQLITE_READONLY');
 	});
 	it('should accept bind parameters', function () {
 		db.transaction(["CREATE TABLE entries (a TEXT CHECK(typeof(a)=='text'), b INTEGER CHECK(typeof(b)=='integer' OR typeof(b)=='real'), c REAL CHECK(typeof(c)=='real' OR typeof(c)=='integer'), d BLOB CHECK(typeof(d)=='blob'))"]).run();

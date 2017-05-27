@@ -72,15 +72,15 @@ describe('Statement#run()', function () {
 		db.prepare("INSERT INTO ages VALUES (30, 2)").run();
 		db.prepare("INSERT INTO ages VALUES (35, 2)").run();
 		var stmt = db.prepare("INSERT INTO ages VALUES (30, 3)");
-		expect(function () {stmt.run();}).to.throw(Error);
+		expect(function () {stmt.run();}).to.throw(Error).with.property('code', 'SQLITE_CONSTRAINT_FOREIGNKEY');
 		stmt = db.prepare("INSERT INTO ages VALUES (30, NULL)");
-		expect(function () {stmt.run();}).to.throw(Error);
+		expect(function () {stmt.run();}).to.throw(Error).with.property('code', 'SQLITE_CONSTRAINT_NOTNULL');
 	});
 	it('should allow ad-hoc transactions', function () {
 		expect(db.prepare("BEGIN TRANSACTION").run().changes).to.equal(0);
 		expect(db.prepare("INSERT INTO ages VALUES (45, 2)").run().changes).to.equal(1);
 		var stmt = db.prepare("INSERT INTO ages VALUES (30, 3)");
-		expect(function () {stmt.run()}).to.throw(Error);
+		expect(function () {stmt.run()}).to.throw(Error).with.property('code', 'SQLITE_CONSTRAINT_FOREIGNKEY');
 		expect(db.prepare("ROLLBACK TRANSACTION").run().changes).to.equal(0);
 	});
 	it('should not count changes from indirect mechanisms', function () {
@@ -94,7 +94,7 @@ describe('Statement#run()', function () {
 	it('should obey the restrictions of readonly mode', function () {
 		var db2 = new Database(db.name, {readonly: true});
 		var stmt = db2.prepare('CREATE TABLE people (name TEXT)');
-		expect(function () {stmt.run()}).to.throw(Error);
+		expect(function () {stmt.run()}).to.throw(Error).with.property('code', 'SQLITE_READONLY');
 	});
 	it('should accept bind parameters', function () {
 		db.prepare("CREATE TABLE entries (a TEXT CHECK(typeof(a)=='text'), b INTEGER CHECK(typeof(b)=='integer' OR typeof(b)=='real'), c REAL CHECK(typeof(c)=='real' OR typeof(c)=='integer'), d BLOB CHECK(typeof(d)=='blob'))").run();

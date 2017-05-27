@@ -53,7 +53,7 @@ describe('new Database()', function () {
 	});
 	it('should allow readonly database connections to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
-		expect(function () {new Database(util.current(), {readonly: true});});
+		expect(function () {new Database(util.current(), {readonly: true});}).to.throw(Error).with.property('code', 'SQLITE_CANTOPEN');;
 		(new Database(util.current())).close();
 		fs.accessSync(util.current());
 		var db = new Database(util.current(), {readonly: true});
@@ -74,7 +74,7 @@ describe('new Database()', function () {
 	});
 	it('should throw an Error if opening the database failed', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
-		expect(function () {new Database('temp/nonexistent/abcfoobar123/' + util.current());})
+		expect(function () {new Database('temp/nonexistent/abcfoobar123/' + util.current());}).to.throw(TypeError);
 		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	})
 	it('should have a proper prototype chain', function () {

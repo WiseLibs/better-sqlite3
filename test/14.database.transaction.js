@@ -39,8 +39,8 @@ describe('Database#transaction()', function () {
 	});
 	it('should throw an exception if invalid SQL is provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.transaction(['CREATE TABLE people (name TEXT']);}).to.throw(Error);
-		expect(function () {db.transaction(['INSERT INTO people VALUES (?)']);}).to.throw(Error);
+		expect(function () {db.transaction(['CREATE TABLE people (name TEXT']);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+		expect(function () {db.transaction(['INSERT INTO people VALUES (?)']);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
 	});
 	it('should throw an exception if a string contains no statements', function () {
 		var db = new Database(util.next());
