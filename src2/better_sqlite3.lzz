@@ -3,7 +3,6 @@
 #include <unordered_map>
 #include <sqlite3.h>
 #include <nan.h>
-#include "util/strlcpy.h"
 #end
 #src
 NODE_MODULE(better_sqlite3, RegisterModule);

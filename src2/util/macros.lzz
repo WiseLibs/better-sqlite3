@@ -85,7 +85,7 @@ template<ErrorType T> void ThrowException(const char* message, int code = INT_MI
 inline const char* COPY(const char* source) {
 	size_t bytes = strlen(source) + 1;
 	char* dest = new char[bytes];
-	strlcpy(dest, source, bytes);
+	memcpy(dest, source, bytes);
 	return dest;
 }
 
