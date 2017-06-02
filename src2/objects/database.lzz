@@ -90,7 +90,8 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
 		
-		exports->Set(StringFromUtf8(isolate, "Database", -1), t->GetFunction(OnlyContext).ToLocalChecked());
+		UseContext;
+		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 	}
 	
 	NODE_METHOD(JS_new) {
