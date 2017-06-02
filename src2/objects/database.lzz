@@ -1,6 +1,6 @@
 class Statement;
 class Transaction;
-class Database : public Nan::ObjectWrap {
+class Database : public node::ObjectWrap {
 public:
 	
 	// Proper error handling logic for when an sqlite3 operation fails.
@@ -51,7 +51,7 @@ public:
 	
 private:
 	
-	explicit Database(DatabaseHandles* handles) : Nan::ObjectWrap(),
+	explicit Database(DatabaseHandles* handles) : node::ObjectWrap(),
 		db_handle(handles->db_handle),
 		extras(new DatabaseExtras(handles)),
 		open(true),
@@ -76,29 +76,21 @@ private:
 	};
 	
 	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
+		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(CS::Get(isolate, CS::Database));
+		t->SetClassName(StringFromUtf8(isolate, "Database"));
 		
-		Nan::SetPrototypeMethod(t, "prepare", JS_prepare);
-		Nan::SetPrototypeMethod(t, "transaction", JS_transaction);
-		Nan::SetPrototypeMethod(t, "exec", JS_exec);
-		Nan::SetPrototypeMethod(t, "pragma", JS_pragma);
-		Nan::SetPrototypeMethod(t, "checkpoint", JS_checkpoint);
-		Nan::SetPrototypeMethod(t, "register", JS_register);
-		Nan::SetPrototypeMethod(t, "close", JS_close);
-		Nan::SetPrototypeMethod(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::prepare), JS_prepare);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::transaction), JS_transaction);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::exec), JS_exec);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::pragma), JS_pragma);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::checkpoint), JS_checkpoint);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::register_), JS_register);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::close), JS_close);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::defaultSafeIntegers), JS_defaultSafeIntegers);
-		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::open), JS_open);
+		NODE_SET_PROTOTYPE_METHOD(t, "prepare", JS_prepare);
+		NODE_SET_PROTOTYPE_METHOD(t, "transaction", JS_transaction);
+		NODE_SET_PROTOTYPE_METHOD(t, "exec", JS_exec);
+		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
+		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
+		NODE_SET_PROTOTYPE_METHOD(t, "register", JS_register);
+		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
+		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
+		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
 		
-		Nan::Set(exports, CS::Get(isolate, CS::Database), Nan::GetFunction(t).ToLocalChecked());
+		exports->Set(StringFromUtf8(isolate, "Database"), t->GetFunction(OnlyContext).ToLocalChecked());
 	}
 	
 	NODE_METHOD(JS_new) {

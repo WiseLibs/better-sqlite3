@@ -1,6 +1,6 @@
-#define NODE_ARGUMENTS const Nan::FunctionCallbackInfo<v8::Value>&
+#define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
 #define NODE_METHOD(name) static void name(NODE_ARGUMENTS info)
-#define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const Nan::PropertyCallbackInfo<v8::Value>& info)
+#define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const v8::PropertyCallbackInfo<v8::Value>& info)
 #define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Isolate* isolate, v8::Local<v8::Object> exports)
 
 #define NewHandleScope v8::HandleScope scope(isolate)
@@ -12,7 +12,7 @@
 #define OnlyContext isolate->GetCurrentContext()
 #define OnlyIsolateAndContext info.GetIsolate()->GetCurrentContext()
 
-#define Unwrap Nan::ObjectWrap::Unwrap
+#define Unwrap node::ObjectWrap::Unwrap
 
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
@@ -105,6 +105,20 @@ template<class T> inline T* ALLOC_ARRAY(size_t count) {
 // Deallocates an array, without calling destructors.
 template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
+}
+
+inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, const char* name, v8::AccessorGetterCallback getter) {
+	EasyIsolate;
+	NewHandleScope;
+	recv->InstanceTemplate()->SetAccessor(
+		StringFromLatin1(isolate, name),
+		getter,
+		0,
+		v8::Local<v8::Value>(),
+		v8::AccessControl::ALL_CAN_READ,
+		v8::PropertyAttribute::None,
+		v8::AccessorSignature::New(isolate, recv)
+	);
 }
 
 #hdr

@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "bindings": "^1.2.1",
-    "nan": "^2.5.1",
     "to-descriptor": "^1.0.1"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-class Transaction : public Nan::ObjectWrap, public Query {
+class Transaction : public node::ObjectWrap, public Query {
 public:
 	
 	// Provides public access to the constructor.
@@ -46,7 +46,7 @@ public:
 	
 private:
 	
-	explicit Transaction(Database* _db, TransactionHandles* _handles) : Nan::ObjectWrap(), Query(next_id++),
+	explicit Transaction(Database* _db, TransactionHandles* _handles) : node::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handles(_handles->handles),
 		handle_count(_handles->handle_count),
@@ -64,18 +64,15 @@ private:
 	}
 	
 	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
+		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(CS::Get(isolate, CS::Transaction));
+		t->SetClassName(StringFromUtf8(isolate, "Transaction"));
 		
-		Nan::SetPrototypeMethod(t, "run", JS_run);
-		Nan::SetPrototypeMethod(t, "bind", JS_bind);
-		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::run), JS_run);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::bind), JS_bind);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::safeIntegers), JS_safeIntegers);
+		NODE_SET_PROTOTYPE_METHOD(t, "run", JS_run);
+		NODE_SET_PROTOTYPE_METHOD(t, "bind", JS_bind);
+		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
 		
-		constructor.Reset(isolate, Nan::GetFunction(t).ToLocalChecked());
+		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
 	}

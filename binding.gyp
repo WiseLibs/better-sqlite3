@@ -3,7 +3,6 @@
   "targets": [
     {
       "target_name": "better_sqlite3",
-      "include_dirs": ["<!(node -e \"require('nan')\")"],
       "dependencies": [
         "deps/sqlite3.gyp:sqlite3"
       ],

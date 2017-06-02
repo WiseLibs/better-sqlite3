@@ -1,4 +1,4 @@
-class Statement : public Nan::ObjectWrap, public Query {
+class Statement : public node::ObjectWrap, public Query {
 public:
 	
 	// Provides public access to the constructor.
@@ -40,7 +40,7 @@ public:
 	
 private:
 	
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : Nan::ObjectWrap(), Query(next_id++),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : node::ObjectWrap(), Query(next_id++),
 		db(_db),
 		handle(_handle),
 		alive(true),
@@ -57,27 +57,20 @@ private:
 	}
 	
 	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = Nan::New<v8::FunctionTemplate>(JS_new);
+		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(CS::Get(isolate, CS::Statement));
+		t->SetClassName(StringFromUtf8(isolate, "Statement"));
 		
-		Nan::SetPrototypeMethod(t, "run", JS_run);
-		Nan::SetPrototypeMethod(t, "get", JS_get);
-		Nan::SetPrototypeMethod(t, "all", JS_all);
-		Nan::SetPrototypeMethod(t, "each", JS_each);
-		Nan::SetPrototypeMethod(t, "bind", JS_bind);
-		Nan::SetPrototypeMethod(t, "pluck", JS_pluck);
-		Nan::SetPrototypeMethod(t, "safeIntegers", JS_safeIntegers);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::run), JS_run);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::get), JS_get);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::all), JS_all);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::each), JS_each);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::bind), JS_bind);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::pluck), JS_pluck);
-		// Nan::SetPrototypeMethod(t, CS::Get(isolate, CS::safeIntegers), JS_safeIntegers);
-		Nan::SetAccessor(t->InstanceTemplate(), CS::Get(isolate, CS::returnsData), JS_returnsData);
+		NODE_SET_PROTOTYPE_METHOD(t, "run", JS_run);
+		NODE_SET_PROTOTYPE_METHOD(t, "get", JS_get);
+		NODE_SET_PROTOTYPE_METHOD(t, "all", JS_all);
+		NODE_SET_PROTOTYPE_METHOD(t, "each", JS_each);
+		NODE_SET_PROTOTYPE_METHOD(t, "bind", JS_bind);
+		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
+		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
+		NODE_SET_PROTOTYPE_GETTER(t, "returnsData", JS_returnsData);
 		
-		constructor.Reset(isolate, Nan::GetFunction(t).ToLocalChecked());
+		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
 	}
