@@ -78,7 +78,7 @@ private:
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "Database"));
+		t->SetClassName(StringFromUtf8(isolate, "Database", -1));
 		
 		NODE_SET_PROTOTYPE_METHOD(t, "prepare", JS_prepare);
 		NODE_SET_PROTOTYPE_METHOD(t, "transaction", JS_transaction);
@@ -90,7 +90,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
 		
-		exports->Set(StringFromUtf8(isolate, "Database"), t->GetFunction(OnlyContext).ToLocalChecked());
+		exports->Set(StringFromUtf8(isolate, "Database", -1), t->GetFunction(OnlyContext).ToLocalChecked());
 	}
 	
 	NODE_METHOD(JS_new) {

@@ -59,7 +59,7 @@ private:
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "Statement"));
+		t->SetClassName(StringFromUtf8(isolate, "Statement", -1));
 		
 		NODE_SET_PROTOTYPE_METHOD(t, "run", JS_run);
 		NODE_SET_PROTOTYPE_METHOD(t, "get", JS_get);

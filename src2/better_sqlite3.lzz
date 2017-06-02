@@ -1,4 +1,5 @@
 #hdr
+#include <string>
 #include <set>
 #include <unordered_map>
 #include <sqlite3.h>
@@ -34,7 +35,7 @@ void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	NewHandleScope;
 	CS::_Init(isolate);
 	ResultCodes::_Init(isolate);
-	Integer::_Init(isolate);
+	Integer::_Init(isolate, module);
 	Database::Init(isolate, exports);
 	Statement::Init(isolate, exports);
 	Transaction::Init(isolate, exports);

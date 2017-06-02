@@ -1,0 +1,48 @@
+class Integer : public node::ObjectWrap {
+public:
+	
+	static void _Init(v8::Isolate* isolate, v8::Local<v8::Object> module) {
+		UseContext;
+		v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
+		v8::Local<v8::Value> moduleName = StringFromUtf8(isolate, "integer", -1);
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::Cast(require->Call(ctx, module, 1, &moduleName).ToLocalChecked());
+		v8::Local<v8::Function> is = v8::Local<v8::Function>::Cast(c->Get(ctx, StringFromUtf8(isolate, "isInstance", -1)).ToLocalChecked());
+		v8::Local<v8::Object> proto = v8::Local<v8::Object>::Cast(c->Get(ctx, StringFromUtf8(isolate, "prototype", -1)).ToLocalChecked());
+		constructor.Reset(isolate, c);
+		isInstance.Reset(isolate, is);
+		controller = static_cast<ConstructorController*>(proto->GetAlignedPointerFromInternalField(0));
+	}
+	
+	static bool HasInstance(v8::Local<v8::Value> value) {
+		EasyIsolate;
+		return v8::Local<v8::Boolean>::Cast(
+			v8::Local<v8::Function>::New(isolate, isInstance)->Call(OnlyContext, v8::Undefined(isolate), 1, &value).ToLocalChecked()
+		)->Value();
+	}
+	
+	static sqlite3_int64 GetValue(v8::Local<v8::Object> integer) {
+		return static_cast<Integer*>(integer->GetAlignedPointerFromInternalField(0))->value;
+	}
+	
+	static v8::Local<v8::Value> New(v8::Isolate* isolate, sqlite3_int64 value, bool safe_ints) {
+		if (safe_ints) {
+			*controller = {true, value};
+			return v8::Local<v8::Function>::New(isolate, constructor)->NewInstance(OnlyContext).ToLocalChecked();
+		}
+		return v8::Number::New(isolate, (double)value);
+	}
+	
+private:
+	explicit Integer(char _) : node::ObjectWrap() {assert(false);}
+	
+	struct ConstructorController {
+		bool privileges;
+		int64_t value;
+	};
+	
+	static v8::Persistent<v8::Function> constructor;
+	static v8::Persistent<v8::Function> isInstance;
+	static Integer::ConstructorController* controller;
+	
+	int64_t value;
+};

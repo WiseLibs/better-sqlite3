@@ -111,7 +111,7 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 	EasyIsolate;
 	NewHandleScope;
 	recv->InstanceTemplate()->SetAccessor(
-		StringFromLatin1(isolate, name),
+		StringFromUtf8(isolate, name, -1),
 		getter,
 		0,
 		v8::Local<v8::Value>(),
