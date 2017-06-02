@@ -17,7 +17,7 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/transaction-handles.lzz"
 #insert "util/sql-string.lzz"
 #insert "util/bind-map.lzz"
-#insert "objects/int64.lzz"
+#insert "util/integer.lzz"
 #insert "objects/query.lzz"
 #insert "objects/database.lzz"
 #insert "objects/statement.lzz"
@@ -33,7 +33,7 @@ void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	NewHandleScope;
 	CS::_Init(isolate);
 	ResultCodes::_Init(isolate);
-	Int64::Init(isolate, exports);
+	Integer::_Init(isolate);
 	Database::Init(isolate, exports);
 	Statement::Init(isolate, exports);
 	Transaction::Init(isolate, exports);

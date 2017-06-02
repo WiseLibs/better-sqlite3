@@ -38,7 +38,8 @@
     "sql",
     "sqlite",
     "sqlite3",
-    "int64",
+    "custom",
+    "aggregate",
     "database",
     "transactions"
   ]

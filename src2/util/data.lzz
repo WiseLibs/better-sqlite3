@@ -18,16 +18,16 @@
 			node::Buffer::Length(value),                                       \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
-	} else if (Int64::HasInstance(value)) {                                    \
+	} else if (Integer::HasInstance(value)) {                                  \
 		return sqlite3_##to##_int64(__VA_ARGS__,                               \
-			Unwrap<Int64>(v8::Local<v8::Object>::Cast(value))->GetValue()      \
+			Integer::GetValue(v8::Local<v8::Object>::Cast(value))              \
 		);                                                                     \
 	}
 
 #define SQLITE_VALUE_TO_JS(from, isolate, safe_ints, ...)                      \
 	switch (sqlite3_##from##_type(__VA_ARGS__)) {                              \
 	case SQLITE_INTEGER:                                                       \
-		return Int64::NewProperInteger(                                        \
+		return Integer::New(                                                   \
 			isolate, sqlite3_##from##_int64(__VA_ARGS__), safe_ints            \
 		);                                                                     \
 	case SQLITE_FLOAT:                                                         \

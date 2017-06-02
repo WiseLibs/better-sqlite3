@@ -130,7 +130,7 @@ private:
 			UseIsolateAndContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
 			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
-			result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Int64::NewProperInteger(isolate, id, stmt->safe_ints)).FromJust();
+			result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Integer::New(isolate, id, stmt->safe_ints)).FromJust();
 			STATEMENT_RETURN(result);
 		}
 		STATEMENT_THROW();

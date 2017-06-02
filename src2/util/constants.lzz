@@ -6,11 +6,6 @@ namespace CS {
 	ConstantString memory;
 	ConstantString readonly;
 	ConstantString name;
-	ConstantString Int64;
-	ConstantString low;
-	ConstantString high;
-	ConstantString toString;
-	ConstantString valueOf;
 	ConstantString next;
 	ConstantString length;
 	ConstantString done;
@@ -52,11 +47,6 @@ namespace CS {
 		CS::memory.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "memory"));
 		CS::readonly.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "readonly"));
 		CS::name.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "name"));
-		CS::Int64.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "Int64"));
-		CS::low.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "low"));
-		CS::high.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "high"));
-		CS::toString.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "toString"));
-		CS::valueOf.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "valueOf"));
 		CS::next.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "next"));
 		CS::length.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "length"));
 		CS::done.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "done"));

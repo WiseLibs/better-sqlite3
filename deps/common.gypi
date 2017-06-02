@@ -1,11 +1,10 @@
 {
   'variables': {
-      'sqlite_version%':'3180000',
-      "toolset%":'',
+      'sqlite_version%': '3180000'
   },
   'target_defaults': {
     'default_configuration': 'Release',
-    'msbuild_toolset':'<(toolset)',
+    'msbuild_toolset': '',
     'configurations': {
       'Debug': {
         'defines!': [
@@ -28,7 +27,7 @@
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'ExceptionHandling': 1, # /EHsc
+            'ExceptionHandling': 1
           }
         }
       },
@@ -49,7 +48,7 @@
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'ExceptionHandling': 1, # /EHsc
+            'ExceptionHandling': 1
           }
         }
       }

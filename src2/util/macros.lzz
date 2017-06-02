@@ -14,9 +14,6 @@
 
 #define Unwrap Nan::ObjectWrap::Unwrap
 
-inline v8::Local<v8::String> StringFromLatin1(v8::Isolate* isolate, const char* data, int length) {
-	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kNormal, length).ToLocalChecked();
-}
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
@@ -32,7 +29,7 @@ inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Loca
 	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
 
-template<ErrorFactory T> void ThrowException(const char* message, int code = INT_MIN) {
+template<ErrorType T> void ThrowException(const char* message, int code = INT_MIN) {
 	EasyIsolate;
 	v8::Local<v8::Object> error = v8::Local<v8::Object>::Cast(T(StringFromUtf8(isolate, message, -1)));
 	if (code != INT_MIN) error->Set(OnlyContext, CS::Get(isolate, CS::code), ResultCodes::Get(isolate, code)).FromJust();
@@ -111,7 +108,7 @@ template<class T> inline void FREE_ARRAY(T* array_pointer) {
 }
 
 #hdr
-typedef v8::Local<v8::Value> (*ErrorFactory)(v8::Local<v8::String>);
+typedef v8::Local<v8::Value> (*ErrorType)(v8::Local<v8::String>);
 typedef v8::Persistent<v8::String> ConstantString;
 template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end

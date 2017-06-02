@@ -1,3 +1,3 @@
 'use strict';
 module.exports = require('./lib/database');
-module.exports.Int64 = require('./lib/int64');
+module.exports.Integer = require('integer');
