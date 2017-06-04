@@ -1,8 +1,4 @@
-#hdr
-typedef v8::Persistent<v8::String> ConstantString;
-#end
-
-class CS() {
+class CS {
 public:
 	static inline v8::Local<v8::String> Get(v8::Isolate* isolate, ConstantString& constant) {
 		return v8::Local<v8::String>::New(isolate, constant);
@@ -137,7 +133,11 @@ private:
 	static void AddCode(v8::Isolate* isolate, int code, const char* str) {
 		codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
-	CS() = 0;
+	explicit CS() {};
 	
 	static std::unordered_map<int, ConstantString> codes;
 }
+
+#hdr
+typedef v8::Persistent<v8::String> ConstantString;
+#end
