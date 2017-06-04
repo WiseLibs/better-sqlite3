@@ -16,7 +16,7 @@
         ],
       },
       "sources": [
-        "src/better_sqlite3.cpp"
+        "src/better_sqlite3.cc"
       ]
     }
   ]
