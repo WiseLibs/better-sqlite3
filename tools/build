@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 set -e
-./tools/lzz -hx hpp -sx cpp -d -k BETTER_SQLITE3 -hl -sl -e ./src2/better_sqlite3.lzz
+./tools/lzz -hx hpp -sx cpp -d -k BETTER_SQLITE3 -hl -sl -e ./src/better_sqlite3.lzz
