@@ -1,36 +1,143 @@
-namespace CS {
-	ConstantString database;
-	ConstantString source;
-	ConstantString memory;
-	ConstantString readonly;
-	ConstantString name;
-	ConstantString next;
-	ConstantString length;
-	ConstantString done;
-	ConstantString value;
-	ConstantString changes;
-	ConstantString lastInsertROWID;
-	ConstantString code;
-	
-	v8::Local<v8::String> _InternalizedFromLatin1(v8::Isolate* isolate, const char* data) {
-		return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(data), v8::NewStringType::kInternalized).ToLocalChecked();
-	}
-	inline v8::Local<v8::String> Get(v8::Isolate* isolate, ConstantString& constant) {
+#hdr
+typedef v8::Persistent<v8::String> ConstantString;
+#end
+
+class CS() {
+public:
+	static inline v8::Local<v8::String> Get(v8::Isolate* isolate, ConstantString& constant) {
 		return v8::Local<v8::String>::New(isolate, constant);
 	}
-	
-	void _Init(v8::Isolate* isolate) {
-		CS::database.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "database"));
-		CS::source.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "source"));
-		CS::memory.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "memory"));
-		CS::readonly.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "readonly"));
-		CS::name.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "name"));
-		CS::next.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "next"));
-		CS::length.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "length"));
-		CS::done.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "done"));
-		CS::value.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "value"));
-		CS::changes.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "changes"));
-		CS::lastInsertROWID.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "lastInsertROWID"));
-		CS::code.Reset(isolate, CS::_InternalizedFromLatin1(isolate, "code"));
+	static v8::Local<v8::String> Code(v8::Isolate* isolate, int code) {
+		return v8::Local<v8::String>::New(isolate, codes[code]);
 	}
+	
+	static ConstantString database;
+	static ConstantString source;
+	static ConstantString memory;
+	static ConstantString readonly;
+	static ConstantString name;
+	static ConstantString next;
+	static ConstantString length;
+	static ConstantString done;
+	static ConstantString value;
+	static ConstantString changes;
+	static ConstantString lastInsertROWID;
+	static ConstantString code;
+	
+private:
+	REGISTER(Init) {
+		AddString(isolate, CS::database, "database");
+		AddString(isolate, CS::source, "source");
+		AddString(isolate, CS::memory, "memory");
+		AddString(isolate, CS::readonly, "readonly");
+		AddString(isolate, CS::name, "name");
+		AddString(isolate, CS::next, "next");
+		AddString(isolate, CS::length, "length");
+		AddString(isolate, CS::done, "done");
+		AddString(isolate, CS::value, "value");
+		AddString(isolate, CS::changes, "changes");
+		AddString(isolate, CS::lastInsertROWID, "lastInsertROWID");
+		AddString(isolate, CS::code, "code");
+		
+		AddCode(isolate, SQLITE_OK, "SQLITE_OK");
+		AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
+		AddCode(isolate, SQLITE_INTERNAL, "SQLITE_INTERNAL");
+		AddCode(isolate, SQLITE_PERM, "SQLITE_PERM");
+		AddCode(isolate, SQLITE_ABORT, "SQLITE_ABORT");
+		AddCode(isolate, SQLITE_BUSY, "SQLITE_BUSY");
+		AddCode(isolate, SQLITE_LOCKED, "SQLITE_LOCKED");
+		AddCode(isolate, SQLITE_NOMEM, "SQLITE_NOMEM");
+		AddCode(isolate, SQLITE_READONLY, "SQLITE_READONLY");
+		AddCode(isolate, SQLITE_INTERRUPT, "SQLITE_INTERRUPT");
+		AddCode(isolate, SQLITE_IOERR, "SQLITE_IOERR");
+		AddCode(isolate, SQLITE_CORRUPT, "SQLITE_CORRUPT");
+		AddCode(isolate, SQLITE_NOTFOUND, "SQLITE_NOTFOUND");
+		AddCode(isolate, SQLITE_FULL, "SQLITE_FULL");
+		AddCode(isolate, SQLITE_CANTOPEN, "SQLITE_CANTOPEN");
+		AddCode(isolate, SQLITE_PROTOCOL, "SQLITE_PROTOCOL");
+		AddCode(isolate, SQLITE_EMPTY, "SQLITE_EMPTY");
+		AddCode(isolate, SQLITE_SCHEMA, "SQLITE_SCHEMA");
+		AddCode(isolate, SQLITE_TOOBIG, "SQLITE_TOOBIG");
+		AddCode(isolate, SQLITE_CONSTRAINT, "SQLITE_CONSTRAINT");
+		AddCode(isolate, SQLITE_MISMATCH, "SQLITE_MISMATCH");
+		AddCode(isolate, SQLITE_MISUSE, "SQLITE_MISUSE");
+		AddCode(isolate, SQLITE_NOLFS, "SQLITE_NOLFS");
+		AddCode(isolate, SQLITE_AUTH, "SQLITE_AUTH");
+		AddCode(isolate, SQLITE_FORMAT, "SQLITE_FORMAT");
+		AddCode(isolate, SQLITE_RANGE, "SQLITE_RANGE");
+		AddCode(isolate, SQLITE_NOTADB, "SQLITE_NOTADB");
+		AddCode(isolate, SQLITE_NOTICE, "SQLITE_NOTICE");
+		AddCode(isolate, SQLITE_WARNING, "SQLITE_WARNING");
+		AddCode(isolate, SQLITE_ROW, "SQLITE_ROW");
+		AddCode(isolate, SQLITE_DONE, "SQLITE_DONE");
+		AddCode(isolate, SQLITE_IOERR_READ, "SQLITE_IOERR_READ");
+		AddCode(isolate, SQLITE_IOERR_SHORT_READ, "SQLITE_IOERR_SHORT_READ");
+		AddCode(isolate, SQLITE_IOERR_WRITE, "SQLITE_IOERR_WRITE");
+		AddCode(isolate, SQLITE_IOERR_FSYNC, "SQLITE_IOERR_FSYNC");
+		AddCode(isolate, SQLITE_IOERR_DIR_FSYNC, "SQLITE_IOERR_DIR_FSYNC");
+		AddCode(isolate, SQLITE_IOERR_TRUNCATE, "SQLITE_IOERR_TRUNCATE");
+		AddCode(isolate, SQLITE_IOERR_FSTAT, "SQLITE_IOERR_FSTAT");
+		AddCode(isolate, SQLITE_IOERR_UNLOCK, "SQLITE_IOERR_UNLOCK");
+		AddCode(isolate, SQLITE_IOERR_RDLOCK, "SQLITE_IOERR_RDLOCK");
+		AddCode(isolate, SQLITE_IOERR_DELETE, "SQLITE_IOERR_DELETE");
+		AddCode(isolate, SQLITE_IOERR_BLOCKED, "SQLITE_IOERR_BLOCKED");
+		AddCode(isolate, SQLITE_IOERR_NOMEM, "SQLITE_IOERR_NOMEM");
+		AddCode(isolate, SQLITE_IOERR_ACCESS, "SQLITE_IOERR_ACCESS");
+		AddCode(isolate, SQLITE_IOERR_CHECKRESERVEDLOCK, "SQLITE_IOERR_CHECKRESERVEDLOCK");
+		AddCode(isolate, SQLITE_IOERR_LOCK, "SQLITE_IOERR_LOCK");
+		AddCode(isolate, SQLITE_IOERR_CLOSE, "SQLITE_IOERR_CLOSE");
+		AddCode(isolate, SQLITE_IOERR_DIR_CLOSE, "SQLITE_IOERR_DIR_CLOSE");
+		AddCode(isolate, SQLITE_IOERR_SHMOPEN, "SQLITE_IOERR_SHMOPEN");
+		AddCode(isolate, SQLITE_IOERR_SHMSIZE, "SQLITE_IOERR_SHMSIZE");
+		AddCode(isolate, SQLITE_IOERR_SHMLOCK, "SQLITE_IOERR_SHMLOCK");
+		AddCode(isolate, SQLITE_IOERR_SHMMAP, "SQLITE_IOERR_SHMMAP");
+		AddCode(isolate, SQLITE_IOERR_SEEK, "SQLITE_IOERR_SEEK");
+		AddCode(isolate, SQLITE_IOERR_DELETE_NOENT, "SQLITE_IOERR_DELETE_NOENT");
+		AddCode(isolate, SQLITE_IOERR_MMAP, "SQLITE_IOERR_MMAP");
+		AddCode(isolate, SQLITE_IOERR_GETTEMPPATH, "SQLITE_IOERR_GETTEMPPATH");
+		AddCode(isolate, SQLITE_IOERR_CONVPATH, "SQLITE_IOERR_CONVPATH");
+		AddCode(isolate, SQLITE_IOERR_VNODE, "SQLITE_IOERR_VNODE");
+		AddCode(isolate, SQLITE_IOERR_AUTH, "SQLITE_IOERR_AUTH");
+		AddCode(isolate, SQLITE_LOCKED_SHAREDCACHE, "SQLITE_LOCKED_SHAREDCACHE");
+		AddCode(isolate, SQLITE_BUSY_RECOVERY, "SQLITE_BUSY_RECOVERY");
+		AddCode(isolate, SQLITE_BUSY_SNAPSHOT, "SQLITE_BUSY_SNAPSHOT");
+		AddCode(isolate, SQLITE_CANTOPEN_NOTEMPDIR, "SQLITE_CANTOPEN_NOTEMPDIR");
+		AddCode(isolate, SQLITE_CANTOPEN_ISDIR, "SQLITE_CANTOPEN_ISDIR");
+		AddCode(isolate, SQLITE_CANTOPEN_FULLPATH, "SQLITE_CANTOPEN_FULLPATH");
+		AddCode(isolate, SQLITE_CANTOPEN_CONVPATH, "SQLITE_CANTOPEN_CONVPATH");
+		AddCode(isolate, SQLITE_CORRUPT_VTAB, "SQLITE_CORRUPT_VTAB");
+		AddCode(isolate, SQLITE_READONLY_RECOVERY, "SQLITE_READONLY_RECOVERY");
+		AddCode(isolate, SQLITE_READONLY_CANTLOCK, "SQLITE_READONLY_CANTLOCK");
+		AddCode(isolate, SQLITE_READONLY_ROLLBACK, "SQLITE_READONLY_ROLLBACK");
+		AddCode(isolate, SQLITE_READONLY_DBMOVED, "SQLITE_READONLY_DBMOVED");
+		AddCode(isolate, SQLITE_ABORT_ROLLBACK, "SQLITE_ABORT_ROLLBACK");
+		AddCode(isolate, SQLITE_CONSTRAINT_CHECK, "SQLITE_CONSTRAINT_CHECK");
+		AddCode(isolate, SQLITE_CONSTRAINT_COMMITHOOK, "SQLITE_CONSTRAINT_COMMITHOOK");
+		AddCode(isolate, SQLITE_CONSTRAINT_FOREIGNKEY, "SQLITE_CONSTRAINT_FOREIGNKEY");
+		AddCode(isolate, SQLITE_CONSTRAINT_FUNCTION, "SQLITE_CONSTRAINT_FUNCTION");
+		AddCode(isolate, SQLITE_CONSTRAINT_NOTNULL, "SQLITE_CONSTRAINT_NOTNULL");
+		AddCode(isolate, SQLITE_CONSTRAINT_PRIMARYKEY, "SQLITE_CONSTRAINT_PRIMARYKEY");
+		AddCode(isolate, SQLITE_CONSTRAINT_TRIGGER, "SQLITE_CONSTRAINT_TRIGGER");
+		AddCode(isolate, SQLITE_CONSTRAINT_UNIQUE, "SQLITE_CONSTRAINT_UNIQUE");
+		AddCode(isolate, SQLITE_CONSTRAINT_VTAB, "SQLITE_CONSTRAINT_VTAB");
+		AddCode(isolate, SQLITE_CONSTRAINT_ROWID, "SQLITE_CONSTRAINT_ROWID");
+		AddCode(isolate, SQLITE_NOTICE_RECOVER_WAL, "SQLITE_NOTICE_RECOVER_WAL");
+		AddCode(isolate, SQLITE_NOTICE_RECOVER_ROLLBACK, "SQLITE_NOTICE_RECOVER_ROLLBACK");
+		AddCode(isolate, SQLITE_WARNING_AUTOINDEX, "SQLITE_WARNING_AUTOINDEX");
+		AddCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
+		AddCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
+	}
+	
+	static v8::Local<v8::String> InternalizedFromLatin1(v8::Isolate* isolate, const char* str) {
+		return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
+	}
+	static void AddString(v8::Isolate* isolate, ConstantString& constant, const char* str) {
+		constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
+	}
+	static void AddCode(v8::Isolate* isolate, int code, const char* str) {
+		codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
+	}
+	CS() = 0;
+	
+	static std::unordered_map<int, ConstantString> codes;
 }

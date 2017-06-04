@@ -14,7 +14,6 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/macros.lzz"
 #insert "util/query-macros.lzz"
 #insert "util/constants.lzz"
-#insert "util/result-codes.lzz"
 #insert "util/database-handles.lzz"
 #insert "util/transaction-handles.lzz"
 #insert "util/sql-string.lzz"
@@ -33,10 +32,9 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	EasyIsolate;
 	NewHandleScope;
-	CS::_Init(isolate);
-	ResultCodes::_Init(isolate);
-	Integer::_Init(isolate, module);
-	Database::Init(isolate, exports);
-	Statement::Init(isolate, exports);
-	Transaction::Init(isolate, exports);
+	CS::Init(isolate, exports, module);
+	Integer::Init(isolate, exports, module);
+	Database::Init(isolate, exports, module);
+	Statement::Init(isolate, exports, module);
+	Transaction::Init(isolate, exports, module);
 }

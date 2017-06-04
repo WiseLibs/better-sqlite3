@@ -1,7 +1,7 @@
 class Integer : public node::ObjectWrap {
 public:
 	
-	static void _Init(v8::Isolate* isolate, v8::Local<v8::Object> module) {
+	REGISTER(Init) {
 		UseContext;
 		v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
 		v8::Local<v8::Value> moduleName = StringFromUtf8(isolate, "integer", -1);

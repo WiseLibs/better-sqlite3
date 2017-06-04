@@ -1,7 +1,7 @@
 #define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
 #define NODE_METHOD(name) static void name(NODE_ARGUMENTS info)
 #define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const v8::PropertyCallbackInfo<v8::Value>& info)
-#define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Isolate* isolate, v8::Local<v8::Object> exports)
+#define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Isolate* isolate, v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 
 #define NewHandleScope v8::HandleScope scope(isolate)
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
@@ -32,7 +32,7 @@ inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Loca
 template<ErrorType T> void ThrowException(const char* message, int code = INT_MIN) {
 	EasyIsolate;
 	v8::Local<v8::Object> error = v8::Local<v8::Object>::Cast(T(StringFromUtf8(isolate, message, -1)));
-	if (code != INT_MIN) error->Set(OnlyContext, CS::Get(isolate, CS::code), ResultCodes::Get(isolate, code)).FromJust();
+	if (code != INT_MIN) error->Set(OnlyContext, CS::Get(isolate, CS::code), CS::Code(isolate, code)).FromJust();
 	isolate->ThrowException(error);
 }
 #define ThrowError(...) ThrowException<v8::Exception::Error>(__VA_ARGS__)
@@ -123,6 +123,5 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 
 #hdr
 typedef v8::Local<v8::Value> (*ErrorType)(v8::Local<v8::String>);
-typedef v8::Persistent<v8::String> ConstantString;
 template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end
