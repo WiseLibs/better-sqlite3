@@ -19,19 +19,17 @@
     "chai": "^3.5.0",
     "cli-color": "^1.1.0",
     "fs-extra": "^0.30.0",
-    "in-publish": "^2.0.0",
     "mocha": "^3.0.2",
     "sqlite": "^2.5.0"
   },
   "scripts": {
     "install": "node tools/install",
-    "prepublish": "$(npm bin)/in-publish && ./tools/build || true",
     "test": "$(npm bin)/mocha --bail --timeout 5000 --slow 5000",
     "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
     "posttest": "rm -r ./temp/",
     "benchmark": "node benchmark",
-    "rebuild": "./tools/build && CI=true node tools/install",
-    "rebuild-release": "./tools/build && node tools/install"
+    "rebuild": "CI=true node tools/install",
+    "rebuild-release": "node tools/install"
   },
   "license": "MIT",
   "keywords": [

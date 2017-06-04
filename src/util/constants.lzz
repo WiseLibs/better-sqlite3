@@ -4,7 +4,7 @@ public:
 		return v8::Local<v8::String>::New(isolate, constant);
 	}
 	static v8::Local<v8::String> Code(v8::Isolate* isolate, int code) {
-		return v8::Local<v8::String>::New(isolate, codes[code]);
+		return v8::Local<v8::String>::New(isolate, codes.at(code));
 	}
 	
 	static ConstantString database;
