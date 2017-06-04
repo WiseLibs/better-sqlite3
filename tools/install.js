@@ -4,6 +4,7 @@ var lzz = process.platform === 'darwin' ? './tools/lzz-osx'
         : './tools/lzz-linux';
 
 var lzzOptions = [
+	lzz,
 	'-hx', 'hpp',
 	'-sx', 'cpp',
 	'-k', 'BETTER_SQLITE3',
@@ -15,8 +16,6 @@ var lzzOptions = [
 ];
 
 require('./exec')([
-	['ls'],
-	['ls', 'tools'],
-	[lzz].concat(lzzOptions),
+	['eval'].concat(lzzOptions),
 	['node-gyp', 'rebuild'].concat(process.env.CI === 'true' ? ['--debug'] : [])
 ]);
