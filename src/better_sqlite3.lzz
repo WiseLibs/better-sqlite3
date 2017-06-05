@@ -1,4 +1,6 @@
 #hdr
+#include <climits>
+#include <cstring>
 #include <string>
 #include <set>
 #include <unordered_map>
