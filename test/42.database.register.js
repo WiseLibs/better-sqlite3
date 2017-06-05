@@ -68,9 +68,9 @@ describe('Database#register()', function () {
 	});
 	it('should have a strict number of arguments by default', function () {
 		register(function c1(a, b) {});
-		expect(function () {exec('c1()');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
-		expect(function () {exec('c1(?)', 4);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
-		expect(function () {exec('c1(?, ?, ?)', 4, 8, 3);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+		expect(function () {exec('c1()');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
+		expect(function () {exec('c1(?)', 4);}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
+		expect(function () {exec('c1(?, ?, ?)', 4, 8, 3);}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 		exec('c1(?, ?)', 4, 8);
 	});
 	it('should accept a "name" option', function () {
@@ -78,7 +78,7 @@ describe('Database#register()', function () {
 		register({name: 'd2'}, function sdnfjlsd(a, b) {return a * b;});
 		expect(exec('d1(?, ?)', 2, 10)).to.equal(-8);
 		expect(exec('d2(?, ?)', 2, 10)).to.equal(20);
-		expect(function () {exec('sdnfjlsd(?, ?)', 2, 10);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+		expect(function () {exec('sdnfjlsd(?, ?)', 2, 10);}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 	});
 	it('should accept a "varargs" option', function () {
 		register({varargs: true}, function f1() {
@@ -468,9 +468,9 @@ describe('Database#register()', function () {
 					yield function (x, y) {result += x + y};
 					return result;
 				});
-				expect(function () {exec('zs1() FROM data');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
-				expect(function () {exec('zs1(x) FROM data');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
-				expect(function () {exec('zs1(x, ?, ?) FROM data', 8, 3);}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+				expect(function () {exec('zs1() FROM data');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
+				expect(function () {exec('zs1(x) FROM data');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
+				expect(function () {exec('zs1(x, ?, ?) FROM data', 8, 3);}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 				expect(exec('zs1(x, ?) FROM data', 2)).to.equal(89);
 			});
 			it('should accept a "varargs" option', function () {

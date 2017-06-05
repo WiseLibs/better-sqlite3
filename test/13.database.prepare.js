@@ -32,8 +32,8 @@ describe('Database#prepare()', function () {
 	});
 	it('should throw an exception if invalid SQL is provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.prepare('CREATE TABLE people (name TEXT');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
-		expect(function () {db.prepare('INSERT INTO people VALUES (?)');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+		expect(function () {db.prepare('CREATE TABLE people (name TEXT');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
+		expect(function () {db.prepare('INSERT INTO people VALUES (?)');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 	});
 	it('should throw an exception if no statements are provided', function () {
 		var db = new Database(util.next());

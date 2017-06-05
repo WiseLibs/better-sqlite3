@@ -9,14 +9,6 @@
 	if (!bound) {UNBIND_ACTION;}                                               \
 	return
 
-#define _QUERY_BIND(obj, bind_args_count, UNBIND_ACTION)                       \
-	binder.Bind(info, bind_args_count, obj);                                   \
-	if (binder.GetError()) {                                                   \
-		UNBIND_ACTION;                                                         \
-		if (binder.GetError()[0] != 0) ThrowError(binder.GetError());          \
-		return;                                                                \
-	} ((void)0)
-
 #define _QUERY_START(obj, object_name, bind_args_count, BIND_ACTION)           \
 	Database* db = obj->db;                                                    \
 	Database::State* db_state = db->GetState();                                \
@@ -34,7 +26,9 @@
 #define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, stmt, _STATEMENT_UNBIND(handle))
 #define STATEMENT_BIND(handle, bind_args_count)                                \
 	Binder binder(handle);                                                     \
-	_QUERY_BIND(stmt, bind_args_count, _STATEMENT_UNBIND(handle))
+	if (!binder.Bind(info, bind_args_count, stmt)) {                           \
+		_STATEMENT_UNBIND(handle); return;                                     \
+	} ((void)0)
 #define STATEMENT_START(bind_args_count, RETURNS_DATA_CHECK)                   \
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
 	RETURNS_DATA_CHECK();                                                      \
@@ -48,7 +42,9 @@
 #define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, trans, _TRANSACTION_UNBIND(handles, handle_count))
 #define TRANSACTION_BIND(handles, handle_count)                                \
 	MultiBinder binder(handles, handle_count);                                 \
-	_QUERY_BIND(trans, info.Length(), _TRANSACTION_UNBIND(handles, handle_count))
+	if (!binder.Bind(info, info.Length(), trans)) {                            \
+		_TRANSACTION_UNBIND(handles, handle_count); return;                    \
+	} ((void)0)
 #define TRANSACTION_START()                                                    \
 	Transaction* trans = Unwrap<Transaction>(info.This());                     \
 	sqlite3_stmt** handles = trans->handles;                                   \

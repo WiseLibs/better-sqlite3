@@ -29,15 +29,9 @@ inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Loca
 	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
 
-template<ErrorType T> void ThrowException(const char* message, int code = INT_MIN) {
-	EasyIsolate;
-	v8::Local<v8::Object> error = v8::Local<v8::Object>::Cast(T(StringFromUtf8(isolate, message, -1)));
-	if (code != INT_MIN) error->Set(OnlyContext, CS::Get(isolate, CS::code), CS::Code(isolate, code)).FromJust();
-	isolate->ThrowException(error);
-}
-#define ThrowError(...) ThrowException<v8::Exception::Error>(__VA_ARGS__)
-#define ThrowTypeError(...) ThrowException<v8::Exception::TypeError>(__VA_ARGS__)
-#define ThrowRangeError(...) ThrowException<v8::Exception::RangeError>(__VA_ARGS__)
+void ThrowError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));}
+void ThrowTypeError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));}
+void ThrowRangeError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));}
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
@@ -89,11 +83,11 @@ inline const char* COPY(const char* source) {
 	return dest;
 }
 
-// Returns a std:string of the concatenation of 2 or 3 well-formed C-strings.
-std::string CONCAT(const char* a, const char* b, const char* c = NULL) {
+// Returns a std:string of the concatenation of 3 well-formed C-strings.
+std::string CONCAT(const char* a, const char* b, const char* c) {
 	std::string result(a);
 	result += b;
-	if (c != NULL) result += c;
+	result += c;
 	return result;
 }
 
@@ -105,6 +99,14 @@ template<class T> inline T* ALLOC_ARRAY(size_t count) {
 // Deallocates an array, without calling destructors.
 template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
+}
+
+v8::Local<v8::Value> Require(v8::Local<v8::Object> module, const char* path) {
+	EasyIsolate;
+	UseContext;
+	v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
+	v8::Local<v8::Value> requireArg = StringFromUtf8(isolate, path, -1);
+	return require->Call(ctx, module, 1, &requireArg).ToLocalChecked();
 }
 
 inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, const char* name, v8::AccessorGetterCallback getter) {
@@ -122,6 +124,6 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 }
 
 #hdr
-typedef v8::Local<v8::Value> (*ErrorType)(v8::Local<v8::String>);
+typedef void (*ErrorType)(const char*);
 template <class T> using Persistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end

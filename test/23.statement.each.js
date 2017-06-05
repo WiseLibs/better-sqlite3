@@ -167,7 +167,7 @@ describe('Statement#each()', function () {
 		
 		expect(function () {
 			db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)}, function () {});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL1).each();
@@ -175,7 +175,7 @@ describe('Statement#each()', function () {
 		
 		expect(function () {
 			db.prepare(SQL1).each(function () {});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL2).each({});
@@ -183,7 +183,7 @@ describe('Statement#each()', function () {
 		
 		expect(function () {
 			db.prepare(SQL2).each({}, function () {});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		function shouldHave(SQL, desiredData, args) {
 			var i = 0;

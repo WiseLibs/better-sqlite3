@@ -6,7 +6,7 @@ public:
 	// Proper error handling logic for when an sqlite3 operation fails.
 	void ThrowDatabaseError() {
 		if (was_js_error) was_js_error = false;
-		else ThrowErrorFromSqlite3(db_handle);
+		else ThrowSqliteError(db_handle);
 	}
 	
 	// Allow Statements and Transactions to manage themselves when created and
@@ -92,6 +92,7 @@ private:
 		
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
+		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../../lib/sqlite-error")));
 	}
 	
 	NODE_METHOD(JS_new) {
@@ -102,7 +103,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		
 		DatabaseHandles handles(filename, readonly);
-		if (!handles.success) return ThrowErrorFromSqlite3(handles.db_handle);
+		if (!handles.success) return ThrowSqliteError(handles.db_handle);
 		
 		assert(sqlite3_db_mutex(handles.db_handle) == NULL);
 		sqlite3_busy_timeout(handles.db_handle, 5000);
@@ -262,12 +263,14 @@ private:
 		}
 	}
 	
-	static void ThrowErrorFromSqlite3(sqlite3* db_handle) {
+	static void ThrowSqliteError(sqlite3* db_handle) {
 		assert(db_handle != NULL);
-		std::string message = CONCAT("SQLite: ", sqlite3_errmsg(db_handle));
-		ThrowError(message.c_str(), sqlite3_extended_errcode(db_handle));
+		EasyIsolate;
+		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, sqlite3_errmsg(db_handle), -1), CS::Code(isolate, sqlite3_extended_errcode(db_handle)) };
+		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 	
+	static v8::Persistent<v8::Function> SqliteError;
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 	

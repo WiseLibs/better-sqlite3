@@ -7,26 +7,27 @@ public:
 		handle_index(0),
 		param_count_sum(param_count) {}
 	
-	void Bind(NODE_ARGUMENTS info, int argc, Transaction* query) {
+	bool Bind(NODE_ARGUMENTS info, int argc, Transaction* query) {
 		assert(handle_index == 0);
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, query);
-		if (!error) {
+		if (success) {
 			while (handle_index + 1 < handle_count) {
 				param_count_sum += sqlite3_bind_parameter_count(handles[++handle_index]);
 			}
 			if (result.count != param_count_sum) {
 				if (result.count < param_count_sum) {
 					if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetSize()) {
-						SetError("Missing named parameters");
+						Fail(ThrowTypeError, "Missing named parameters");
 					} else {
-						SetError("Too few parameter values were provided");
+						Fail(ThrowRangeError, "Too few parameter values were provided");
 					}
 				} else {
-					SetError("Too many parameter values were provided");
+					Fail(ThrowRangeError, "Too many parameter values were provided");
 				}
 			}
 		}
+		return success;
 	}
 	
 protected:
@@ -68,27 +69,27 @@ protected:
 			// Check if the named parameter was provided.
 			v8::Maybe<bool> has_property = obj->HasOwnProperty(ctx, key);
 			if (has_property.IsNothing()) {
-				SetError("");
+				Fail(NULL, NULL);
 				return i;
 			}
 			if (!has_property.FromJust()) {
 				v8::String::Utf8Value param_name(key);
 				std::string message = CONCAT("Missing named parameter \"", *param_name, "\"");
-				SetError(message.c_str());
+				Fail(ThrowRangeError, message.c_str());
 				return i;
 			}
 			
 			// Get the current property value.
 			v8::MaybeLocal<v8::Value> maybeValue = obj->Get(ctx, key);
 			if (maybeValue.IsEmpty()) {
-				SetError("");
+				Fail(NULL, NULL);
 				return i;
 			}
 			
 			int index = pairs[i].GetIndex();
 			handle = handles[BindMap::GetTransactionIndex(index)];
 			BindValue(maybeValue.ToLocalChecked(), BindMap::GetParameterIndex(index));
-			if (error) {
+			if (!success) {
 				return i;
 			}
 		}

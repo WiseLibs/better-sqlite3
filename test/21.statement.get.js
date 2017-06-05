@@ -70,15 +70,15 @@ describe('Statement#get()', function () {
 		
 		expect(function () {
 			db.prepare(SQL2).get({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL1).get();
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL2).get({});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 	});
 });
 

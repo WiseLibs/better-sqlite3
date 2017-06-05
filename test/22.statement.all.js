@@ -79,15 +79,15 @@ describe('Statement#all()', function () {
 		
 		expect(function () {
 			db.prepare(SQL2).all({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL1).all();
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			db.prepare(SQL2).all({});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 	});
 });
 

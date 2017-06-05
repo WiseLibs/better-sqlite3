@@ -45,19 +45,19 @@ describe('Statement#bind()', function () {
 		
 		expect(function () {
 			stmt.bind('foo', 25);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			stmt.bind('foo', 25, null, null);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			stmt.bind('foo', new Number(25), null);
-		}).to.throw(Error);
+		}).to.throw(TypeError);
 		
 		expect(function () {
 			stmt.bind();
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		stmt.bind('foo', 25, null);
 		
@@ -65,15 +65,15 @@ describe('Statement#bind()', function () {
 		
 		expect(function () {
 			stmt.bind({a: '123'});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			stmt.bind({a: '123', 1: null});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			stmt.bind({a: '123'}, null, null);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		stmt.bind({a: '123'}, null);
 		

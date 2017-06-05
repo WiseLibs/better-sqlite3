@@ -45,19 +45,19 @@ describe('Transaction#bind()', function () {
 		
 		expect(function () {
 			trans.bind('foo', 25);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			trans.bind('foo', 25, null, null);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			trans.bind('foo', new Number(25), null);
-		}).to.throw(Error);
+		}).to.throw(TypeError);
 		
 		expect(function () {
 			trans.bind();
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		trans.bind('foo', 25, null);
 		
@@ -65,15 +65,15 @@ describe('Transaction#bind()', function () {
 		
 		expect(function () {
 			trans.bind({a: '123'});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			trans.bind({a: '123', 1: null});
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		expect(function () {
 			trans.bind({a: '123'}, null, null);
-		}).to.throw(Error);
+		}).to.throw(RangeError);
 		
 		trans.bind({a: '123'}, null);
 		

@@ -53,7 +53,7 @@ describe('new Database()', function () {
 	});
 	it('should allow readonly database connections to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
-		expect(function () {new Database(util.current(), {readonly: true});}).to.throw(Error).with.property('code', 'SQLITE_CANTOPEN');;
+		expect(function () {new Database(util.current(), {readonly: true});}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CANTOPEN');;
 		(new Database(util.current())).close();
 		fs.accessSync(util.current());
 		var db = new Database(util.current(), {readonly: true});

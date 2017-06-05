@@ -23,7 +23,7 @@ describe('Database#pragma()', function () {
 	});
 	it('should throw an exception if invalid/redundant SQL is provided', function () {
 		var db = new Database(util.next());
-		expect(function () {db.pragma('PRAGMA cache_size');}).to.throw(Error).with.property('code', 'SQLITE_ERROR');
+		expect(function () {db.pragma('PRAGMA cache_size');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 		expect(function () {db.pragma('cache_size; PRAGMA cache_size');}).to.throw(RangeError);
 	});
 	it('should execute the pragma, returning rows of results', function () {
@@ -60,7 +60,7 @@ describe('Database#pragma()', function () {
 		db.pragma('cache_size = -8000');
 		expect(db.pragma('cache_size', true)).to.equal(-8000);
 		expect(db.pragma('journal_mode', true)).to.equal('delete');
-		expect(function () {db.pragma('journal_mode = wal');}).to.throw(Error).with.property('code', 'SQLITE_READONLY');
+		expect(function () {db.pragma('journal_mode = wal');}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_READONLY');
 		expect(db.pragma('journal_mode', true)).to.equal('delete');
 	});
 	it('should return undefined if no rows exist and simpler results are desired', function () {
