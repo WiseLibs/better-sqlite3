@@ -59,8 +59,8 @@ describe('Database#register()', function () {
 		
 		// buffers
 		register(function b4(a) {return a;});
-		var buffer = exec('b4(?)', Buffer.alloc(8).fill(0xdd));
-		expect(buffer.equals(Buffer.alloc(8).fill(0xdd))).to.be.ok;
+		var buffer = exec('b4(?)', bufferOfSize(8).fill(0xdd));
+		expect(buffer.equals(bufferOfSize(8).fill(0xdd))).to.be.ok;
 		
 		// zero arguments
 		register(function b5() {return 12;});
@@ -181,7 +181,7 @@ describe('Database#register()', function () {
 		expect(exec('ia1(555, 555, 555, 555)')).to.equal(4);
 	});
 	it('should not be able to affect bound buffers mid-query', function () {
-		var buffer = Buffer.alloc(1024 * 8).fill(0xbb);
+		var buffer = bufferOfSize(1024 * 8).fill(0xbb);
 		var ranOnce = false;
 		register(function j1() {
 			ranOnce = true;
@@ -189,7 +189,7 @@ describe('Database#register()', function () {
 		});
 		var returned = exec('?, j1()', buffer);
 		expect(ranOnce).to.be.true;
-		expect(returned.equals(Buffer.alloc(1024 * 8).fill(0xbb))).to.be.ok;
+		expect(returned.equals(bufferOfSize(1024 * 8).fill(0xbb))).to.be.ok;
 	});
 	describe('should not affect external environment', function () {
 		specify('busy state', function () {
@@ -503,3 +503,7 @@ describe('Database#register()', function () {
 		});
 	});
 });
+
+function bufferOfSize(size) {
+	return Buffer.alloc ? Buffer.alloc(+size) : new Buffer(+size);
+}
