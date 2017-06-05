@@ -31,16 +31,14 @@ public:
 		
 		if (entry.threw) return cf->PropagateJSError(ctx);
 		if (!entry.done) {
-			std::string message = CONCAT("Custom aggregate ", cf->name, "() should only yield once");
-			ThrowTypeError(message.c_str());
+			ThrowTypeError(CONCAT("Custom aggregate ", cf->name, "() should only yield once").c_str());
 			return cf->PropagateJSError(ctx);
 		}
 		Data::ResultValueFromJS(ctx, entry.value, cf);
 	}
 	
 	void ThrowResultValueError(sqlite3_context* ctx) {
-		std::string message = CONCAT("Custom function ", name, "() returned an invalid value");
-		ThrowTypeError(message.c_str());
+		ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
 		PropagateJSError(ctx);
 	}
 	
@@ -51,7 +49,7 @@ private:
 		sqlite3_result_error(ctx, "", 0);
 	}
 	
-	const Persistent<v8::Function> fn;
+	const CopyablePersistent<v8::Function> fn;
 	v8::Isolate* const isolate;
 	Database* const db;
 	const char* const name;

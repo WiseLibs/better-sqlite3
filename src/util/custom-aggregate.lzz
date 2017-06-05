@@ -22,8 +22,7 @@ public:
 		Entry entry = ProgressGenerator(isolate, ctx);
 		if (entry.threw) return Destroy();
 		if (entry.done || !entry.value->IsFunction()) {
-			std::string message = CONCAT("Custom aggregate ", cf->name, "() did not yield a function");
-			ThrowTypeError(message.c_str());
+			ThrowTypeError(CONCAT("Custom aggregate ", cf->name, "() did not yield a function").c_str());
 			return Destroy();
 		}
 		v8::Local<v8::Function> _fn = v8::Local<v8::Function>::Cast(entry.value);
@@ -35,8 +34,7 @@ public:
 			
 			v8::Local<v8::Value> lengthValue = maybe_length.ToLocalChecked();
 			if (!lengthValue->IsInt32() || argc != v8::Local<v8::Int32>::Cast(lengthValue)->Value()) {
-				std::string message = CONCAT("Custom aggregate ", cf->name, "() has an inconsistent function.length");
-				ThrowTypeError(message.c_str());
+				ThrowTypeError(CONCAT("Custom aggregate ", cf->name, "() has an inconsistent function.length").c_str());
 				return Destroy();
 			}
 		}
