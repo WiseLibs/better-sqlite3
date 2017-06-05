@@ -1,5 +1,5 @@
 'use strict';
-var lzzOptions = [
+var lzzArgs = [
 	'-hx', 'hpp',
 	'-sx', 'cpp',
 	'-k', 'BETTER_SQLITE3',
@@ -11,7 +11,7 @@ var lzzOptions = [
 ];
 var moduleRoot = require('path').dirname(__dirname);
 
-require('lzz-gyp')(args, moduleRoot, process.env.CI === 'true')
+require('lzz-gyp')(lzzArgs, moduleRoot, process.env.CI === 'true')
 .catch(function (err) {
 	console.error(err);
 	process.exit(1);
