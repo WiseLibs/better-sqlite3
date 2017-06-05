@@ -24,6 +24,7 @@
   },
   "scripts": {
     "install": "node tools/install",
+    "install-debug": "CI=true node tools/install",
     "test": "$(npm bin)/mocha --bail --timeout 5000 --slow 5000",
     "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
     "posttest": "rm -r ./temp/",
