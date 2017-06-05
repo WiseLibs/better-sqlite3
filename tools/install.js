@@ -1,7 +1,7 @@
 'use strict';
 var lzz = process.platform === 'darwin' ? './tools/lzz-osx'
         : process.platform === 'win32' ? './tools/lzz-windows.exe'
-        : './tools/lzz-osx';
+        : './tools/lzz-linux';
 
 var lzzOptions = [
 	'-hx', 'hpp',
@@ -15,6 +15,6 @@ var lzzOptions = [
 ];
 
 require('./exec')([
-	// [lzz].concat(lzzOptions),
+	[lzz].concat(lzzOptions),
 	['node-gyp', 'rebuild'].concat(process.env.CI === 'true' ? ['--debug'] : [])
 ]);
