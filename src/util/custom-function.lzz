@@ -3,7 +3,7 @@ friend class CustomAggregate;
 public:
 	
 	explicit CustomFunction(v8::Local<v8::Function> _fn, v8::Isolate* _isolate, Database* _db, const char* _name, int _argc, bool _safe_ints)
-		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(COPY(_name)), argc(_argc), safe_ints(_safe_ints) {}
+		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(CopyString(_name)), argc(_argc), safe_ints(_safe_ints) {}
 	~CustomFunction() {delete[] name;}
 	
 	static void xDestroy(void* instance) {
@@ -47,6 +47,13 @@ private:
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;
 		sqlite3_result_error(ctx, "", 0);
+	}
+	
+	static const char* CopyString(const char* source) {
+		size_t bytes = strlen(source) + 1;
+		char* dest = new char[bytes];
+		memcpy(dest, source, bytes);
+		return dest;
 	}
 	
 	const CopyablePersistent<v8::Function> fn;

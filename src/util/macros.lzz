@@ -75,14 +75,6 @@ void ThrowRangeError(const char* message) {EasyIsolate; isolate->ThrowException(
 #define ninth() 8
 #define tenth() 9
 
-// Copies a C-String into the heap and returns a pointer to it.
-inline const char* COPY(const char* source) {
-	size_t bytes = strlen(source) + 1;
-	char* dest = new char[bytes];
-	memcpy(dest, source, bytes);
-	return dest;
-}
-
 // Returns a std:string of the concatenation of 3 well-formed C-strings.
 std::string CONCAT(const char* a, const char* b, const char* c) {
 	std::string result(a);
@@ -124,6 +116,6 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 }
 
 #hdr
-typedef void (*ErrorType)(const char*);
+typedef void (*ErrorThrower)(const char*);
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end

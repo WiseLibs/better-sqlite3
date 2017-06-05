@@ -40,10 +40,11 @@ protected:
 		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
 	}
 	
-	void Fail(ErrorType Thrower, const char* message) {
+	void Fail(ErrorThrower Throw, const char* message) {
 		assert(success == true);
-		assert((Thrower == NULL) == (message == NULL));
-		if (Thrower) Thrower(message);
+		assert((Throw == NULL) == (message == NULL));
+		assert(Throw == ThrowError || Throw == ThrowTypeError || Throw == ThrowRangeError || Throw == NULL);
+		if (Throw) Throw(message);
 		success = false;
 	}
 	
