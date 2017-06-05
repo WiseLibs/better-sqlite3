@@ -1,10 +1,4 @@
 'use strict';
-var buildLzz = false;
-var lzz = process.platform === 'darwin' ? './tools/lzz-osx'
-	: process.platform === 'win32' ? './tools/lzz-windows.exe'
-	: process.platform === 'linux' ? './tools/lzz-linux'
-	: ((buildLzz = true), './tools/lzz-source/lazycpp');
-
 var lzzOptions = [
 	'-hx', 'hpp',
 	'-sx', 'cpp',
@@ -15,15 +9,10 @@ var lzzOptions = [
 	'-e',
 	'./src/better_sqlite3.lzz'
 ];
+var moduleRoot = require('path').dirname(__dirname);
 
-if (buildLzz) {
-	var buildLzzCommand = ['make', '-f', 'Makefile.release'];
-	buildLzzCommand.cwd = './tools/lzz-source';
-}
-
-var commands = (buildLzzCommand ? [buildLzzCommand] : []).concat([
-	[lzz].concat(lzzOptions),
-	['node-gyp', 'rebuild'].concat(process.env.CI === 'true' ? ['--debug'] : [])
-]);
-
-require('./exec')(commands);
+require('lzz-gyp')(args, moduleRoot, process.env.CI === 'true')
+.catch(function (err) {
+	console.error(err);
+	process.exit(1);
+});
