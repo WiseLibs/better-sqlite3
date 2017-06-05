@@ -217,7 +217,7 @@ describe('Database#register()', function () {
 				expect(ex).to.be.an.instanceof(Error);
 				expect(ex).to.not.equal(err);
 				expect(ex.message).to.not.equal(err.message);
-				expect(ex.message.indexOf('SQLite: ')).to.equal(0);
+				expect(ex).to.be.an.instanceof(Database.SqliteError);
 				return;
 			}
 			throw new TypeError('Expected the statement to throw an exception');
