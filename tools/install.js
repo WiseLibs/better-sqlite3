@@ -1,4 +1,5 @@
 'use strict';
+var moduleRoot = require('path').dirname(__dirname);
 var lzzArgs = [
 	'-hx', 'hpp',
 	'-sx', 'cpp',
@@ -9,7 +10,6 @@ var lzzArgs = [
 	'-e',
 	'./src/better_sqlite3.lzz'
 ];
-var moduleRoot = require('path').dirname(__dirname);
 
 require('lzz-gyp')(lzzArgs, moduleRoot, process.env.CI === 'true')
 .catch(function (err) {
