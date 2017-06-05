@@ -2,6 +2,7 @@
 #include <climits>
 #include <cstring>
 #include <string>
+#include <vector>
 #include <set>
 #include <unordered_map>
 #include <sqlite3.h>
