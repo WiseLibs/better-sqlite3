@@ -23,7 +23,7 @@
     "sqlite": "^2.5.0"
   },
   "scripts": {
-    "install": "node tools/install",
+    "install": "./tools/lzz-linux -hx hpp -sx cpp -k BETTER_SQLITE3 -d -hl -sl -e ./src/better_sqlite3.lzz && node tools/install",
     "test": "$(npm bin)/mocha --bail --timeout 5000 --slow 5000",
     "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
     "posttest": "rm -r ./temp/",
