@@ -1,7 +1,7 @@
 'use strict';
 var lzz = process.platform === 'darwin' ? './tools/lzz-osx'
         : process.platform === 'win32' ? './tools/lzz-windows.exe'
-        : './tools/lzz-linux';
+        : './tools/lzz-osx';
 
 var lzzOptions = [
 	'-hx', 'hpp',
