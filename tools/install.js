@@ -15,7 +15,6 @@ var lzzOptions = [
 ];
 
 require('./exec')([
-	['ls', lzz],
 	[lzz].concat(lzzOptions),
 	['node-gyp', 'rebuild'].concat(process.env.CI === 'true' ? ['--debug'] : [])
 ]);
