@@ -34,28 +34,28 @@ Creates a new prepared [`Transaction`](#class-transaction) from the given array 
 
 Executes the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
-Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. With this option, only the first column of the first row will be returned.
+Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. When `simplify` is `true`, only the first column of the first row will be returned.
 
 ```js
 db.pragma('cache_size = 32000');
-var cacheSize = db.pragma('cache_size', true); // returns the string "32000"
+var cacheSize = db.pragma('cache_size', true); // returns the number 32000
 ```
 
-The data returned by `.pragma()` is always in string format. If execution of the PRAGMA fails, an `Error` is thrown.
+If execution of the PRAGMA fails, an `Error` is thrown.
 
 It's better to use this method instead of normal [prepared statements](#preparestring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
 
-### .checkpoint([*force*]) -> *number*
+### .checkpoint([*options*]) -> *object or number*
 
-Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html).
+Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html) on all attached databases (including the `main` database).
 
-By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are using the database at the same time. If the first argument is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation.
+By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are using the database at the same time. If `options.force` is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation. You only need to use `options.force` if you are accessing the database from multiple processes at the same time.
 
-You only need to force checkpoints ("RESTART" mode) if you are accessing the database from multiple processes at the same time.
+When the operation is complete, it returns an object that might look similar to `{ main: 0.72, someAttachedDatabase: 1 }`. The numbers in the object are always between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. When `options.force` is used, these numbers will always be `1`.
 
-When the operation is complete, it returns a number between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. For forceful checkpoints, this number will always be `1` unless there was no WAL file to begin with.
+If `options.only` is the name of an attached database (or `"main"`) then only that database is checkpointed, and a single number is returned instead of an object.
 
-If execution of the checkpoint fails, an `Error` is thrown.
+If the checkpoint fails, an `Error` is thrown.
 
 ### .register([*options*], *function*) -> *this*
 
@@ -80,6 +80,17 @@ If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_
 db.register({name: "void", deterministic: true, varargs: true}, function () {});
 db.prepare("SELECT void()").get(); // => null
 db.prepare("SELECT void(?, ?)").get(55, 19); // => null
+```
+
+You can create custom [aggregates](https://sqlite.org/lang_aggfunc.html) by using generator functions. Your generator function must `yield` a regular function that will be invoked for each row passed to the aggregate.
+
+```js
+db.register(function* addAll() {
+  var total = 0;
+  yield function (rowValue) {total += rowValue;};
+  return total;
+});
+var totalTreasure = db.prepare('SELECT addAll(treasure) FROM dragons').pluck().get();
 ```
 
 ### .close() -> *this*
@@ -177,7 +188,7 @@ stmt.pluck(false); // plucking OFF
 
 [Binds the given parameters](#binding-parameters) to the statement *permanently*. Unlike binding parameters upon execution, these parameters will stay bound to the prepared statement for its entire life.
 
-This method can only be invoked before the statement is first executed. After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
+After a statement's parameters are bound this way, you may no longer provide it with execution-specific (temporary) bound parameters.
 
 This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same bound parameters.
 
