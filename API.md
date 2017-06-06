@@ -133,7 +133,7 @@ An object representing a single SQL statement.
 Executes the prepared statement. When execution completes it returns an `info` object describing any changes made. The `info` object has two properties:
 
 - `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
-- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database. If the current statement did not insert any rows into the database, this number should be completely ignored.
+- `info.lastInsertROWID`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database (ignoring those caused by [trigger programs](https://www.sqlite.org/lang_createtrigger.html)). If the current statement did not insert any rows into the database, this number should be completely ignored.
 
 If execution of the statement fails, an `Error` is thrown.
 
