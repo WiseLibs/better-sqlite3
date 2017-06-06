@@ -35,7 +35,7 @@ describe('new Database()', function () {
 	});
 	it('should allow disk-based databases to be created', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
-		var db = new Database(util.current());
+		var db = Database(util.current());
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
