@@ -32,7 +32,7 @@ Creates a new prepared [`Transaction`](#class-transaction) from the given array 
 
 ### .pragma(*string*, [*simplify*]) -> *results*
 
-Executes the given PRAGMA and return its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
+Executes the given PRAGMA and returns its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
 Since most PRAGMA statements return a single value, the `simplify` option is provided to make things easier. When `simplify` is `true`, only the first column of the first row will be returned.
 
