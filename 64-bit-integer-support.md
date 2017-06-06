@@ -14,7 +14,7 @@ bigInteger.toString(); // returns "1152735103331642317"
 bigInteger.toNumber(); // throws a RangeError, cannot be represented in JavaScript
 ```
 
-You can convert any `Integer` to a string to see its full value. If you try to convert an `Integer` to a regular number but the `Integer` is too big to be accurately represented, a `RangeError` will be thrown to protect you from accidentally corrupting the accuracy of your database.
+To view the complete `Integer` documentation, [click here](https://github.com/JoshuaWise/integer).
 
 # Binding Integers
 
@@ -58,7 +58,3 @@ stmt.prepare('SELECT isInt(?)').get(Integer.MAX_VALUE); // => true
 ```
 
 It's worth noting that REAL (FLOAT) values returned from the database will always be represented as JavaScript numbers.
-
-# Learn more
-
-To view the complete `Integer` documentation, [click here](https://github.com/JoshuaWise/integer).
