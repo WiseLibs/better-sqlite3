@@ -21,8 +21,8 @@ To view the complete `Integer` documentation, [click here](https://github.com/Jo
 `Integers` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like regular numbers. You can also return `Integers` in [registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this).
 
 ```js
-db.prepare("SELECT * FROM users WHERE id=?").get(Integer.fromBits(0x01234abcd, 0x0fff5678));
-db.prepare("INSERT INTO big_numbers VALUES (?)").run(Integer.fromBits(0x01234abcd, 0x0fff5678));
+db.prepare("SELECT * FROM users WHERE id=?").get(Integer('1152735103331642317'));
+db.prepare("INSERT INTO big_numbers VALUES (?)").run(Integer('1152735103331642317'));
 ```
 
 # Getting Integers from the database
