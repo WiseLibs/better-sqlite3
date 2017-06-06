@@ -153,25 +153,20 @@ private:
 	
 	NODE_METHOD(JS_checkpoint) {
 		Database* db = Unwrap<Database>(info.This());
-		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> onlyDatabase);
-		REQUIRE_ARGUMENT_BOOLEAN(second, bool force);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		auto get_ratio = [](int tf, int cf) {
-			return (cf < 0 || tf <= 0) ? 1.0 : (static_cast<double>(cf) / static_cast<double>(tf));
-		};
-		
-		v8::String::Utf8Value only_database(onlyDatabase);
 		sqlite3* db_handle = db->db_handle;
-		int mode = force ? SQLITE_CHECKPOINT_RESTART : SQLITE_CHECKPOINT_PASSIVE;
-		int total_frames;
-		int checkpointed_frames;
 		
-		if (only_database.length() != 0) {
-			int status = sqlite3_wal_checkpoint_v2(db_handle, *only_database, mode, &total_frames, &checkpointed_frames);
-			if (status == SQLITE_OK) return info.GetReturnValue().Set(get_ratio(total_frames, checkpointed_frames));
-			if (status == SQLITE_BUSY) return info.GetReturnValue().Set(0.0);
-			return db->ThrowDatabaseError();
+		if (info.Length()) {
+			REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> onlyDatabase);
+			v8::String::Utf8Value only_database(onlyDatabase);
+			if (only_database.length() == 0) {
+				return ThrowTypeError("Invalid database name (empty string)");
+			}
+			if (sqlite3_wal_checkpoint_v2(db_handle, *only_database, SQLITE_CHECKPOINT_RESTART, NULL, NULL) != SQLITE_OK) {
+				return db->ThrowDatabaseError();
+			}
+			return info.GetReturnValue().Set(info.This());
 		}
 		
 		sqlite3_stmt* stmt;
@@ -186,19 +181,16 @@ private:
 			return db->ThrowDatabaseError();
 		}
 		
-		UseIsolateAndContext;
-		v8::Local<v8::Object> result = v8::Object::New(isolate);
+		bool threw_error = false;
 		for (std::string const &name : database_names) {
-			int status = sqlite3_wal_checkpoint_v2(db_handle, name.c_str(), mode, &total_frames, &checkpointed_frames);
-			if (status == SQLITE_OK) {
-				result->Set(ctx, InternalizedFromUtf8(isolate, name.c_str(), name.length()), v8::Number::New(isolate, get_ratio(total_frames, checkpointed_frames))).FromJust();
-			} else if (status == SQLITE_BUSY) {
-				result->Set(ctx, InternalizedFromUtf8(isolate, name.c_str(), name.length()), v8::Number::New(isolate, 0.0)).FromJust();
-			} else {
-				return db->ThrowDatabaseError();
+			if (sqlite3_wal_checkpoint_v2(db_handle, name.c_str(), SQLITE_CHECKPOINT_RESTART, NULL, NULL) != SQLITE_OK) {
+				if (!threw_error) {
+					db->ThrowDatabaseError();
+					threw_error = true;
+				}
 			}
 		}
-		info.GetReturnValue().Set(result);
+		if (!threw_error) info.GetReturnValue().Set(info.This());
 	}
 	
 	NODE_METHOD(JS_register) {

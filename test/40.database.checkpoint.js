@@ -25,17 +25,17 @@ function fillWall(count, expectation) {
 }
 
 describe('Database#checkpoint()', function () {
-	describe('when used without options', function () {
+	describe('when used without a specified database', function () {
 		specify('every insert should increase the size of the WAL file', function () {
 			fillWall(10, function (b, a) {expect(b).to.be.above(a);});
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
 			db1.prepare('ATTACH \'' + db2.name + '\' AS foobar').run();
-			expect(db1.checkpoint()).to.deep.equal({main: 1, foobar: 1});
+			expect(db1.checkpoint()).to.deep.equal(db1);
 			fillWall(10, function (b, a) {expect(b).to.equal(a);});
 		});
 	});
-	describe('when used with the "only" option', function () {
+	describe('when used on a specific database', function () {
 		specify('every insert should increase the size of the WAL file', function () {
 			db1.prepare('DETACH foobar').run();
 			db1.close();
@@ -48,7 +48,7 @@ describe('Database#checkpoint()', function () {
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
 			db1.prepare('ATTACH \'' + db2.name + '\' AS bazqux').run();
-			expect(db1.checkpoint({only: 'bazqux'})).to.equal(1);
+			expect(db1.checkpoint('bazqux')).to.equal(db1);
 			fillWall(10, function (b, a, db) {
 				if (db === db1) {
 					expect(b).to.be.above(a);
