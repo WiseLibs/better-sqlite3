@@ -4,7 +4,7 @@
 - [Database#prepare()](#preparestring---statement)
 - [Database#transaction()](#transactionarrayofstrings---transaction)
 - [Database#pragma()](#pragmastring-simplify---results)
-- [Database#checkpoint()](#checkpointforce---number)
+- [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#register()](#registeroptions-function---this)
 - [Database#close()](#close---this)
 - [Database#open](#get-open---boolean)
@@ -45,15 +45,13 @@ If execution of the PRAGMA fails, an `Error` is thrown.
 
 It's better to use this method instead of normal [prepared statements](#preparestring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
 
-### .checkpoint([*options*]) -> *object or number*
+### .checkpoint([*databaseName*]) -> *this*
 
 Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html) on all attached databases (including the `main` database).
 
-By default, this method will execute a checkpoint in "PASSIVE" mode, which means it might not perform a *complete* checkpoint if other processes are using the database at the same time. If `options.force` is `true`, it will execute the checkpoint in "RESTART" mode, which ensures a complete checkpoint operation. You only need to use `options.force` if you are accessing the database from multiple processes at the same time.
+Unlike [automatic checkpoints](https://www.sqlite.org/wal.html#automatic_checkpoint), this method executes a checkpoint in "RESTART" mode, which ensures a complete checkpoint operation even if other processes are using the database at the same time. You only need to use this method if you are accessing the database from multiple processes at the same time.
 
-When the operation is complete, it returns an object that might look similar to `{ main: 0.72, someAttachedDatabase: 1 }`. The numbers in the object are always between `0` and `1`, indicating the fraction of the WAL file that was checkpointed. When `options.force` is used, these numbers will always be `1`.
-
-If `options.only` is the name of an attached database (or `"main"`) then only that database is checkpointed, and a single number is returned instead of an object.
+If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
 
 If the checkpoint fails, an `Error` is thrown.
 
