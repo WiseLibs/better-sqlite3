@@ -220,7 +220,7 @@ Same as [`Statement#bind()`](#bindbindparameters---this).
 
 ### *get* .source -> *string*
 
-Returns a concatenation of every source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
+Returns a concatenation of each source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
 
 # Binding Parameters
 
