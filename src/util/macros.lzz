@@ -116,6 +116,5 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 }
 
 #hdr
-typedef void (*ErrorThrower)(const char*);
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end
