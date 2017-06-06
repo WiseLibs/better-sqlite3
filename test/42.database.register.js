@@ -18,15 +18,6 @@ before(function () {
 function register() {
 	expect(db.register.apply(db, arguments)).to.equal(db);
 }
-function aggregate() {
-	var args = Array.prototype.slice.call(arguments);
-	if (typeof args[0] === 'object' && args[0] !== null) {
-		args[0].aggregate = true;
-	} else {
-		args.unshift({aggregate: true});
-	}
-	expect(db.register.apply(db, args)).to.equal(db);
-}
 function exec(SQL) {
 	return db.prepare('SELECT ' + SQL).pluck().get([].slice.call(arguments, 1));
 }
@@ -225,11 +216,8 @@ describe('Database#register()', function () {
 	});
 	describe('should be able to register aggregate functions', function () {
 		describe('while registering', function () {
-			it('should throw if a generator function is not used', function () {
-				expect(function () {aggregate(function za1() {})}).to.throw(TypeError);
-			});
 			it('should register the given generator function', function () {
-				aggregate(function* zb1() {
+				register(function* zb1() {
 					yield function () {};
 				});
 			});
@@ -239,19 +227,19 @@ describe('Database#register()', function () {
 					Object.defineProperty(fn, 'length', {value: n});
 					return fn;
 				}
-				expect(function () {aggregate(function* zc1() {
+				expect(function () {register(function* zc1() {
 					yield length(-1);
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zc2() {
+				expect(function () {register(function* zc2() {
 					yield length(1.2);
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zc3() {
+				expect(function () {register(function* zc3() {
 					yield length(Infinity);
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zc4() {
+				expect(function () {register(function* zc4() {
 					yield length(NaN);
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zc5() {
+				expect(function () {register(function* zc5() {
 					yield length('2');
 				})}).to.throw(TypeError);
 			});
@@ -261,18 +249,18 @@ describe('Database#register()', function () {
 					Object.defineProperty(fn, 'length', {value: n});
 					return fn;
 				}
-				expect(function () {aggregate(function* zd1() {
+				expect(function () {register(function* zd1() {
 					yield length(128);
 				})}).to.throw(RangeError);
-				expect(function () {aggregate(function* zd2() {
+				expect(function () {register(function* zd2() {
 					yield length(0xe0000000f);
 				})}).to.throw(RangeError);
-				aggregate(function* zd3() {yield length(127);})
+				register(function* zd3() {yield length(127);})
 			});
 			it('should propagate exceptions thrown while getting function.length', function () {
 				var err = new Error('foobar');
 				expect(function () {
-					aggregate(function* ze1() {
+					register(function* ze1() {
 						var fn = function () {};
 						Object.defineProperty(fn, 'length', {get: function () {
 							throw err;
@@ -282,26 +270,26 @@ describe('Database#register()', function () {
 				}).to.throw(err);
 			});
 			it('should throw if the generator function never yields', function () {
-				expect(function () {aggregate(function* zf1() {
+				expect(function () {register(function* zf1() {
 					// no yield
 				})}).to.throw(TypeError);
 			});
 			it('should throw if a non-function is yielded', function () {
-				expect(function () {aggregate(function* zf1() {
+				expect(function () {register(function* zf1() {
 					yield;
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zf1() {
+				expect(function () {register(function* zf1() {
 					yield 123;
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zf1() {
+				expect(function () {register(function* zf1() {
 					yield 'foobar';
 				})}).to.throw(TypeError);
-				expect(function () {aggregate(function* zf1() {
+				expect(function () {register(function* zf1() {
 					yield {length: 0, name: ''};
 				})}).to.throw(TypeError);
 			});
 			it('should throw if the generator function yields twice', function () {
-				expect(function () {aggregate(function* zg1() {
+				expect(function () {register(function* zg1() {
 					var fn = function () {};
 					yield fn;
 					yield fn;
@@ -310,7 +298,7 @@ describe('Database#register()', function () {
 			it('should propagate exceptions thrown before yielding', function () {
 				var err = new Error('foobar');
 				expect(function () {
-					aggregate(function* zh1() {
+					register(function* zh1() {
 						throw err;
 						yield function () {};
 					});
@@ -319,7 +307,7 @@ describe('Database#register()', function () {
 			it('should propagate exceptions thrown after yielding', function () {
 				var err = new Error('foobar');
 				expect(function () {
-					aggregate(function* zi1() {
+					register(function* zi1() {
 						yield function () {};
 						throw err;
 					});
@@ -329,7 +317,7 @@ describe('Database#register()', function () {
 		describe('before executing', function () {
 			it('should throw if the generator function never yields', function () {
 				var first = true;
-				aggregate(function* zj1() {
+				register(function* zj1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -340,7 +328,7 @@ describe('Database#register()', function () {
 			it('should throw if a non-function is yielded', function () {
 				function registerAggregate(name, value) {
 					var first = true;
-					aggregate({name: name}, function* () {
+					register({name: name}, function* () {
 						if (first) {
 							first = false;
 							yield function (x) {};
@@ -362,7 +350,7 @@ describe('Database#register()', function () {
 			});
 			it('should throw if the generator function yields twice', function () {
 				var first = true;
-				aggregate(function* zl1() {
+				register(function* zl1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -376,7 +364,7 @@ describe('Database#register()', function () {
 			it('should propagate exceptions thrown before yielding', function () {
 				var first = true;
 				var err = new Error('foobar');
-				aggregate(function* zm1() {
+				register(function* zm1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -390,7 +378,7 @@ describe('Database#register()', function () {
 			it('should propagate exceptions thrown after yielding', function () {
 				var first = true;
 				var err = new Error('foobar');
-				aggregate(function* zma1() {
+				register(function* zma1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -404,7 +392,7 @@ describe('Database#register()', function () {
 			it('should propagate exceptions thrown while getting function.length', function () {
 				var first = true;
 				var err = new Error('foobar');
-				aggregate(function* zn1() {
+				register(function* zn1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -420,7 +408,7 @@ describe('Database#register()', function () {
 			});
 			it('should throw if the yielded function.length is inconsistent', function () {
 				var first = true;
-				aggregate(function* zo1() {
+				register(function* zo1() {
 					if (first) {
 						first = false;
 						yield function (x) {};
@@ -434,20 +422,20 @@ describe('Database#register()', function () {
 		describe('while executing', function () {
 			it('should propagate exceptions thrown in the yielded callback', function () {
 				var err = new Error('foobar');
-				aggregate(function* zp1() {
+				register(function* zp1() {
 					yield function (x) {throw err;};
 				});
 				expect(function () {exec('zp1(x) FROM data');}).to.throw(err);
 			});
 			it('should throw if the generator function returns an invalid value', function () {
 				var err = new Error('foobar');
-				aggregate(function* zq1() {yield function (x) {}; return {};});
-				aggregate(function* zq2() {yield function (x) {}; return 123;});
+				register(function* zq1() {yield function (x) {}; return {};});
+				register(function* zq2() {yield function (x) {}; return 123;});
 				expect(function () {exec('zq1(x) FROM data');}).to.throw(TypeError);
 				exec('zq2(x) FROM data');
 			});
 			it('should be invoked for each row', function () {
-				aggregate(function* zr1() {
+				register(function* zr1() {
 					var result = 1;
 					yield function (x) {result *= x;};
 					return result + 5;
@@ -455,7 +443,7 @@ describe('Database#register()', function () {
 				expect(exec('zr1(x) FROM data')).to.equal(4849850);
 			})
 			it('should result in the correct value when no rows are passed through', function () {
-				aggregate(function* zra1() {
+				register(function* zra1() {
 					var result = 5;
 					yield function (x) {result = 999;};
 					return result + 2;
@@ -463,7 +451,7 @@ describe('Database#register()', function () {
 				expect(exec('zra1(x) FROM empty')).to.equal(7);
 			});
 			it('should have a strict number of arguments by default', function () {
-				aggregate(function* zs1() {
+				register(function* zs1() {
 					var result = 0;
 					yield function (x, y) {result += x + y};
 					return result;
@@ -474,7 +462,7 @@ describe('Database#register()', function () {
 				expect(exec('zs1(x, ?) FROM data', 2)).to.equal(89);
 			});
 			it('should accept a "varargs" option', function () {
-				aggregate({varargs: true}, function* zt1() {
+				register({varargs: true}, function* zt1() {
 					var result = 0;
 					yield function () {
 						result += [].slice.call(arguments).reduce(function (a, b) {return a + b;}, 0);
@@ -487,7 +475,7 @@ describe('Database#register()', function () {
 				expect(exec('zt1(x, ?, ?, ?, ?, ?, ?) FROM data', 2, 3, 4, 5, 6, 7)).to.equal(264);
 			});
 			it('should result in the correct value when * is used as the argument', function () {
-				aggregate(function* zu1() {
+				register(function* zu1() {
 					var result = 1;
 					yield function () {
 						expect(arguments.length).to.equal(0);
