@@ -11,6 +11,7 @@
 - [Database#name](#get-name---string)
 - [Database#memory](#get-memory---boolean)
 - [Database#readonly](#get-readonly---boolean)
+- [Database#inTransaction](#get-intransaction---boolean)
 
 ### new Database(*path*, [*options*])
 
@@ -110,6 +111,10 @@ Returns whether the database is an in-memory database.
 ### *get* .readonly -> *boolean*
 
 Returns whether the database connection was created in readonly mode.
+
+### *get* .inTransaction -> *boolean*
+
+Returns whether the database connection is in the middle of a transaction.
 
 # class *Statement*
 
