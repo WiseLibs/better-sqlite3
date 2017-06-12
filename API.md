@@ -8,10 +8,10 @@
 - [Database#register()](#registeroptions-function---this)
 - [Database#close()](#close---this)
 - [Database#open](#get-open---boolean)
+- [Database#inTransaction](#get-intransaction---boolean)
 - [Database#name](#get-name---string)
 - [Database#memory](#get-memory---boolean)
 - [Database#readonly](#get-readonly---boolean)
-- [Database#inTransaction](#get-intransaction---boolean)
 
 ### new Database(*path*, [*options*])
 
@@ -98,11 +98,15 @@ Closes the database connection. After invoking this method, no statements/transa
 
 ### *get* .open -> *boolean*
 
-Returns whether the database is currently open.
+Returns whether the database connection is currently open.
+
+### *get* .inTransaction -> *boolean*
+
+Returns whether the database connection is currently in an open transaction.
 
 ### *get* .name -> *string*
 
-Returns the string that was used to open the databse connection.
+Returns the string that was used to open the database connection.
 
 ### *get* .memory -> *boolean*
 
@@ -111,10 +115,6 @@ Returns whether the database is an in-memory database.
 ### *get* .readonly -> *boolean*
 
 Returns whether the database connection was created in readonly mode.
-
-### *get* .inTransaction -> *boolean*
-
-Returns whether the database connection is in the middle of a transaction.
 
 # class *Statement*
 
