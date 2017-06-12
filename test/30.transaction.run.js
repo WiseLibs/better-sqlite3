@@ -47,6 +47,7 @@ describe('Transaction#run()', function () {
 		expect(trans.run().changes).to.equal(0);
 	});
 	it('should rollback and throw an exception for failed constraints', function () {
+		expect(db.inTransaction).to.equal(false);
 		db.transaction(['CREATE TABLE people (id INTEGER PRIMARY KEY, name TEXT)']).run();
 		db.transaction(['CREATE TABLE ages (age INTEGER, person INTEGER NOT NULL REFERENCES people ON DELETE CASCADE ON UPDATE CASCADE)']).run();
 		db.transaction([
@@ -62,19 +63,26 @@ describe('Transaction#run()', function () {
 			"INSERT INTO ages VALUES (40, 1)",
 			"INSERT INTO ages VALUES (30, 3)"
 		]);
+		expect(db.inTransaction).to.equal(false);
 		expect(function () {trans.run();}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CONSTRAINT_FOREIGNKEY');
+		expect(db.inTransaction).to.equal(false);
 		trans = db.transaction([
 			"INSERT INTO ages VALUES (40, 1)",
 			"INSERT INTO ages VALUES (30, NULL)"
 		]);
+		expect(db.inTransaction).to.equal(false);
 		expect(function () {trans.run();}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CONSTRAINT_NOTNULL');
+		expect(db.inTransaction).to.equal(false);
 		expect(db.prepare('SELECT * FROM ages WHERE age==35').get()).to.not.be.undefined;
 		expect(db.prepare('SELECT * FROM ages WHERE age==40').get()).to.be.undefined;
+		expect(db.inTransaction).to.equal(false);
 		db.transaction([
 			"INSERT INTO ages VALUES (40, 1)",
 			"INSERT INTO ages VALUES (30, 2)"
 		]).run();
+		expect(db.inTransaction).to.equal(false);
 		expect(db.prepare('SELECT * FROM ages WHERE age==40').get()).to.not.be.undefined;
+		expect(db.inTransaction).to.equal(false);
 	});
 	it('should not count changes from indirect mechanisms', function () {
 		var trans = db.transaction(["UPDATE people SET id=55 WHERE id=2"]);

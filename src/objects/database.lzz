@@ -89,6 +89,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
+		NODE_SET_PROTOTYPE_GETTER(t, "inTransaction", JS_inTransaction);
 		
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
@@ -238,6 +239,12 @@ private:
 	
 	NODE_GETTER(JS_open) {
 		info.GetReturnValue().Set(Unwrap<Database>(info.This())->open);
+	}
+	
+	NODE_GETTER(JS_inTransaction) {
+		info.GetReturnValue().Set(
+			!static_cast<bool>(sqlite3_get_autocommit(Unwrap<Database>(info.This())->db_handle))
+		);
 	}
 	
 	void CloseHandles() {

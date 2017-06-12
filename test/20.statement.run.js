@@ -53,11 +53,15 @@ describe('Statement#run()', function () {
 		expect(info.lastInsertROWID).to.equal(2);
 	});
 	it('should work with BEGIN and COMMIT', function () {
+		expect(db.inTransaction).to.equal(false);
 		expect(db.prepare("BEGIN TRANSACTION").run().changes).to.equal(0);
+		expect(db.inTransaction).to.equal(true);
 		var info = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')").run();
 		expect(info.changes).to.equal(1);
 		expect(info.lastInsertROWID).to.equal(3);
+		expect(db.inTransaction).to.equal(true);
 		expect(db.prepare("COMMIT TRANSACTION").run().changes).to.equal(0);
+		expect(db.inTransaction).to.equal(false);
 	});
 	it('should work with DROP TABLE', function () {
 		var stmt = db.prepare("DROP TABLE entries");

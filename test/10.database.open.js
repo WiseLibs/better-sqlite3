@@ -40,6 +40,7 @@ describe('new Database()', function () {
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
 		fs.accessSync(util.current());
 	});
 	it('should allow in-memory databases to be created', function () {
@@ -49,6 +50,7 @@ describe('new Database()', function () {
 		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
 		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	});
 	it('should allow readonly database connections to be created', function () {
@@ -61,6 +63,7 @@ describe('new Database()', function () {
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
 		fs.accessSync(util.current());
 	});
 	it('should allow the "readonly" and "memory" options on the same connection', function () {
@@ -70,6 +73,7 @@ describe('new Database()', function () {
 		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
 		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	});
 	it('should throw an Error if opening the database failed', function () {

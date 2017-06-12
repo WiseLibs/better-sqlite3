@@ -147,6 +147,13 @@ private:
 		sqlite3* db_handle = db->GetHandle();
 		double changes = 0;
 		
+		auto rollback = [](sqlite3* db_handle, sqlite3_stmt* handle) {
+			if (!sqlite3_get_autocommit(db_handle)) {
+				sqlite3_step(handle);
+				sqlite3_reset(handle);
+			}
+		};
+		
 		sqlite3_step(controller.begin);
 		if (sqlite3_reset(controller.begin) != SQLITE_OK) {
 			TRANSACTION_THROW(((void)0));
@@ -157,7 +164,7 @@ private:
 			int total_changes_before = sqlite3_total_changes(db_handle);
 			sqlite3_step(handle);
 			if (sqlite3_reset(handle) != SQLITE_OK) {
-				TRANSACTION_THROW(sqlite3_step(controller.rollback); sqlite3_reset(controller.rollback));
+				TRANSACTION_THROW(rollback(db_handle, controller.rollback));
 			}
 			if (sqlite3_total_changes(db_handle) != total_changes_before) {
 				changes += static_cast<double>(sqlite3_changes(db_handle));
@@ -166,7 +173,7 @@ private:
 		
 		sqlite3_step(controller.commit);
 		if (sqlite3_reset(controller.commit) != SQLITE_OK) {
-			TRANSACTION_THROW(sqlite3_step(controller.rollback); sqlite3_reset(controller.rollback));
+			TRANSACTION_THROW(rollback(db_handle, controller.rollback));
 		}
 		
 		UseIsolateAndContext;
