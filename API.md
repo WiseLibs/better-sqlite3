@@ -8,11 +8,7 @@
 - [Database#register()](#registeroptions-function---this)
 - [Database#exec()](#execstring---this)
 - [Database#close()](#close---this)
-- [Database#open](#get-open---boolean)
-- [Database#inTransaction](#get-intransaction---boolean)
-- [Database#name](#get-name---string)
-- [Database#memory](#get-memory---boolean)
-- [Database#readonly](#get-readonly---boolean)
+- [Properties](#properties)
 
 ### new Database(*path*, [*options*])
 
@@ -101,25 +97,17 @@ Executes the given SQL string. Unlike [prepared statements](#preparestring---sta
 
 Closes the database connection. After invoking this method, no statements/transactions can be created or executed.
 
-### *get* .open -> *boolean*
+## Properties
 
-Returns whether the database connection is currently open.
+**.open -> _boolean_** - Whether the database connection is currently open.
 
-### *get* .inTransaction -> *boolean*
+**.inTransaction -> _boolean_** - Whether the database connection is currently in an open transaction.
 
-Returns whether the database connection is currently in an open transaction.
+**.name -> _string_** - The string that was used to open the database connection.
 
-### *get* .name -> *string*
+**.memory -> _boolean_** - Whether the database is an in-memory database.
 
-Returns the string that was used to open the database connection.
-
-### *get* .memory -> *boolean*
-
-Returns whether the database is an in-memory database.
-
-### *get* .readonly -> *boolean*
-
-Returns whether the database connection was created in readonly mode.
+**.readonly -> _boolean_** - Whether the database connection was created in readonly mode.
 
 # class *Statement*
 
@@ -131,8 +119,7 @@ An object representing a single SQL statement.
 - [Statement#each()](#eachbindparameters-callback---undefined)
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
-- [Statement#source](#get-source---string)
-- [Statement#returnsData](#get-returnsdata---boolean)
+- [Properties](#properties-1)
 
 ### .run([*...bindParameters*]) -> *object*
 
@@ -200,13 +187,11 @@ After a statement's parameters are bound this way, you may no longer provide it 
 
 This method is primarily used as a performance optimization when you need to execute the same prepared statement many times with the same bound parameters.
 
-### *get* .source -> *string*
+## Properties
 
-Returns the source string that was used to create the prepared statement.
+**.source -> _string_** - The source string that was used to create the prepared statement.
 
-### *get* .returnsData -> *boolean*
-
-Returns whether the prepared statement returns data.
+**.returnsData -> _boolean_** - Whether the prepared statement returns data.
 
 # class *Transaction*
 
@@ -214,7 +199,7 @@ An object representing many SQL statements grouped into a single logical [transa
 
 - [Transaction#run()](#runbindparameters---object-1)
 - [Transaction#bind()](#bindbindparameters---this-1)
-- [Transaction#source](#get-source---string-1)
+- [Properties](#properties-2)
 
 ### .run([*...bindParameters*]) -> *object*
 
@@ -228,9 +213,9 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 Same as [`Statement#bind()`](#bindbindparameters---this).
 
-### *get* .source -> *string*
+## Properties
 
-Returns a concatenation of each source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
+**.source -> _string_** - A concatenation of each source string that was used to create the prepared transaction. The source strings are seperated by newline characters (`\n`).
 
 # Binding Parameters
 
