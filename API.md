@@ -6,6 +6,7 @@
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#register()](#registeroptions-function---this)
+- [Database#exec()](#execstring---this)
 - [Database#close()](#close---this)
 - [Database#open](#get-open---boolean)
 - [Database#inTransaction](#get-intransaction---boolean)
@@ -91,6 +92,10 @@ db.register(function* addAll() {
 });
 var totalTreasure = db.prepare('SELECT addAll(treasure) FROM dragons').pluck().get();
 ```
+
+### .exec(*string*) -> *this*
+
+Executes the given SQL string. Unlike [prepared statements](#preparestring---statement), this can execute strings that contain multiple SQL statements. This function performs worse and is less safe than using [prepared statements](#preparestring---statement). You should only use this method when you need to execute SQL from an external source (usually a file). If an error occurs, execution stops and further statements are not executed. You must rollback changes manually.
 
 ### .close() -> *this*
 
