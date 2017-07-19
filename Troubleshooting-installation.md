@@ -13,5 +13,4 @@ If you're having trouble installing `better-sqlite3`, follow this checklist:
 6. If nothing else worked, try adding `LZZ_COMPAT=1` to your environment variables
 
 
-#### Still having issues?
-Try browsing the [issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue). If you can't find someone else who experienced your issue, open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
+If none of these solved your problem, try browsing the [issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
