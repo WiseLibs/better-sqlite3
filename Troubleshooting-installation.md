@@ -1,4 +1,4 @@
-If you're having trouble installing `better-sqlite3`, follow this checklist:
+If you have trouble installing `better-sqlite3`, follow this checklist:
 
 1. Make sure you're using nodejs v4.8.4 or later
 
