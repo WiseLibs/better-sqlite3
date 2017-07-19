@@ -11,3 +11,7 @@ If you're having trouble installing `better-sqlite3`, follow this checklist:
 5. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
 
 6. If nothing else worked, try adding `LZZ_COMPAT=1` to your environment variables
+
+
+#### Still having issues?
+Try browsing the [issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue). If you can't find someone else who experienced your issue, open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
