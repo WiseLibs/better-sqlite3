@@ -24,6 +24,8 @@ The fastest and simplest library for SQLite3 in Node.js.
 npm install --save better-sqlite3
 ```
 
+> If you have trouble installing, check the [troubleshooting guide](https://github.com/JoshuaWise/better-sqlite3/wiki/Troubleshooting-installation).
+
 ## Usage
 
 ```js
