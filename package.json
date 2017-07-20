@@ -21,16 +21,19 @@
     "cli-color": "^1.1.0",
     "fs-extra": "^0.30.0",
     "mocha": "^3.0.2",
-    "sqlite": "^2.5.0"
+    "sqlite": "^2.5.0",
+    "tslint": "^5.5.0",
+    "typescript": "^2.4.1"
   },
   "scripts": {
     "install": "node tools/install",
     "install-debug": "CI=true node tools/install",
-    "test": "$(npm bin)/mocha --bail --timeout 5000 --slow 5000",
-    "pretest": "rm -r ./temp/ || true && mkdir ./temp/",
+    "test": "mocha --bail --timeout 5000 --slow 5000",
+    "pretest": "tsc && rm -rf ./temp/ && mkdir temp",
     "posttest": "rm -r ./temp/",
     "benchmark": "node benchmark"
   },
+  "types": "./index.d.ts",
   "license": "MIT",
   "keywords": [
     "sql",
