@@ -1,6 +1,6 @@
 # The `Integer` Class
 
-SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/IEEE_floating_point) to fully represent. To support this data type, `better-sqlite3` uses the immutable `Integer` class. To view the complete `Integer` documentation, [click here](https://github.com/JoshuaWise/integer).
+SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) to fully represent. To support this data type, `better-sqlite3` uses the immutable `Integer` class. To view the complete `Integer` documentation, [click here](https://github.com/JoshuaWise/integer).
 
 ```js
 var Integer = require('better-sqlite3').Integer;
