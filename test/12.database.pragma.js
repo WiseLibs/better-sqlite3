@@ -55,7 +55,7 @@ describe('Database#pragma()', function () {
 	});
 	it('should respect readonly connections', function () {
 		(new Database(util.next())).close();
-		var db = new Database(util.current(), {readonly: true});
+		var db = new Database(util.current(), {readonly: true, fileMustExist: true});
 		expect(db.pragma('cache_size', true)).to.equal(-16000);
 		db.pragma('cache_size = -8000');
 		expect(db.pragma('cache_size', true)).to.equal(-8000);

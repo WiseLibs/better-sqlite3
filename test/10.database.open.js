@@ -76,6 +76,29 @@ describe('new Database()', function () {
 		expect(db.inTransaction).to.be.false;
 		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
 	});
+	it('should accept the "fileMustExist" option', function () {
+		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		expect(function () {new Database(util.current(), {fileMustExist: true});}).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CANTOPEN');;
+		(new Database(util.current())).close();
+		fs.accessSync(util.current());
+		var db = new Database(util.current(), {fileMustExist: true});
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.false;
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
+		fs.accessSync(util.current());
+	});
+	it('should ignore "fileMustExist" when the "memory" option is true', function () {
+		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
+		var db = new Database(util.current(), {memory: true, fileMustExist: true});
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.true;
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
+		expect(function () {fs.accessSync(util.current());}).to.throw(Error);
+	});
 	it('should throw an Error if opening the database failed', function () {
 		expect(function () {fs.accessSync(util.next());}).to.throw(Error);
 		expect(function () {new Database('temp/nonexistent/abcfoobar123/' + util.current());}).to.throw(TypeError);

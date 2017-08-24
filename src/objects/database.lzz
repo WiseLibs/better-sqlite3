@@ -103,8 +103,9 @@ private:
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> filenameGiven);
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool in_memory);
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
+		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		
-		DatabaseHandles handles(filename, readonly);
+		DatabaseHandles handles(filename, readonly, must_exist);
 		if (!handles.success) return ThrowSqliteError(handles.db_handle);
 		
 		assert(sqlite3_db_mutex(handles.db_handle) == NULL);
