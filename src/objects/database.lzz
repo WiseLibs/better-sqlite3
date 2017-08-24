@@ -86,6 +86,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
 		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
 		NODE_SET_PROTOTYPE_METHOD(t, "register", JS_register);
+		NODE_SET_PROTOTYPE_METHOD(t, "loadExtension", JS_loadExtension);
 		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
@@ -220,6 +221,21 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 	
+	NODE_METHOD(JS_loadExtension) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		v8::String::Utf8Value filename(filenameString);
+		sqlite3_enable_load_extension(db->db_handle, 1);
+		char* error;
+		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
+		sqlite3_enable_load_extension(db->db_handle, 0);
+		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
+		else ThrowSqliteError(db->db_handle, error, status);
+		sqlite3_free(error);
+	}
+	
 	NODE_METHOD(JS_close) {
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
@@ -264,8 +280,14 @@ private:
 	
 	static void ThrowSqliteError(sqlite3* db_handle) {
 		assert(db_handle != NULL);
+		ThrowSqliteError(db_handle, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
+	}
+	static void ThrowSqliteError(sqlite3* db_handle, const char* message, int code) {
+		assert(db_handle != NULL);
+		assert(message != NULL);
+		assert((code & 0xff) != SQLITE_OK);
 		EasyIsolate;
-		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, sqlite3_errmsg(db_handle), -1), CS::Code(isolate, sqlite3_extended_errcode(db_handle)) };
+		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
 		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 	

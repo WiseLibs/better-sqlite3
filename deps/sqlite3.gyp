@@ -83,7 +83,7 @@
         'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/' ]
       },
       'cflags_cc': [
-          '-Wno-unused-value',
+        '-Wno-unused-value',
       ],
       'defines': [
         'SQLITE_THREADSAFE=0',
