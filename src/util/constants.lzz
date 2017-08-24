@@ -4,7 +4,9 @@ public:
 		return v8::Local<v8::String>::New(isolate, constant);
 	}
 	static v8::Local<v8::String> Code(v8::Isolate* isolate, int code) {
-		return v8::Local<v8::String>::New(isolate, codes.at(code));
+		auto element = codes.find(code);
+		if (element != codes.end()) return v8::Local<v8::String>::New(isolate, element->second);
+		return StringFromUtf8(isolate, CONCAT("UNKNOWN_SQLITE_ERROR_", std::to_string(code).c_str(), "").c_str(), -1);
 	}
 	
 	static ConstantString database;
