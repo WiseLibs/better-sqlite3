@@ -91,6 +91,12 @@ db.register(function* addAll() {
 var totalTreasure = db.prepare('SELECT addAll(treasure) FROM dragons').pluck().get();
 ```
 
+### .loadExtension(*path*) -> *this*
+
+Loads a compiled [SQLite3 extension](https://sqlite.org/loadext.html) and applies it to the current database connection.
+
+It's your responsibility to make sure the extensions you load are compiled/linked against the same version of [SQLite3](https://www.sqlite.org/) as `better-sqlite3` is. Keep in mind that new versions of `better-sqlite3` will periodically use newer versions of [SQLite3](https://www.sqlite.org/). You can see which version is being used [here](https://github.com/JoshuaWise/better-sqlite3/tree/master/deps).
+
 ### .exec(*string*) -> *this*
 
 Executes the given SQL string. Unlike [prepared statements](#preparestring---statement), this can execute strings that contain multiple SQL statements. This function performs worse and is less safe than using [prepared statements](#preparestring---statement). You should only use this method when you need to execute SQL from an external source (usually a file). If an error occurs, execution stops and further statements are not executed. You must rollback changes manually.
