@@ -6,6 +6,7 @@
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#register()](#registeroptions-function---this)
+- [Database#loadExtension()](#loadextensionpath---this)
 - [Database#exec()](#execstring---this)
 - [Database#close()](#close---this)
 - [Properties](#properties)
