@@ -176,7 +176,7 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 ```js
 var stmt = db.prepare('SELECT * FROM entries');
 for (var row of stmt.iterate()) {
-  if (row.data === desiredData) {
+  if (row.foo === desiredData) {
     console.log('found it!');
     break;
   }
