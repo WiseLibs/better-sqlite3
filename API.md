@@ -125,7 +125,7 @@ An object representing a single SQL statement.
 - [Statement#run()](#runbindparameters---object)
 - [Statement#get()](#getbindparameters---row)
 - [Statement#all()](#allbindparameters---array-of-rows)
-- [Statement#each()](#eachbindparameters-callback---undefined)
+- [Statement#iterate()](#iteratebindparameters---iterator)
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
@@ -163,15 +163,25 @@ If no rows are found, the array will be empty. If execution of the statement fai
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
-### .each([*...bindParameters*], callback) -> *undefined*
+### .iterate([*...bindParameters*]) -> *iterator*
 
 **(only on statements that return data)*
 
-Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, the `callback` is invoked for each row as they are retrieved, one by one.
+Similar to [`.all()`](#allbindparameters---array-of-rows), but instead of returning every row together, an [iterator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols) is returned so you can retrieve the rows one by one.
 
-After all rows have been consumed, `undefined` is returned. If execution of the statement fails, an `Error` is thrown and iteration stops.
+If execution of the statement fails, an `Error` is thrown and the iterator is closed.
 
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
+
+```js
+var stmt = db.prepare('SELECT * FROM someTable');
+for (var row of stmt.iterate()) {
+  if (row.data === 'foobar') {
+    console.log('found it!');
+    break;
+  }
+}
+```
 
 ### .pluck([toggleState]) -> *this*
 
