@@ -174,9 +174,9 @@ If execution of the statement fails, an `Error` is thrown and the iterator is cl
 You can specify [bind parameters](#binding-parameters), which are only bound for the given execution.
 
 ```js
-var stmt = db.prepare('SELECT * FROM someTable');
+var stmt = db.prepare('SELECT * FROM entries');
 for (var row of stmt.iterate()) {
-  if (row.data === 'foobar') {
+  if (row.data === desiredData) {
     console.log('found it!');
     break;
   }
