@@ -1,10 +1,10 @@
-#define _QUERY_THROW(obj, UNBIND_ACTION, ...)                                  \
+#define _QUERY_THROW(UNBIND_ACTION, ...)                                       \
 	db->ThrowDatabaseError();                                                  \
 	__VA_ARGS__;                                                               \
 	if (!bound) {UNBIND_ACTION;}                                               \
 	return
 
-#define _QUERY_RETURN(return_value, obj, UNBIND_ACTION)                        \
+#define _QUERY_RETURN(return_value, UNBIND_ACTION)                             \
 	info.GetReturnValue().Set(return_value);                                   \
 	if (!bound) {UNBIND_ACTION;}                                               \
 	return
@@ -22,8 +22,8 @@
 
 
 #define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
-#define STATEMENT_THROW() _QUERY_THROW(stmt, _STATEMENT_UNBIND(handle))
-#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, stmt, _STATEMENT_UNBIND(handle))
+#define STATEMENT_THROW() _QUERY_THROW(_STATEMENT_UNBIND(handle))
+#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, _STATEMENT_UNBIND(handle))
 #define STATEMENT_BIND(handle, bind_args_count)                                \
 	Binder binder(handle);                                                     \
 	if (!binder.Bind(info, bind_args_count, stmt)) {                           \
@@ -38,8 +38,8 @@
 
 #define _TRANSACTION_UNBIND(handles, handle_count)                             \
 	for (int i=0; i<handle_count; ++i) sqlite3_clear_bindings(handles[i])
-#define TRANSACTION_THROW(ROLLBACK_ACTION) _QUERY_THROW(trans, _TRANSACTION_UNBIND(handles, handle_count), ROLLBACK_ACTION)
-#define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, trans, _TRANSACTION_UNBIND(handles, handle_count))
+#define TRANSACTION_THROW(ROLLBACK_ACTION) _QUERY_THROW(_TRANSACTION_UNBIND(handles, handle_count), ROLLBACK_ACTION)
+#define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, _TRANSACTION_UNBIND(handles, handle_count))
 #define TRANSACTION_BIND(handles, handle_count)                                \
 	MultiBinder binder(handles, handle_count);                                 \
 	if (!binder.Bind(info, info.Length(), trans)) {                            \

@@ -1,4 +1,5 @@
-#define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
+#define NODE_ARGUMENTS_TYPE v8::FunctionCallbackInfo<v8::Value>
+#define NODE_ARGUMENTS const NODE_ARGUMENTS_TYPE&
 #define NODE_METHOD(name) static void name(NODE_ARGUMENTS info)
 #define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const v8::PropertyCallbackInfo<v8::Value>& info)
 #define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Isolate* isolate, v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
@@ -113,6 +114,17 @@ inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, cons
 		v8::PropertyAttribute::None,
 		v8::AccessorSignature::New(isolate, recv)
 	);
+}
+
+inline void NODE_SET_PROTOTYPE_SYMBOL_METHOD(v8::Local<v8::FunctionTemplate> recv, v8::Local<v8::Symbol> symbol, v8::FunctionCallback callback) {
+	EasyIsolate;
+	NewHandleScope;
+	recv->PrototypeTemplate()->Set(symbol, v8::FunctionTemplate::New(
+		isolate,
+		callback,
+		v8::Local<v8::Value>(),
+		v8::Signature::New(isolate, recv)
+	));
 }
 
 #hdr

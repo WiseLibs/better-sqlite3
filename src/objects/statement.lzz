@@ -1,4 +1,5 @@
 class Statement : public node::ObjectWrap, public Query {
+friend class StatementIterator;
 public:
 	
 	// Provides public access to the constructor.
@@ -28,7 +29,6 @@ public:
 	void CloseHandles() {
 		if (alive) {
 			alive = false;
-			if (bound) sqlite3_clear_bindings(handle);
 			sqlite3_finalize(handle);
 		}
 	}
@@ -69,6 +69,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "returnsData", JS_returnsData);
+		NODE_SET_PROTOTYPE_SYMBOL_METHOD(t, v8::Symbol::GetIterator(isolate), JS_symbolIterator);
 		
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
@@ -227,6 +228,11 @@ private:
 	
 	NODE_GETTER(JS_returnsData) {
 		info.GetReturnValue().Set(Unwrap<Statement>(info.This())->returns_data);
+	}
+	
+	NODE_METHOD(JS_symbolIterator) {
+		v8::MaybeLocal<v8::Object> maybe_iter = StatementIterator::New(OnlyIsolate, info);
+		if (!maybe_iter.IsEmpty()) info.GetReturnValue().Set(maybe_iter.ToLocalChecked());
 	}
 	
 	static v8::Persistent<v8::Function> constructor;
