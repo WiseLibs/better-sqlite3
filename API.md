@@ -29,7 +29,7 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 
 Creates a new prepared [`Transaction`](#class-transaction) from the given array of SQL strings.
 
-*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, these objects serve the sole purpose of batch-write operations. For more complex transactions, simply run [BEGIN and COMMIT](https://sqlite.org/lang_transaction.html) with regular [prepared statements](#preparestring---statement). This restriction may change in the future.
+*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, these objects serve the sole purpose of batch-write operations. For more complex transactions, simply run [BEGIN and COMMIT](https://sqlite.org/lang_transaction.html) with regular [prepared statements](#preparestring---statement) (see [tutorial](https://github.com/JoshuaWise/better-sqlite3/issues/49)). This restriction may change in the future.
 
 ### .pragma(*string*, [*simplify*]) -> *results*
 
