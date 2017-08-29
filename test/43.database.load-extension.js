@@ -43,11 +43,11 @@ describe('Database#loadExtension()', function () {
 	it('should throw if the database is busy', function () {
 		var db = new Database(util.next());
 		var invoked = false;
-		db.prepare('select 555').pluck().each(function (value) {
+		for (var value of db.prepare('select 555').pluck().iterate()) {
 			expect(value).to.equal(555);
 			expect(function () {db.loadExtension(filepath);}).to.throw(TypeError);
 			invoked = true;
-		});
+		}
 		expect(invoked).to.be.true;
 	});
 	it('should throw if the extension is not found', function () {

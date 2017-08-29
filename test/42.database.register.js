@@ -108,11 +108,11 @@ describe('Database#register()', function () {
 	});
 	it('should throw if the database is busy', function () {
 		var ranOnce = false;
-		db.prepare('SELECT 2').pluck().each(function (a) {
+		for (var a of db.prepare('SELECT 2').pluck().iterate()) {
 			expect(a).to.equal(2);
 			ranOnce = true;
 			expect(function () {db.register(function xd1() {});}).to.throw(TypeError);
-		});
+		}
 		expect(ranOnce).to.be.true;
 		db.register(function xd2() {});
 	});
@@ -153,6 +153,25 @@ describe('Database#register()', function () {
 		expectError('i6', null);
 		expectError('i7', 123.4);
 	});
+	it('should close a statement iterator that caused its function to throw', function () {
+		var i = 0;
+		var err = new Error('foo');
+		register(function throwsIterator1(x) {if (++i >= 5) throw err; return x});
+		db.prepare('CREATE TABLE iterable (value INTEGER)').run();
+		db.prepare('INSERT INTO iterable WITH RECURSIVE temp(a) AS (SELECT 1 UNION ALL SELECT a * 2 FROM temp LIMIT 10) SELECT * FROM temp').run();
+		var iterator = db.prepare('SELECT throwsIterator1(value) FROM iterable').pluck().iterate();
+		var total = 0;
+		expect(function () {
+			for (var value of iterator) {
+				total += value;
+				expect(function () {db.prepare('SELECT throwsIterator1(value) FROM iterable');}).to.throw(TypeError);
+			}
+		}).to.throw(err);
+		expect(total).to.equal(1 + 2 + 4 + 8);
+		expect(iterator.next()).to.deep.equal({value: undefined, done: true});
+		db.prepare('SELECT throwsIterator1(value) FROM iterable').pluck().iterate().return();
+		expect(total).to.equal(1 + 2 + 4 + 8);
+	});
 	it('should be able to register multiple functions with the same name', function () {
 		register(function ia1() {return 0;});
 		register(function ia1(a) {return 1;});
@@ -189,11 +208,11 @@ describe('Database#register()', function () {
 				expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
 				return n * 2;
 			});
-			db.prepare('SELECT k1(555)').pluck().each(function (n) {
+			for (var n of db.prepare('SELECT k1(555)').pluck().iterate()) {
 				ranOnce = true;
 				expect(n).to.equal(1110);
 				expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
-			});
+			}
 			expect(ranOnce).to.be.true;
 			db.prepare('SELECT 555');
 		});

@@ -21,6 +21,7 @@ public:
 	static ConstantString changes;
 	static ConstantString lastInsertROWID;
 	static ConstantString code;
+	static ConstantString statement;
 	
 private:
 	REGISTER(Init) {
@@ -36,6 +37,7 @@ private:
 		AddString(isolate, CS::changes, "changes");
 		AddString(isolate, CS::lastInsertROWID, "lastInsertROWID");
 		AddString(isolate, CS::code, "code");
+		AddString(isolate, CS::statement, "statement");
 		
 		AddCode(isolate, SQLITE_OK, "SQLITE_OK");
 		AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
@@ -135,7 +137,7 @@ private:
 	static void AddCode(v8::Isolate* isolate, int code, const char* str) {
 		codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
-	explicit CS(char _) {assert(false);};
+	explicit CS(char _) {assert(false);}
 	
 	static std::unordered_map<int, ConstantString> codes;
 }

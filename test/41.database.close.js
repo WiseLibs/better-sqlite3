@@ -26,7 +26,7 @@ describe('Database#close()', function () {
 		db.transaction(["INSERT INTO people VALUES ('foobar')"]).bind();
 		db.prepare('SELECT * FROM people').get();
 		db.prepare('SELECT * FROM people').all();
-		db.prepare('SELECT * FROM people').each(function () {});
+		db.prepare('SELECT * FROM people').iterate().return();
 		db.prepare("INSERT INTO people VALUES ('foobar')").run();
 		db.transaction(["INSERT INTO people VALUES ('foobar')"]).run();
 		
@@ -37,7 +37,7 @@ describe('Database#close()', function () {
 		expect(function () {trans.bind();}).to.throw(TypeError);
 		expect(function () {stmt1.get();}).to.throw(TypeError);
 		expect(function () {stmt1.all();}).to.throw(TypeError);
-		expect(function () {stmt1.each(function () {});}).to.throw(TypeError);
+		expect(function () {stmt1.iterate();}).to.throw(TypeError);
 		expect(function () {stmt2.run();}).to.throw(TypeError);
 		expect(function () {trans.run();}).to.throw(TypeError);
 	});
