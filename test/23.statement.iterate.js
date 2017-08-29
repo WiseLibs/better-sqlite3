@@ -7,52 +7,55 @@ before(function () {
 	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
 });
 
-describe('Statement#each()', function () {
+describe('Statement#iterate()', function () {
 	it('should throw an exception when used on a statement that returns no data', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
 		
 		var stmt = db.prepare("INSERT INTO entries VALUES ('foo', 1, 3.14, x'dddddddd', NULL)");
 		expect(stmt.returnsData).to.be.false;
-		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		expect(function () {stmt.iterate();}).to.throw(TypeError);
 		
 		var stmt = db.prepare("CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)");
 		expect(stmt.returnsData).to.be.false;
-		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		expect(function () {stmt.iterate();}).to.throw(TypeError);
 		
 		var stmt = db.prepare("BEGIN TRANSACTION");
 		expect(stmt.returnsData).to.be.false;
-		expect(function () {stmt.each(function () {});}).to.throw(TypeError);
+		expect(function () {stmt.iterate();}).to.throw(TypeError);
 		
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 	});
-	it('should throw an exception when the last argument is not a function', function () {
-		var stmt = db.prepare('SELECT * FROM entries');
-		expect(function () {stmt.each();}).to.throw(TypeError);
-		expect(function () {stmt.each({});}).to.throw(TypeError);
-		expect(function () {stmt.each(function () {}, 123);}).to.throw(TypeError);
-		stmt.each(function () {});
-	});
-	it('should invoke the callback for each matching row', function () {
+	it('should return an iterator over each matching row', function () {
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
 		
 		var count = 0;
 		var stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
 		expect(stmt.returnsData).to.be.true;
-		var ret = stmt.each(function (data) {
+		
+		var iterator = stmt.iterate();
+		expect(iterator).to.not.be.null;
+		expect(typeof iterator).to.equal('object');
+		expect(iterator.next).to.be.a('function');
+		expect(iterator.return).to.be.a('function');
+		expect(iterator.throw).to.not.be.a('function');
+		expect(iterator[Symbol.iterator]).to.be.a('function');
+		expect(iterator[Symbol.iterator]()).to.equal(iterator);
+		
+		for (var data of iterator) {
 			row.b = ++count;
 			expect(data).to.deep.equal(row);
-		});
+		}
 		expect(count).to.equal(10);
-		expect(ret).to.be.undefined;
 		
 		count = 0;
 		stmt = db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
-		ret = stmt.each(function (data) {
+		var iterator2 = stmt.iterate();
+		expect(iterator).to.not.equal(iterator2);
+		for (var data of iterator2) {
 			row.b = ++count + 5;
 			expect(data).to.deep.equal(row);
-		});
+		}
 		expect(count).to.equal(5);
-		expect(ret).to.be.undefined;
 	});
 	it('should obey the current pluck setting', function () {
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
@@ -70,13 +73,13 @@ describe('Statement#each()', function () {
 		
 		function shouldHave(desiredData) {
 			var i = 0;
-			stmt.each(function (data) {
+			for (var data of stmt.iterate()) {
 				++i;
 				if (typeof desiredData === 'object' && desiredData !== null) {
 					desiredData.b = i;
 				}
 				expect(data).to.deep.equal(desiredData);
-			});
+			}
 			expect(i).to.equal(10);
 		}
 	});
@@ -84,39 +87,55 @@ describe('Statement#each()', function () {
 		var stmt1 = db.prepare("SELECT * FROM entries");
 		var stmt2 = db.prepare("SELECT * FROM entries LIMIT 2");
 		var i = 0;
-		stmt1.each(function () {
+		for (var data of stmt1.iterate()) {
 			++i;
 			expect(function () {stmt1.pluck();}).to.throw(TypeError);
 			expect(function () {stmt2.pluck();}).to.throw(TypeError);
 			expect(function () {stmt1.pluck(false);}).to.throw(TypeError);
 			expect(function () {stmt2.pluck(false);}).to.throw(TypeError);
-		});
+		}
 		expect(i).to.equal(10);
 	});
-	it('should propagate exceptions thrown inside the callback', function () {
+	it('should close the iterator when throwing in a for-of loop', function () {
 		var err = new Error('foobar');
 		var stmt = db.prepare("SELECT * FROM entries");
+		var iterator = stmt.iterate();
 		var count = 0;
 		expect(function () {
-			stmt.each(function () {++count; throw err;})
+			for (var row of iterator) {++count; throw err;}
 		}).to.throw(err);
 		expect(count).to.equal(1);
+		expect(iterator.next()).to.deep.equal({value: undefined, done: true});
+		for (var row of iterator) {++count;}
+		expect(count).to.equal(1);
+		for (var row of stmt.iterate()) {++count;}
+		expect(count).to.equal(11);
 	});
-	it('should not invoke the callback when no rows were found', function () {
+	it('should close the iterator when using break in a for-of loop', function () {
+		var stmt = db.prepare("SELECT * FROM entries");
+		var iterator = stmt.iterate();
+		var count = 0;
+		for (var row of iterator) {++count; break;}
+		expect(count).to.equal(1);
+		expect(iterator.next()).to.deep.equal({value: undefined, done: true});
+		for (var row of iterator) {++count;}
+		expect(count).to.equal(1);
+		for (var row of stmt.iterate()) {++count;}
+		expect(count).to.equal(11);
+	});
+	it('should return an empty iterator when no rows were found', function () {
 		var stmt = db.prepare("SELECT * FROM entries WHERE b == 999");
-		stmt.each(function () {
-			throw new Error('This callback should not have been invoked')
-		});
-		stmt.pluck().each(function () {
-			throw new Error('This callback should not have been invoked')
-		});
+		expect(stmt.iterate().next()).to.deep.equal({value: undefined, done: true});
+		for (var data of stmt.pluck().iterate()) {
+			throw new Error('This callback should not have been invoked');
+		}
 	});
-	it('should not allow other database operations to execute in the callback', function () {
+	it('should not allow other database operations to execute while open', function () {
 		var stmt1 = db.prepare('SELECT * FROM entries');
 		var stmt2 = db.prepare('CREATE TABLE numbers (number INTEGER)');
 		var trans = db.transaction(['CREATE TABLE numbers (number INTEGER)']);
 		var count = 0;
-		db.prepare('SELECT * FROM entries').each(function () {
+		for (var row of db.prepare('SELECT * FROM entries').iterate()) {
 			++count;
 			expect(function () {
 				db.close();
@@ -140,7 +159,7 @@ describe('Statement#each()', function () {
 				stmt1.all();
 			}).to.throw(TypeError);
 			expect(function () {
-				stmt1.each(function () {});
+				stmt1.iterate();
 			}).to.throw(TypeError);
 			expect(function () {
 				stmt2.run();
@@ -148,8 +167,31 @@ describe('Statement#each()', function () {
 			expect(function () {
 				trans.run();
 			}).to.throw(TypeError);
-		});
+		}
 		expect(count).to.equal(10);
+	});
+	it('should allow database operations after closing the iterator', function () {
+		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
+		var stmt = db.prepare("SELECT * FROM entries");
+		db.prepare('SELECT 555');
+		var iterator = stmt.iterate();
+		expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
+		expect(iterator.next()).to.deep.equal({value: row, done: false});
+		row.b += 1;
+		expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
+		expect(iterator.next()).to.deep.equal({value: row, done: false});
+		row.b += 1;
+		expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
+		expect(iterator.next()).to.deep.equal({value: row, done: false});
+		expect(function () {db.prepare('SELECT 555');}).to.throw(TypeError);
+		expect(iterator.return()).to.deep.equal({value: undefined, done: true});
+		db.prepare('SELECT 555');
+		expect(iterator.next()).to.deep.equal({value: undefined, done: true});
+		db.prepare('SELECT 555');
+		expect(iterator.return()).to.deep.equal({value: undefined, done: true});
+		db.prepare('SELECT 555');
+		expect(iterator.next()).to.deep.equal({value: undefined, done: true});
+		db.prepare('SELECT 555');
 	});
 	it('should accept bind parameters', function () {
 		var row = {a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: null};
@@ -161,37 +203,46 @@ describe('Statement#each()', function () {
 		shouldHave(SQL1, row, [['foo', 1], [3.14], bufferOfSize(4).fill(0xdd), [,]])
 		shouldHave(SQL2, row, [{a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd), e: undefined}])
 		
-		db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xaa), e: undefined}, function () {
+		for (var data of db.prepare(SQL2).iterate({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xaa), e: undefined})) {
 			throw new Error('This callback should not have been invoked');
-		});
+		}
 		
 		expect(function () {
-			db.prepare(SQL2).each({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)}, function () {});
-		}).to.throw(RangeError);
-		
-		expect(function () {
-			db.prepare(SQL1).each();
+			db.prepare(SQL2).iterate(row, function () {});
 		}).to.throw(TypeError);
 		
 		expect(function () {
-			db.prepare(SQL1).each(function () {});
+			db.prepare(SQL2).iterate({a: 'foo', b: 1, c: 3.14, d: bufferOfSize(4).fill(0xdd)});
 		}).to.throw(RangeError);
 		
 		expect(function () {
-			db.prepare(SQL2).each({});
+			db.prepare(SQL1).iterate();
+		}).to.throw(RangeError);
+		
+		expect(function () {
+			db.prepare(SQL2).iterate();
 		}).to.throw(TypeError);
 		
 		expect(function () {
-			db.prepare(SQL2).each({}, function () {});
+			db.prepare(SQL2).iterate(row, {});
+		}).to.throw(TypeError);
+		
+		expect(function () {
+			db.prepare(SQL2).iterate({});
 		}).to.throw(RangeError);
+		
+		db.prepare(SQL1).iterate('foo', 1, 3.14, bufferOfSize(4).fill(0xdd), null).return();
+		expect(function () {
+			db.prepare(SQL1).iterate('foo', 1, new (function(){})(), bufferOfSize(4).fill(0xdd), null);
+		}).to.throw(TypeError);
 		
 		function shouldHave(SQL, desiredData, args) {
 			var i = 0;
 			var stmt = db.prepare(SQL);
-			stmt.each.apply(stmt, args.concat(function (data) {
+			for (var data of stmt.iterate.apply(stmt, args)) {
 				desiredData.b = ++i;
 				expect(data).to.deep.equal(desiredData);
-			}));
+			}
 			expect(i).to.equal(1);
 		}
 	});

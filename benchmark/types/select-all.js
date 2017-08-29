@@ -5,7 +5,7 @@ require('../runner')(function (benchmark, dbs, ctx) {
 	var betterSqlite3 = dbs['better-sqlite3'];
 	var nodeSqlite3 = dbs['node-sqlite3'];
 	var rowid = 99;
-	benchmark.on('cycle', function () {rowid = 0;});
+	benchmark.on('cycle', function () {rowid = 99;});
 	
 	var betterSqlite3Select = betterSqlite3.prepare(SQL);
 	

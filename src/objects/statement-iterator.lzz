@@ -50,7 +50,7 @@ private:
 		StatementIterator* iter;
 		{
 			NODE_ARGUMENTS info = *caller_info;
-			STATEMENT_START(info.Length(), REQUIRE_STATEMENT_RETURNS_DATA);
+			STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
 			iter = new StatementIterator(stmt, bound);
 			db_state->busy = true;
 		}

@@ -108,13 +108,13 @@ describe('64-bit integers', function () {
 		var ranOnce = false;
 		var stmt1 = db.prepare('SELECT * FROM entries LIMIT 10');
 		var stmt2 = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		stmt1.each(function () {
+		for (var row of stmt1.iterate()) {
 			ranOnce = true;
 			expect(function () {stmt1.safeIntegers();}).to.throw(TypeError);
 			expect(function () {stmt2.safeIntegers();}).to.throw(TypeError);
 			expect(function () {stmt1.safeIntegers(false);}).to.throw(TypeError);
 			expect(function () {stmt2.safeIntegers(false);}).to.throw(TypeError);
-		});
+		}
 		expect(ranOnce).to.be.true;
 	});
 });

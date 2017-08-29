@@ -9,7 +9,7 @@
 	if (!bound) {UNBIND_ACTION;}                                               \
 	return
 
-#define _QUERY_START(obj, object_name, bind_args_count, BIND_ACTION)           \
+#define _QUERY_START(obj, object_name, BIND_ACTION)                            \
 	Database* db = obj->db;                                                    \
 	Database::State* db_state = db->GetState();                                \
 	REQUIRE_DATABASE_OPEN(db_state);                                           \
@@ -17,23 +17,23 @@
 	const bool bound = obj->bound;                                             \
 	if (!bound) {                                                              \
 		BIND_ACTION;                                                           \
-	} else if (bind_args_count > 0)                                            \
+	} else if (info.Length() > 0)                                              \
 		return ThrowTypeError("This "#object_name" already has bound parameters")
 
 
 #define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
 #define STATEMENT_THROW() _QUERY_THROW(_STATEMENT_UNBIND(handle))
 #define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, _STATEMENT_UNBIND(handle))
-#define STATEMENT_BIND(handle, bind_args_count)                                \
+#define STATEMENT_BIND(handle)                                                 \
 	Binder binder(handle);                                                     \
-	if (!binder.Bind(info, bind_args_count, stmt)) {                           \
+	if (!binder.Bind(info, info.Length(), stmt)) {                             \
 		_STATEMENT_UNBIND(handle); return;                                     \
 	} ((void)0)
-#define STATEMENT_START(bind_args_count, RETURNS_DATA_CHECK)                   \
+#define STATEMENT_START(RETURNS_DATA_CHECK)                                    \
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
-	_QUERY_START(stmt, statement, bind_args_count, STATEMENT_BIND(handle, bind_args_count))
+	_QUERY_START(stmt, statement, STATEMENT_BIND(handle))
 
 
 #define _TRANSACTION_UNBIND(handles, handle_count)                             \
@@ -49,7 +49,7 @@
 	Transaction* trans = Unwrap<Transaction>(info.This());                     \
 	sqlite3_stmt** handles = trans->handles;                                   \
 	const int handle_count = trans->handle_count;                              \
-	_QUERY_START(trans, transaction, info.Length(), TRANSACTION_BIND(handles, handle_count))
+	_QUERY_START(trans, transaction, TRANSACTION_BIND(handles, handle_count))
 
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
@@ -57,7 +57,7 @@
 		return ThrowTypeError("This statement does not return data. Use run() instead")
 #define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
 	if (stmt->returns_data)                                                    \
-		return ThrowTypeError("This statement returns data. Use get(), all(), or each() instead")
+		return ThrowTypeError("This statement returns data. Use get(), all(), or iterate() instead")
 
 
 #define FUNCTION_START(instance)                                               \

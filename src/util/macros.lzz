@@ -52,12 +52,6 @@ void ThrowRangeError(const char* message) {EasyIsolate; isolate->ThrowException(
 #define REQUIRE_ARGUMENT_FUNCTION(at, var)                                     \
 	_REQUIRE_ARGUMENT(at, var, Function, a function)
 
-#define REQUIRE_LAST_ARGUMENT_FUNCTION(ivar, var)                              \
-	int ivar = info.Length() - 1;                                              \
-	if (ivar < 0 || !info[ivar]->IsFunction())                                 \
-		return ThrowTypeError("Expected last argument to be a function");      \
-	v8::Local<v8::Function> var = v8::Local<v8::Function>::Cast(info[ivar])
-
 #define REQUIRE_DATABASE_OPEN(db)                                              \
 	if (!db->open)                                                             \
 		return ThrowTypeError("The database connection is not open")
