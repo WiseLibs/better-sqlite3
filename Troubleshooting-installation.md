@@ -4,7 +4,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 2. Make sure you have [`node-gyp`](https://github.com/nodejs/node-gyp#installation) globally installed, including all of [its dependencies](https://github.com/nodejs/node-gyp#on-unix)
 
-3. If the error message said something about python, [install python 2.7](https://www.python.org/downloads/) and then run `npm config delete python`, and [make sure python is in your $PATH](https://github.com/JoshuaWise/better-sqlite3/issues/64#issuecomment-327029706).
+3. If the error message said something about python, [install python 2.7](https://www.python.org/downloads/) and then run `npm config delete python`, and [make sure python is in your $PATH](https://github.com/JoshuaWise/better-sqlite3/issues/64#issuecomment-327029706)
 
 4. If the error message included `exit code 3221225506`, this package might be triggering a false positive in your anti-virus software
 
