@@ -12,7 +12,7 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "integer": "^1.0.1",
-    "lzz-gyp": "^0.3.5",
+    "lzz-gyp": "^0.4.2",
     "to-descriptor": "^1.0.1"
   },
   "devDependencies": {
