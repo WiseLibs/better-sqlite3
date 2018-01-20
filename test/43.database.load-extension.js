@@ -9,7 +9,7 @@ const filepath = (() => {
 		'../build/Debug/test_extension.node',
 		'../build/Release/test_extension.node',
 	].map(loc => path.join(__dirname, loc));
-	for (var i=0; i<attempts.length; ++i) {
+	for (let i = 0; i < attempts.length; ++i) {
 		if (exists(attempts[i])) return attempts[i];
 	}
 	throw new TypeError('Could not find test_extension.node');
@@ -17,31 +17,31 @@ const filepath = (() => {
 
 describe('Database#loadExtension()', function () {
 	it('should throw if a string argument is not given', function () {
-		var db = new Database(util.next());
-		expect(function () {db.loadExtension();}).to.throw(TypeError);
-		expect(function () {db.loadExtension(undefined);}).to.throw(TypeError);
-		expect(function () {db.loadExtension(null);}).to.throw(TypeError);
-		expect(function () {db.loadExtension(123);}).to.throw(TypeError);
-		expect(function () {db.loadExtension(new String(filepath));}).to.throw(TypeError);
-		expect(function () {db.loadExtension([filepath]);}).to.throw(TypeError);
+		const db = new Database(util.next());
+		expect(() => db.loadExtension()).to.throw(TypeError);
+		expect(() => db.loadExtension(undefined)).to.throw(TypeError);
+		expect(() => db.loadExtension(null)).to.throw(TypeError);
+		expect(() => db.loadExtension(123)).to.throw(TypeError);
+		expect(() => db.loadExtension(new String(filepath))).to.throw(TypeError);
+		expect(() => db.loadExtension([filepath])).to.throw(TypeError);
 	});
 	it('should throw if the database is closed', function () {
-		var db = new Database(util.next());
+		const db = new Database(util.next());
 		db.close();
-		expect(function () {db.loadExtension(filepath);}).to.throw(TypeError);
+		expect(() => db.loadExtension(filepath)).to.throw(TypeError);
 	});
 	it('should throw if the database is busy', function () {
-		var db = new Database(util.next());
-		var invoked = false;
-		for (var value of db.prepare('select 555').pluck().iterate()) {
+		const db = new Database(util.next());
+		let invoked = false;
+		for (const value of db.prepare('select 555').pluck().iterate()) {
 			expect(value).to.equal(555);
-			expect(function () {db.loadExtension(filepath);}).to.throw(TypeError);
+			expect(() => db.loadExtension(filepath)).to.throw(TypeError);
 			invoked = true;
 		}
 		expect(invoked).to.be.true;
 	});
 	it('should throw if the extension is not found', function () {
-		var db = new Database(util.next());
+		const db = new Database(util.next());
 		try {
 			db.loadExtension(filepath + 'x');
 		} catch (err) {
@@ -55,21 +55,21 @@ describe('Database#loadExtension()', function () {
 		throw new Error('This code should not have been reached');
 	});
 	it('should register the specified extension', function () {
-		var db = new Database(util.next());
+		const db = new Database(util.next());
 		expect(db.loadExtension(filepath)).to.equal(db);
 		expect(db.prepare('SELECT testExtensionFunction(NULL, 123, 99, 2)').pluck().get()).to.equal(4);
 		expect(db.prepare('SELECT testExtensionFunction(NULL, 2)').pluck().get()).to.equal(2);
 	});
 	it('should not allow registering extensions with SQL', function () {
-		var db1 = new Database(util.next());
-		expect(function () {db1.prepare('SELECT load_extension(?)').get(filepath);}).to.throw(Database.SqliteError);
+		const db1 = new Database(util.next());
+		expect(() => db1.prepare('SELECT load_extension(?)').get(filepath)).to.throw(Database.SqliteError);
 		expect(db1.loadExtension(filepath)).to.equal(db1);
-		expect(function () {db1.prepare('SELECT load_extension(?)').get(filepath);}).to.throw(Database.SqliteError);
-		var db2 = new Database(util.next());
+		expect(() => db1.prepare('SELECT load_extension(?)').get(filepath)).to.throw(Database.SqliteError);
+		const db2 = new Database(util.next());
 		try {
 			db2.loadExtension(filepath + 'x');
 		} catch (err) {
-			expect(function () {db2.prepare('SELECT load_extension(?)').get(filepath);}).to.throw(Database.SqliteError);
+			expect(() => db2.prepare('SELECT load_extension(?)').get(filepath)).to.throw(Database.SqliteError);
 			return;
 		}
 		throw new Error('This code should not have been reached');
