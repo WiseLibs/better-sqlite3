@@ -136,7 +136,7 @@ describe('Database#register()', function () {
 	});
 	it('should propagate exceptions thrown in the registered function', function () {
 		function expectError(name, exception) {
-			register({name: name}, function () {throw exception;});
+			register({ name }, function () {throw exception;});
 			try {
 				exec(name + '()');
 			} catch (ex) {
@@ -347,7 +347,7 @@ describe('Database#register()', function () {
 			it('should throw if a non-function is yielded', function () {
 				function registerAggregate(name, value) {
 					var first = true;
-					register({name: name}, function* () {
+					register({ name }, function* () {
 						if (first) {
 							first = false;
 							yield function (x) {};

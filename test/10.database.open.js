@@ -1,7 +1,7 @@
 var expect = require('chai').expect;
 var fs = require('fs');
 var Database = require('../.');
-var util = (function () {
+var util = (() => {
 	var path = require('path');
 	var dbId = 0;
 	var obj;
@@ -11,7 +11,7 @@ var util = (function () {
 		},
 		next: function () {++dbId; return obj.current();}
 	};
-}());
+})();
 
 describe('new Database()', function () {
 	it('should throw an exception when file path is not a string', function () {

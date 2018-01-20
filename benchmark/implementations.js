@@ -1,37 +1,31 @@
 'use strict';
-var path = require('path');
-var slice = Array.prototype.slice;
-var concat = Array.prototype.concat;
+const path = require('path');
 
-var implementations = {
+const implementations = {
 	'better-sqlite3': {
-		connect: function () {return new (require('../.'))(path.join('temp', 'better-sqlite3.db'));},
-		close: function () {return this.close();},
-		run: function (SQL) {return this.prepare(SQL).run(concat.apply([], slice.call(arguments, 1)));}
+		connect: () => new (require('../.'))(path.join('temp', 'better-sqlite3.db')),
+		close: function () { return this.close(); },
+		run: function (SQL, ...args) { return this.prepare(SQL).run([].concat(...args)); },
 	},
 	'node-sqlite3': {
-		connect: function () {return require('sqlite').open(path.join('temp', 'node-sqlite3.db'), {Promise: Promise});},
-		close: function () {return this.close();},
-		run: function (SQL) {return this.run.apply(this, concat.apply([SQL], slice.call(arguments, 1)));}
-	}
+		connect: () => require('sqlite').open(path.join('temp', 'node-sqlite3.db'), { Promise }),
+		close: function () { return this.close(); },
+		run: function (SQL, ...args) { return this.run(...[SQL].concat(...args)); },
+	},
 };
 
-module.exports = function () {
-	var prototype = Object.create(null);
-	var promiseTry = function (fn, ctx, args) {
-		try {return Promise.resolve(fn.apply(ctx, args));}
-		catch (ex) {return Promise.reject(ex);}
+module.exports = () => {
+	const prototype = Object.create(null);
+	const promiseTry = (fn, ctx, args) => {
+		try { return Promise.resolve(fn.apply(ctx, args)); }
+		catch (ex) { return Promise.reject(ex); }
 	};
-	prototype.each = function (action) {
-		var controller = this;
-		var args = slice.call(arguments, 1);
-		
-		return Promise.all(Object.keys(implementations).map(function (key) {
-			if (action === 'connect') {
-				var after = function (result) {controller[key] = result;};
-			}
-			return promiseTry(implementations[key][action], controller[key], args).then(after);
-		})).then(function () {});
+	prototype.each = function (action, ...args) {
+		return Promise.all(Object.keys(implementations).map((key) => {
+			const promise = promiseTry(implementations[key][action], this[key], args);
+			if (action === 'connect') return promise.then((result) => { this[key] = result; });
+			return promise;
+		})).then(() => undefined);
 	};
 	return Object.create(prototype);
 };

@@ -1,9 +1,8 @@
 'use strict';
-var dbs = require('./implementations')();
-var rows = 1000;
+const dbs = require('./implementations')();
+const rows = 1000;
 
-exports.buildTables = function () {
-	return createTables([
+const buildTables = () => createTables([
 		'allSmall (integer INTEGER, real REAL, text TEXT, blob BLOB, nul)',
 		'allLarge (text TEXT, blob BLOB)',
 		'integerSmall (integer INTEGER)',
@@ -12,77 +11,65 @@ exports.buildTables = function () {
 		'blobSmall (blob BLOB)',
 		'nulSmall (nul)',
 		'textLarge (text TEXT)',
-		'blobLarge (blob BLOB)'
-	]).then(function () {
-		return fillTable('allSmall', getFakeData('small', ['integer', 'real', 'text', 'blob', 'nul']));
-	}).then(function () {
-		return fillTable('allLarge', getFakeData('large', ['text', 'blob']));
-	});
+		'blobLarge (blob BLOB)',
+	])
+	.then(() => fillTable('allSmall', getFakeData('small', ['integer', 'real', 'text', 'blob', 'nul'])))
+	.then(() => fillTable('allLarge', getFakeData('large', ['text', 'blob'])));
+
+const createTables = strings => strings
+	.reduce((previous, SQL) => previous.then(() => createTable(SQL)), Promise.resolve());
+
+const createTable = SQL => dbs.each('connect')
+	.then(() => dbs.each('run', `CREATE TABLE ${SQL}`))
+	.then(() => dbs.each('close'));
+
+const fillTable = (table, values) => {
+	const SQL = `INSERT INTO ${table} VALUES ${params(values.length)}`;
+	let i = 0;
+	return dbs.each('connect')
+		.then(() => dbs.each('run', 'BEGIN')
+			.then(function insert() {
+				if (++i < rows) return dbs.each('run', SQL, values).then(insert);
+				return dbs.each('run', SQL, values).then(() => dbs.each('run', 'COMMIT'));
+			}))
+		.then(() => dbs.each('close'));
 };
-exports.params = params;
 
-function createTables(strings) {
-	return strings.reduce(function (promise, SQL) {
-		return promise.then(function () {return createTable(SQL);});
-	}, Promise.resolve());
-}
-
-function createTable(SQL) {
-	return dbs.each('connect').then(function () {
-		return dbs.each('run', 'CREATE TABLE ' + SQL);
-	}).then(function () {return dbs.each('close');});
-}
-
-function fillTable(table, values) {
-	var i = 0;
-	var SQL = 'INSERT INTO ' + table + ' VALUES ' + params(values.length);
-	return dbs.each('connect').then(function () {
-		return dbs.each('run', 'BEGIN').then(function insert() {
-			if (++i < rows) {
-				return dbs.each('run', SQL, values).then(insert);
-			}
-			return dbs.each('run', SQL, values).then(function () {return dbs.each('run', 'COMMIT');});
-		});
-	}).then(function () {return dbs.each('close');});
-}
-
-var getFakeData = (function () {
-	var smallData = {
-		integer: 12345,
-		real: 0.12345,
-		text: 'John Peter Smith',
-		blob: Buffer.from('John Peter Smith'),
-		nul: null
-	};
-	var largeData = {
-		text: bufferOf('John Peter Smith', 1024 * 100).toString(),
-		blob: bufferOf('John Peter Smith', 1024 * 100)
-	};
-	function getColumn(column) {
-		if (!this.hasOwnProperty(column)) {
-			var table = this === largeData ? 'large' : 'small';
-			throw new TypeError('No data defined for column "' + table + '.' + column + '"');
-		}
-		return this[column];
-	}
-	return function (size, columns) {
-		var isLarge = size.toLowerCase().indexOf('large') !== -1;
-		return columns.map(getColumn, isLarge ? largeData : smallData);
-	};
-}());
-
-function bufferOf(str, size) {
-	var bytesWritten = 0;
-	var source = Buffer.from(String(str));
-	var result = Buffer.allocUnsafe(size >>> 0);
+const bufferOf = (str, size) => {
+	let bytesWritten = 0;
+	const source = Buffer.from(String(str));
+	const result = Buffer.allocUnsafe(size >>> 0);
 	while (bytesWritten < size) {
 		bytesWritten += source.copy(result, bytesWritten, 0, Math.min(source.length, size - bytesWritten));
 	}
 	return result;
-}
+};
 
-function params(count) {
-	return '(' + new Array(count >>> 0).fill('?').join(', ') + ')';
-}
+const getFakeData = (() => {
+	const smallData = {
+		integer: 12345,
+		real: 0.12345,
+		text: 'John Peter Smith',
+		blob: Buffer.from('John Peter Smith'),
+		nul: null,
+	};
+	const largeData = {
+		text: bufferOf('John Peter Smith', 1024 * 100).toString(),
+		blob: bufferOf('John Peter Smith', 1024 * 100),
+	};
+	function getColumn(column) {
+		if (!this.hasOwnProperty(column)) {
+			const table = this === largeData ? 'large' : 'small';
+			throw new TypeError(`No data defined for column "${table}.${column}"`);
+		}
+		return this[column];
+	}
+	return (size, columns) => {
+		const isLarge = size.toLowerCase().includes('large');
+		return columns.map(getColumn, isLarge ? largeData : smallData);
+	};
+})();
 
-module.exports = Object.assign(getFakeData, exports);
+const params = count => `(${new Array(count >>> 0).fill('?').join(', ')})`;
+
+module.exports = Object.assign(getFakeData, { buildTables, params });
