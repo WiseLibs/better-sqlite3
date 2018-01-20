@@ -195,7 +195,7 @@ private:
 		Transaction* trans = Unwrap<Transaction>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(trans->db->GetState());
 		if (info.Length() == 0) trans->safe_ints = true;
-		else {REQUIRE_ARGUMENT_BOOLEAN(first, trans->safe_ints);}
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, trans->safe_ints); }
 		info.GetReturnValue().Set(info.This());
 	}
 	

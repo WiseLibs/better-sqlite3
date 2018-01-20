@@ -36,12 +36,12 @@ public:
 	}
 	
 	~BindMap() {
-		while (length) {pairs[--length].~Pair();}
+		while (length) pairs[--length].~Pair();
 		FREE_ARRAY<Pair>(pairs);
 	}
 	
-	inline Pair* GetPairs() {return pairs;}
-	inline int GetSize() {return length;}
+	inline Pair* GetPairs() { return pairs; }
+	inline int GetSize() { return length; }
 	
 	// Adds a pair to the bind map, expanding the capacity if necessary.
 	void Add(v8::Isolate* isolate, const char* name, int index) {

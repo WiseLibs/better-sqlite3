@@ -178,7 +178,7 @@ protected:
 			count += 1;
 		}
 		
-		return {count, bound_object};
+		return { count, bound_object };
 	}
 	
 	sqlite3_stmt* handle;

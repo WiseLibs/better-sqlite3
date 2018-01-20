@@ -18,7 +18,7 @@ protected:
 	
 	// Constructor and destructor ensuring always-complete initialization.
 	explicit Query(sqlite3_uint64 id) : extras(new QueryExtras(id)) {}
-	~Query() {delete extras;}
+	~Query() { delete extras; }
 	
 	inline BindMap* BindMapPointer() {
 		return &extras->bind_map;

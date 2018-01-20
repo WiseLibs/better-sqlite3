@@ -8,7 +8,7 @@ public:
 		total_character_count(0), count(0) {}
 	
 	~SQLString() {
-		while (count) {strings[--count].~StatementString();}
+		while (count) strings[--count].~StatementString();
 		FREE_ARRAY(strings);
 	}
 	

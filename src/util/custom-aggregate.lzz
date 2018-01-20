@@ -49,8 +49,8 @@ public:
 		state = destroyed;
 	}
 	
-	inline bool IsUninitialized() {return state == uninitialized;}
-	inline bool IsActive() {return state == active;}
+	inline bool IsUninitialized() { return state == uninitialized; }
+	inline bool IsActive() { return state == active; }
 	inline v8::Local<v8::Function> GetFn(v8::Isolate* isolate) {
 		return v8::Local<v8::Function>::New(isolate, fn);
 	}

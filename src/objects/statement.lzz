@@ -157,7 +157,7 @@ private:
 		bool js_error = false;
 		
 		while (sqlite3_step(handle) == SQLITE_ROW) {
-			if (row_count == 0xffffffff) {ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break;}
+			if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
 			result->Set(ctx, row_count++, pluck
 				? Data::GetValueJS(isolate, handle, 0, safe_ints)
 				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
@@ -191,7 +191,7 @@ private:
 		if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 		if (info.Length() == 0) stmt->pluck = true;
-		else {REQUIRE_ARGUMENT_BOOLEAN(first, stmt->pluck);}
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->pluck); }
 		info.GetReturnValue().Set(info.This());
 	}
 	
@@ -199,7 +199,7 @@ private:
 		Statement* stmt = Unwrap<Statement>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 		if (info.Length() == 0) stmt->safe_ints = true;
-		else {REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints);}
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints); }
 		info.GetReturnValue().Set(info.This());
 	}
 	

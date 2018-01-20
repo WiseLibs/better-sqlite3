@@ -30,9 +30,9 @@ inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Loca
 	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
 
-void ThrowError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));}
-void ThrowTypeError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));}
-void ThrowRangeError(const char* message) {EasyIsolate; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));}
+void ThrowError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1))); }
+void ThrowTypeError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1))); }
+void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1))); }
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \

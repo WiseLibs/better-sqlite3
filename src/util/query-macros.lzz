@@ -1,12 +1,12 @@
 #define _QUERY_THROW(UNBIND_ACTION, ...)                                       \
 	db->ThrowDatabaseError();                                                  \
 	__VA_ARGS__;                                                               \
-	if (!bound) {UNBIND_ACTION;}                                               \
+	if (!bound) { UNBIND_ACTION; }                                             \
 	return
 
 #define _QUERY_RETURN(return_value, UNBIND_ACTION)                             \
 	info.GetReturnValue().Set(return_value);                                   \
-	if (!bound) {UNBIND_ACTION;}                                               \
+	if (!bound) { UNBIND_ACTION; }                                             \
 	return
 
 #define _QUERY_START(obj, object_name, BIND_ACTION)                            \

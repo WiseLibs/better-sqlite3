@@ -4,7 +4,7 @@ public:
 	
 	explicit CustomFunction(v8::Local<v8::Function> _fn, v8::Isolate* _isolate, Database* _db, const char* _name, int _argc, bool _safe_ints)
 		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(CopyString(_name)), argc(_argc), safe_ints(_safe_ints) {}
-	~CustomFunction() {delete[] name;}
+	~CustomFunction() { delete[] name; }
 	
 	static void xDestroy(void* instance) {
 		FUNCTION_START(instance);

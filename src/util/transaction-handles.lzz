@@ -12,7 +12,7 @@ class TransactionHandles { friend class Transaction;
 	
 	~TransactionHandles() {
 		if (!success) {
-			while (handle_count) {sqlite3_finalize(handles[--handle_count]);}
+			while (handle_count) sqlite3_finalize(handles[--handle_count]);
 			delete[] handles;
 		}
 	}

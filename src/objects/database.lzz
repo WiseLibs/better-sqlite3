@@ -11,10 +11,10 @@ public:
 	
 	// Allow Statements and Transactions to manage themselves when created and
 	// garbage collected.
-	inline void AddStatement(Statement* stmt) {extras->stmts.insert(extras->stmts.end(), stmt);}
-	inline void RemoveStatement(Statement* stmt) {extras->stmts.erase(stmt);}
-	inline void AddTransaction(Transaction* trans) {extras->transs.insert(extras->transs.end(), trans);}
-	inline void RemoveTransaction(Transaction* trans) {extras->transs.erase(trans);}
+	inline void AddStatement(Statement* stmt) { extras->stmts.insert(extras->stmts.end(), stmt); }
+	inline void RemoveStatement(Statement* stmt) { extras->stmts.erase(stmt); }
+	inline void AddTransaction(Transaction* trans) { extras->transs.insert(extras->transs.end(), trans); }
+	inline void RemoveTransaction(Transaction* trans) { extras->transs.erase(trans); }
 	
 	// A view for Statements and Transactions to see and modify Database state.
 	// The order of these fields must exactly match their actual order.
@@ -41,7 +41,7 @@ public:
 		return db_handle;
 	}
 	inline TransactionController GetTransactionController() {
-		return {extras->begin, extras->commit, extras->rollback};
+		return { extras->begin, extras->commit, extras->rollback };
 	}
 	
 	~Database() {
@@ -250,7 +250,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		if (info.Length() == 0) db->safe_ints = true;
-		else {REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints);}
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
 		info.GetReturnValue().Set(info.This());
 	}
 	
@@ -267,8 +267,8 @@ private:
 	void CloseHandles() {
 		if (open) {
 			open = false;
-			for (Statement* stmt : extras->stmts) {stmt->CloseHandles();}
-			for (Transaction* trans : extras->transs) {trans->CloseHandles();}
+			for (Statement* stmt : extras->stmts) stmt->CloseHandles();
+			for (Transaction* trans : extras->transs) trans->CloseHandles();
 			extras->stmts.clear();
 			extras->transs.clear();
 			sqlite3_finalize(extras->begin);
