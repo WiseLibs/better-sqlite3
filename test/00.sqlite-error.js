@@ -1,5 +1,5 @@
-var expect = require('chai').expect;
-var SqliteError = require('../.').SqliteError;
+const { expect } = require('chai');
+const { SqliteError } = require('../.');
 
 describe('SqliteError', function () {
 	it('should be a subclass of Error', function () {
@@ -13,7 +13,7 @@ describe('SqliteError', function () {
 		expect(SqliteError.prototype.name).to.equal('SqliteError');
 	});
 	it('should accept two arguments for setting the message and error code', function () {
-		var err = SqliteError('foobar', 'baz');
+		const err = SqliteError('foobar', 'baz');
 		expect(err.message).to.equal('foobar');
 		expect(err.code).to.equal('baz');
 		expect(SqliteError(123, 'baz').message).to.equal('123');

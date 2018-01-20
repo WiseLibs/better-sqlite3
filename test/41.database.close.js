@@ -1,17 +1,7 @@
-var expect = require('chai').expect;
-var fs = require('fs');
-var Database = require('../.');
-var util = (function () {
-	var path = require('path');
-	var dbId = 0;
-	var obj;
-	return obj = {
-		current: function () {
-			return 'temp/' + path.basename(__filename).split('.')[0] + '.' + dbId + '.db';
-		},
-		next: function () {++dbId; return obj.current();}
-	};
-}());
+const { expect } = require('chai');
+const fs = require('fs');
+const Database = require('../.');
+const util = require('./util');
 
 describe('Database#close()', function () {
 	it('should prevent statements and transactions from operating', function () {

@@ -1,29 +1,19 @@
-var expect = require('chai').expect;
-var Database = require('../.');
-var util = (function () {
-	var path = require('path');
-	var dbId = 0;
-	var obj;
-	return obj = {
-		current: function () {
-			return 'temp/' + path.basename(__filename).split('.')[0] + '.' + dbId + '.db';
-		},
-		next: function () {++dbId; return obj.current();}
-	};
-}());
-var filepath = (function () {
-	var fs = require('fs');
-	var path = require('path');
-	function exists(loc) {try {fs.readFileSync(loc); return true;} catch (_) {return false;}}
-	var attemps = [
+const { expect } = require('chai');
+const Database = require('../.');
+const util = require('./util');
+const filepath = (() => {
+	const fs = require('fs');
+	const path = require('path');
+	function exists(loc) { try { fs.readFileSync(loc); return true; } catch (_) { return false; } }
+	const attempts = [
 		'../build/Debug/test_extension.node',
-		'../build/Release/test_extension.node'
-	].map(function (loc) {return path.join(__dirname, loc);});
-	for (var i=0; i<attemps.length; ++i) {
-		if (exists(attemps[i])) return attemps[i];
+		'../build/Release/test_extension.node',
+	].map(loc => path.join(__dirname, loc));
+	for (var i=0; i<attempts.length; ++i) {
+		if (exists(attempts[i])) return attempts[i];
 	}
 	throw new TypeError('Could not find test_extension.node');
-}());
+})();
 
 describe('Database#loadExtension()', function () {
 	it('should throw if a string argument is not given', function () {

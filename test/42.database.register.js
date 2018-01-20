@@ -1,9 +1,8 @@
-var expect = require('chai').expect;
-var Database = require('../.');
-var db;
+const { expect } = require('chai');
+const Database = require('../.');
+const db = new Database(require('./util').next());
 
 before(function () {
-	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
 	db.prepare('CREATE TABLE data (x)').run();
 	db.prepare('CREATE TABLE empty (x)').run();
 	db.prepare('INSERT INTO data VALUES (?)').run(3);

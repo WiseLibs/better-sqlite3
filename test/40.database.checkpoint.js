@@ -1,13 +1,14 @@
-var expect = require('chai').expect;
-var fs = require('fs');
-var Database = require('../.');
-var db1, db2;
+const { expect } = require('chai');
+const fs = require('fs');
+const Database = require('../.');
+const util = require('./util');
+
+let db1 = new Database(util.next());
+let db2 = new Database(util.next());
 
 before(function () {
-	db1 = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
 	db1.pragma('journal_mode = WAL');
 	db1.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
-	db2 = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '2.db');
 	db2.pragma('journal_mode = WAL');
 	db2.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
 });

@@ -1,12 +1,12 @@
-var expect = require('chai').expect;
-var Integer = require('integer');
-var Database = require('../.');
-var db;
-var db2;
+const { expect } = require('chai');
+const Integer = require('integer');
+const Database = require('../.');
+const util = require('./util');
+
+const db = new Database(util.next());
+const db2 = new Database(util.next());
 
 before(function () {
-	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.1.db');
-	db2 = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.2.db');
 	db.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
 	db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
 });

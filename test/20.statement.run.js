@@ -1,11 +1,7 @@
 'use strict';
-var expect = require('chai').expect;
-var Database = require('../.');
-var db;
-
-before(function () {
-	db = new Database('temp/' + require('path').basename(__filename).split('.')[0] + '.db');
-});
+const { expect } = require('chai');
+const Database = require('../.');
+const db = new Database(require('./util').next());
 
 describe('Statement#run()', function () {
 	it('should throw an exception when used on a statement that returns data', function () {
