@@ -3,6 +3,7 @@ logs
 *.log
 npm-debug.log*
 package-lock.json
+yarn.lock
 
 # Runtime data
 pids

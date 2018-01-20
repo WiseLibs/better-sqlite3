@@ -11,9 +11,8 @@
   },
   "dependencies": {
     "bindings": "^1.3.0",
-    "integer": "^1.0.1",
-    "lzz-gyp": "^0.4.2",
-    "to-descriptor": "^1.0.1"
+    "integer": "^1.0.3",
+    "lzz-gyp": "^0.4.2"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",

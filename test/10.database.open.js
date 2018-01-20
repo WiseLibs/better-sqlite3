@@ -111,7 +111,6 @@ describe('new Database()', function () {
 		expect(Database.prototype.constructor).to.equal(Database);
 		expect(Database.prototype.close).to.be.a('function');
 		expect(Database.prototype.close).to.equal(db.close);
-		expect(Object.getOwnPropertyNames(Object.getPrototypeOf(db)).length).to.equal(1);
-		expect(Object.getOwnPropertyNames(Object.getPrototypeOf(db))[0]).to.equal('constructor');
+		expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
 	});
 });
