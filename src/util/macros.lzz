@@ -18,9 +18,6 @@
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
-inline v8::Local<v8::String> StringFromUtf16(v8::Isolate* isolate, const uint16_t* data, int length) {
-	return v8::String::NewFromTwoByte(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
-}
 inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
@@ -47,8 +44,6 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 	_REQUIRE_ARGUMENT(at, var, String, a string)
 #define REQUIRE_ARGUMENT_OBJECT(at, var)                                       \
 	_REQUIRE_ARGUMENT(at, var, Object, an object)
-#define REQUIRE_ARGUMENT_ARRAY(at, var)                                        \
-	_REQUIRE_ARGUMENT(at, var, Array, an array)
 #define REQUIRE_ARGUMENT_FUNCTION(at, var)                                     \
 	_REQUIRE_ARGUMENT(at, var, Function, a function)
 

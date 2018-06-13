@@ -1,5 +1,4 @@
 class Statement;
-class Transaction;
 class Database : public node::ObjectWrap {
 public:
 	
@@ -9,14 +8,11 @@ public:
 		else ThrowSqliteError(db_handle);
 	}
 	
-	// Allow Statements and Transactions to manage themselves when created and
-	// garbage collected.
-	inline void AddStatement(Statement* stmt) { extras->stmts.insert(extras->stmts.end(), stmt); }
-	inline void RemoveStatement(Statement* stmt) { extras->stmts.erase(stmt); }
-	inline void AddTransaction(Transaction* trans) { extras->transs.insert(extras->transs.end(), trans); }
-	inline void RemoveTransaction(Transaction* trans) { extras->transs.erase(trans); }
+	// Allow Statements to manage themselves when created and garbage collected.
+	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
+	inline void RemoveStatement(Statement* stmt) { stmts.erase(stmt); }
 	
-	// A view for Statements and Transactions to see and modify Database state.
+	// A view for Statements to see and modify Database state.
 	// The order of these fields must exactly match their actual order.
 	struct State {
 		const bool open;
@@ -26,54 +22,29 @@ public:
 		bool was_js_error;
 	};
 	
-	// A container for the handles necessary for doing transactions.
-	// The order of these fields must exactly match their actual order.
-	struct TransactionController {
-		sqlite3_stmt* const begin;
-		sqlite3_stmt* const commit;
-		sqlite3_stmt* const rollback;
-	}
-	
 	inline State* GetState() {
 		return reinterpret_cast<State*>(&open);
 	}
 	inline sqlite3* GetHandle() {
 		return db_handle;
 	}
-	inline TransactionController GetTransactionController() {
-		return { extras->begin, extras->commit, extras->rollback };
-	}
 	
 	~Database() {
 		CloseHandles();
-		delete extras;
 	}
 	
 private:
 	
-	explicit Database(DatabaseHandles* handles) : node::ObjectWrap(),
-		db_handle(handles->db_handle),
-		extras(new DatabaseExtras(handles)),
+	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
+		db_handle(_db_handle),
 		open(true),
 		busy(false),
 		pragma_mode(false),
 		safe_ints(false),
-		was_js_error(false) {
-		assert(handles->success);
+		was_js_error(false),
+		stmts() {
+		assert(_db_handle != NULL);
 	}
-	
-	// A class for holding values that are less often used.
-	class DatabaseExtras { friend class Database;
-		explicit DatabaseExtras(DatabaseHandles* handles)
-			: stmts(), transs(), begin(handles->begin), commit(handles->commit), rollback(handles->rollback) {
-			assert(handles->success);
-		}
-		std::set<Statement*, Query::Compare> stmts;
-		std::set<Transaction*, Query::Compare> transs;
-		sqlite3_stmt* const begin;
-		sqlite3_stmt* const commit;
-		sqlite3_stmt* const rollback;
-	};
 	
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
@@ -81,7 +52,6 @@ private:
 		t->SetClassName(StringFromUtf8(isolate, "Database", -1));
 		
 		NODE_SET_PROTOTYPE_METHOD(t, "prepare", JS_prepare);
-		NODE_SET_PROTOTYPE_METHOD(t, "transaction", JS_transaction);
 		NODE_SET_PROTOTYPE_METHOD(t, "exec", JS_exec);
 		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
 		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
@@ -105,19 +75,29 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		
-		DatabaseHandles handles(filename, readonly, must_exist);
-		if (!handles.success) return ThrowSqliteError(handles.db_handle);
+		sqlite3* db_handle;
+		v8::String::Utf8Value utf8(filename);
+		int mask = readonly ? SQLITE_OPEN_READONLY
+			: must_exist ? SQLITE_OPEN_READWRITE
+			: (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 		
-		assert(sqlite3_db_mutex(handles.db_handle) == NULL);
-		sqlite3_busy_timeout(handles.db_handle, 5000);
-		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
-		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
-		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_COLUMN, INT_MAX);
-		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
-		sqlite3_limit(handles.db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, BindMap::PARAMETER_MASK);
+		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
+			ThrowSqliteError(db_handle);
+			int status = sqlite3_close(db_handle);
+			assert(status == SQLITE_OK); ((void)status);
+			return;
+		}
+		
+		assert(sqlite3_db_mutex(db_handle) == NULL);
+		sqlite3_busy_timeout(db_handle, 5000);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, INT_MAX);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
+		sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 999);
 		
 		UseIsolateAndContext;
-		Database* db = new Database(&handles);
+		Database* db = new Database(db_handle);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
@@ -130,12 +110,6 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		v8::MaybeLocal<v8::Object> maybe_statement = Statement::New(OnlyIsolate, info.This(), source);
 		if (!maybe_statement.IsEmpty()) info.GetReturnValue().Set(maybe_statement.ToLocalChecked());
-	}
-	
-	NODE_METHOD(JS_transaction) {
-		REQUIRE_ARGUMENT_ARRAY(first, v8::Local<v8::Array> sources);
-		v8::MaybeLocal<v8::Object> maybe_transaction = Transaction::New(OnlyIsolate, info.This(), sources);
-		if (!maybe_transaction.IsEmpty()) info.GetReturnValue().Set(maybe_transaction.ToLocalChecked());
 	}
 	
 	NODE_METHOD(JS_exec) {
@@ -267,13 +241,8 @@ private:
 	void CloseHandles() {
 		if (open) {
 			open = false;
-			for (Statement* stmt : extras->stmts) stmt->CloseHandles();
-			for (Transaction* trans : extras->transs) trans->CloseHandles();
-			extras->stmts.clear();
-			extras->transs.clear();
-			sqlite3_finalize(extras->begin);
-			sqlite3_finalize(extras->commit);
-			sqlite3_finalize(extras->rollback);
+			for (Statement* stmt : stmts) stmt->CloseHandles();
+			stmts.clear();
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
@@ -297,10 +266,10 @@ private:
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 	
 	sqlite3* const db_handle;
-	DatabaseExtras* const extras;
 	bool open;
 	bool busy;
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
+	std::set<Statement*, Query::Compare> stmts;
 };

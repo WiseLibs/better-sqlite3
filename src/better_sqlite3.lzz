@@ -17,21 +17,16 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/macros.lzz"
 #insert "util/query-macros.lzz"
 #insert "util/constants.lzz"
-#insert "util/database-handles.lzz"
-#insert "util/transaction-handles.lzz"
-#insert "util/sql-string.lzz"
 #insert "util/bind-map.lzz"
 #insert "util/integer.lzz"
 #insert "objects/query.lzz"
 #insert "objects/database.lzz"
 #insert "objects/statement.lzz"
-#insert "objects/transaction.lzz"
 #insert "objects/statement-iterator.lzz"
 #insert "util/custom-function.lzz"
 #insert "util/custom-aggregate.lzz"
 #insert "util/data.lzz"
-#insert "binding/binder.lzz"
-#insert "binding/multi-binder.lzz"
+#insert "util/binder.lzz"
 
 void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
 	EasyIsolate;
@@ -40,6 +35,5 @@ void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Integer::Init(isolate, exports, module);
 	Database::Init(isolate, exports, module);
 	Statement::Init(isolate, exports, module);
-	Transaction::Init(isolate, exports, module);
 	StatementIterator::Init(isolate, exports, module);
 }

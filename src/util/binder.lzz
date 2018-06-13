@@ -48,7 +48,7 @@ protected:
 		success = false;
 	}
 	
-	virtual int NextAnonIndex() {
+	int NextAnonIndex() {
 		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
 		return anon_index;
 	}
@@ -100,7 +100,7 @@ protected:
 	// The number of successfully bound parameters is returned.
 	// If a named parameter is missing from the object, an error is thrown.
 	// This should only be invoked once per instance.
-	virtual int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
+	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
 		UseContext;
 		BindMap* bind_map = static_cast<Statement*>(query)->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();

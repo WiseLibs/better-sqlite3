@@ -1,55 +1,32 @@
-#define _QUERY_THROW(UNBIND_ACTION, ...)                                       \
+#define STATEMENT_THROW()                                                      \
 	db->ThrowDatabaseError();                                                  \
-	__VA_ARGS__;                                                               \
-	if (!bound) { UNBIND_ACTION; }                                             \
+	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
 
-#define _QUERY_RETURN(return_value, UNBIND_ACTION)                             \
+#define STATEMENT_RETURN(return_value)                                         \
 	info.GetReturnValue().Set(return_value);                                   \
-	if (!bound) { UNBIND_ACTION; }                                             \
+	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
 
-#define _QUERY_START(obj, object_name, BIND_ACTION)                            \
-	Database* db = obj->db;                                                    \
-	Database::State* db_state = db->GetState();                                \
-	REQUIRE_DATABASE_OPEN(db_state);                                           \
-	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
-	const bool bound = obj->bound;                                             \
-	if (!bound) {                                                              \
-		BIND_ACTION;                                                           \
-	} else if (info.Length() > 0)                                              \
-		return ThrowTypeError("This "#object_name" already has bound parameters")
-
-
-#define _STATEMENT_UNBIND(handle) sqlite3_clear_bindings(handle)
-#define STATEMENT_THROW() _QUERY_THROW(_STATEMENT_UNBIND(handle))
-#define STATEMENT_RETURN(return_value) _QUERY_RETURN(return_value, _STATEMENT_UNBIND(handle))
 #define STATEMENT_BIND(handle)                                                 \
 	Binder binder(handle);                                                     \
 	if (!binder.Bind(info, info.Length(), stmt)) {                             \
-		_STATEMENT_UNBIND(handle); return;                                     \
+		sqlite3_clear_bindings(handle); return;                                \
 	} ((void)0)
+
 #define STATEMENT_START(RETURNS_DATA_CHECK)                                    \
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
-	_QUERY_START(stmt, statement, STATEMENT_BIND(handle))
-
-
-#define _TRANSACTION_UNBIND(handles, handle_count)                             \
-	for (int i=0; i<handle_count; ++i) sqlite3_clear_bindings(handles[i])
-#define TRANSACTION_THROW(ROLLBACK_ACTION) _QUERY_THROW(_TRANSACTION_UNBIND(handles, handle_count), ROLLBACK_ACTION)
-#define TRANSACTION_RETURN(return_value) _QUERY_RETURN(return_value, _TRANSACTION_UNBIND(handles, handle_count))
-#define TRANSACTION_BIND(handles, handle_count)                                \
-	MultiBinder binder(handles, handle_count);                                 \
-	if (!binder.Bind(info, info.Length(), trans)) {                            \
-		_TRANSACTION_UNBIND(handles, handle_count); return;                    \
-	} ((void)0)
-#define TRANSACTION_START()                                                    \
-	Transaction* trans = Unwrap<Transaction>(info.This());                     \
-	sqlite3_stmt** handles = trans->handles;                                   \
-	const int handle_count = trans->handle_count;                              \
-	_QUERY_START(trans, transaction, TRANSACTION_BIND(handles, handle_count))
+	Database* db = stmt->db;                                                   \
+	Database::State* db_state = db->GetState();                                \
+	REQUIRE_DATABASE_OPEN(db_state);                                           \
+	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
+	const bool bound = stmt->bound;                                            \
+	if (!bound) {                                                              \
+		STATEMENT_BIND(handle);                                                \
+	} else if (info.Length() > 0)                                              \
+		return ThrowTypeError("This statement already has bound parameters")
 
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
