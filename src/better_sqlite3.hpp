@@ -282,29 +282,31 @@ public:
 #line 4 "./src/objects/query.lzz"
   public:
 #line 5 "./src/objects/query.lzz"
-    bool operator () (Query const * a, Query const * b) const;
+    template <typename T>
+#line 6 "./src/objects/query.lzz"
+    bool operator () (T const * const a, T const * const b) const;
   };
-#line 10 "./src/objects/query.lzz"
+#line 11 "./src/objects/query.lzz"
 protected:
-#line 13 "./src/objects/query.lzz"
+#line 14 "./src/objects/query.lzz"
   class QueryExtras
   {
-#line 13 "./src/objects/query.lzz"
-    friend class Query;
 #line 14 "./src/objects/query.lzz"
-    explicit QueryExtras (sqlite3_uint64 _id);
+    friend class Query;
 #line 15 "./src/objects/query.lzz"
-    BindMap bind_map;
+    explicit QueryExtras (sqlite3_uint64 _id);
 #line 16 "./src/objects/query.lzz"
+    BindMap bind_map;
+#line 17 "./src/objects/query.lzz"
     sqlite3_uint64 const id;
   };
-#line 20 "./src/objects/query.lzz"
-  explicit Query (sqlite3_uint64 id);
 #line 21 "./src/objects/query.lzz"
+  explicit Query (sqlite3_uint64 id);
+#line 22 "./src/objects/query.lzz"
   ~ Query ();
-#line 23 "./src/objects/query.lzz"
+#line 24 "./src/objects/query.lzz"
   BindMap * BindMapPointer ();
-#line 27 "./src/objects/query.lzz"
+#line 28 "./src/objects/query.lzz"
   QueryExtras * const extras;
 };
 #line 1 "./src/objects/database.lzz"
@@ -925,9 +927,17 @@ LZZ_INLINE int BindMap::GetTransactionIndex (int index)
                                                          {
                 return index >> PARAMETER_BITS;
 }
-#line 23 "./src/objects/query.lzz"
+#line 5 "./src/objects/query.lzz"
+template <typename T>
+#line 6 "./src/objects/query.lzz"
+bool Query::Compare::operator () (T const * const a, T const * const b) const
+#line 6 "./src/objects/query.lzz"
+                                                                             {
+                        return a->extras->id < b->extras->id;
+}
+#line 24 "./src/objects/query.lzz"
 LZZ_INLINE BindMap * Query::BindMapPointer ()
-#line 23 "./src/objects/query.lzz"
+#line 24 "./src/objects/query.lzz"
                                          {
                 return &extras->bind_map;
 }

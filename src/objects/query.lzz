@@ -2,7 +2,8 @@ class Query {
 public:
 	
 	class Compare { public:
-		bool operator() (const Query* a, const Query* b) const {
+		template<class T>
+		bool operator() (T const * const a, T const * const b) const {
 			return a->extras->id < b->extras->id;
 		}
 	};
