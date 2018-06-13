@@ -1,5 +1,6 @@
 The following [compilation options](https://www.sqlite.org/compile.html) are used in this distribution of sqlite3:
 - SQLITE_OMIT_DEPRECATED
+- SQLITE_ENABLE_FTS4
 - SQLITE_ENABLE_FTS5
 - SQLITE_ENABLE_JSON1
 - SQLITE_ENABLE_RTREE
