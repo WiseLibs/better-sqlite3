@@ -55,32 +55,33 @@
         {
           'action_name': 'unpack_sqlite_dep',
           'inputs': [
-            './sqlite-autoconf-<@(sqlite_version).tar.gz'
+            './sqlite3-amalg.tar.gz'
           ],
           'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c'
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/sqlite3.c',
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/sqlite3.h'
           ],
-          'action': ['python','./extract.py','./sqlite-autoconf-<@(sqlite_version).tar.gz','<(SHARED_INTERMEDIATE_DIR)']
+          'action': ['python','./extract.py','<@(_inputs)','<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/']
         }
       ],
       'direct_dependent_settings': {
         'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/',
+          '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/',
         ]
       },
     },
     {
       'target_name': 'sqlite3',
       'type': 'static_library',
-      'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/' ],
+      'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/' ],
       'dependencies': [
         'action_before_build'
       ],
       'sources': [
-        '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c'
+        '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/sqlite3.c'
       ],
       'direct_dependent_settings': {
-        'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/' ]
+        'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlite3-amalg/' ]
       },
       'cflags_cc': [
         '-Wno-unused-value',
