@@ -38,5 +38,3 @@ node_modules
 lib/binding
 .DS_Store
 temp/
-src/*.cpp
-src/*.hpp

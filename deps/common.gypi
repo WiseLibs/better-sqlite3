@@ -1,6 +1,6 @@
 {
   'variables': {
-    'sqlite_version%': '3210000'
+    'sqlite_version%': '3240000'
   },
   'target_defaults': {
     'default_configuration': 'Release',
