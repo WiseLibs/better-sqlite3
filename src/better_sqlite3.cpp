@@ -304,27 +304,21 @@ v8::Persistent <v8::Function> Integer::constructor;
 v8::Persistent <v8::Function> Integer::isInstance;
 #line 43 "./src/util/integer.lzz"
 Integer::ConstructorController * Integer::controller;
-#line 5 "./src/objects/query.lzz"
-bool Query::Compare::operator () (Query const * a, Query const * b) const
-#line 5 "./src/objects/query.lzz"
-                                                                       {
-                        return a->extras->id < b->extras->id;
-}
-#line 14 "./src/objects/query.lzz"
+#line 15 "./src/objects/query.lzz"
 Query::QueryExtras::QueryExtras (sqlite3_uint64 _id)
-#line 14 "./src/objects/query.lzz"
+#line 15 "./src/objects/query.lzz"
   : bind_map (0), id (_id)
-#line 14 "./src/objects/query.lzz"
+#line 15 "./src/objects/query.lzz"
                                                                                 {}
-#line 20 "./src/objects/query.lzz"
+#line 21 "./src/objects/query.lzz"
 Query::Query (sqlite3_uint64 id)
-#line 20 "./src/objects/query.lzz"
+#line 21 "./src/objects/query.lzz"
   : extras (new QueryExtras(id))
-#line 20 "./src/objects/query.lzz"
+#line 21 "./src/objects/query.lzz"
                                                                         {}
-#line 21 "./src/objects/query.lzz"
+#line 22 "./src/objects/query.lzz"
 Query::~ Query ()
-#line 21 "./src/objects/query.lzz"
+#line 22 "./src/objects/query.lzz"
                  { delete extras;
 }
 #line 6 "./src/objects/database.lzz"
