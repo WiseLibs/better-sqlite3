@@ -6,11 +6,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 3. If the error message said something about python, [install python 2.7](https://www.python.org/downloads/) (not 3) and then run `npm config delete python`, and [make sure python is in your PATH variable](https://github.com/JoshuaWise/better-sqlite3/issues/64#issuecomment-327029706)
 
-4. If the error message included `exit code 3221225506`, this package might be triggering a false positive in your anti-virus software
-
 5. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
-
-6. If nothing else worked, try adding `LZZ_COMPAT=1` to your environment variables (unless you're using Windows)
 
 
 If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
