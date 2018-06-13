@@ -1,3 +1,4 @@
+'use strict';
 const { expect } = require('chai');
 const Database = require('../.');
 const db = new Database(require('./util').next());

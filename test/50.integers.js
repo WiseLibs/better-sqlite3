@@ -1,3 +1,4 @@
+'use strict';
 const { expect } = require('chai');
 const Integer = require('integer');
 const Database = require('../.');

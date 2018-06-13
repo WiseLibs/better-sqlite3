@@ -1,3 +1,4 @@
+'use strict';
 const { expect } = require('chai');
 const { SqliteError } = require('../.');
 
