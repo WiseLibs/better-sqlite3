@@ -7,10 +7,15 @@ require('../runner')((benchmark, dbs, ctx) => {
 	const data = namedData(ctx.table, ctx.columns);
 	const dataWithPrefix = namedData(ctx.table, ctx.columns, true);
 	
-	const betterSqlite3Transaction = betterSqlite3.transaction(new Array(100).fill(SQL));
+	const betterSqlite3Insert = betterSqlite3.prepare(SQL);
+	const betterSqlite3Transaction = betterSqlite3.transaction((obj) => {
+		for (let i = 0; i < 100; ++i) {
+			betterSqlite3Insert.run(obj);
+		}
+	});
 	
 	benchmark.add('better-sqlite3', () => {
-		betterSqlite3Transaction.run(data);
+		betterSqlite3Transaction(data);
 	});
 	benchmark.add('node-sqlite3', (deferred) => {
 		let count = 0;
