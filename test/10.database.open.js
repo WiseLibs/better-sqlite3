@@ -21,8 +21,14 @@ describe('new Database()', function () {
 		expect(() => new Database(`file: ${util.next()}`)).to.throw(TypeError);
 		expect(() => new Database(`file: ${util.next()}?mode=memory&cache=shared`)).to.throw(TypeError);
 	});
-	it('should not allow ":memory:" databases', function () {
-		expect(() => new Database(':memory:')).to.throw(TypeError);
+	it('should allow private in-memory databases with ":memory:"', function () {
+		// See additional tests in `test/16.database.private-memory.js`.
+		const db = new Database(':memory:');
+		expect(db.name).to.equal(':memory:');
+		expect(db.memory).to.be.false;  // not a shared-memory database
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
 	});
 	it('should allow disk-based databases to be created', function () {
 		expect(() => fs.accessSync(util.next())).to.throw(Error);
