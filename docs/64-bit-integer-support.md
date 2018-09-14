@@ -16,7 +16,7 @@ bigInteger.toNumber(); // throws a RangeError, cannot be represented in JavaScri
 
 # Binding Integers
 
-`Integers` can bind to [`Statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`Transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) just like regular numbers. You can also return `Integers` in [registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this).
+`Integers` can bind to [`Statements`](./API.md#class-statement) and [`Transactions`](./API.md#class-transaction) just like regular numbers. You can also return `Integers` in [registered functions](./API.md#registeroptions-function---this).
 
 ```js
 db.prepare("SELECT * FROM users WHERE id=?").get(Integer('1152735103331642317'));
@@ -25,7 +25,7 @@ db.prepare("INSERT INTO big_numbers VALUES (?)").run(Integer('115273510333164231
 
 # Getting Integers from the database
 
-By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#runbindparameters---object) methods). You can change this default as you please:
+By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertROWID` property returned by the [`run()`](./API.md#runbindparameters---object) methods). You can change this default as you please:
 
 ```js
 db.defaultSafeIntegers(); // Integers by default
@@ -33,7 +33,7 @@ db.defaultSafeIntegers(true); // Integers by default
 db.defaultSafeIntegers(false); // JavaScript numbers by default
 ```
 
-Additionally, you can override the default for individual [`statements`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-statement) and [`transactions`](https://github.com/JoshuaWise/better-sqlite3/wiki/API#class-transaction) like so:
+Additionally, you can override the default for individual [`statements`](./API.md#class-statement) and [`transactions`](./API.md#class-transaction) like so:
 
 ```js
 var stmt = db.prepare(SQL);
@@ -45,7 +45,7 @@ stmt.safeIntegers(false); // Safe integers OFF
 // You can do the same thing with Transaction objects.
 ```
 
-[Registered functions](https://github.com/JoshuaWise/better-sqlite3/wiki/API#registeroptions-function---this) can also receive `Integers` as arguments. You can override the database's default setting like so:
+[Registered functions](./API.md#registeroptions-function---this) can also receive `Integers` as arguments. You can override the database's default setting like so:
 
 ```js
 db.register({safeIntegers: true}, function isInt(value) {
