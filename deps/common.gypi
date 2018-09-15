@@ -1,6 +1,6 @@
 {
   'variables': {
-    'sqlite_version%': '3240000'
+    'sqlite_version%': '3250000',
   },
   'target_defaults': {
     'default_configuration': 'Release',
@@ -8,50 +8,50 @@
     'configurations': {
       'Debug': {
         'defines!': [
-          'NDEBUG'
+          'NDEBUG',
         ],
         'cflags_cc!': [
           '-O3',
           '-Os',
-          '-DNDEBUG'
+          '-DNDEBUG',
         ],
         'xcode_settings': {
           'MACOSX_DEPLOYMENT_TARGET': '10.7',
           'OTHER_CPLUSPLUSFLAGS!': [
             '-O3',
             '-Os',
-            '-DDEBUG'
+            '-DDEBUG',
           ],
           'GCC_OPTIMIZATION_LEVEL': '0',
-          'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES'
+          'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES',
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'ExceptionHandling': 1
-          }
-        }
+            'ExceptionHandling': 1,
+          },
+        },
       },
       'Release': {
         'defines': [
-          'NDEBUG'
+          'NDEBUG',
         ],
         'xcode_settings': {
           'MACOSX_DEPLOYMENT_TARGET': '10.7',
           'OTHER_CPLUSPLUSFLAGS!': [
             '-Os',
-            '-O2'
+            '-O2',
           ],
           'GCC_OPTIMIZATION_LEVEL': '3',
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'NO',
           'DEAD_CODE_STRIPPING': 'YES',
-          'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES'
+          'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'ExceptionHandling': 1
-          }
-        }
-      }
-    }
-  }
+            'ExceptionHandling': 1,
+          },
+        },
+      },
+    },
+  },
 }
