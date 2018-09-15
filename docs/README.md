@@ -49,10 +49,10 @@ In most cases, if you're attempting something that cannot be reasonably accompli
 If you have a performance problem, the most likely causes are inefficient queries, improper indexing, or a lack of [WAL mode](https://github.com/JoshuaWise/better-sqlite3/wiki/Performance)—not `better-sqlite3` itself. However, there are some cases where `better-sqlite3` would not be appropriate.
 
 - If you expect a high volume of concurrent reads each returning hundreds of megabytes of data (i.e., videos)
-- If you expect a high volume of concurrent writes (i.e., for a social media site)
+- If you expect a high volume of concurrent writes (i.e., a social media site)
 - If your database's size is near the terabyte range
 
-If you fall into the first category listed above, then perhaps [`node-sqlite3`](https://github.com/mapbox/node-sqlite3) would be more appropriate. On the other hand, if you fall into the second or third categories (or indeed the first), then you should probably use a full-fledged RDBMS such as [PostgreSQL](https://www.postgresql.org/).
+For these situations, you should probably use a full-fledged RDBMS such as [PostgreSQL](https://www.postgresql.org/).
 
 # Documentation
 
