@@ -31,8 +31,6 @@ const db = new Database('foobar.db', { readonly: true });
 
 ### .prepare(*string*) -> *Statement*
 
-TODO: support trailing whitespace
-
 Creates a new prepared [`Statement`](#class-statement) from the given SQL string.
 
 ```js
@@ -87,6 +85,9 @@ setInterval(() => db.checkpoint(), 30000).unref();
 TODO: support window functions
 TODO: options at the end?
 TODO: new docs
+
+TODO: implement custom collating sequences
+TODO: implement online backup API
 
 Registers the given `function` so that it can be used by SQL statements.
 
@@ -143,6 +144,8 @@ db.exec(migration);
 ### .close() -> *this*
 
 Closes the database connection. After invoking this method, no statements can be created or executed.
+
+TODO: use AtExit c++ hook
 
 ```js
 process.on('exit', () => {
@@ -256,6 +259,8 @@ for (const cat of stmt.iterate()) {
 Causes the prepared statement to only return the value of the first column of any rows that it retrieves, rather than the entire row object.
 
 You can toggle this on/off as you please:
+
+TODO: implement setting for columns namespaced by table
 
 ```js
 const stmt = db.prepare(SQL);

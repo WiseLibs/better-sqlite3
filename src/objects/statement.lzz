@@ -88,18 +88,21 @@ private:
 		
 		UseIsolate;
 		v8::String::Value sql(isolate, source);
-		const void* tail;
+		const uint16_t* tail;
 		sqlite3_stmt* handle;
 		
-		if (sqlite3_prepare16_v2(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, &handle, &tail) != SQLITE_OK) {
+		if (sqlite3_prepare16_v3(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, SQLITE_PREPARE_PERSISTENT, &handle, reinterpret_cast<const void**>(&tail)) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
-		if (tail != (const void*)(*sql + sql.length())) {
-			sqlite3_finalize(handle);
-			return ThrowRangeError("The supplied SQL string contains more than one statement");
+		for (uint16_t const * const end = *sql + sql.length(); tail < end; ++tail) {
+			const uint16_t c = *tail;
+			if (c != '\n' && c != '\t' && c != ' ') {
+				sqlite3_finalize(handle);
+				return ThrowRangeError("The supplied SQL string contains more than one statement");
+			}
 		}
 		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
 		
