@@ -62,6 +62,8 @@
       'defines': [
         'SQLITE_THREADSAFE=0',
         'SQLITE_DEFAULT_MEMSTATUS=0',
+        # TODO: determine if this would be a severe enough breaking change to avoid
+        # 'SQLITE_LIKE_DOESNT_MATCH_BLOBS',
         'SQLITE_OMIT_DEPRECATED',
         'SQLITE_OMIT_TRACE',
         'SQLITE_OMIT_DECLTYPE',
@@ -78,11 +80,20 @@
         'SQLITE_MAX_LENGTH=2147483647',
         'SQLITE_MAX_SQL_LENGTH=1073741824',
         'SQLITE_USE_URI=1',
-        'SQLITE_ENABLE_STAT4',
+        # TODO: test if these improve performance (note, these also require runtime configuaration)
+        # 'SQLITE_ENABLE_MEMSYS3',
+        # 'SQLITE_ENABLE_MEMSYS5',
+        # TODO: test ANALYZE with stat4 enabled
+        # 'SQLITE_ENABLE_STAT4',
+        # TODO: evaluate the extra compilation steps necessary for these features
+        # 'SQLITE_ENABLE_UPDATE_DELETE_LIMIT',
+        # 'SQLITE_ENABLE_ICU',
         'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
         'SQLITE_ENABLE_RTREE',
+        # TODO: determine if the emitted warnings are safe or not
+        # 'SQLITE_ENABLE_GEOPOLY',
         'SQLITE_INTROSPECTION_PRAGMAS',
         'SQLITE_SOUNDEX',
       ],
