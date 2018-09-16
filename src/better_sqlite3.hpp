@@ -153,34 +153,34 @@ class Integer : public node::ObjectWrap
 #line 2 "./src/util/integer.lzz"
 public:
 #line 4 "./src/util/integer.lzz"
-  static bool HasInstance (v8::Local <v8::Value> value);
-#line 11 "./src/util/integer.lzz"
+  static bool HasInstance (v8::Isolate * isolate, v8::Local <v8::Value> value);
+#line 10 "./src/util/integer.lzz"
   static sqlite3_int64 GetValue (v8::Local <v8::Object> integer);
-#line 15 "./src/util/integer.lzz"
+#line 14 "./src/util/integer.lzz"
   static v8::Local <v8::Value> New (v8::Isolate * isolate, sqlite3_int64 value, bool safe_ints);
-#line 23 "./src/util/integer.lzz"
+#line 22 "./src/util/integer.lzz"
 private:
-#line 24 "./src/util/integer.lzz"
+#line 23 "./src/util/integer.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 24 "./src/util/integer.lzz"
+#line 23 "./src/util/integer.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 34 "./src/util/integer.lzz"
+#line 33 "./src/util/integer.lzz"
   explicit Integer (char _);
-#line 36 "./src/util/integer.lzz"
+#line 35 "./src/util/integer.lzz"
   struct ConstructorController
   {
-#line 37 "./src/util/integer.lzz"
+#line 36 "./src/util/integer.lzz"
     bool privileges;
-#line 38 "./src/util/integer.lzz"
+#line 37 "./src/util/integer.lzz"
     int64_t value;
   };
-#line 41 "./src/util/integer.lzz"
+#line 40 "./src/util/integer.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 42 "./src/util/integer.lzz"
+#line 41 "./src/util/integer.lzz"
   static v8::Persistent <v8::Function> isInstance;
-#line 43 "./src/util/integer.lzz"
+#line 42 "./src/util/integer.lzz"
   static Integer::ConstructorController * controller;
-#line 45 "./src/util/integer.lzz"
+#line 44 "./src/util/integer.lzz"
   int64_t value;
 };
 #line 1 "./src/objects/query.lzz"
@@ -264,51 +264,51 @@ private:
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 70 "./src/objects/database.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 109 "./src/objects/database.lzz"
+#line 110 "./src/objects/database.lzz"
   static void JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 115 "./src/objects/database.lzz"
+#line 116 "./src/objects/database.lzz"
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 127 "./src/objects/database.lzz"
+#line 128 "./src/objects/database.lzz"
   static void JS_pragma (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 131 "./src/objects/database.lzz"
+#line 132 "./src/objects/database.lzz"
   static void JS_checkpoint (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 173 "./src/objects/database.lzz"
+#line 174 "./src/objects/database.lzz"
   static void JS_register (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 199 "./src/objects/database.lzz"
+#line 201 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 214 "./src/objects/database.lzz"
+#line 216 "./src/objects/database.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 223 "./src/objects/database.lzz"
+#line 225 "./src/objects/database.lzz"
   static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 231 "./src/objects/database.lzz"
+#line 233 "./src/objects/database.lzz"
   static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 235 "./src/objects/database.lzz"
+#line 237 "./src/objects/database.lzz"
   static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 241 "./src/objects/database.lzz"
+#line 243 "./src/objects/database.lzz"
   void CloseHandles ();
-#line 251 "./src/objects/database.lzz"
+#line 253 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle);
-#line 255 "./src/objects/database.lzz"
+#line 257 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle, char const * message, int code);
-#line 264 "./src/objects/database.lzz"
-  static v8::Persistent <v8::Function> SqliteError;
-#line 265 "./src/objects/database.lzz"
-  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 #line 266 "./src/objects/database.lzz"
-  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
+  static v8::Persistent <v8::Function> SqliteError;
+#line 267 "./src/objects/database.lzz"
+  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 #line 268 "./src/objects/database.lzz"
-  sqlite3 * const db_handle;
-#line 269 "./src/objects/database.lzz"
-  bool open;
+  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 #line 270 "./src/objects/database.lzz"
-  bool busy;
+  sqlite3 * const db_handle;
 #line 271 "./src/objects/database.lzz"
-  bool pragma_mode;
+  bool open;
 #line 272 "./src/objects/database.lzz"
-  bool safe_ints;
+  bool busy;
 #line 273 "./src/objects/database.lzz"
-  bool was_js_error;
+  bool pragma_mode;
 #line 274 "./src/objects/database.lzz"
+  bool safe_ints;
+#line 275 "./src/objects/database.lzz"
+  bool was_js_error;
+#line 276 "./src/objects/database.lzz"
   std::set <Statement*, Query::Compare> stmts;
 };
 #line 1 "./src/objects/statement.lzz"
@@ -517,41 +517,41 @@ private:
 #line 77 "./src/util/custom-aggregate.lzz"
   State state;
 };
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 55 "./src/util/data.lzz"
+#line 56 "./src/util/data.lzz"
   v8::Local <v8::Value> GetValueJS (v8::Isolate * isolate, sqlite3_stmt * handle, int column, bool safe_ints);
 }
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 59 "./src/util/data.lzz"
+#line 60 "./src/util/data.lzz"
   v8::Local <v8::Value> GetValueJS (v8::Isolate * isolate, sqlite3_value * value, bool safe_ints);
 }
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 63 "./src/util/data.lzz"
+#line 64 "./src/util/data.lzz"
   v8::Local <v8::Value> GetRowJS (v8::Isolate * isolate, v8::Local <v8::Context> ctx, sqlite3_stmt * handle, bool safe_ints);
 }
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 74 "./src/util/data.lzz"
+#line 75 "./src/util/data.lzz"
   v8::Local <v8::Value> * GetArgumentsJS (v8::Isolate * isolate, sqlite3_value * * values, int argument_count, bool safe_ints);
 }
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 85 "./src/util/data.lzz"
-  int BindValueFromJS (sqlite3_stmt * handle, int index, v8::Local <v8::Value> value);
+#line 86 "./src/util/data.lzz"
+  int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value);
 }
-#line 53 "./src/util/data.lzz"
+#line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 90 "./src/util/data.lzz"
-  void ResultValueFromJS (sqlite3_context * ctx, v8::Local <v8::Value> value, CustomFunction * function);
+#line 91 "./src/util/data.lzz"
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * ctx, v8::Local <v8::Value> value, CustomFunction * function);
 }
 #line 1 "./src/util/binder.lzz"
 class Binder
@@ -563,7 +563,7 @@ public:
 #line 11 "./src/util/binder.lzz"
   bool Bind (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * query);
 #line 28 "./src/util/binder.lzz"
-protected:
+private:
 #line 29 "./src/util/binder.lzz"
   struct Result
   {
@@ -579,20 +579,20 @@ protected:
 #line 51 "./src/util/binder.lzz"
   int NextAnonIndex ();
 #line 57 "./src/util/binder.lzz"
-  void BindValue (v8::Local <v8::Value> value, int index);
+  void BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int index);
 #line 78 "./src/util/binder.lzz"
-  int BindArray (v8::Local <v8::Context> ctx, v8::Local <v8::Array> arr);
-#line 103 "./src/util/binder.lzz"
+  int BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr);
+#line 104 "./src/util/binder.lzz"
   int BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Query * query);
-#line 147 "./src/util/binder.lzz"
+#line 148 "./src/util/binder.lzz"
   Result BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Query * query);
-#line 184 "./src/util/binder.lzz"
-  sqlite3_stmt * handle;
 #line 185 "./src/util/binder.lzz"
-  int param_count;
+  sqlite3_stmt * handle;
 #line 186 "./src/util/binder.lzz"
-  int anon_index;
+  int param_count;
 #line 187 "./src/util/binder.lzz"
+  int anon_index;
+#line 188 "./src/util/binder.lzz"
   bool success;
 };
 #line 31 "./src/better_sqlite3.lzz"

@@ -1,8 +1,7 @@
 class Integer : public node::ObjectWrap {
 public:
 	
-	static bool HasInstance(v8::Local<v8::Value> value) {
-		EasyIsolate; // This is deemed okay since it happens so rarely.
+	static bool HasInstance(v8::Isolate* isolate, v8::Local<v8::Value> value) {
 		return v8::Local<v8::Boolean>::Cast(
 			v8::Local<v8::Function>::New(isolate, isInstance)->Call(OnlyContext, v8::Undefined(isolate), 1, &value).ToLocalChecked()
 		)->Value();

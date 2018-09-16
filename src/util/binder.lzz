@@ -25,7 +25,7 @@ public:
 		return success;
 	}
 	
-protected:
+private:
 	struct Result {
 		int count;
 		bool bound_object;
@@ -54,8 +54,8 @@ protected:
 	}
 	
 	// Binds the value at the given index or throws an appropriate error.
-	void BindValue(v8::Local<v8::Value> value, int index) {
-		int status = Data::BindValueFromJS(handle, index, value);
+	void BindValue(v8::Isolate* isolate, v8::Local<v8::Value> value, int index) {
+		int status = Data::BindValueFromJS(isolate, handle, index, value);
 		if (status != SQLITE_OK) {
 			switch (status) {
 				case -1:
@@ -75,7 +75,8 @@ protected:
 	
 	// Binds each value in the array or throws an appropriate error.
 	// The number of successfully bound parameters is returned.
-	int BindArray(v8::Local<v8::Context> ctx, v8::Local<v8::Array> arr) {
+	int BindArray(v8::Isolate* isolate, v8::Local<v8::Array> arr) {
+		UseContext;
 		uint32_t length = arr->Length();
 		if (length > INT_MAX) {
 			Fail(ThrowRangeError, "Too many parameter values were provided");
@@ -88,7 +89,7 @@ protected:
 				Fail(NULL, NULL);
 				return i;
 			}
-			BindValue(maybeValue.ToLocalChecked(), NextAnonIndex());
+			BindValue(isolate, maybeValue.ToLocalChecked(), NextAnonIndex());
 			if (!success) {
 				return i;
 			}
@@ -116,7 +117,7 @@ protected:
 				return i;
 			}
 			if (!has_property.FromJust()) {
-				v8::String::Utf8Value param_name(key);
+				v8::String::Utf8Value param_name(isolate, key);
 				Fail(ThrowRangeError, CONCAT("Missing named parameter \"", *param_name, "\"").c_str());
 				return i;
 			}
@@ -128,7 +129,7 @@ protected:
 				return i;
 			}
 			
-			BindValue(maybeValue.ToLocalChecked(), pairs[i].GetIndex());
+			BindValue(isolate, maybeValue.ToLocalChecked(), pairs[i].GetIndex());
 			if (!success) {
 				return i;
 			}
@@ -145,6 +146,7 @@ protected:
 	// The return value is a struct indicating how many parameters were successfully bound
 	// and whether or not it tried to bind an object.
 	Result BindArgs(NODE_ARGUMENTS info, int argc, Query* query) {
+		UseIsolate;
 		int count = 0;
 		bool bound_object = false;
 		
@@ -152,13 +154,12 @@ protected:
 			v8::Local<v8::Value> arg = info[i];
 			
 			if (arg->IsArray()) {
-				count += BindArray(OnlyIsolateAndContext, v8::Local<v8::Array>::Cast(arg));
+				count += BindArray(isolate, v8::Local<v8::Array>::Cast(arg));
 				if (!success) break;
 				continue;
 			}
 			
 			if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
-				UseIsolate;
 				v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 				if (IsPlainObject(isolate, obj)) {
 					if (bound_object) {
@@ -173,7 +174,7 @@ protected:
 				}
 			}
 			
-			BindValue(arg, NextAnonIndex());
+			BindValue(isolate, arg, NextAnonIndex());
 			if (!success) break;
 			count += 1;
 		}

@@ -146,7 +146,6 @@ Closes the database connection. After invoking this method, no statements can be
 
 ```js
 process.on('exit', () => {
-  db.checkpoint();
   db.close();
 });
 ```
