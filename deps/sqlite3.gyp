@@ -4,12 +4,10 @@
     'configurations': {
       'Debug': {
         'cflags': [
-          '-Wno-sign-compare',
           '-Wno-unused-function',
         ],
         'xcode_settings': {
           'WARNING_CFLAGS': [
-            '-Wno-sign-compare',
             '-Wno-unused-function',
           ],
         },
@@ -51,26 +49,42 @@
       },
       'cflags': [
         '-std=c99',
+        '-Wno-sign-compare',
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
           '-std=c99',
         ],
+        'WARNING_CFLAGS': [
+          '-Wno-sign-compare',
+        ],
       },
       'defines': [
         'SQLITE_THREADSAFE=0',
         'SQLITE_DEFAULT_MEMSTATUS=0',
-        'SQLITE_OMIT_DECLTYPE',
         'SQLITE_OMIT_DEPRECATED',
+        'SQLITE_OMIT_TRACE',
+        'SQLITE_OMIT_DECLTYPE',
+        'SQLITE_OMIT_COMPLETE',
+        'SQLITE_OMIT_GET_TABLE',
+        'SQLITE_OMIT_DESERIALIZE',
+        'SQLITE_OMIT_TCL_VARIABLE',
+        'SQLITE_OMIT_AUTHORIZATION',
         'SQLITE_OMIT_PROGRESS_CALLBACK',
+        'SQLITE_DEFAULT_CACHE_SIZE=-16000',
+        'SQLITE_DEFAULT_FOREIGN_KEYS=1',
+        'SQLITE_DEFAULT_WAL_SYNCHRONOUS=1',
+        'SQLITE_MAX_ATTACHED=125',
+        'SQLITE_MAX_LENGTH=2147483647',
+        'SQLITE_MAX_SQL_LENGTH=1073741824',
+        'SQLITE_USE_URI=1',
+        'SQLITE_ENABLE_STAT4',
         'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
         'SQLITE_ENABLE_RTREE',
-        'SQLITE_USE_URI=1',
-        'SQLITE_DEFAULT_CACHE_SIZE=-16000',
-        'SQLITE_DEFAULT_FOREIGN_KEYS=1',
-        'SQLITE_DEFAULT_WAL_SYNCHRONOUS=1',
+        'SQLITE_INTROSPECTION_PRAGMAS',
+        'SQLITE_SOUNDEX',
       ],
     },
   ],

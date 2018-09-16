@@ -93,9 +93,6 @@ private:
 		sqlite3_busy_timeout(db_handle, 5000);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
-		sqlite3_limit(db_handle, SQLITE_LIMIT_COLUMN, INT_MAX);
-		sqlite3_limit(db_handle, SQLITE_LIMIT_COMPOUND_SELECT, INT_MAX);
-		sqlite3_limit(db_handle, SQLITE_LIMIT_VARIABLE_NUMBER, 999);
 		
 		UseContext;
 		Database* db = new Database(db_handle);

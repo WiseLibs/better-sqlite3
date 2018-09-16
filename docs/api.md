@@ -15,6 +15,12 @@
 
 ### new Database(*path*, [*options*])
 
+TODO: test ANALYZE with stat4 enabled during compilation
+
+TODO: determine if the warnings in SQLITE_ENABLE_GEOPOLY can be ignored
+
+TODO: support :memory:
+
 Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
 - If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
