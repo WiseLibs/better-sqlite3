@@ -86,7 +86,8 @@ private:
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 		
-		v8::String::Value sql(source);
+		UseIsolate;
+		v8::String::Value sql(isolate, source);
 		const void* tail;
 		sqlite3_stmt* handle;
 		
@@ -102,7 +103,7 @@ private:
 		}
 		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
 		
-		UseIsolateAndContext;
+		UseContext;
 		Statement* stmt = new Statement(db, handle, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::source, source);

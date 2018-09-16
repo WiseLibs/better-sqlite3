@@ -336,43 +336,43 @@ private:
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 78 "./src/objects/statement.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 114 "./src/objects/statement.lzz"
+#line 115 "./src/objects/statement.lzz"
   static void JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 132 "./src/objects/statement.lzz"
+#line 133 "./src/objects/statement.lzz"
   static void JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 150 "./src/objects/statement.lzz"
+#line 151 "./src/objects/statement.lzz"
   static void JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 174 "./src/objects/statement.lzz"
+#line 175 "./src/objects/statement.lzz"
   static void JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 179 "./src/objects/statement.lzz"
+#line 180 "./src/objects/statement.lzz"
   static void JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 189 "./src/objects/statement.lzz"
+#line 190 "./src/objects/statement.lzz"
   static void JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 198 "./src/objects/statement.lzz"
+#line 199 "./src/objects/statement.lzz"
   static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 206 "./src/objects/statement.lzz"
+#line 207 "./src/objects/statement.lzz"
   static void JS_returnsData (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 210 "./src/objects/statement.lzz"
-  static v8::Persistent <v8::Function> constructor;
 #line 211 "./src/objects/statement.lzz"
-  static sqlite3_uint64 next_id;
+  static v8::Persistent <v8::Function> constructor;
 #line 212 "./src/objects/statement.lzz"
+  static sqlite3_uint64 next_id;
+#line 213 "./src/objects/statement.lzz"
   static bool constructing_privileges;
-#line 214 "./src/objects/statement.lzz"
-  Database * const db;
 #line 215 "./src/objects/statement.lzz"
-  sqlite3_stmt * const handle;
+  Database * const db;
 #line 216 "./src/objects/statement.lzz"
-  bool alive;
+  sqlite3_stmt * const handle;
 #line 217 "./src/objects/statement.lzz"
-  bool bound;
+  bool alive;
 #line 218 "./src/objects/statement.lzz"
-  bool has_bind_map;
+  bool bound;
 #line 219 "./src/objects/statement.lzz"
-  bool safe_ints;
+  bool has_bind_map;
 #line 220 "./src/objects/statement.lzz"
-  bool pluck;
+  bool safe_ints;
 #line 221 "./src/objects/statement.lzz"
+  bool pluck;
+#line 222 "./src/objects/statement.lzz"
   bool const returns_data;
 };
 #line 1 "./src/objects/statement-iterator.lzz"
