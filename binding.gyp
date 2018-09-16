@@ -3,9 +3,8 @@
   'targets': [
     {
       'target_name': 'better_sqlite3',
-      'dependencies': [
-        'deps/sqlite3.gyp:sqlite3',
-      ],
+      'dependencies': ['deps/sqlite3.gyp:sqlite3'],
+      'sources': ['src/better_sqlite3.cpp'],
       'cflags': [
         '-std=c++11',
       ],
@@ -15,21 +14,11 @@
           '-stdlib=libc++',
         ],
       },
-      'sources': [
-        'src/better_sqlite3.cpp',
-      ],
     },
     {
       'target_name': 'test_extension',
-      'dependencies': [
-        'deps/sqlite3.gyp:action_before_build',
-      ],
-      'cflags_cc': [
-        '-Wno-unused-value',
-      ],
-      'sources': [
-        'deps/test_extension.c',
-      ],
+      'dependencies': ['deps/sqlite3.gyp:action_before_build'],
+      'sources': ['deps/test_extension.c'],
     },
   ],
 }
