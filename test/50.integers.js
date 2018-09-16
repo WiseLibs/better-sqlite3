@@ -50,16 +50,16 @@ describe('64-bit integers', function () {
 		
 		let lastRowid = db.prepare('SELECT rowid FROM entries ORDER BY rowid DESC').pluck().get();
 		stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		expect(stmt.run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
-		expect(stmt.safeIntegers().run(int, int, int).lastInsertROWID).to.deep.equal(Integer(++lastRowid));
-		expect(stmt.run(int, int, int).lastInsertROWID).to.deep.equal(Integer(++lastRowid));
-		expect(stmt.safeIntegers(false).run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
+		expect(stmt.run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
+		expect(stmt.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
+		expect(stmt.run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
+		expect(stmt.safeIntegers(false).run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
 		
 		const trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
-		expect(trans.run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
-		expect(trans.safeIntegers().run(int, int, int).lastInsertROWID).to.deep.equal(Integer(++lastRowid));
-		expect(trans.run(int, int, int).lastInsertROWID).to.deep.equal(Integer(++lastRowid));
-		expect(trans.safeIntegers(false).run(int, int, int).lastInsertROWID).to.equal(++lastRowid);
+		expect(trans.run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
+		expect(trans.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
+		expect(trans.run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
+		expect(trans.safeIntegers(false).run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
 	});
 	it('should get passed to functions registered with the "safeIntegers" option', function () {
 		db.register({ safeIntegers: true }, function customfunc(a) { return a.low; });

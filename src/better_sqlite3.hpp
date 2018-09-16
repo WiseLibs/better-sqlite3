@@ -77,7 +77,7 @@ public:
 #line 21 "./src/util/constants.lzz"
   static ConstantString changes;
 #line 22 "./src/util/constants.lzz"
-  static ConstantString lastInsertROWID;
+  static ConstantString lastInsertRowid;
 #line 23 "./src/util/constants.lzz"
   static ConstantString code;
 #line 24 "./src/util/constants.lzz"

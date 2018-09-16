@@ -68,7 +68,7 @@ ConstantString CS::value;
 #line 21 "./src/util/constants.lzz"
 ConstantString CS::changes;
 #line 22 "./src/util/constants.lzz"
-ConstantString CS::lastInsertROWID;
+ConstantString CS::lastInsertRowid;
 #line 23 "./src/util/constants.lzz"
 ConstantString CS::code;
 #line 24 "./src/util/constants.lzz"
@@ -87,7 +87,7 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddString(isolate, CS::done, "done");
                 AddString(isolate, CS::value, "value");
                 AddString(isolate, CS::changes, "changes");
-                AddString(isolate, CS::lastInsertROWID, "lastInsertROWID");
+                AddString(isolate, CS::lastInsertRowid, "lastInsertRowid");
                 AddString(isolate, CS::code, "code");
                 AddString(isolate, CS::statement, "statement");
 
@@ -721,7 +721,7 @@ void Statement::JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                         v8 :: Isolate * isolate = info . GetIsolate ( ) ; v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                         v8::Local<v8::Object> result = v8::Object::New(isolate);
                         result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
-                        result->Set(ctx, CS::Get(isolate, CS::lastInsertROWID), Integer::New(isolate, id, stmt->safe_ints)).FromJust();
+                        result->Set(ctx, CS::Get(isolate, CS::lastInsertRowid), Integer::New(isolate, id, stmt->safe_ints)).FromJust();
                         info . GetReturnValue ( ) . Set ( result ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
                 }
                 db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;

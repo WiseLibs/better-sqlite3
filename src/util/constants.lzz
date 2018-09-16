@@ -19,7 +19,7 @@ public:
 	static ConstantString done;
 	static ConstantString value;
 	static ConstantString changes;
-	static ConstantString lastInsertROWID;
+	static ConstantString lastInsertRowid;
 	static ConstantString code;
 	static ConstantString statement;
 	
@@ -35,7 +35,7 @@ private:
 		AddString(isolate, CS::done, "done");
 		AddString(isolate, CS::value, "value");
 		AddString(isolate, CS::changes, "changes");
-		AddString(isolate, CS::lastInsertROWID, "lastInsertROWID");
+		AddString(isolate, CS::lastInsertRowid, "lastInsertRowid");
 		AddString(isolate, CS::code, "code");
 		AddString(isolate, CS::statement, "statement");
 		

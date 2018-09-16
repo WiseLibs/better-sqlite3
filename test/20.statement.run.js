@@ -12,28 +12,28 @@ describe('Statement#run()', function () {
 		const stmt = db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB)');
 		const info = stmt.run();
 		expect(info.changes).to.equal(0);
-		expect(info.lastInsertROWID).to.equal(0);
+		expect(info.lastInsertRowid).to.equal(0);
 	});
 	it('should work with CREATE TABLE IF NOT EXISTS', function () {
 		const stmt = db.prepare('CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB)');
 		const info = stmt.run();
 		expect(info.changes).to.equal(0);
-		expect(info.lastInsertROWID).to.equal(0);
+		expect(info.lastInsertRowid).to.equal(0);
 	});
 	it('should work with INSERT INTO', function () {
 		let stmt = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')");
 		let info = stmt.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(1);
+		expect(info.lastInsertRowid).to.equal(1);
 		
 		info = stmt.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(2);
+		expect(info.lastInsertRowid).to.equal(2);
 		
 		stmt = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff'), ('foo', 25, 3.14, x'1133ddff')");
 		info = stmt.run();
 		expect(info.changes).to.equal(2);
-		expect(info.lastInsertROWID).to.equal(4);
+		expect(info.lastInsertRowid).to.equal(4);
 	});
 	it('should work with UPDATE', function () {
 		const stmt = db.prepare("UPDATE entries SET a='bar' WHERE rowid=1");
@@ -46,7 +46,7 @@ describe('Statement#run()', function () {
 		stmt = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')");
 		const info = stmt.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(2);
+		expect(info.lastInsertRowid).to.equal(2);
 	});
 	it('should work with BEGIN and COMMIT', function () {
 		expect(db.inTransaction).to.equal(false);
@@ -54,7 +54,7 @@ describe('Statement#run()', function () {
 		expect(db.inTransaction).to.equal(true);
 		const info = db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')").run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(3);
+		expect(info.lastInsertRowid).to.equal(3);
 		expect(db.inTransaction).to.equal(true);
 		expect(db.prepare("COMMIT TRANSACTION").run().changes).to.equal(0);
 		expect(db.inTransaction).to.equal(false);

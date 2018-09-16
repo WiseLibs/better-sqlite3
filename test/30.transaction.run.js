@@ -8,22 +8,22 @@ describe('Transaction#run()', function () {
 		const trans = db.transaction(['CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB)']);
 		const info = trans.run();
 		expect(info.changes).to.equal(0);
-		expect(info.lastInsertROWID).to.equal(0);
+		expect(info.lastInsertRowid).to.equal(0);
 	});
 	it('should work with INSERT INTO', function () {
 		let trans = db.transaction(["INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')"]);
 		let info = trans.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(1);
+		expect(info.lastInsertRowid).to.equal(1);
 		
 		info = trans.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(2);
+		expect(info.lastInsertRowid).to.equal(2);
 		
 		trans = db.transaction(["INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')", "INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')"]);
 		info = trans.run();
 		expect(info.changes).to.equal(2);
-		expect(info.lastInsertROWID).to.equal(4);
+		expect(info.lastInsertRowid).to.equal(4);
 	});
 	it('should work with UPDATE', function () {
 		const trans = db.transaction(["UPDATE entries SET a='bar' WHERE rowid=1"]);
@@ -36,7 +36,7 @@ describe('Transaction#run()', function () {
 		trans = db.transaction(["INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')"]);
 		const info = trans.run();
 		expect(info.changes).to.equal(1);
-		expect(info.lastInsertROWID).to.equal(2);
+		expect(info.lastInsertRowid).to.equal(2);
 	});
 	it('should work with DROP TABLE', function () {
 		const trans = db.transaction(["DROP TABLE entries"]);
