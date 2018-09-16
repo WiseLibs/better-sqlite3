@@ -11,7 +11,8 @@
   },
   "dependencies": {
     "bindings": "^1.3.0",
-    "integer": "^1.0.5"
+    "integer": "^1.0.5",
+    "tar": "^4.4.6"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",

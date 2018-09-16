@@ -65,8 +65,8 @@
             '<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c',
           ],
           'action': [
-            'python',
-            './extract.py',
+            'node',
+            './extract.js',
             './sqlite-autoconf-<@(sqlite_version).tar.gz',
             '<(SHARED_INTERMEDIATE_DIR)',
           ],
