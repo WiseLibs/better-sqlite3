@@ -321,6 +321,6 @@ stmt.run({
 Below is an example of mixing anonymous parameters with named parameters.
 
 ```js
-var stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
+const stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, { name: 'Henry' });
 ```
