@@ -37,16 +37,60 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 const stmt = db.prepare('SELECT name, age FROM cats');
 ```
 
-### .transaction([*mode*], *function*) -> *function*
+### .transaction(*function*) -> *function*
 
-TODO: nested transaction functions
-TODO: new docs
+Creates a function that always runs inside a [transaction](https://sqlite.org/lang_transaction.html). When the function is invoked, it will begin a new transaction. When the function returns, the transaction will be committed. If an exception is thrown, the transaction will be rolled back (the exception will still propagate—it does not get suppressed).
 
-Wraps the given `function` so that it
+```js
+const insert = db.prepare('INSERT INTO cats (name, age) VALUES (@name, @age)');
 
-Creates a new prepared [`Transaction`](#class-transaction) from the given array of SQL strings.
+const insertMany = db.transaction((cats) => {
+  for (const cat of cats) insert.run(cat);
+});
 
-*NOTE:* [`Transaction`](#class-transaction) objects cannot contain read-only statements. In `better-sqlite3`, these objects serve the sole purpose of batch-write operations. For more complex transactions, simply run [BEGIN and COMMIT](https://sqlite.org/lang_transaction.html) with regular [prepared statements](#preparestring---statement) (see [tutorial](https://github.com/JoshuaWise/better-sqlite3/issues/49)). This restriction may change in the future.
+insertMany([
+  { name: 'Joey', age: 2 },
+  { name: 'Sally', age: 4 },
+  { name: 'Junior', age: 1 },
+]);
+```
+
+Nested transactions ([savepoints](https://www.sqlite.org/lang_savepoint.html)) are supported automatically. Transaction functions can be called from inside other transaction functions.
+
+```js
+const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
+
+const adopt = db.transaction((cats) => {
+  newExpense('adoption fees', 20);
+  insertMany(cats); // nested transaction
+});
+```
+
+Transaction functions also come with `deferred`, `immediate`, and `exclusive` versions.
+
+```js
+insertMany(cats); // uses "BEGIN"
+insertMany.deferred(cats); // uses "BEGIN DEFERRED"
+insertMany.immediate(cats); // uses "BEGIN IMMEDIATE"
+insertMany.exclusive(cats); // uses "BEGIN EXCLUSIVE"
+```
+
+#### Caveats
+
+If you'd like to manage transactions manually, you're free to do so with regular [prepared statements](#preparestring---statement) (using `BEGIN`, `COMMIT`, etc.). However, the usage of manually managed transactions should not be mixed with the automatic transaction handling offered by the `.transaction()` method. In other words, using raw `COMMIT` or `ROLLBACK` statements inside a transaction function is not supported.
+
+It's important to know that SQLite3 may sometimes rollback a transaction without us asking it to. This can happen either because of an [`ON CONFLICT`](https://sqlite.org/lang_conflict.html) clause, the [`RAISE()`](https://www.sqlite.org/lang_createtrigger.html) trigger function, or certain errors such as `SQLITE_FULL` or `SQLITE_BUSY`. When this occurs, transaction functions will automatically detect the situation and handle it appropriately. However, if you catch one of these errors with a try-catch statement, you become responsible for handling the case. In other words, all catch statements within transaction functions should look like this:
+
+```js
+try {
+  ...
+} catch (err) {
+  if (!db.inTransaction) throw err; // transaction was forcefully rolled back
+  ...
+}
+```
+
+This situation generally only arises when checking for partial failures inside a nesting transaction.
 
 ### .pragma(*string*, [*options*]) -> *results*
 
