@@ -56,7 +56,7 @@ insertMany([
 ]);
 ```
 
-Transaction functions can be called from inside other transaction functions. When doing so, the inner transaction uses [savepoints](https://www.sqlite.org/lang_savepoint.html)) instead.
+Transaction functions can be called from inside other transaction functions. When doing so, the inner transaction becomes a [savepoint](https://www.sqlite.org/lang_savepoint.html).
 
 ```js
 const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
