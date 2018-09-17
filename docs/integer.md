@@ -25,7 +25,7 @@ db.prepare("INSERT INTO users (id) VALUES (?)").run(Integer('1152735103331642317
 
 ## Getting Integers from the database
 
-By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertRowid` property returned by the [`run()`](./api.md#runbindparameters---object) methods). You can change this default as you please:
+By default, integers returned from the database are normal JavaScript numbers (this includes the `info.lastInsertRowid` property returned by the [`run()`](./api.md#runbindparameters---object) method). You can change this default as you please:
 
 ```js
 db.defaultSafeIntegers(); // Integers by default
@@ -33,7 +33,7 @@ db.defaultSafeIntegers(true); // Integers by default
 db.defaultSafeIntegers(false); // JavaScript numbers by default
 ```
 
-Additionally, you can override the default for individual [`statements`](./api.md#class-statement) like so:
+Additionally, you can override the default for individual [`Statements`](./api.md#class-statement) like so:
 
 ```js
 const stmt = db.prepare(SQL);
