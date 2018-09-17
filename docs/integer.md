@@ -43,7 +43,7 @@ stmt.safeIntegers(true); // Safe integers ON
 stmt.safeIntegers(false); // Safe integers OFF
 ```
 
-[Registered functions](./api.md#registeroptions-function---this) can also receive `Integers` as arguments. You can override the database's default setting like so:
+[Registered functions](./api.md#registeroptions-function---this) can receive `Integers` as arguments. You can override the database's default setting like so:
 
 ```js
 db.register({ safeIntegers: true }, function isInt(value) {
