@@ -4,7 +4,7 @@
 
 - [new Database()](#new-databasepath-options)
 - [Database#prepare()](#preparestring---statement) (see [`Statement`](#class-statement))
-- [Database#transaction()](#transactionmode-function---function)
+- [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-simplify---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#register()](#registeroptions-function---this)
