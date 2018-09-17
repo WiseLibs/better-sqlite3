@@ -40,7 +40,7 @@ const stmt = db.prepare('SELECT name, age FROM cats');
 
 ### .transaction(*function*) -> *function*
 
-Creates a function that always runs inside a [transaction](https://sqlite.org/lang_transaction.html). When the function is invoked, it will begin a new transaction. When the function returns, the transaction will be committed. If an exception is thrown, the transaction will be rolled back (and the exception will still propagate).
+Creates a function that always runs inside a [transaction](https://sqlite.org/lang_transaction.html). When the function is invoked, it will begin a new transaction. When the function returns, the transaction will be committed. If an exception is thrown, the transaction will be rolled back (and the exception will propagate as usual).
 
 ```js
 const insert = db.prepare('INSERT INTO cats (name, age) VALUES (@name, @age)');
