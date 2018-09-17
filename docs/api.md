@@ -330,6 +330,8 @@ console.log(cat.name); // => "Joey"
 
 ## Properties
 
+**.database -> _Database_** - The parent database object.
+
 **.source -> _string_** - The source string that was used to create the prepared statement.
 
 **.returnsData -> _boolean_** - Whether the prepared statement returns data.
