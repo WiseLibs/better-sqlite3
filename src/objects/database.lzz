@@ -30,10 +30,23 @@ public:
 	}
 	
 	~Database() {
+		if (open) dbs.erase(this);
 		CloseHandles();
 	}
 	
 private:
+	
+	class CompareDatabase { public:
+		bool operator() (Database const * const a, Database const * const b) const {
+			return a < b;
+		}
+	};
+	
+	class CompareStatement { public:
+		bool operator() (Statement const * const a, Statement const * const b) const {
+			return Statement::Compare(a, b);
+		}
+	};
 	
 	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
 		db_handle(_db_handle),
@@ -44,6 +57,7 @@ private:
 		was_js_error(false),
 		stmts() {
 		assert(_db_handle != NULL);
+		dbs.insert(this);
 	}
 	
 	REGISTER(Init) {
@@ -65,6 +79,7 @@ private:
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../../lib/sqlite-error")));
+		node::AtExit(Database::AtExit);
 	}
 	
 	NODE_METHOD(JS_new) {
@@ -214,6 +229,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
 			REQUIRE_DATABASE_NOT_BUSY(db);
+			dbs.erase(db);
 			db->CloseHandles();
 		}
 		info.GetReturnValue().Set(info.This());
@@ -260,6 +276,12 @@ private:
 		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 	
+	static void AtExit(void* _) {
+		for (Database* db : dbs) db->CloseHandles();
+		dbs.clear();
+	}
+	
+	static std::set<Database*, Database::CompareDatabase> dbs;
 	static v8::Persistent<v8::Function> SqliteError;
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
@@ -270,5 +292,5 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
-	std::set<Statement*, Query::Compare> stmts;
+	std::set<Statement*, Database::CompareStatement> stmts;
 };

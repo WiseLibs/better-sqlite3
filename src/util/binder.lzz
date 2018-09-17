@@ -8,12 +8,12 @@ public:
 		success = true;
 	}
 	
-	bool Bind(NODE_ARGUMENTS info, int argc, Statement* query) {
+	bool Bind(NODE_ARGUMENTS info, int argc, Statement* stmt) {
 		assert(anon_index == 0);
-		Result result = BindArgs(info, argc, query);
+		Result result = BindArgs(info, argc, stmt);
 		if (success && result.count != param_count) {
 			if (result.count < param_count) {
-				if (!result.bound_object && query->GetBindMap(OnlyIsolate)->GetSize()) {
+				if (!result.bound_object && stmt->GetBindMap(OnlyIsolate)->GetSize()) {
 					Fail(ThrowTypeError, "Missing named parameters");
 				} else {
 					Fail(ThrowRangeError, "Too few parameter values were provided");
@@ -101,9 +101,9 @@ private:
 	// The number of successfully bound parameters is returned.
 	// If a named parameter is missing from the object, an error is thrown.
 	// This should only be invoked once per instance.
-	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Query* query) {
+	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Statement* stmt) {
 		UseContext;
-		BindMap* bind_map = static_cast<Statement*>(query)->GetBindMap(isolate);
+		BindMap* bind_map = stmt->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();
 		int len = bind_map->GetSize();
 		
@@ -145,7 +145,7 @@ private:
 	// If an error occurs, an appropriate error is thrown.
 	// The return value is a struct indicating how many parameters were successfully bound
 	// and whether or not it tried to bind an object.
-	Result BindArgs(NODE_ARGUMENTS info, int argc, Query* query) {
+	Result BindArgs(NODE_ARGUMENTS info, int argc, Statement* stmt) {
 		UseIsolate;
 		int count = 0;
 		bool bound_object = false;
@@ -168,7 +168,7 @@ private:
 					}
 					bound_object = true;
 					
-					count += BindObject(isolate, obj, query);
+					count += BindObject(isolate, obj, stmt);
 					if (!success) break;
 					continue;
 				}

@@ -1,4 +1,4 @@
-class Statement : public node::ObjectWrap, public Query {
+class Statement : public node::ObjectWrap {
 friend class StatementIterator;
 public:
 	
@@ -12,10 +12,15 @@ public:
 		return maybe_statement;
 	}
 	
+	// Used by the Database::CompareStatement class.
+	inline static bool Compare(Statement const * const a, Statement const * const b) {
+		return a->extras->id < b->extras->id;
+	}
+	
 	// Returns the Statement's bind map (creates it upon first execution).
 	BindMap* GetBindMap(v8::Isolate* isolate) {
-		if (has_bind_map) return BindMapPointer();
-		BindMap* bind_map = BindMapPointer();
+		if (has_bind_map) return &extras->bind_map;
+		BindMap* bind_map = &extras->bind_map;
 		int param_count = sqlite3_bind_parameter_count(handle);
 		for (int i=1; i<=param_count; ++i) {
 			const char* name = sqlite3_bind_parameter_name(handle, i);
@@ -36,13 +41,22 @@ public:
 	~Statement() {
 		if (alive) db->RemoveStatement(this);
 		CloseHandles();
+		delete extras;
 	}
 	
 private:
 	
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : node::ObjectWrap(), Query(next_id++),
+	// A class for holding values that are less often used.
+	class Extras { friend class Statement;
+		explicit Extras(sqlite3_uint64 _id) : bind_map(0), id(_id) {}
+		BindMap bind_map;
+		const sqlite3_uint64 id;
+	};
+	
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : node::ObjectWrap(),
 		db(_db),
 		handle(_handle),
+		extras(new Extras(next_id++)),
 		alive(true),
 		bound(false),
 		has_bind_map(false),
@@ -217,6 +231,7 @@ private:
 	
 	Database* const db;
 	sqlite3_stmt* const handle;
+	Extras* const extras;
 	bool alive;
 	bool bound;
 	bool has_bind_map;

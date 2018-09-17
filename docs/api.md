@@ -130,9 +130,6 @@ TODO: support window functions
 TODO: options at the end, optional string "name" option at the start
 TODO: new docs
 
-TODO: implement custom collating sequences
-TODO: implement online backup API
-
 Registers the given `function` so that it can be used by SQL statements.
 
 ```js
@@ -186,14 +183,10 @@ db.exec(migration);
 
 ### .close() -> *this*
 
-Closes the database connection. After invoking this method, no statements can be created or executed.
-
-TODO: use AtExit c++ hook
+Closes the database connection. After invoking this method, no statements can be created or executed. All connections are automatically closed when the process exits, so this method is rarely used.
 
 ```js
-process.on('exit', () => {
-  db.close();
-});
+db.close();
 ```
 
 ## Properties
