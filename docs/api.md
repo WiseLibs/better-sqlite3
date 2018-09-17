@@ -36,7 +36,6 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 
 ```js
 const stmt = db.prepare('SELECT name, age FROM cats');
-const cats = stmt.all();
 ```
 
 ### .transaction(*function*) -> *function*
