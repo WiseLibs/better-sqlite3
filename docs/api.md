@@ -27,7 +27,6 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 ```js
 const Database = require('better-sqlite3');
-
 const db = new Database('foobar.db', { readonly: true });
 ```
 
@@ -37,6 +36,7 @@ Creates a new prepared [`Statement`](#class-statement) from the given SQL string
 
 ```js
 const stmt = db.prepare('SELECT name, age FROM cats');
+const cats = stmt.all();
 ```
 
 ### .transaction(*function*) -> *function*
