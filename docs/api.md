@@ -67,7 +67,7 @@ const adopt = db.transaction((cats) => {
 });
 ```
 
-They also come with `deferred`, `immediate`, and `exclusive` versions.
+Transactions also come with `deferred`, `immediate`, and `exclusive` versions.
 
 ```js
 insertMany(cats); // uses "BEGIN"
