@@ -91,7 +91,7 @@ try {
 }
 ```
 
-This situation generally only arises when checking for partial failures inside a nesting transaction.
+> This situation generally only arises when checking for partial failures inside a nesting transaction.
 
 ### .pragma(*string*, [*options*]) -> *results*
 
