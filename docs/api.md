@@ -17,7 +17,7 @@
 
 Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
-- If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one. Default is `false`.
+- If `options.memory` is `true`, an in-memory database will be created rather than a disk-bound one. Default is `false`.
 
 - If `options.readonly` is `true`, the database connection will be opened in readonly mode. Default is `false`.
 
