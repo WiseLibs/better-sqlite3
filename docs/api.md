@@ -80,6 +80,8 @@ insertMany.exclusive(cats); // uses "BEGIN EXCLUSIVE"
 
 If you'd like to manage transactions manually, you're free to do so with regular [prepared statements](#preparestring---statement) (using `BEGIN`, `COMMIT`, etc.). However, manually managed transactions should not be mixed with transactions managed by this `.transaction()` method. In other words, using raw `COMMIT` or `ROLLBACK` statements inside a transaction function is not supported.
 
+Transaction functions do not work with async functions. Technically speaking, async functions always return immediately, which means the transaction will already be committed before any code executes. Also, because SQLite3 serializes all transactions, it's generally a very bad idea to keep a transaction open across event loop ticks anyways.
+
 It's important to know that SQLite3 may sometimes rollback a transaction without us asking it to. This can happen either because of an [`ON CONFLICT`](https://sqlite.org/lang_conflict.html) clause, the [`RAISE()`](https://www.sqlite.org/lang_createtrigger.html) trigger function, or certain errors such as `SQLITE_FULL` or `SQLITE_BUSY`. When this occurs, transaction functions will automatically detect the situation and handle it appropriately. However, if you catch one of these errors with a try-catch statement, you become responsible for handling the case. In other words, all catch statements within transaction functions should look like this:
 
 ```js
