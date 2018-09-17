@@ -15,7 +15,7 @@
 
 ### new Database(*path*, [*options*])
 
-TODO: support :memory:
+TODO: support jest
 
 Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
