@@ -252,8 +252,8 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ```js
 const stmt = db.prepare('SELECT age FROM cats WHERE name = ?');
-
 const cat = stmt.get('Joey');
+
 console.log(cat.age); // => 2
 ```
 
@@ -269,8 +269,8 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ```js
 const stmt = db.prepare('SELECT * FROM cats WHERE name = ?');
-
 const cats = stmt.all('Joey');
+
 console.log(cats.length); // => 1
 ```
 
@@ -323,8 +323,8 @@ This method is primarily used as a performance optimization when you need to exe
 
 ```js
 const stmt = db.prepare('SELECT * FROM cats WHERE name = ?').bind('Joey');
-
 const cat = stmt.get();
+
 console.log(cat.name); // => "Joey"
 ```
 
