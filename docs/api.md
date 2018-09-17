@@ -56,7 +56,7 @@ insertMany([
 ]);
 ```
 
-Nested transactions ([savepoints](https://www.sqlite.org/lang_savepoint.html)) are supported automatically. Transaction functions can be called from inside other transaction functions.
+Transaction functions can be called from inside other transaction functions. When doing so, the inner transaction uses [savepoints](https://www.sqlite.org/lang_savepoint.html)) instead.
 
 ```js
 const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
