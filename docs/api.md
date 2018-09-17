@@ -1,6 +1,6 @@
 # API
 
-## class *Database*
+# class *Database*
 
 - [new Database()](#new-databasepath-options)
 - [Database#prepare()](#preparestring---statement) (see [`Statement`](#class-statement))
