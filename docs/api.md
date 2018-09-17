@@ -15,7 +15,7 @@
 
 ### new Database(*path*, [*options*])
 
-Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away. All options listed below default to `false`.
+Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
 - If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one.
 
@@ -23,11 +23,14 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 - If `options.fileMustExist` is `true` and the database does not exist, an `Error` will be thrown instead of creating a new file. This option does not affect in-memory or readonly database connections.
 
+
 ```js
 const Database = require('better-sqlite3');
 
 const db = new Database('foobar.db', { readonly: true });
 ```
+
+> All options listed above default to `false`.
 
 ### .prepare(*string*) -> *Statement*
 
