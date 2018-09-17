@@ -9,7 +9,7 @@ npm install # if you're doing this as the root user, --unsafe-perm is required
 node benchmark
 ```
 
-## Results
+# Results
 
 These results are from 08/29/2017, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.6), using nodejs v6.10.3.
 
