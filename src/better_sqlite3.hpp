@@ -242,17 +242,17 @@ private:
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 85 "./src/objects/database.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 122 "./src/objects/database.lzz"
+#line 124 "./src/objects/database.lzz"
   static void JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 128 "./src/objects/database.lzz"
+#line 130 "./src/objects/database.lzz"
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 140 "./src/objects/database.lzz"
+#line 142 "./src/objects/database.lzz"
   static void JS_pragma (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 144 "./src/objects/database.lzz"
+#line 146 "./src/objects/database.lzz"
   static void JS_checkpoint (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 186 "./src/objects/database.lzz"
+#line 188 "./src/objects/database.lzz"
   static void JS_register (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 213 "./src/objects/database.lzz"
+#line 215 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 228 "./src/objects/database.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
