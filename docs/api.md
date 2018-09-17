@@ -86,7 +86,7 @@ It's important to know that SQLite3 may sometimes rollback a transaction without
 try {
   ...
 } catch (err) {
-  if (!db.inTransaction) throw err; // transaction was forcefully rolled back
+  if (!db.inTransaction) throw err; // (transaction was forcefully rolled back)
   ...
 }
 ```
