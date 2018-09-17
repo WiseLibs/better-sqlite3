@@ -5,7 +5,7 @@
 - [new Database()](#new-databasepath-options)
 - [Database#prepare()](#preparestring---statement) (see [`Statement`](#class-statement))
 - [Database#transaction()](#transactionfunction---function)
-- [Database#pragma()](#pragmastring-simplify---results)
+- [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#register()](#registeroptions-function---this)
 - [Database#loadExtension()](#loadextensionpath---this)
@@ -97,16 +97,13 @@ try {
 
 ### .pragma(*string*, [*options*]) -> *results*
 
-TOOD: options object
-TODO: new docs
-
 Executes the given PRAGMA and returns its result. By default, the return value will be an array of result rows. Each row is represented by an object whose keys correspond to column names.
 
 Since most PRAGMA statements return a single value, the `simple` option is provided to make things easier. When `simple` is `true`, only the first column of the first row will be returned.
 
 ```js
 db.pragma('cache_size = 32000');
-const cacheSize = db.pragma('cache_size', { simple: true }); // returns the number 32000
+console.log(db.pragma('cache_size', { simple: true })); // => 32000
 ```
 
 If execution of the PRAGMA fails, an `Error` is thrown.
@@ -115,22 +112,22 @@ It's better to use this method instead of normal [prepared statements](#prepares
 
 ### .checkpoint([*databaseName*]) -> *this*
 
-Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html) on all attached databases (including the `main` database).
+Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html) on all attached databases (including the main database).
 
 Unlike [automatic checkpoints](https://www.sqlite.org/wal.html#automatic_checkpoint), this method executes a checkpoint in "RESTART" mode, which ensures a complete checkpoint operation even if other processes are using the database at the same time. You only need to use this method if you are accessing the database from multiple processes at the same time.
-
-If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
-
-If the checkpoint fails, an `Error` is thrown.
 
 ```js
 setInterval(() => db.checkpoint(), 30000).unref();
 ```
 
+If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
+
+If the checkpoint fails, an `Error` is thrown.
+
 ### .register([*options*], *function*) -> *this*
 
 TODO: support window functions
-TODO: options at the end?
+TODO: options at the end, optional string "name" option at the start
 TODO: new docs
 
 TODO: implement custom collating sequences
@@ -184,7 +181,6 @@ Executes the given SQL string. Unlike [prepared statements](#preparestring---sta
 
 ```js
 const migration = fs.readFileSync('migrate-schema.sql', 'utf8');
-
 db.exec(migration);
 ```
 
@@ -239,8 +235,8 @@ You can specify [bind parameters](#binding-parameters), which are only bound for
 
 ```js
 const stmt = db.prepare('INSERT INTO cats (name, age) VALUES (?, ?)');
-
 const info = stmt.run('Joey', 2);
+
 console.log(info.changes); // => 1
 ```
 
