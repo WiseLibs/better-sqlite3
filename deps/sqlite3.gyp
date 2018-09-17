@@ -80,9 +80,6 @@
         'SQLITE_MAX_LENGTH=2147483647',
         'SQLITE_MAX_SQL_LENGTH=1073741824',
         'SQLITE_USE_URI=1',
-        # TODO: test if these improve performance (note, these also require runtime configuaration)
-        # 'SQLITE_ENABLE_MEMSYS3',
-        # 'SQLITE_ENABLE_MEMSYS5',
         # TODO: test ANALYZE with stat4 enabled
         # 'SQLITE_ENABLE_STAT4',
         # TODO: evaluate the extra compilation steps necessary for these features
