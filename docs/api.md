@@ -300,8 +300,6 @@ Causes the prepared statement to only return the value of the first column of an
 You can toggle this on/off as you please:
 
 ```js
-const stmt = db.prepare(SQL);
-
 stmt.pluck(); // plucking ON
 stmt.pluck(true); // plucking ON
 stmt.pluck(false); // plucking OFF
@@ -318,8 +316,6 @@ Causes the prepared statement to return data namespaced by table. Each row objec
 You can toggle this on/off as you please:
 
 ```js
-const stmt = db.prepare(SQL);
-
 stmt.expand(); // expansion ON
 stmt.expand(true); // expansion ON
 stmt.expand(false); // expansion OFF
