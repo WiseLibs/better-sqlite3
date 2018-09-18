@@ -311,7 +311,7 @@ stmt.pluck(false); // plucking OFF
 
 **(only on statements that return data)*
 
-Causes the prepared statement to return data namespaced by table. Each row object's keys will be table names, its values will be nested objects, and those nested objects will contain the column data. This is useful when performing a `JOIN` between two tables that have overlapping column names. If a result column is an expression or subquery, it will be available within the special `$` namespace.
+Causes the prepared statement to return data namespaced by table. Each row object's keys will be table names, and its values will be nested objects that contain the column data. This is useful when performing a `JOIN` between two tables that have overlapping column names. If a result column is an expression or subquery, it will be available within the special `$` namespace.
 
 You can toggle this on/off as you please:
 
