@@ -84,7 +84,6 @@
         # 'SQLITE_ENABLE_STAT4',
         # TODO: evaluate the extra compilation steps necessary for these features
         # 'SQLITE_ENABLE_UPDATE_DELETE_LIMIT',
-        # 'SQLITE_ENABLE_ICU',
         'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
