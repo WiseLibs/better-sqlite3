@@ -72,6 +72,25 @@ namespace Data {
 		return row;
 	}
 	
+	v8::Local<v8::Value> GetExpandedRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
+		v8::Local<v8::Object> row = v8::Object::New(isolate);
+		int column_count = sqlite3_column_count(handle);
+		for (int i=0; i<column_count; ++i) {
+			const char* table_raw = sqlite3_column_table_name(handle, i);
+			v8::Local<v8::String> table = InternalizedFromUtf8(isolate, table_raw == NULL ? "$" : table_raw, -1);
+			v8::Local<v8::String> column = InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1);
+			v8::Local<v8::Value> value = Data::GetValueJS(isolate, handle, i, safe_ints);
+			if (row->HasOwnProperty(ctx, table).FromJust()) {
+				v8::Local<v8::Object>::Cast(row->Get(ctx, table).ToLocalChecked())->Set(ctx, column, value).FromJust();
+			} else {
+				v8::Local<v8::Object> nested = v8::Object::New(isolate);
+				row->Set(ctx, table, nested).FromJust();
+				nested->Set(ctx, column, value).FromJust();
+			}
+		}
+		return row;
+	}
+	
 	v8::Local<v8::Value>* GetArgumentsJS(v8::Isolate* isolate, sqlite3_value** values, int argument_count, bool safe_ints) {
 		if (argument_count == 0) {
 			return NULL;

@@ -22,6 +22,7 @@ private:
 		handle(_stmt->handle),
 		safe_ints(_stmt->safe_ints),
 		pluck(_stmt->pluck),
+		expand(_stmt->expand),
 		bound(_bound),
 		alive(true) {
 		assert(stmt != NULL);
@@ -82,11 +83,11 @@ private:
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
 			UseIsolateAndContext;
-			info.GetReturnValue().Set(
-				NewRecord(isolate, ctx, pluck
-					? Data::GetValueJS(isolate, handle, 0, safe_ints)
-					: Data::GetRowJS(isolate, ctx, handle, safe_ints))
-			);
+			info.GetReturnValue().Set(NewRecord(isolate, ctx,
+				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
+				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints)
+				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
+			));
 		} else {
 			if (status == SQLITE_DONE) Return(info);
 			else Throw();
@@ -129,6 +130,7 @@ private:
 	sqlite3_stmt* const handle;
 	const bool safe_ints;
 	const bool pluck;
+	const bool expand;
 	const bool bound;
 	bool alive;
 };

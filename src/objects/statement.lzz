@@ -62,6 +62,7 @@ private:
 		has_bind_map(false),
 		safe_ints(_db->GetState()->safe_ints),
 		pluck(false),
+		expand(false),
 		returns_data(_returns_data) {
 		assert(db != NULL);
 		assert(handle != NULL);
@@ -81,6 +82,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "iterate", JS_iterate);
 		NODE_SET_PROTOTYPE_METHOD(t, "bind", JS_bind);
 		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
+		NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "returnsData", JS_returnsData);
 		
@@ -113,7 +115,7 @@ private:
 		}
 		for (uint16_t const * const end = *sql + sql.length(); tail < end; ++tail) {
 			const uint16_t c = *tail;
-			if (c != '\n' && c != '\t' && c != ' ') {
+			if (c != '\n' && c != '\t' && c != ' ' && c != '\r') {
 				sqlite3_finalize(handle);
 				return ThrowRangeError("The supplied SQL string contains more than one statement");
 			}
@@ -152,8 +154,9 @@ private:
 		UseIsolate;
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
-			v8::Local<v8::Value> result = stmt->pluck
-				? Data::GetValueJS(isolate, handle, 0, stmt->safe_ints)
+			v8::Local<v8::Value> result =
+				stmt->pluck ? Data::GetValueJS(isolate, handle, 0, stmt->safe_ints) :
+				stmt->expand ? Data::GetExpandedRowJS(isolate, OnlyContext, handle, stmt->safe_ints)
 				: Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints);
 			sqlite3_reset(handle);
 			STATEMENT_RETURN(result);
@@ -172,12 +175,14 @@ private:
 		uint32_t row_count = 0;
 		const bool safe_ints = stmt->safe_ints;
 		const bool pluck = stmt->pluck;
+		const bool expand = stmt->expand;
 		bool js_error = false;
 		
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
-			result->Set(ctx, row_count++, pluck
-				? Data::GetValueJS(isolate, handle, 0, safe_ints)
+			result->Set(ctx, row_count++,
+				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
+				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints)
 				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
 			).FromJust();
 		}
@@ -210,6 +215,17 @@ private:
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 		if (info.Length() == 0) stmt->pluck = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->pluck); }
+		if (stmt->pluck) stmt->expand = false;
+		info.GetReturnValue().Set(info.This());
+	}
+	
+	NODE_METHOD(JS_expand) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		if (!stmt->returns_data) return ThrowTypeError("The expand() method is only for statements that return data");
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		if (info.Length() == 0) stmt->expand = true;
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->expand); }
+		if (stmt->expand) stmt->pluck = false;
 		info.GetReturnValue().Set(info.This());
 	}
 	
@@ -237,5 +253,6 @@ private:
 	bool has_bind_map;
 	bool safe_ints;
 	bool pluck;
+	bool expand;
 	const bool returns_data;
 };

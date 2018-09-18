@@ -212,6 +212,7 @@ An object representing a single SQL statement.
 - [Statement#all()](#allbindparameters---array-of-rows)
 - [Statement#iterate()](#iteratebindparameters---iterator)
 - [Statement#pluck()](#plucktogglestate---this)
+- [Statement#expand()](#expandtogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -298,8 +299,6 @@ Causes the prepared statement to only return the value of the first column of an
 
 You can toggle this on/off as you please:
 
-TODO: implement setting for columns namespaced by table
-
 ```js
 const stmt = db.prepare(SQL);
 
@@ -307,6 +306,26 @@ stmt.pluck(); // plucking ON
 stmt.pluck(true); // plucking ON
 stmt.pluck(false); // plucking OFF
 ```
+
+> When plucking is turned on, [expansion](#expandtogglestate---this) is turned off (they are mutually exclusive options).
+
+### .expand([toggleState]) -> *this*
+
+**(only on statements that return data)*
+
+Causes the prepared statement to return data namespaced by table. Each row object's keys will be table names, its values will be nested objects, and those nested objects will contain the column data. This is useful when performing a `JOIN` between two tables that have overlapping column names. If a result column is an expression or subquery, it will be available within the special `$` namespace.
+
+You can toggle this on/off as you please:
+
+```js
+const stmt = db.prepare(SQL);
+
+stmt.expand(); // expansion ON
+stmt.expand(true); // expansion ON
+stmt.expand(false); // expansion OFF
+```
+
+> When expansion is turned on, [plucking](#plucktogglestate---this) is turned off (they are mutually exclusive options).
 
 ### .bind([*...bindParameters*]) -> *this*
 

@@ -66,7 +66,6 @@
         # 'SQLITE_LIKE_DOESNT_MATCH_BLOBS',
         'SQLITE_OMIT_DEPRECATED',
         'SQLITE_OMIT_TRACE',
-        'SQLITE_OMIT_DECLTYPE',
         'SQLITE_OMIT_COMPLETE',
         'SQLITE_OMIT_GET_TABLE',
         'SQLITE_OMIT_DESERIALIZE',
@@ -80,6 +79,7 @@
         'SQLITE_MAX_LENGTH=2147483647',
         'SQLITE_MAX_SQL_LENGTH=1073741824',
         'SQLITE_USE_URI=1',
+        'SQLITE_ENABLE_COLUMN_METADATA',
         # TODO: test ANALYZE with stat4 enabled
         # 'SQLITE_ENABLE_STAT4',
         # TODO: evaluate the extra compilation steps necessary for these features
