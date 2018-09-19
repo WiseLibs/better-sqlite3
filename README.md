@@ -48,7 +48,7 @@ console.log(row.firstName, row.lastName, row.email);
 - [API documentation](./docs/api.md)
 - [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
 - [64-bit integer support](./docs/integer.md)
-- [SQLite3 compilation options](./docs/compilation.md)
+- [SQLite3 version and compilation options](./docs/compilation.md)
 
 # License
 

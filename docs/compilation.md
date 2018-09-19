@@ -1,4 +1,5 @@
-The following [compilation options](https://www.sqlite.org/compile.html) are used in this distribution of sqlite3:
+This distribution currently uses **SQLite version 3.24.0** with the following [compilation options]:
+
 - SQLITE_OMIT_DEPRECATED
 - SQLITE_ENABLE_FTS4
 - SQLITE_ENABLE_FTS5
@@ -7,3 +8,5 @@ The following [compilation options](https://www.sqlite.org/compile.html) are use
 - SQLITE_DEFAULT_CACHE_SIZE=-16000
 - SQLITE_DEFAULT_FOREIGN_KEYS=1
 - SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
+
+[compilation options]: https://www.sqlite.org/compile.html

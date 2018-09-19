@@ -96,7 +96,7 @@ var totalTreasure = db.prepare('SELECT addAll(treasure) FROM dragons').pluck().g
 
 Loads a compiled [SQLite3 extension](https://sqlite.org/loadext.html) and applies it to the current database connection.
 
-It's your responsibility to make sure the extensions you load are compiled/linked against a version of [SQLite3](https://www.sqlite.org/) that is compatible `better-sqlite3`. Keep in mind that new versions of `better-sqlite3` will periodically use newer versions of [SQLite3](https://www.sqlite.org/). You can see which version is being used [here](https://github.com/JoshuaWise/better-sqlite3/tree/master/deps).
+It's your responsibility to make sure the extensions you load are compiled/linked against a version of [SQLite3](https://www.sqlite.org/) that is compatible `better-sqlite3`. Keep in mind that new versions of `better-sqlite3` will periodically use newer versions of [SQLite3](https://www.sqlite.org/). The version of SQLite3 currently used by `better-sqlite3` is listed on the [version and compilation options documentation page](./compilation.md).
 
 ### .exec(*string*) -> *this*
 
