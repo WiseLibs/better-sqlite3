@@ -83,12 +83,17 @@ template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
 }
 
-v8::Local<v8::Value> Require(v8::Local<v8::Object> module, const char* path) {
+v8::Local<v8::Value> Require(v8::Local<v8::Object> module, const char* path, bool local = false) {
 	EasyIsolate;
 	UseContext;
 	v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
-	v8::Local<v8::Value> requireArg = StringFromUtf8(isolate, path, -1);
-	return require->Call(ctx, module, 1, &requireArg).ToLocalChecked();
+	v8::Local<v8::Value> requireArgs[2] = { StringFromUtf8(isolate, path, -1), v8::Undefined(isolate) };
+	if (local) {
+		require = v8::Local<v8::Function>::Cast(Require(module, "package-require"));
+		requireArgs[1] = requireArgs[0];
+		requireArgs[0] = module;
+	}
+	return require->Call(ctx, module, 2, requireArgs).ToLocalChecked();
 }
 
 inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, const char* name, v8::AccessorGetterCallback getter) {

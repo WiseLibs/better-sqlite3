@@ -14,7 +14,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
-#line 120 "./src/util/macros.lzz"
+#line 125 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #line 146 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
@@ -42,10 +42,10 @@ template <typename T>
 #line 82 "./src/util/macros.lzz"
 void FREE_ARRAY (T * array_pointer);
 #line 86 "./src/util/macros.lzz"
-v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path);
-#line 94 "./src/util/macros.lzz"
+v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path, bool local = false);
+#line 99 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter);
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback);
 #line 1 "./src/util/constants.lzz"
 class CS
@@ -642,9 +642,9 @@ LZZ_INLINE void FREE_ARRAY (T * array_pointer)
                                                            {
         ::operator delete[](array_pointer);
 }
-#line 94 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter)
-#line 94 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
                                                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
@@ -658,9 +658,9 @@ LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv
                 v8::AccessorSignature::New(isolate, recv)
         );
 }
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback)
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
                                                                                                                                                 {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
