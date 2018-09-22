@@ -446,23 +446,23 @@ public:
   static void xDestroy (void * instance);
 #line 12 "./src/util/custom-function.lzz"
   static void xFunc (sqlite3_context * context, int argc, sqlite3_value * * argv);
-#line 30 "./src/util/custom-function.lzz"
-  void ThrowResultValueError (sqlite3_context * context);
-#line 35 "./src/util/custom-function.lzz"
-private:
 #line 36 "./src/util/custom-function.lzz"
-  void PropagateJSError (sqlite3_context * context);
+  void ThrowResultValueError (sqlite3_context * context);
+#line 41 "./src/util/custom-function.lzz"
+private:
 #line 42 "./src/util/custom-function.lzz"
+  void PropagateJSError (sqlite3_context * context);
+#line 48 "./src/util/custom-function.lzz"
   static char const * CopyString (char const * source);
-#line 49 "./src/util/custom-function.lzz"
+#line 55 "./src/util/custom-function.lzz"
   CopyablePersistent <v8::Function> const fn;
-#line 50 "./src/util/custom-function.lzz"
+#line 56 "./src/util/custom-function.lzz"
   v8::Isolate * const isolate;
-#line 51 "./src/util/custom-function.lzz"
+#line 57 "./src/util/custom-function.lzz"
   Database * const db;
-#line 52 "./src/util/custom-function.lzz"
+#line 58 "./src/util/custom-function.lzz"
   char const * const name;
-#line 53 "./src/util/custom-function.lzz"
+#line 59 "./src/util/custom-function.lzz"
   bool const safe_ints;
 };
 #line 54 "./src/util/data.lzz"
@@ -493,18 +493,18 @@ namespace Data
 namespace Data
 {
 #line 94 "./src/util/data.lzz"
-  v8::Local <v8::Value> * GetArgumentsJS (v8::Isolate * isolate, sqlite3_value * * values, int argument_count, bool safe_ints);
+  void GetArgumentsJS (v8::Isolate * isolate, v8::Local <v8::Value> * out, sqlite3_value * * values, int argument_count, bool safe_ints);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 103 "./src/util/data.lzz"
+#line 101 "./src/util/data.lzz"
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 108 "./src/util/data.lzz"
+#line 106 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomFunction * function);
 }
 #line 1 "./src/util/binder.lzz"

@@ -1025,36 +1025,42 @@ void CustomFunction::xFunc (sqlite3_context * context, int argc, sqlite3_value *
                 v8::Isolate* isolate = cf->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
-                v8::Local<v8::Value>* args = Data::GetArgumentsJS(isolate, argv, argc, cf->safe_ints);
+                v8::Local<v8::Value> args_fast[4];
+                v8::Local<v8::Value>* args = NULL;
+                if (argc != 0) {
+                        args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
+                        Data::GetArgumentsJS(isolate, args, argv, argc, cf->safe_ints);
+                }
+
                 Database::State* db_state = cf->db->GetState();
                 const bool was_busy = db_state->busy;
                 db_state->busy = true;
                 v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, cf->fn)
                         ->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), argc, args);
                 db_state->busy = was_busy;
-                delete[] args;
 
+                if (args != args_fast) delete[] args;
                 if (maybe_return_value.IsEmpty()) cf->PropagateJSError(context);
                 else Data::ResultValueFromJS(isolate, context, maybe_return_value.ToLocalChecked(), cf);
 }
-#line 30 "./src/util/custom-function.lzz"
+#line 36 "./src/util/custom-function.lzz"
 void CustomFunction::ThrowResultValueError (sqlite3_context * context)
-#line 30 "./src/util/custom-function.lzz"
+#line 36 "./src/util/custom-function.lzz"
                                                              {
                 ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
                 PropagateJSError(context);
 }
-#line 36 "./src/util/custom-function.lzz"
+#line 42 "./src/util/custom-function.lzz"
 void CustomFunction::PropagateJSError (sqlite3_context * context)
-#line 36 "./src/util/custom-function.lzz"
+#line 42 "./src/util/custom-function.lzz"
                                                         {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
                 sqlite3_result_error(context, "", 0);
 }
-#line 42 "./src/util/custom-function.lzz"
+#line 48 "./src/util/custom-function.lzz"
 char const * CustomFunction::CopyString (char const * source)
-#line 42 "./src/util/custom-function.lzz"
+#line 48 "./src/util/custom-function.lzz"
                                                           {
                 size_t bytes = strlen(source) + 1;
                 char* dest = new char[bytes];
@@ -1127,23 +1133,21 @@ namespace Data
 namespace Data
 {
 #line 94 "./src/util/data.lzz"
-  v8::Local <v8::Value> * GetArgumentsJS (v8::Isolate * isolate, sqlite3_value * * values, int argument_count, bool safe_ints)
+  void GetArgumentsJS (v8::Isolate * isolate, v8::Local <v8::Value> * out, sqlite3_value * * values, int argument_count, bool safe_ints)
 #line 94 "./src/util/data.lzz"
-                                                                                                                               {
-                if (argument_count == 0) return NULL;
-                v8::Local<v8::Value>* args = ALLOC_ARRAY<v8::Local<v8::Value>>(argument_count);
+                                                                                                                                         {
+                assert(argument_count > 0);
                 for (int i=0; i<argument_count; ++i) {
-                        args[i] = Data::GetValueJS(isolate, values[i], safe_ints);
+                        out[i] = Data::GetValueJS(isolate, values[i], safe_ints);
                 }
-                return args;
   }
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 103 "./src/util/data.lzz"
+#line 101 "./src/util/data.lzz"
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value)
-#line 103 "./src/util/data.lzz"
+#line 101 "./src/util/data.lzz"
                                                                                                                {
                 if ( value -> IsNumber ( ) ) { return sqlite3_bind_double ( handle , index , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_bind_text ( handle , index , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_bind_null ( handle , index ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_bind_blob ( handle , index , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_bind_int64 ( handle , index , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 return -1;
@@ -1152,9 +1156,9 @@ namespace Data
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 108 "./src/util/data.lzz"
+#line 106 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomFunction * function)
-#line 108 "./src/util/data.lzz"
+#line 106 "./src/util/data.lzz"
                                                                                                                                      {
                 if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( context , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( context , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( context ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( context , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( context , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 function->ThrowResultValueError(context);
