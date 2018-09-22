@@ -23,7 +23,7 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "objects/statement.lzz"
 #insert "objects/statement-iterator.lzz"
 #insert "util/custom-function.lzz"
-#insert "util/custom-aggregate.lzz"
+// #insert "util/custom-aggregate.lzz"
 #insert "util/data.lzz"
 #insert "util/binder.lzz"
 

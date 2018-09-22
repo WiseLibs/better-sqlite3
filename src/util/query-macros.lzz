@@ -37,33 +37,3 @@
 #define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
 	if (stmt->returns_data)                                                    \
 		return ThrowTypeError("This statement returns data. Use get(), all(), or iterate() instead")
-
-
-#define FUNCTION_START(instance)                                               \
-	CustomFunction* cf = static_cast<CustomFunction*>(instance);               \
-	v8::Isolate* isolate = cf->isolate;                                        \
-	NewHandleScope
-
-#define AGGREGATE_START()                                                      \
-	FUNCTION_START(sqlite3_user_data(ctx));                                    \
-	CustomAggregate* ca = static_cast<CustomAggregate*>(                       \
-		sqlite3_aggregate_context(ctx, sizeof(CustomAggregate)));              \
-	if (ca->IsUninitialized()) {                                               \
-		ca->Activate(isolate, cf);                                             \
-		if (!ca->IsActive()) return cf->PropagateJSError(ctx);                 \
-	} /* no ((void)0) here because this pathway must remain open */
-
-#define FUNCTION_EXECUTE(var, fn, ...)                                         \
-	Database::State* db_state = cf->db->GetState();                            \
-	v8::Local<v8::Value>* args = Data::GetArgumentsJS(                         \
-		isolate, argv, argc, cf->safe_ints);                                   \
-	bool was_busy = db_state->busy;                                            \
-	db_state->busy = true;                                                     \
-	v8::MaybeLocal<v8::Value> var = fn->Call(                                  \
-		OnlyContext, v8::Undefined(isolate), argc, args);                      \
-	db_state->busy = was_busy;                                                 \
-	delete[] args;                                                             \
-	if (var.IsEmpty()) {                                                       \
-		__VA_ARGS__;                                                           \
-		return cf->PropagateJSError(ctx);                                      \
-	} ((void)0)

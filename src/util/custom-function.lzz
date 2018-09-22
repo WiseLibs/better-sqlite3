@@ -1,52 +1,42 @@
 class CustomFunction {
-friend class CustomAggregate;
 public:
 	
-	explicit CustomFunction(v8::Local<v8::Function> _fn, v8::Isolate* _isolate, Database* _db, const char* _name, int _argc, bool _safe_ints)
-		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(CopyString(_name)), argc(_argc), safe_ints(_safe_ints) {}
+	explicit CustomFunction(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Function> _fn, const char* _name, bool _safe_ints)
+		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(CopyString(_name)), safe_ints(_safe_ints) {}
 	~CustomFunction() { delete[] name; }
 	
 	static void xDestroy(void* instance) {
-		FUNCTION_START(instance);
-		delete cf;
-	}
-	static void xFunc(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-		FUNCTION_START(sqlite3_user_data(ctx));
-		FUNCTION_EXECUTE(maybe_return_value, v8::Local<v8::Function>::New(isolate, cf->fn));
-		Data::ResultValueFromJS(isolate, ctx, maybe_return_value.ToLocalChecked(), cf);
-	}
-	static void xStep(sqlite3_context* ctx, int argc, sqlite3_value** argv) {
-		AGGREGATE_START();
-		assert(ca->IsActive());
-		
-		// If a JavaScript error is thrown, we must additionally destroy the aggregate object.
-		FUNCTION_EXECUTE(_, ca->GetFn(isolate), ca->Destroy());
-	}
-	static void xFinal(sqlite3_context* ctx) {
-		AGGREGATE_START() else if (!ca->IsActive()) return;
-		assert(ca->IsActive());
-		
-		CustomAggregate::Entry entry = ca->ProgressGenerator(isolate, OnlyContext);
-		ca->Destroy();
-		
-		if (entry.threw) return cf->PropagateJSError(ctx);
-		if (!entry.done) {
-			ThrowTypeError(CONCAT("Custom aggregate ", cf->name, "() should only yield once").c_str());
-			return cf->PropagateJSError(ctx);
-		}
-		Data::ResultValueFromJS(isolate, ctx, entry.value, cf);
+		delete static_cast<CustomFunction*>(instance);
 	}
 	
-	void ThrowResultValueError(sqlite3_context* ctx) {
+	static void xFunc(sqlite3_context* context, int argc, sqlite3_value** argv) {
+		CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(context));
+		v8::Isolate* isolate = cf->isolate;
+		NewHandleScope;
+		
+		v8::Local<v8::Value>* args = Data::GetArgumentsJS(isolate, argv, argc, cf->safe_ints);
+		Database::State* db_state = cf->db->GetState();
+		const bool was_busy = db_state->busy;
+		db_state->busy = true;
+		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, cf->fn)
+			->Call(OnlyContext, v8::Undefined(isolate), argc, args);
+		db_state->busy = was_busy;
+		delete[] args;
+		
+		if (maybe_return_value.IsEmpty()) cf->PropagateJSError(context);
+		else Data::ResultValueFromJS(isolate, context, maybe_return_value.ToLocalChecked(), cf);
+	}
+	
+	void ThrowResultValueError(sqlite3_context* context) {
 		ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
-		PropagateJSError(ctx);
+		PropagateJSError(context);
 	}
 	
 private:
-	void PropagateJSError(sqlite3_context* ctx) {
+	void PropagateJSError(sqlite3_context* context) {
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;
-		sqlite3_result_error(ctx, "", 0);
+		sqlite3_result_error(context, "", 0);
 	}
 	
 	static const char* CopyString(const char* source) {
@@ -60,6 +50,5 @@ private:
 	v8::Isolate* const isolate;
 	Database* const db;
 	const char* const name;
-	const int argc;
 	const bool safe_ints;
 };
