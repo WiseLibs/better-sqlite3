@@ -222,13 +222,14 @@ private:
 		
 		UseIsolate;
 		v8::String::Utf8Value name(isolate, nameString);
+		auto xInverse = inverse->IsFunction() ? CustomAggregate::xInverse : NULL;
+		auto xValue = xInverse ? CustomAggregate::xValue : NULL;
 		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 		
-		// TODO
-		// if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, CustomAggregate::xValue, CustomAggregate::xInverse, CustomFunction::xDestroy) != SQLITE_OK) {
-		// 	return db->ThrowDatabaseError();
-		// }
+		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
+			return db->ThrowDatabaseError();
+		}
 		info.GetReturnValue().Set(info.This());
 	}
 	

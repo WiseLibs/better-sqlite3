@@ -108,4 +108,10 @@ namespace Data {
 		function->ThrowResultValueError(context);
 	}
 	
+	// TODO: clean up this copy-paste
+	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* context, v8::Local<v8::Value> value, CustomAggregate* function) {
+		JS_VALUE_TO_SQLITE(result, value, isolate, context);
+		function->ThrowResultValueError(context);
+	}
+	
 }

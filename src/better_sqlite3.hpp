@@ -254,45 +254,45 @@ private:
   static void JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 210 "./src/objects/database.lzz"
   static void JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 235 "./src/objects/database.lzz"
+#line 236 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 248 "./src/objects/database.lzz"
+#line 249 "./src/objects/database.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 258 "./src/objects/database.lzz"
+#line 259 "./src/objects/database.lzz"
   static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 266 "./src/objects/database.lzz"
+#line 267 "./src/objects/database.lzz"
   static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 270 "./src/objects/database.lzz"
+#line 271 "./src/objects/database.lzz"
   static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 275 "./src/objects/database.lzz"
+#line 276 "./src/objects/database.lzz"
   void CloseHandles ();
-#line 285 "./src/objects/database.lzz"
+#line 286 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle);
-#line 289 "./src/objects/database.lzz"
+#line 290 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle, char const * message, int code);
-#line 298 "./src/objects/database.lzz"
+#line 299 "./src/objects/database.lzz"
   static void AtExit (void * _);
-#line 303 "./src/objects/database.lzz"
-  static std::set <Database*, Database::CompareDatabase> dbs;
 #line 304 "./src/objects/database.lzz"
-  static v8::Persistent <v8::Function> SqliteError;
+  static std::set <Database*, Database::CompareDatabase> dbs;
 #line 305 "./src/objects/database.lzz"
-  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+  static v8::Persistent <v8::Function> SqliteError;
 #line 306 "./src/objects/database.lzz"
+  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+#line 307 "./src/objects/database.lzz"
   static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
-#line 308 "./src/objects/database.lzz"
-  sqlite3 * const db_handle;
 #line 309 "./src/objects/database.lzz"
-  bool open;
+  sqlite3 * const db_handle;
 #line 310 "./src/objects/database.lzz"
-  bool busy;
+  bool open;
 #line 311 "./src/objects/database.lzz"
-  bool pragma_mode;
+  bool busy;
 #line 312 "./src/objects/database.lzz"
-  bool safe_ints;
+  bool pragma_mode;
 #line 313 "./src/objects/database.lzz"
-  bool was_js_error;
+  bool safe_ints;
 #line 314 "./src/objects/database.lzz"
+  bool was_js_error;
+#line 315 "./src/objects/database.lzz"
   std::set <Statement*, Database::CompareStatement> stmts;
 };
 #line 1 "./src/objects/statement.lzz"
@@ -467,6 +467,64 @@ private:
 #line 59 "./src/util/custom-function.lzz"
   bool const safe_ints;
 };
+#line 2 "./src/util/custom-aggregate.lzz"
+class CustomAggregate
+{
+#line 3 "./src/util/custom-aggregate.lzz"
+public:
+#line 5 "./src/util/custom-aggregate.lzz"
+  explicit CustomAggregate (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Value> _start, v8::Local <v8::Function> _step, v8::Local <v8::Value> _inverse, v8::Local <v8::Value> _result, char const * _name, bool _safe_ints);
+#line 7 "./src/util/custom-aggregate.lzz"
+  ~ CustomAggregate ();
+#line 9 "./src/util/custom-aggregate.lzz"
+  static void xDestroy (void * instance);
+#line 13 "./src/util/custom-aggregate.lzz"
+  static void xStep (sqlite3_context * context, int argc, sqlite3_value * * argv);
+#line 56 "./src/util/custom-aggregate.lzz"
+  static void xInverse (sqlite3_context * context, int argc, sqlite3_value * * argv);
+#line 85 "./src/util/custom-aggregate.lzz"
+  static void xValue (sqlite3_context * context);
+#line 106 "./src/util/custom-aggregate.lzz"
+  static void xFinal (sqlite3_context * context);
+#line 143 "./src/util/custom-aggregate.lzz"
+  void ThrowResultValueError (sqlite3_context * context);
+#line 150 "./src/util/custom-aggregate.lzz"
+private:
+#line 151 "./src/util/custom-aggregate.lzz"
+  struct Accumulator
+  {
+#line 151 "./src/util/custom-aggregate.lzz"
+  public:
+#line 152 "./src/util/custom-aggregate.lzz"
+    CopyablePersistent <v8::Value> value;
+#line 153 "./src/util/custom-aggregate.lzz"
+    bool initialized;
+  };
+#line 156 "./src/util/custom-aggregate.lzz"
+  void PropagateJSError (sqlite3_context * context);
+#line 161 "./src/util/custom-aggregate.lzz"
+  static char const * CopyString (char const * source);
+#line 168 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Value> const start;
+#line 169 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Function> const step;
+#line 170 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Function> const inverse;
+#line 171 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Function> const result;
+#line 172 "./src/util/custom-aggregate.lzz"
+  v8::Isolate * const isolate;
+#line 173 "./src/util/custom-aggregate.lzz"
+  Database * const db;
+#line 174 "./src/util/custom-aggregate.lzz"
+  char const * const name;
+#line 175 "./src/util/custom-aggregate.lzz"
+  bool const safe_ints;
+#line 176 "./src/util/custom-aggregate.lzz"
+  bool const invoke_start;
+#line 177 "./src/util/custom-aggregate.lzz"
+  bool const invoke_result;
+};
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
@@ -508,6 +566,12 @@ namespace Data
 {
 #line 106 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomFunction * function);
+}
+#line 54 "./src/util/data.lzz"
+namespace Data
+{
+#line 112 "./src/util/data.lzz"
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomAggregate * function);
 }
 #line 1 "./src/util/binder.lzz"
 class Binder
