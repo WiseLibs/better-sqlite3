@@ -31,9 +31,14 @@ void ThrowError(const char* message) { EasyIsolate; isolate->ThrowException(v8::
 void ThrowTypeError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1))); }
 void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1))); }
 
+#define REQUIRE_ARGUMENT_ANY(at, var)                                          \
+	if (info.Length() <= (at()))                                               \
+		return ThrowTypeError("Expected a "#at" argument");                    \
+	var = info[at()]
+
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
-		return ThrowTypeError("Expected "#at" argument to be "#message);      \
+		return ThrowTypeError("Expected "#at" argument to be "#message);       \
 	var = v8::Local<v8::Type>::Cast(info[at()])__VA_ARGS__
 
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \

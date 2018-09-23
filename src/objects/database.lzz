@@ -70,7 +70,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
 		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
 		NODE_SET_PROTOTYPE_METHOD(t, "function", JS_function);
-		// NODE_SET_PROTOTYPE_METHOD(t, "aggregate", JS_aggregate);
+		NODE_SET_PROTOTYPE_METHOD(t, "aggregate", JS_aggregate);
 		NODE_SET_PROTOTYPE_METHOD(t, "loadExtension", JS_loadExtension);
 		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
@@ -207,9 +207,30 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 	
-	// NODE_METHOD(JS_aggregate) {
-	// 	info.GetReturnValue().Set(info.This());
-	// }
+	NODE_METHOD(JS_aggregate) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_ARGUMENT_ANY(first, v8::Local<v8::Value> start);
+		REQUIRE_ARGUMENT_FUNCTION(second, v8::Local<v8::Function> step);
+		REQUIRE_ARGUMENT_ANY(third, v8::Local<v8::Value> inverse);
+		REQUIRE_ARGUMENT_ANY(fourth, v8::Local<v8::Value> result);
+		REQUIRE_ARGUMENT_STRING(fifth, v8::Local<v8::String> nameString);
+		REQUIRE_ARGUMENT_INT32(sixth, int argc);
+		REQUIRE_ARGUMENT_INT32(seventh, int safe_ints);
+		REQUIRE_ARGUMENT_BOOLEAN(eighth, bool deterministic);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		
+		UseIsolate;
+		v8::String::Utf8Value name(isolate, nameString);
+		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
+		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
+		
+		// TODO
+		// if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, CustomAggregate::xValue, CustomAggregate::xInverse, CustomFunction::xDestroy) != SQLITE_OK) {
+		// 	return db->ThrowDatabaseError();
+		// }
+		info.GetReturnValue().Set(info.This());
+	}
 	
 	NODE_METHOD(JS_loadExtension) {
 		Database* db = Unwrap<Database>(info.This());
