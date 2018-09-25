@@ -37,3 +37,17 @@
 #define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
 	if (stmt->returns_data)                                                    \
 		return ThrowTypeError("This statement returns data. Use get(), all(), or iterate() instead")
+
+
+#define _FUNCTION_START(type)                                                  \
+	type* self = static_cast<type*>(sqlite3_user_data(invocation));            \
+	v8::Isolate* isolate = self->isolate;                                      \
+	NewHandleScope
+
+#define FUNCTION_START()                                                       \
+	_FUNCTION_START(CustomFunction)
+
+#define AGGREGATE_START()                                                      \
+	_FUNCTION_START(CustomAggregate);                                          \
+	Accumulator* acc = self->GetAccumulator(invocation);                       \
+	if (acc->value.IsEmpty()) return

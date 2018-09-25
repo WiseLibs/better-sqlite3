@@ -2,35 +2,28 @@ class CustomFunction {
 public:
 	
 	explicit CustomFunction(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Function> _fn, const char* _name, bool _safe_ints)
-		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(COPY(_name)), safe_ints(_safe_ints) {}
-	~CustomFunction() { delete[] name; }
+		: name(COPY(_name)), db(_db), isolate(_isolate), fn(_isolate, _fn), safe_ints(_safe_ints) {}
+	virtual ~CustomFunction() { delete[] name; }
 	
-	static void xDestroy(void* instance) {
-		delete static_cast<CustomFunction*>(instance);
+	static void xDestroy(void* self) {
+		delete static_cast<CustomFunction*>(self);
 	}
 	
 	static void xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
-		CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(invocation));
-		v8::Isolate* isolate = cf->isolate;
-		NewHandleScope;
+		FUNCTION_START();
 		
 		v8::Local<v8::Value> args_fast[4];
 		v8::Local<v8::Value>* args = NULL;
 		if (argc != 0) {
 			args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
-			Data::GetArgumentsJS(isolate, args, argv, argc, cf->safe_ints);
+			Data::GetArgumentsJS(isolate, args, argv, argc, self->safe_ints);
 		}
 		
-		Database::State* db_state = cf->db->GetState();
-		const bool was_busy = db_state->busy;
-		db_state->busy = true;
-		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, cf->fn)
-			->Call(OnlyContext, v8::Undefined(isolate), argc, args);
-		db_state->busy = was_busy;
-		
+		v8::MaybeLocal<v8::Value> maybe_return_value = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->fn), argc, args);
 		if (args != args_fast) delete[] args;
-		if (maybe_return_value.IsEmpty()) cf->PropagateJSError(invocation);
-		else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), cf);
+		
+		if (maybe_return_value.IsEmpty()) self->PropagateJSError(invocation);
+		else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), self);
 	}
 	
 	void ThrowResultValueError(sqlite3_context* invocation) {
@@ -38,16 +31,27 @@ public:
 		PropagateJSError(invocation);
 	}
 	
-private:
-	void PropagateJSError(sqlite3_context* invocation) {
+protected:
+	v8::MaybeLocal<v8::Value> InvokeBusy(v8::Local<v8::Function> fn, int argc, v8::Local<v8::Value>* args) {
+		Database::State* db_state = db->GetState();
+		const bool was_busy = db_state->busy;
+		db_state->busy = true;
+		v8::MaybeLocal<v8::Value> maybe_return_value = fn->Call(OnlyContext, v8::Undefined(isolate), argc, args);
+		db_state->busy = was_busy;
+		return maybe_return_value;
+	}
+	
+	virtual void PropagateJSError(sqlite3_context* invocation) {
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;
 		sqlite3_result_error(invocation, "", 0);
 	}
 	
-	const CopyablePersistent<v8::Function> fn;
-	v8::Isolate* const isolate;
-	Database* const db;
+private:
 	const char* const name;
+	Database* const db;
+protected:
+	v8::Isolate* const isolate;
+	const CopyablePersistent<v8::Function> fn;
 	const bool safe_ints;
 };

@@ -445,85 +445,79 @@ public:
 #line 4 "./src/util/custom-function.lzz"
   explicit CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints);
 #line 6 "./src/util/custom-function.lzz"
-  ~ CustomFunction ();
+  virtual ~ CustomFunction ();
 #line 8 "./src/util/custom-function.lzz"
-  static void xDestroy (void * instance);
+  static void xDestroy (void * self);
 #line 12 "./src/util/custom-function.lzz"
   static void xFunc (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
-#line 36 "./src/util/custom-function.lzz"
+#line 29 "./src/util/custom-function.lzz"
   void ThrowResultValueError (sqlite3_context * invocation);
-#line 41 "./src/util/custom-function.lzz"
-private:
-#line 42 "./src/util/custom-function.lzz"
-  void PropagateJSError (sqlite3_context * invocation);
-#line 48 "./src/util/custom-function.lzz"
-  CopyablePersistent <v8::Function> const fn;
-#line 49 "./src/util/custom-function.lzz"
-  v8::Isolate * const isolate;
+#line 34 "./src/util/custom-function.lzz"
+protected:
+#line 35 "./src/util/custom-function.lzz"
+  v8::MaybeLocal <v8::Value> InvokeBusy (v8::Local <v8::Function> fn, int argc, v8::Local <v8::Value> * args);
+#line 44 "./src/util/custom-function.lzz"
+  virtual void PropagateJSError (sqlite3_context * invocation);
 #line 50 "./src/util/custom-function.lzz"
-  Database * const db;
+private:
 #line 51 "./src/util/custom-function.lzz"
   char const * const name;
 #line 52 "./src/util/custom-function.lzz"
+  Database * const db;
+#line 53 "./src/util/custom-function.lzz"
+protected:
+#line 54 "./src/util/custom-function.lzz"
+  v8::Isolate * const isolate;
+#line 55 "./src/util/custom-function.lzz"
+  CopyablePersistent <v8::Function> const fn;
+#line 56 "./src/util/custom-function.lzz"
   bool const safe_ints;
 };
-#line 2 "./src/util/custom-aggregate.lzz"
-class CustomAggregate
+#line 1 "./src/util/custom-aggregate.lzz"
+class CustomAggregate : public CustomFunction
 {
-#line 3 "./src/util/custom-aggregate.lzz"
+#line 2 "./src/util/custom-aggregate.lzz"
 public:
-#line 5 "./src/util/custom-aggregate.lzz"
+#line 4 "./src/util/custom-aggregate.lzz"
   explicit CustomAggregate (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Value> _start, v8::Local <v8::Function> _step, v8::Local <v8::Value> _inverse, v8::Local <v8::Value> _result, char const * _name, bool _safe_ints);
 #line 7 "./src/util/custom-aggregate.lzz"
-  ~ CustomAggregate ();
-#line 9 "./src/util/custom-aggregate.lzz"
-  static void xDestroy (void * instance);
-#line 13 "./src/util/custom-aggregate.lzz"
+  static void xStepBase (sqlite3_context * invocation, int argc, sqlite3_value * * argv, CopyablePersistent <v8::Function> const CustomAggregate::* ptrtm);
+#line 26 "./src/util/custom-aggregate.lzz"
   static void xStep (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
-#line 56 "./src/util/custom-aggregate.lzz"
+#line 30 "./src/util/custom-aggregate.lzz"
   static void xInverse (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
-#line 85 "./src/util/custom-aggregate.lzz"
+#line 34 "./src/util/custom-aggregate.lzz"
   static void xValue (sqlite3_context * invocation);
-#line 106 "./src/util/custom-aggregate.lzz"
+#line 48 "./src/util/custom-aggregate.lzz"
   static void xFinal (sqlite3_context * invocation);
-#line 143 "./src/util/custom-aggregate.lzz"
-  void ThrowResultValueError (sqlite3_context * invocation);
-#line 150 "./src/util/custom-aggregate.lzz"
+#line 53 "./src/util/custom-aggregate.lzz"
 private:
-#line 151 "./src/util/custom-aggregate.lzz"
+#line 54 "./src/util/custom-aggregate.lzz"
   struct Accumulator
   {
-#line 151 "./src/util/custom-aggregate.lzz"
+#line 54 "./src/util/custom-aggregate.lzz"
   public:
-#line 152 "./src/util/custom-aggregate.lzz"
+#line 55 "./src/util/custom-aggregate.lzz"
     CopyablePersistent <v8::Value> value;
-#line 153 "./src/util/custom-aggregate.lzz"
+#line 56 "./src/util/custom-aggregate.lzz"
     bool initialized;
-#line 154 "./src/util/custom-aggregate.lzz"
-    bool error;
   };
-#line 161 "./src/util/custom-aggregate.lzz"
+#line 59 "./src/util/custom-aggregate.lzz"
+  Accumulator * GetAccumulator (sqlite3_context * invocation);
+#line 76 "./src/util/custom-aggregate.lzz"
+  static void DestroyAccumulator (sqlite3_context * invocation);
+#line 82 "./src/util/custom-aggregate.lzz"
   void PropagateJSError (sqlite3_context * invocation);
-#line 166 "./src/util/custom-aggregate.lzz"
-  CopyablePersistent <v8::Value> const start;
-#line 167 "./src/util/custom-aggregate.lzz"
-  CopyablePersistent <v8::Function> const step;
-#line 168 "./src/util/custom-aggregate.lzz"
-  CopyablePersistent <v8::Function> const inverse;
-#line 169 "./src/util/custom-aggregate.lzz"
-  CopyablePersistent <v8::Function> const result;
-#line 170 "./src/util/custom-aggregate.lzz"
-  v8::Isolate * const isolate;
-#line 171 "./src/util/custom-aggregate.lzz"
-  Database * const db;
-#line 172 "./src/util/custom-aggregate.lzz"
-  char const * const name;
-#line 173 "./src/util/custom-aggregate.lzz"
-  bool const safe_ints;
-#line 174 "./src/util/custom-aggregate.lzz"
-  bool const invoke_start;
-#line 175 "./src/util/custom-aggregate.lzz"
+#line 87 "./src/util/custom-aggregate.lzz"
   bool const invoke_result;
+#line 88 "./src/util/custom-aggregate.lzz"
+  bool const invoke_start;
+#line 89 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Function> const inverse;
+#line 90 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Function> const result;
+#line 91 "./src/util/custom-aggregate.lzz"
+  CopyablePersistent <v8::Value> const start;
 };
 #line 54 "./src/util/data.lzz"
 namespace Data
@@ -566,12 +560,6 @@ namespace Data
 {
 #line 106 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function);
-}
-#line 54 "./src/util/data.lzz"
-namespace Data
-{
-#line 112 "./src/util/data.lzz"
-  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomAggregate * function);
 }
 #line 1 "./src/util/binder.lzz"
 class Binder
