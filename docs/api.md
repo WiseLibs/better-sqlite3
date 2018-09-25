@@ -195,7 +195,12 @@ db.aggregate('addAll', {
   result: total => Math.round(total),
 });
 
-db.prepare('SELECT timestamp, dollars, addAll(dollars) OVER (PARTITION BY date(timestamp)) as day_total FROM expenses ORDER BY timestamp').all();
+db.prepare(`
+  SELECT timestamp, dollars, addAll(dollars) OVER day as dayTotal
+  FROM expenses
+  WINDOW day AS (PARTITION BY date(timestamp))
+  ORDER BY timestamp
+`).all();
 ```
 
 ### .loadExtension(*path*) -> *this*
