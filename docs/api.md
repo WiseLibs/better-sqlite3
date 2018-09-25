@@ -163,11 +163,11 @@ db.aggregate('addAll', {
 db.prepare('SELECT addAll(dollars) FROM expenses').pluck().get(); // => 92
 ```
 
-The mandatory `options.step` function will be invoked once for each row passed to the aggregate, using the return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
+The mandatory `step()` function will be invoked once for each row passed to the aggregate, using the return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
 
 If `options.start` is a function, it will be invoked at the beginning of each aggregate, using the return value as the initial aggregate value. If `options.start` is not a function, it will be used as the initial aggregate value as-is (shown in the example above). If not provided, the initial aggregate value will be `null`.
 
-The `options.result` function can be used to transform the final aggregate value.
+The `result()` function can be used to transform the final aggregate value.
 
 ```js
 db.aggregate('getAverage', {
@@ -185,7 +185,7 @@ As shown above, if `step()` returns `undefined`, the aggregate value will not be
 
 User-defined aggregate functions can accept multiple arguments (detected automatically) just like [regular user-defined functions](#functionname-options-function---this). Further more, `options.varargs` and `options.deterministic` [can be applied](#functionname-options-function---this) as well.
 
-User-defined aggregate functions can be used as [window functions](https://www.sqlite.org/windowfunctions.html) if you provide an `options.inverse` function. Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times, if provided.
+User-defined aggregate functions can be used as [window functions](https://www.sqlite.org/windowfunctions.html) if you provide an `inverse()` function. Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times, if provided.
 
 ```js
 db.aggregate('addAll', {
