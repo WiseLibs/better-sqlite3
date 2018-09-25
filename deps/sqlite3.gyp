@@ -62,8 +62,7 @@
       'defines': [
         'SQLITE_THREADSAFE=0',
         'SQLITE_DEFAULT_MEMSTATUS=0',
-        # TODO: determine if this would be a severe enough breaking change to avoid
-        # 'SQLITE_LIKE_DOESNT_MATCH_BLOBS',
+        'SQLITE_LIKE_DOESNT_MATCH_BLOBS',
         'SQLITE_OMIT_DEPRECATED',
         'SQLITE_OMIT_TRACE',
         'SQLITE_OMIT_COMPLETE',
