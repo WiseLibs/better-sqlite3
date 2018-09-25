@@ -165,7 +165,7 @@ db.prepare('SELECT addAll(dollars) FROM expenses').pluck().get(); // => 92
 
 The `options.step` function will be invoked once for each row passed to the aggregate, using the return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
 
-If `options.start` is a function, it will be invoked at the beginning of each aggregation, using the return value as the initial aggregate value. If `options.start` is not a function, it will be used as the initial value as-is (shown in the example above). If not provided, the initial aggregate value will be `null`.
+If `options.start` is a function, it will be invoked at the beginning of each aggregate, using the return value as the initial aggregate value. If `options.start` is not a function, it will be used as the initial value as-is (shown in the example above). If not provided, the initial aggregate value will be `null`.
 
 The `options.result` function can be used to transform the final aggregate value.
 
