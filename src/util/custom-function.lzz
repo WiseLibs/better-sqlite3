@@ -27,7 +27,7 @@ public:
 	}
 	
 	void ThrowResultValueError(sqlite3_context* invocation) {
-		ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
+		ThrowTypeError(CONCAT("User-defined function ", name, "() returned an invalid value").c_str());
 		PropagateJSError(invocation);
 	}
 	

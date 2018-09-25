@@ -16,7 +16,7 @@ bigInteger.toNumber(); // throws a RangeError, cannot be represented in JavaScri
 
 ## Binding Integers
 
-`Integers` can bind to [`Statements`](./api.md#class-statement) just like regular numbers. You can also return `Integers` from [registered functions](./api.md#registeroptions-function---this).
+`Integers` can bind to [`Statements`](./api.md#class-statement) just like regular numbers. You can also return `Integers` from [user-defined functions](./api.md#functionname-options-function---this).
 
 ```js
 db.prepare("SELECT * FROM users WHERE id=?").get(Integer('1152735103331642317'));
@@ -43,10 +43,10 @@ stmt.safeIntegers(true); // Safe integers ON
 stmt.safeIntegers(false); // Safe integers OFF
 ```
 
-[Registered functions](./api.md#registeroptions-function---this) can receive `Integers` as arguments. You can override the database's default setting like so:
+[User-defined functions](./api.md#functionname-options-function---this) can receive `Integers` as arguments. You can override the database's default setting like so:
 
 ```js
-db.register({ safeIntegers: true }, function isInt(value) {
+db.function('isInt', { safeIntegers: true }, (value) => {
   return String(value instanceof Integer);
 });
 

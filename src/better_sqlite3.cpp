@@ -1077,7 +1077,7 @@ void CustomFunction::xFunc (sqlite3_context * invocation, int argc, sqlite3_valu
 void CustomFunction::ThrowResultValueError (sqlite3_context * invocation)
 #line 29 "./src/util/custom-function.lzz"
                                                                 {
-                ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
+                ThrowTypeError(CONCAT("User-defined function ", name, "() returned an invalid value").c_str());
                 PropagateJSError(invocation);
 }
 #line 35 "./src/util/custom-function.lzz"
@@ -1116,7 +1116,7 @@ void CustomAggregate::xStepBase (sqlite3_context * invocation, int argc, sqlite3
                 args[0] = v8::Local<v8::Value>::New(isolate, acc->value);
                 if (argc != 0) Data::GetArgumentsJS(isolate, args + 1, argv, argc, self->safe_ints);
 
-                v8::MaybeLocal<v8::Value> maybe_return_value = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->*ptrtm), argc, args);
+                v8::MaybeLocal<v8::Value> maybe_return_value = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->*ptrtm), argc + 1, args);
                 if (args != args_fast) delete[] args;
 
                 if (maybe_return_value.IsEmpty()) {

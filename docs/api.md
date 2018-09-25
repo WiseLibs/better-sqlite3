@@ -7,7 +7,8 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
-- [Database#register()](#registeroptions-function---this)
+- [Database#function()](#functionname-options-function---this)
+- [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
 - [Database#exec()](#execstring---this)
 - [Database#close()](#close---this)
@@ -124,44 +125,77 @@ If `databaseName` is provided, it should be the name of an attached database (or
 
 If the checkpoint fails, an `Error` is thrown.
 
-### .register([*options*], *function*) -> *this*
+### .function(*name*, [*options*], *function*) -> *this*
 
-TODO: support window functions
-TODO: options at the end, optional string "name" option at the start
-TODO: new docs
-
-Registers the given `function` so that it can be used by SQL statements.
+Registers a user-defined `function` so that it can be used by SQL statements.
 
 ```js
-db.register(function add2(a, b) { return a + b; });
+db.function('add2', (a, b) => a + b);
+
 db.prepare('SELECT add2(?, ?)').get(12, 4); // => 16
-db.prepare('SELECT add2(?, ?)').get('foo', 'bar'); // => 'foobar'
+db.prepare('SELECT add2(?, ?)').get('foo', 'bar'); // => "foobar"
 db.prepare('SELECT add2(?, ?, ?)').get(12, 4, 18); // => Error: wrong number of arguments
 ```
 
-By default, registered functions have a strict number of arguments (determined by `function.length`). You can register multiple functions of the same name, each with a different number of arguments, causing SQLite3 to execute a different function depending on how many arguments were passed to it. If you register two functions with same name and the same number of arguments, the second registration will erase the first one.
-
-If `options.name` is given, the function will be registered under that name (instead of defaulting to `function.name`).
+By default, user-defined functions have a strict number of arguments (determined by `function.length`). You can register multiple functions of the same name, each with a different number of arguments, causing SQLite3 to execute a different function depending on how many arguments were passed to it. If you register two functions with same name and the same number of arguments, the second registration will erase the first one.
 
 If `options.varargs` is `true`, the registered function can accept any number of arguments.
 
 If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm), you can set `options.deterministic` to `true`, which may improve performance under some circumstances.
 
 ```js
-db.register({ name: "void", deterministic: true, varargs: true }, function () {});
+db.function('void', { deterministic: true, varargs: true }, () => {});
+
 db.prepare("SELECT void()").get(); // => null
 db.prepare("SELECT void(?, ?)").get(55, 19); // => null
 ```
 
-You can create custom [aggregates](https://sqlite.org/lang_aggfunc.html) by using generator functions. Your generator function must `yield` a regular function that will be invoked for each row passed to the aggregate.
+### .aggregate(*name*, *options*) -> *this*
+
+Registers a user-defined [aggregate function](https://sqlite.org/lang_aggfunc.html).
 
 ```js
-db.register(function* addAll() {
-  let total = 0;
-  yield function (rowValue) { total += rowValue; };
-  return total;
+db.aggregate('addAll', {
+  start: 0,
+  step: (total, nextValue) => total + nextValue,
 });
-const totalTreasure = db.prepare('SELECT addAll(treasure) FROM dragons').pluck().get();
+
+db.prepare('SELECT addAll(dollars) FROM expenses').pluck().get(); // => 92
+```
+
+The `options.step` function will be invoked once for each row passed to the aggregate, using the return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
+
+If `options.start` is a function, it will be invoked at the beginning of each aggregation, using the return value as the initial aggregate value. If `options.start` is not a function, it will be used as the initial value as-is (shown in the example above). If not provided, the initial aggregate value will be `null`.
+
+The `options.result` function can be used to transform the final aggregate value.
+
+```js
+db.aggregate('getAverage', {
+  start: () => [],
+  step: (array, nextValue) => {
+    array.push(nextValue);
+  },
+  result: array => array.reduce(sum) / array.length,
+});
+
+db.prepare('SELECT getAverage(dollars) FROM expenses').pluck().get(); // => 20.2
+```
+
+As shown above, if `step()` returns `undefined`, the aggregate value will not be replaced. In combination with a `result()` function, this allows you to use arbitrary JavaScript objects as your aggregation context (as long as a valid SQLite3 value is returned by `result()` in the end).
+
+User-defined aggregate functions can accept multiple arguments (detected automatically) just like [regular user-defined functions](#functionname-options-function---this). Further more, `options.varargs` and `options.deterministic` [can be applied](#functionname-options-function---this) as well.
+
+User-defined aggregate functions can be used as [window functions](https://www.sqlite.org/windowfunctions.html) if you provide an `options.inverse` function. Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times, if provided.
+
+```js
+db.aggregate('addAll', {
+  start: 0,
+  step: (total, nextValue) => total + nextValue,
+  inverse: (total, droppedValue) => total - droppedValue,
+  result: total => Math.round(total),
+});
+
+db.prepare('SELECT timestamp, dollars, addAll(dollars) OVER (PARTITION BY date(timestamp)) as day_total FROM expenses ORDER BY timestamp').all();
 ```
 
 ### .loadExtension(*path*) -> *this*

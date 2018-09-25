@@ -39,7 +39,7 @@
     "sql",
     "sqlite",
     "sqlite3",
-    "custom",
+    "user-defined",
     "aggregate",
     "database",
     "transactions"
