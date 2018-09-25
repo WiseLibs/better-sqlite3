@@ -82,7 +82,7 @@
         'SQLITE_ENABLE_COLUMN_METADATA',
         # TODO: test ANALYZE with stat4 enabled
         # 'SQLITE_ENABLE_STAT4',
-        # TODO: evaluate the extra compilation steps necessary for these features
+        # TODO: evaluate the extra compilation steps necessary for this feature
         # 'SQLITE_ENABLE_UPDATE_DELETE_LIMIT',
         'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
