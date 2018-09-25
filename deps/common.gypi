@@ -1,3 +1,8 @@
+# ===
+# This configuration defines the differences between Release and Debug builds.
+# Some miscellaneous Windows settings are also defined here.
+# ===
+
 {
   'target_defaults': {
     'default_configuration': 'Release',

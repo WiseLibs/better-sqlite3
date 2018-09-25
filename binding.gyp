@@ -1,3 +1,7 @@
+# ===
+# This is the main GYP file, which builds better-sqlite3 with SQLite3 itself.
+# ===
+
 {
   'includes': ['deps/common.gypi'],
   'targets': [
