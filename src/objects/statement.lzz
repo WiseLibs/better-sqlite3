@@ -84,7 +84,6 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
 		NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
-		NODE_SET_PROTOTYPE_GETTER(t, "returnsData", JS_returnsData);
 		
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
@@ -125,6 +124,7 @@ private:
 		UseContext;
 		Statement* stmt = new Statement(db, handle, returns_data);
 		stmt->Wrap(info.This());
+		SetFrozen(isolate, ctx, info.This(), CS::reader, v8::Boolean::New(isolate, returns_data));
 		SetFrozen(isolate, ctx, info.This(), CS::source, source);
 		SetFrozen(isolate, ctx, info.This(), CS::database, database);
 		
@@ -235,10 +235,6 @@ private:
 		if (info.Length() == 0) stmt->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints); }
 		info.GetReturnValue().Set(info.This());
-	}
-	
-	NODE_GETTER(JS_returnsData) {
-		info.GetReturnValue().Set(Unwrap<Statement>(info.This())->returns_data);
 	}
 	
 	static v8::Persistent<v8::Function> constructor;

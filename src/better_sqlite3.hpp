@@ -16,7 +16,7 @@
 #include <node_buffer.h>
 #line 138 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#line 146 "./src/util/constants.lzz"
+#line 148 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
 #define LZZ_INLINE inline
 #line 18 "./src/util/macros.lzz"
@@ -61,44 +61,46 @@ public:
 #line 12 "./src/util/constants.lzz"
   static ConstantString database;
 #line 13 "./src/util/constants.lzz"
-  static ConstantString source;
+  static ConstantString reader;
 #line 14 "./src/util/constants.lzz"
-  static ConstantString memory;
+  static ConstantString source;
 #line 15 "./src/util/constants.lzz"
-  static ConstantString readonly;
+  static ConstantString memory;
 #line 16 "./src/util/constants.lzz"
-  static ConstantString name;
+  static ConstantString readonly;
 #line 17 "./src/util/constants.lzz"
-  static ConstantString next;
+  static ConstantString name;
 #line 18 "./src/util/constants.lzz"
-  static ConstantString length;
+  static ConstantString next;
 #line 19 "./src/util/constants.lzz"
-  static ConstantString done;
+  static ConstantString length;
 #line 20 "./src/util/constants.lzz"
-  static ConstantString value;
+  static ConstantString done;
 #line 21 "./src/util/constants.lzz"
-  static ConstantString changes;
+  static ConstantString value;
 #line 22 "./src/util/constants.lzz"
-  static ConstantString lastInsertRowid;
+  static ConstantString changes;
 #line 23 "./src/util/constants.lzz"
-  static ConstantString code;
+  static ConstantString lastInsertRowid;
 #line 24 "./src/util/constants.lzz"
+  static ConstantString code;
+#line 25 "./src/util/constants.lzz"
   static ConstantString statement;
-#line 26 "./src/util/constants.lzz"
+#line 27 "./src/util/constants.lzz"
 private:
-#line 27 "./src/util/constants.lzz"
+#line 28 "./src/util/constants.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 27 "./src/util/constants.lzz"
+#line 28 "./src/util/constants.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 131 "./src/util/constants.lzz"
+#line 133 "./src/util/constants.lzz"
   static v8::Local <v8::String> InternalizedFromLatin1 (v8::Isolate * isolate, char const * str);
-#line 134 "./src/util/constants.lzz"
+#line 136 "./src/util/constants.lzz"
   static void AddString (v8::Isolate * isolate, ConstantString & constant, char const * str);
-#line 137 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
   static void AddCode (v8::Isolate * isolate, int code, char const * str);
-#line 140 "./src/util/constants.lzz"
-  explicit CS (char _);
 #line 142 "./src/util/constants.lzz"
+  explicit CS (char _);
+#line 144 "./src/util/constants.lzz"
   static std::unordered_map <int, ConstantString> codes;
 };
 #line 1 "./src/util/bind-map.lzz"
@@ -334,7 +336,7 @@ private:
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 74 "./src/objects/statement.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 94 "./src/objects/statement.lzz"
+#line 93 "./src/objects/statement.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 134 "./src/objects/statement.lzz"
   static void JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info);
@@ -353,32 +355,30 @@ private:
 #line 232 "./src/objects/statement.lzz"
   static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 240 "./src/objects/statement.lzz"
-  static void JS_returnsData (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 244 "./src/objects/statement.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 245 "./src/objects/statement.lzz"
+#line 241 "./src/objects/statement.lzz"
   static sqlite3_uint64 next_id;
-#line 246 "./src/objects/statement.lzz"
+#line 242 "./src/objects/statement.lzz"
   static bool constructing_privileges;
-#line 248 "./src/objects/statement.lzz"
+#line 244 "./src/objects/statement.lzz"
   Database * const db;
-#line 249 "./src/objects/statement.lzz"
+#line 245 "./src/objects/statement.lzz"
   sqlite3_stmt * const handle;
-#line 250 "./src/objects/statement.lzz"
+#line 246 "./src/objects/statement.lzz"
   Extras * const extras;
-#line 251 "./src/objects/statement.lzz"
+#line 247 "./src/objects/statement.lzz"
   bool alive;
-#line 252 "./src/objects/statement.lzz"
+#line 248 "./src/objects/statement.lzz"
   bool bound;
-#line 253 "./src/objects/statement.lzz"
+#line 249 "./src/objects/statement.lzz"
   bool has_bind_map;
-#line 254 "./src/objects/statement.lzz"
+#line 250 "./src/objects/statement.lzz"
   bool safe_ints;
-#line 255 "./src/objects/statement.lzz"
+#line 251 "./src/objects/statement.lzz"
   bool pluck;
-#line 256 "./src/objects/statement.lzz"
+#line 252 "./src/objects/statement.lzz"
   bool expand;
-#line 257 "./src/objects/statement.lzz"
+#line 253 "./src/objects/statement.lzz"
   bool const returns_data;
 };
 #line 1 "./src/objects/statement-iterator.lzz"

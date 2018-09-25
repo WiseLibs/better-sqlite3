@@ -8,15 +8,15 @@ describe('Statement#all()', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
 		
 		let stmt = db.prepare("INSERT INTO entries VALUES ('foo', 1, 3.14, x'dddddddd', NULL)");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.all()).to.throw(TypeError);
 		
 		stmt = db.prepare("CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.all()).to.throw(TypeError);
 		
 		stmt = db.prepare("BEGIN TRANSACTION");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.all()).to.throw(TypeError);
 	});
 	it('should return an array of every matching row', function () {
@@ -24,7 +24,7 @@ describe('Statement#all()', function () {
 		const row = { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null };
 		
 		let stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
-		expect(stmt.returnsData).to.be.true;
+		expect(stmt.reader).to.be.true;
 		matchesFrom(stmt.all(), 1);
 		
 		stmt = db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");

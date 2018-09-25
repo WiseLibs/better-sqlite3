@@ -10,6 +10,7 @@ public:
 	}
 	
 	static ConstantString database;
+	static ConstantString reader;
 	static ConstantString source;
 	static ConstantString memory;
 	static ConstantString readonly;
@@ -26,6 +27,7 @@ public:
 private:
 	REGISTER(Init) {
 		AddString(isolate, CS::database, "database");
+		AddString(isolate, CS::reader, "reader");
 		AddString(isolate, CS::source, "source");
 		AddString(isolate, CS::memory, "memory");
 		AddString(isolate, CS::readonly, "readonly");

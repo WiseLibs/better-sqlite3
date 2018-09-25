@@ -8,15 +8,15 @@ describe('Statement#iterate()', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
 		
 		let stmt = db.prepare("INSERT INTO entries VALUES ('foo', 1, 3.14, x'dddddddd', NULL)");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.iterate()).to.throw(TypeError);
 		
 		stmt = db.prepare("CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.iterate()).to.throw(TypeError);
 		
 		stmt = db.prepare("BEGIN TRANSACTION");
-		expect(stmt.returnsData).to.be.false;
+		expect(stmt.reader).to.be.false;
 		expect(() => stmt.iterate()).to.throw(TypeError);
 		
 		db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
@@ -26,7 +26,7 @@ describe('Statement#iterate()', function () {
 		
 		let count = 0;
 		let stmt = db.prepare("SELECT * FROM entries ORDER BY rowid");
-		expect(stmt.returnsData).to.be.true;
+		expect(stmt.reader).to.be.true;
 		
 		const iterator = stmt.iterate();
 		expect(iterator).to.not.be.null;

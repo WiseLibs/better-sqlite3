@@ -4,11 +4,11 @@ const Database = require('../.');
 const util = require('./util');
 
 describe('Database#prepare()', function () {
-	const assertStmt = (stmt, source, db, returnsData) => {
+	const assertStmt = (stmt, source, db, reader) => {
 		expect(stmt.source).to.equal(source);
 		expect(stmt.constructor.name).to.equal('Statement');
 		expect(stmt.database).to.equal(db);
-		expect(stmt.returnsData).to.equal(returnsData);
+		expect(stmt.reader).to.equal(reader);
 		expect(() => new stmt.constructor(source)).to.throw(TypeError);
 	};
 	it('should throw an exception if a string is not provided', function () {

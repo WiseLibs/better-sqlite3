@@ -383,7 +383,7 @@ console.log(cat.name); // => "Joey"
 
 **.source -> _string_** - The source string that was used to create the prepared statement.
 
-**.returnsData -> _boolean_** - Whether the prepared statement returns data.
+**.reader -> _boolean_** - Whether the prepared statement returns data.
 
 # Binding Parameters
 

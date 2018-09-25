@@ -64,34 +64,37 @@ v8::Local <v8::String> CS::Code (v8::Isolate * isolate, int code)
 #line 12 "./src/util/constants.lzz"
 ConstantString CS::database;
 #line 13 "./src/util/constants.lzz"
-ConstantString CS::source;
+ConstantString CS::reader;
 #line 14 "./src/util/constants.lzz"
-ConstantString CS::memory;
+ConstantString CS::source;
 #line 15 "./src/util/constants.lzz"
-ConstantString CS::readonly;
+ConstantString CS::memory;
 #line 16 "./src/util/constants.lzz"
-ConstantString CS::name;
+ConstantString CS::readonly;
 #line 17 "./src/util/constants.lzz"
-ConstantString CS::next;
+ConstantString CS::name;
 #line 18 "./src/util/constants.lzz"
-ConstantString CS::length;
+ConstantString CS::next;
 #line 19 "./src/util/constants.lzz"
-ConstantString CS::done;
+ConstantString CS::length;
 #line 20 "./src/util/constants.lzz"
-ConstantString CS::value;
+ConstantString CS::done;
 #line 21 "./src/util/constants.lzz"
-ConstantString CS::changes;
+ConstantString CS::value;
 #line 22 "./src/util/constants.lzz"
-ConstantString CS::lastInsertRowid;
+ConstantString CS::changes;
 #line 23 "./src/util/constants.lzz"
-ConstantString CS::code;
+ConstantString CS::lastInsertRowid;
 #line 24 "./src/util/constants.lzz"
+ConstantString CS::code;
+#line 25 "./src/util/constants.lzz"
 ConstantString CS::statement;
-#line 27 "./src/util/constants.lzz"
+#line 28 "./src/util/constants.lzz"
 void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module)
-#line 27 "./src/util/constants.lzz"
+#line 28 "./src/util/constants.lzz"
                        {
                 AddString(isolate, CS::database, "database");
+                AddString(isolate, CS::reader, "reader");
                 AddString(isolate, CS::source, "source");
                 AddString(isolate, CS::memory, "memory");
                 AddString(isolate, CS::readonly, "readonly");
@@ -193,30 +196,30 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
                 AddCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 }
-#line 131 "./src/util/constants.lzz"
+#line 133 "./src/util/constants.lzz"
 v8::Local <v8::String> CS::InternalizedFromLatin1 (v8::Isolate * isolate, char const * str)
-#line 131 "./src/util/constants.lzz"
+#line 133 "./src/util/constants.lzz"
                                                                                                    {
                 return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
 }
-#line 134 "./src/util/constants.lzz"
+#line 136 "./src/util/constants.lzz"
 void CS::AddString (v8::Isolate * isolate, ConstantString & constant, char const * str)
-#line 134 "./src/util/constants.lzz"
+#line 136 "./src/util/constants.lzz"
                                                                                                {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
-#line 137 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
 void CS::AddCode (v8::Isolate * isolate, int code, char const * str)
-#line 137 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
                                                                              {
                 codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 }
-#line 140 "./src/util/constants.lzz"
+#line 142 "./src/util/constants.lzz"
 CS::CS (char _)
-#line 140 "./src/util/constants.lzz"
+#line 142 "./src/util/constants.lzz"
                             { assert(false);
 }
-#line 142 "./src/util/constants.lzz"
+#line 144 "./src/util/constants.lzz"
 std::unordered_map <int, ConstantString> CS::codes;
 #line 19 "./src/util/bind-map.lzz"
 BindMap::Pair::Pair (v8::Isolate * isolate, char const * _name, int _index)
@@ -712,15 +715,14 @@ void Statement::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v
                 NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
                 NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
                 NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
-                NODE_SET_PROTOTYPE_GETTER(t, "returnsData", JS_returnsData);
 
                 constructor.Reset(isolate, t->GetFunction( isolate -> GetCurrentContext ( ) ).ToLocalChecked());
                 next_id = 0;
                 constructing_privileges = false;
 }
-#line 94 "./src/objects/statement.lzz"
+#line 93 "./src/objects/statement.lzz"
 void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 94 "./src/objects/statement.lzz"
+#line 93 "./src/objects/statement.lzz"
                             {
                 if (!constructing_privileges) {
                         return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
@@ -755,6 +757,7 @@ void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 Statement* stmt = new Statement(db, handle, returns_data);
                 stmt->Wrap(info.This());
+                SetFrozen(isolate, ctx, info.This(), CS::reader, v8::Boolean::New(isolate, returns_data));
                 SetFrozen(isolate, ctx, info.This(), CS::source, source);
                 SetFrozen(isolate, ctx, info.This(), CS::database, database);
 
@@ -883,16 +886,10 @@ void Statement::JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & 
                 info.GetReturnValue().Set(info.This());
 }
 #line 240 "./src/objects/statement.lzz"
-void Statement::JS_returnsData (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 240 "./src/objects/statement.lzz"
-                                    {
-                info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Statement>(info.This())->returns_data);
-}
-#line 244 "./src/objects/statement.lzz"
 v8::Persistent <v8::Function> Statement::constructor;
-#line 245 "./src/objects/statement.lzz"
+#line 241 "./src/objects/statement.lzz"
 sqlite3_uint64 Statement::next_id;
-#line 246 "./src/objects/statement.lzz"
+#line 242 "./src/objects/statement.lzz"
 bool Statement::constructing_privileges;
 #line 5 "./src/objects/statement-iterator.lzz"
 v8::MaybeLocal <v8::Object> StatementIterator::New (v8::Isolate * isolate, v8::FunctionCallbackInfo <v8 :: Value> const & info)
