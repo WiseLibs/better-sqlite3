@@ -1,7 +1,4 @@
 {
-  'variables': {
-    'sqlite_version%': '3250100',
-  },
   'target_defaults': {
     'default_configuration': 'Release',
     'msbuild_toolset': '',

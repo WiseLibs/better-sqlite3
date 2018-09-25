@@ -33,19 +33,23 @@
       'hard_dependency': 1,
       'actions': [{
         'action_name': 'unpack_sqlite_dep',
-        'inputs': ['./sqlite-autoconf-<@(sqlite_version).tar.gz'],
-        'outputs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c'],
-        'action': ['node', './extract.js', './sqlite-autoconf-<@(sqlite_version).tar.gz', '<(SHARED_INTERMEDIATE_DIR)'],
+        'inputs': ['./sqlite3.tar.gz'],
+        'outputs': [
+          '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
+          '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
+          '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
+        ],
+        'action': ['node', './extract.js', '<@(_inputs)', '<(SHARED_INTERMEDIATE_DIR)/sqlite3'],
       }],
     },
     {
       'target_name': 'sqlite3',
       'type': 'static_library',
       'dependencies': ['action_before_build'],
-      'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/sqlite3.c'],
-      'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/'],
+      'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
+      'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
       'direct_dependent_settings': {
-        'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite-autoconf-<@(sqlite_version)/'],
+        'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
       },
       'cflags': [
         '-std=c99',
@@ -60,6 +64,7 @@
         ],
       },
       'defines': [
+        # NOTE: when these change, so must /docs/compilation.md
         'SQLITE_THREADSAFE=0',
         'SQLITE_DEFAULT_MEMSTATUS=0',
         'SQLITE_LIKE_DOESNT_MATCH_BLOBS',
@@ -81,8 +86,7 @@
         'SQLITE_ENABLE_COLUMN_METADATA',
         # TODO: test ANALYZE with stat4 enabled
         # 'SQLITE_ENABLE_STAT4',
-        # TODO: evaluate the extra compilation steps necessary for this feature
-        # 'SQLITE_ENABLE_UPDATE_DELETE_LIMIT',
+        'SQLITE_ENABLE_UPDATE_DELETE_LIMIT',
         'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
