@@ -28,5 +28,5 @@ rm -rf "$TEMP"
 MAJOR=`expr "${VERSION:0:1}" + 0`
 MINOR=`expr "${VERSION:1:2}" + 0`
 PATCH=`expr "${VERSION:3:2}" + 0`
-sed -Eie "s/version [0-9]+\.[0-9]+\.[0-9]+/version $MAJOR.$MINOR.$PATCH/g" "$DEPS/../docs/compilation.md"
+sed -Ei "" -e "s/version [0-9]+\.[0-9]+\.[0-9]+/version $MAJOR.$MINOR.$PATCH/g" "$DEPS/../docs/compilation.md"
 echo "done!"
