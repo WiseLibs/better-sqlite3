@@ -2,15 +2,15 @@ class CustomFunction {
 public:
 	
 	explicit CustomFunction(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Function> _fn, const char* _name, bool _safe_ints)
-		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(CopyString(_name)), safe_ints(_safe_ints) {}
+		: fn(_isolate, _fn), isolate(_isolate), db(_db), name(COPY(_name)), safe_ints(_safe_ints) {}
 	~CustomFunction() { delete[] name; }
 	
 	static void xDestroy(void* instance) {
 		delete static_cast<CustomFunction*>(instance);
 	}
 	
-	static void xFunc(sqlite3_context* context, int argc, sqlite3_value** argv) {
-		CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(context));
+	static void xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
+		CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(invocation));
 		v8::Isolate* isolate = cf->isolate;
 		NewHandleScope;
 		
@@ -29,27 +29,20 @@ public:
 		db_state->busy = was_busy;
 		
 		if (args != args_fast) delete[] args;
-		if (maybe_return_value.IsEmpty()) cf->PropagateJSError(context);
-		else Data::ResultValueFromJS(isolate, context, maybe_return_value.ToLocalChecked(), cf);
+		if (maybe_return_value.IsEmpty()) cf->PropagateJSError(invocation);
+		else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), cf);
 	}
 	
-	void ThrowResultValueError(sqlite3_context* context) {
+	void ThrowResultValueError(sqlite3_context* invocation) {
 		ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
-		PropagateJSError(context);
+		PropagateJSError(invocation);
 	}
 	
 private:
-	void PropagateJSError(sqlite3_context* context) {
+	void PropagateJSError(sqlite3_context* invocation) {
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;
-		sqlite3_result_error(context, "", 0);
-	}
-	
-	static const char* CopyString(const char* source) {
-		size_t bytes = strlen(source) + 1;
-		char* dest = new char[bytes];
-		memcpy(dest, source, bytes);
-		return dest;
+		sqlite3_result_error(invocation, "", 0);
 	}
 	
 	const CopyablePersistent<v8::Function> fn;

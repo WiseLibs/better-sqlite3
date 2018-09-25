@@ -103,15 +103,15 @@ namespace Data {
 		return -1;
 	}
 	
-	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* context, v8::Local<v8::Value> value, CustomFunction* function) {
-		JS_VALUE_TO_SQLITE(result, value, isolate, context);
-		function->ThrowResultValueError(context);
+	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, CustomFunction* function) {
+		JS_VALUE_TO_SQLITE(result, value, isolate, invocation);
+		function->ThrowResultValueError(invocation);
 	}
 	
 	// TODO: clean up this copy-paste
-	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* context, v8::Local<v8::Value> value, CustomAggregate* function) {
-		JS_VALUE_TO_SQLITE(result, value, isolate, context);
-		function->ThrowResultValueError(context);
+	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, CustomAggregate* function) {
+		JS_VALUE_TO_SQLITE(result, value, isolate, invocation);
+		function->ThrowResultValueError(invocation);
 	}
 	
 }

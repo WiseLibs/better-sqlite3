@@ -3,24 +3,24 @@ class CustomAggregate {
 public:
 	
 	explicit CustomAggregate(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Value> _start, v8::Local<v8::Function> _step, v8::Local<v8::Value> _inverse, v8::Local<v8::Value> _result, const char* _name, bool _safe_ints)
-		: start(_isolate, _start), step(_isolate, _step), inverse(_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result(_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), isolate(_isolate), db(_db), name(CopyString(_name)), safe_ints(_safe_ints), invoke_start(_start->IsFunction()), invoke_result(_result->IsFunction()) {}
+		: start(_isolate, _start), step(_isolate, _step), inverse(_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result(_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), isolate(_isolate), db(_db), name(COPY(_name)), safe_ints(_safe_ints), invoke_start(_start->IsFunction()), invoke_result(_result->IsFunction()) {}
 	~CustomAggregate() { delete[] name; }
 	
 	static void xDestroy(void* instance) {
 		delete static_cast<CustomAggregate*>(instance);
 	}
 	
-	static void xStep(sqlite3_context* context, int argc, sqlite3_value** argv) {
-		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+	static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
+		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
 		v8::Isolate* isolate = ca->isolate;
 		NewHandleScope;
 		
-		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, sizeof(Accumulator)));
+		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
 		if (!acc->initialized) {
 			if (ca->invoke_start) {
 				v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, ca->start))->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
 				if (maybe_seed.IsEmpty()) {
-					ca->PropagateJSError(context);
+					ca->PropagateJSError(invocation);
 					return;
 				}
 				acc->value.Reset(isolate, maybe_seed.ToLocalChecked());
@@ -46,19 +46,19 @@ public:
 		if (maybe_return_value.IsEmpty()) {
 			acc->value.Reset();
 			acc->initialized = false;
-			ca->PropagateJSError(context);
+			ca->PropagateJSError(invocation);
 		} else {
 			v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
 			if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
 		}
 	}
 	
-	static void xInverse(sqlite3_context* context, int argc, sqlite3_value** argv) {
-		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+	static void xInverse(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
+		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
 		v8::Isolate* isolate = ca->isolate;
 		NewHandleScope;
 		
-		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
 		v8::Local<v8::Value> args_fast[5];
 		v8::Local<v8::Value>* args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc + 1);
 		args[0] = v8::Local<v8::Value>::New(isolate, acc->value);
@@ -75,19 +75,19 @@ public:
 		if (maybe_return_value.IsEmpty()) {
 			acc->value.Reset();
 			acc->initialized = false;
-			ca->PropagateJSError(context);
+			ca->PropagateJSError(invocation);
 		} else {
 			v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
 			if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
 		}
 	}
 	
-	static void xValue(sqlite3_context* context) {
-		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+	static void xValue(sqlite3_context* invocation) {
+		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
 		v8::Isolate* isolate = ca->isolate;
 		NewHandleScope;
 		
-		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
 		v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
 		
 		if (ca->invoke_result) {
@@ -95,20 +95,20 @@ public:
 			if (maybe_result.IsEmpty()) {
 				acc->value.Reset();
 				acc->initialized = false;
-				ca->PropagateJSError(context);
+				ca->PropagateJSError(invocation);
 				return;
 			}
 			result = maybe_result.ToLocalChecked();
 		}
-		Data::ResultValueFromJS(isolate, context, result, ca);
+		Data::ResultValueFromJS(isolate, invocation, result, ca);
 	}
 	
-	static void xFinal(sqlite3_context* context) {
-		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+	static void xFinal(sqlite3_context* invocation) {
+		CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
 		v8::Isolate* isolate = ca->isolate;
 		NewHandleScope;
 		
-		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
 		v8::Local<v8::Value> result;
 		if (acc) {
 			if (!acc->initialized) return;
@@ -117,7 +117,7 @@ public:
 			if (ca->invoke_start) {
 				v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, ca->start))->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
 				if (maybe_seed.IsEmpty()) {
-					ca->PropagateJSError(context);
+					ca->PropagateJSError(invocation);
 					return;
 				}
 				result = maybe_seed.ToLocalChecked();
@@ -130,21 +130,21 @@ public:
 			v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, ca->result)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
 			if (maybe_result.IsEmpty()) {
 				if (acc) acc->value.Reset();
-				ca->PropagateJSError(context);
+				ca->PropagateJSError(invocation);
 				return;
 			}
 			result = maybe_result.ToLocalChecked();
 		}
 		
-		Data::ResultValueFromJS(isolate, context, result, ca);
+		Data::ResultValueFromJS(isolate, invocation, result, ca);
 		if (acc) acc->value.Reset();
 	}
 	
-	void ThrowResultValueError(sqlite3_context* context) {
+	void ThrowResultValueError(sqlite3_context* invocation) {
 		ThrowTypeError(CONCAT("Custom aggregate ", name, "() returned an invalid value").c_str());
-		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
 		if (acc) acc->initialized = false;
-		PropagateJSError(context);
+		PropagateJSError(invocation);
 	}
 	
 private:
@@ -153,16 +153,9 @@ private:
 		bool initialized;
 	}
 	
-	void PropagateJSError(sqlite3_context* context) {
+	void PropagateJSError(sqlite3_context* invocation) {
 		db->GetState()->was_js_error = true;
-		sqlite3_result_error(context, "", 0);
-	}
-	
-	static const char* CopyString(const char* source) {
-		size_t bytes = strlen(source) + 1;
-		char* dest = new char[bytes];
-		memcpy(dest, source, bytes);
-		return dest;
+		sqlite3_result_error(invocation, "", 0);
 	}
 	
 	const CopyablePersistent<v8::Value> start;

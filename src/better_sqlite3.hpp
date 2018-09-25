@@ -14,7 +14,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
-#line 130 "./src/util/macros.lzz"
+#line 138 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #line 146 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
@@ -34,18 +34,20 @@ void ThrowRangeError (char const * message);
 #line 74 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c);
 #line 82 "./src/util/macros.lzz"
+char const * COPY (char const * source);
+#line 90 "./src/util/macros.lzz"
 template <typename T>
-#line 82 "./src/util/macros.lzz"
+#line 90 "./src/util/macros.lzz"
 T * ALLOC_ARRAY (size_t count);
-#line 87 "./src/util/macros.lzz"
+#line 95 "./src/util/macros.lzz"
 template <typename T>
-#line 87 "./src/util/macros.lzz"
+#line 95 "./src/util/macros.lzz"
 void FREE_ARRAY (T * array_pointer);
-#line 91 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path, bool local = false);
-#line 104 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter);
-#line 118 "./src/util/macros.lzz"
+#line 126 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback);
 #line 1 "./src/util/constants.lzz"
 class CS
@@ -447,24 +449,22 @@ public:
 #line 8 "./src/util/custom-function.lzz"
   static void xDestroy (void * instance);
 #line 12 "./src/util/custom-function.lzz"
-  static void xFunc (sqlite3_context * context, int argc, sqlite3_value * * argv);
+  static void xFunc (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
 #line 36 "./src/util/custom-function.lzz"
-  void ThrowResultValueError (sqlite3_context * context);
+  void ThrowResultValueError (sqlite3_context * invocation);
 #line 41 "./src/util/custom-function.lzz"
 private:
 #line 42 "./src/util/custom-function.lzz"
-  void PropagateJSError (sqlite3_context * context);
+  void PropagateJSError (sqlite3_context * invocation);
 #line 48 "./src/util/custom-function.lzz"
-  static char const * CopyString (char const * source);
-#line 55 "./src/util/custom-function.lzz"
   CopyablePersistent <v8::Function> const fn;
-#line 56 "./src/util/custom-function.lzz"
+#line 49 "./src/util/custom-function.lzz"
   v8::Isolate * const isolate;
-#line 57 "./src/util/custom-function.lzz"
+#line 50 "./src/util/custom-function.lzz"
   Database * const db;
-#line 58 "./src/util/custom-function.lzz"
+#line 51 "./src/util/custom-function.lzz"
   char const * const name;
-#line 59 "./src/util/custom-function.lzz"
+#line 52 "./src/util/custom-function.lzz"
   bool const safe_ints;
 };
 #line 2 "./src/util/custom-aggregate.lzz"
@@ -479,15 +479,15 @@ public:
 #line 9 "./src/util/custom-aggregate.lzz"
   static void xDestroy (void * instance);
 #line 13 "./src/util/custom-aggregate.lzz"
-  static void xStep (sqlite3_context * context, int argc, sqlite3_value * * argv);
+  static void xStep (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
 #line 56 "./src/util/custom-aggregate.lzz"
-  static void xInverse (sqlite3_context * context, int argc, sqlite3_value * * argv);
+  static void xInverse (sqlite3_context * invocation, int argc, sqlite3_value * * argv);
 #line 85 "./src/util/custom-aggregate.lzz"
-  static void xValue (sqlite3_context * context);
+  static void xValue (sqlite3_context * invocation);
 #line 106 "./src/util/custom-aggregate.lzz"
-  static void xFinal (sqlite3_context * context);
+  static void xFinal (sqlite3_context * invocation);
 #line 143 "./src/util/custom-aggregate.lzz"
-  void ThrowResultValueError (sqlite3_context * context);
+  void ThrowResultValueError (sqlite3_context * invocation);
 #line 150 "./src/util/custom-aggregate.lzz"
 private:
 #line 151 "./src/util/custom-aggregate.lzz"
@@ -499,30 +499,30 @@ private:
     CopyablePersistent <v8::Value> value;
 #line 153 "./src/util/custom-aggregate.lzz"
     bool initialized;
+#line 154 "./src/util/custom-aggregate.lzz"
+    bool error;
   };
-#line 156 "./src/util/custom-aggregate.lzz"
-  void PropagateJSError (sqlite3_context * context);
 #line 161 "./src/util/custom-aggregate.lzz"
-  static char const * CopyString (char const * source);
-#line 168 "./src/util/custom-aggregate.lzz"
+  void PropagateJSError (sqlite3_context * invocation);
+#line 166 "./src/util/custom-aggregate.lzz"
   CopyablePersistent <v8::Value> const start;
-#line 169 "./src/util/custom-aggregate.lzz"
+#line 167 "./src/util/custom-aggregate.lzz"
   CopyablePersistent <v8::Function> const step;
-#line 170 "./src/util/custom-aggregate.lzz"
+#line 168 "./src/util/custom-aggregate.lzz"
   CopyablePersistent <v8::Function> const inverse;
-#line 171 "./src/util/custom-aggregate.lzz"
+#line 169 "./src/util/custom-aggregate.lzz"
   CopyablePersistent <v8::Function> const result;
-#line 172 "./src/util/custom-aggregate.lzz"
+#line 170 "./src/util/custom-aggregate.lzz"
   v8::Isolate * const isolate;
-#line 173 "./src/util/custom-aggregate.lzz"
+#line 171 "./src/util/custom-aggregate.lzz"
   Database * const db;
-#line 174 "./src/util/custom-aggregate.lzz"
+#line 172 "./src/util/custom-aggregate.lzz"
   char const * const name;
-#line 175 "./src/util/custom-aggregate.lzz"
+#line 173 "./src/util/custom-aggregate.lzz"
   bool const safe_ints;
-#line 176 "./src/util/custom-aggregate.lzz"
+#line 174 "./src/util/custom-aggregate.lzz"
   bool const invoke_start;
-#line 177 "./src/util/custom-aggregate.lzz"
+#line 175 "./src/util/custom-aggregate.lzz"
   bool const invoke_result;
 };
 #line 54 "./src/util/data.lzz"
@@ -565,13 +565,13 @@ namespace Data
 namespace Data
 {
 #line 106 "./src/util/data.lzz"
-  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomFunction * function);
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
 #line 112 "./src/util/data.lzz"
-  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomAggregate * function);
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomAggregate * function);
 }
 #line 1 "./src/util/binder.lzz"
 class Binder
@@ -636,25 +636,25 @@ LZZ_INLINE void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v
         static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
         obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
-#line 82 "./src/util/macros.lzz"
+#line 90 "./src/util/macros.lzz"
 template <typename T>
-#line 82 "./src/util/macros.lzz"
+#line 90 "./src/util/macros.lzz"
 LZZ_INLINE T * ALLOC_ARRAY (size_t count)
-#line 82 "./src/util/macros.lzz"
+#line 90 "./src/util/macros.lzz"
                                                       {
         return static_cast<T*>(::operator new[](count * sizeof(T)));
 }
-#line 87 "./src/util/macros.lzz"
+#line 95 "./src/util/macros.lzz"
 template <typename T>
-#line 87 "./src/util/macros.lzz"
+#line 95 "./src/util/macros.lzz"
 LZZ_INLINE void FREE_ARRAY (T * array_pointer)
-#line 87 "./src/util/macros.lzz"
+#line 95 "./src/util/macros.lzz"
                                                            {
         ::operator delete[](array_pointer);
 }
-#line 104 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter)
-#line 104 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
                                                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
@@ -668,9 +668,9 @@ LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv
                 v8::AccessorSignature::New(isolate, recv)
         );
 }
-#line 118 "./src/util/macros.lzz"
+#line 126 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback)
-#line 118 "./src/util/macros.lzz"
+#line 126 "./src/util/macros.lzz"
                                                                                                                                                 {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;

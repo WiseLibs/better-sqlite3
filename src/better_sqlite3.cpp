@@ -29,9 +29,18 @@ std::string CONCAT (char const * a, char const * b, char const * c)
         result += c;
         return result;
 }
-#line 91 "./src/util/macros.lzz"
+#line 82 "./src/util/macros.lzz"
+char const * COPY (char const * source)
+#line 82 "./src/util/macros.lzz"
+                                     {
+        size_t bytes = strlen(source) + 1;
+        char* dest = new char[bytes];
+        memcpy(dest, source, bytes);
+        return dest;
+}
+#line 99 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path, bool local)
-#line 91 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -1031,9 +1040,9 @@ v8::FunctionCallbackInfo <v8 :: Value> const * StatementIterator::caller_info;
 #line 4 "./src/util/custom-function.lzz"
 CustomFunction::CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints)
 #line 5 "./src/util/custom-function.lzz"
-  : fn (_isolate, _fn), isolate (_isolate), db (_db), name (CopyString(_name)), safe_ints (_safe_ints)
+  : fn (_isolate, _fn), isolate (_isolate), db (_db), name (COPY(_name)), safe_ints (_safe_ints)
 #line 5 "./src/util/custom-function.lzz"
-                                                                                                                {}
+                                                                                                          {}
 #line 6 "./src/util/custom-function.lzz"
 CustomFunction::~ CustomFunction ()
 #line 6 "./src/util/custom-function.lzz"
@@ -1046,10 +1055,10 @@ void CustomFunction::xDestroy (void * instance)
                 delete static_cast<CustomFunction*>(instance);
 }
 #line 12 "./src/util/custom-function.lzz"
-void CustomFunction::xFunc (sqlite3_context * context, int argc, sqlite3_value * * argv)
+void CustomFunction::xFunc (sqlite3_context * invocation, int argc, sqlite3_value * * argv)
 #line 12 "./src/util/custom-function.lzz"
-                                                                                    {
-                CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(context));
+                                                                                       {
+                CustomFunction* cf = static_cast<CustomFunction*>(sqlite3_user_data(invocation));
                 v8::Isolate* isolate = cf->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
@@ -1068,39 +1077,30 @@ void CustomFunction::xFunc (sqlite3_context * context, int argc, sqlite3_value *
                 db_state->busy = was_busy;
 
                 if (args != args_fast) delete[] args;
-                if (maybe_return_value.IsEmpty()) cf->PropagateJSError(context);
-                else Data::ResultValueFromJS(isolate, context, maybe_return_value.ToLocalChecked(), cf);
+                if (maybe_return_value.IsEmpty()) cf->PropagateJSError(invocation);
+                else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), cf);
 }
 #line 36 "./src/util/custom-function.lzz"
-void CustomFunction::ThrowResultValueError (sqlite3_context * context)
+void CustomFunction::ThrowResultValueError (sqlite3_context * invocation)
 #line 36 "./src/util/custom-function.lzz"
-                                                             {
+                                                                {
                 ThrowTypeError(CONCAT("Custom function ", name, "() returned an invalid value").c_str());
-                PropagateJSError(context);
+                PropagateJSError(invocation);
 }
 #line 42 "./src/util/custom-function.lzz"
-void CustomFunction::PropagateJSError (sqlite3_context * context)
+void CustomFunction::PropagateJSError (sqlite3_context * invocation)
 #line 42 "./src/util/custom-function.lzz"
-                                                        {
+                                                           {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
-                sqlite3_result_error(context, "", 0);
-}
-#line 48 "./src/util/custom-function.lzz"
-char const * CustomFunction::CopyString (char const * source)
-#line 48 "./src/util/custom-function.lzz"
-                                                          {
-                size_t bytes = strlen(source) + 1;
-                char* dest = new char[bytes];
-                memcpy(dest, source, bytes);
-                return dest;
+                sqlite3_result_error(invocation, "", 0);
 }
 #line 5 "./src/util/custom-aggregate.lzz"
 CustomAggregate::CustomAggregate (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Value> _start, v8::Local <v8::Function> _step, v8::Local <v8::Value> _inverse, v8::Local <v8::Value> _result, char const * _name, bool _safe_ints)
 #line 6 "./src/util/custom-aggregate.lzz"
-  : start (_isolate, _start), step (_isolate, _step), inverse (_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result (_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), isolate (_isolate), db (_db), name (CopyString(_name)), safe_ints (_safe_ints), invoke_start (_start->IsFunction()), invoke_result (_result->IsFunction())
+  : start (_isolate, _start), step (_isolate, _step), inverse (_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result (_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), isolate (_isolate), db (_db), name (COPY(_name)), safe_ints (_safe_ints), invoke_start (_start->IsFunction()), invoke_result (_result->IsFunction())
 #line 6 "./src/util/custom-aggregate.lzz"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      {}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                {}
 #line 7 "./src/util/custom-aggregate.lzz"
 CustomAggregate::~ CustomAggregate ()
 #line 7 "./src/util/custom-aggregate.lzz"
@@ -1113,19 +1113,19 @@ void CustomAggregate::xDestroy (void * instance)
                 delete static_cast<CustomAggregate*>(instance);
 }
 #line 13 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::xStep (sqlite3_context * context, int argc, sqlite3_value * * argv)
+void CustomAggregate::xStep (sqlite3_context * invocation, int argc, sqlite3_value * * argv)
 #line 13 "./src/util/custom-aggregate.lzz"
-                                                                                    {
-                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+                                                                                       {
+                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
                 v8::Isolate* isolate = ca->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
-                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, sizeof(Accumulator)));
+                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
                 if (!acc->initialized) {
                         if (ca->invoke_start) {
                                 v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, ca->start))->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 0, NULL);
                                 if (maybe_seed.IsEmpty()) {
-                                        ca->PropagateJSError(context);
+                                        ca->PropagateJSError(invocation);
                                         return;
                                 }
                                 acc->value.Reset(isolate, maybe_seed.ToLocalChecked());
@@ -1151,21 +1151,21 @@ void CustomAggregate::xStep (sqlite3_context * context, int argc, sqlite3_value 
                 if (maybe_return_value.IsEmpty()) {
                         acc->value.Reset();
                         acc->initialized = false;
-                        ca->PropagateJSError(context);
+                        ca->PropagateJSError(invocation);
                 } else {
                         v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
                         if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
                 }
 }
 #line 56 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::xInverse (sqlite3_context * context, int argc, sqlite3_value * * argv)
+void CustomAggregate::xInverse (sqlite3_context * invocation, int argc, sqlite3_value * * argv)
 #line 56 "./src/util/custom-aggregate.lzz"
-                                                                                       {
-                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+                                                                                          {
+                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
                 v8::Isolate* isolate = ca->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
-                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
                 v8::Local<v8::Value> args_fast[5];
                 v8::Local<v8::Value>* args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc + 1);
                 args[0] = v8::Local<v8::Value>::New(isolate, acc->value);
@@ -1182,21 +1182,21 @@ void CustomAggregate::xInverse (sqlite3_context * context, int argc, sqlite3_val
                 if (maybe_return_value.IsEmpty()) {
                         acc->value.Reset();
                         acc->initialized = false;
-                        ca->PropagateJSError(context);
+                        ca->PropagateJSError(invocation);
                 } else {
                         v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
                         if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
                 }
 }
 #line 85 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::xValue (sqlite3_context * context)
+void CustomAggregate::xValue (sqlite3_context * invocation)
 #line 85 "./src/util/custom-aggregate.lzz"
-                                                     {
-                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+                                                        {
+                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
                 v8::Isolate* isolate = ca->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
-                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
                 v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
 
                 if (ca->invoke_result) {
@@ -1204,22 +1204,22 @@ void CustomAggregate::xValue (sqlite3_context * context)
                         if (maybe_result.IsEmpty()) {
                                 acc->value.Reset();
                                 acc->initialized = false;
-                                ca->PropagateJSError(context);
+                                ca->PropagateJSError(invocation);
                                 return;
                         }
                         result = maybe_result.ToLocalChecked();
                 }
-                Data::ResultValueFromJS(isolate, context, result, ca);
+                Data::ResultValueFromJS(isolate, invocation, result, ca);
 }
 #line 106 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::xFinal (sqlite3_context * context)
+void CustomAggregate::xFinal (sqlite3_context * invocation)
 #line 106 "./src/util/custom-aggregate.lzz"
-                                                     {
-                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(context));
+                                                        {
+                CustomAggregate* ca = static_cast<CustomAggregate*>(sqlite3_user_data(invocation));
                 v8::Isolate* isolate = ca->isolate;
                 v8 :: HandleScope scope ( isolate ) ;
 
-                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
                 v8::Local<v8::Value> result;
                 if (acc) {
                         if (!acc->initialized) return;
@@ -1228,7 +1228,7 @@ void CustomAggregate::xFinal (sqlite3_context * context)
                         if (ca->invoke_start) {
                                 v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, ca->start))->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 0, NULL);
                                 if (maybe_seed.IsEmpty()) {
-                                        ca->PropagateJSError(context);
+                                        ca->PropagateJSError(invocation);
                                         return;
                                 }
                                 result = maybe_seed.ToLocalChecked();
@@ -1241,39 +1241,30 @@ void CustomAggregate::xFinal (sqlite3_context * context)
                         v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, ca->result)->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 1, &result);
                         if (maybe_result.IsEmpty()) {
                                 if (acc) acc->value.Reset();
-                                ca->PropagateJSError(context);
+                                ca->PropagateJSError(invocation);
                                 return;
                         }
                         result = maybe_result.ToLocalChecked();
                 }
 
-                Data::ResultValueFromJS(isolate, context, result, ca);
+                Data::ResultValueFromJS(isolate, invocation, result, ca);
                 if (acc) acc->value.Reset();
 }
 #line 143 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::ThrowResultValueError (sqlite3_context * context)
+void CustomAggregate::ThrowResultValueError (sqlite3_context * invocation)
 #line 143 "./src/util/custom-aggregate.lzz"
-                                                             {
+                                                                {
                 ThrowTypeError(CONCAT("Custom aggregate ", name, "() returned an invalid value").c_str());
-                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(context, 0));
+                Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, 0));
                 if (acc) acc->initialized = false;
-                PropagateJSError(context);
+                PropagateJSError(invocation);
 }
-#line 156 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::PropagateJSError (sqlite3_context * context)
-#line 156 "./src/util/custom-aggregate.lzz"
-                                                        {
+#line 161 "./src/util/custom-aggregate.lzz"
+void CustomAggregate::PropagateJSError (sqlite3_context * invocation)
+#line 161 "./src/util/custom-aggregate.lzz"
+                                                           {
                 db->GetState()->was_js_error = true;
-                sqlite3_result_error(context, "", 0);
-}
-#line 161 "./src/util/custom-aggregate.lzz"
-char const * CustomAggregate::CopyString (char const * source)
-#line 161 "./src/util/custom-aggregate.lzz"
-                                                          {
-                size_t bytes = strlen(source) + 1;
-                char* dest = new char[bytes];
-                memcpy(dest, source, bytes);
-                return dest;
+                sqlite3_result_error(invocation, "", 0);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
@@ -1365,22 +1356,22 @@ namespace Data
 namespace Data
 {
 #line 106 "./src/util/data.lzz"
-  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomFunction * function)
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function)
 #line 106 "./src/util/data.lzz"
-                                                                                                                                     {
-                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( context , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( context , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( context ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( context , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( context , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
-                function->ThrowResultValueError(context);
+                                                                                                                                        {
+                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( invocation , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( invocation , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( invocation ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( invocation , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( invocation , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
+                function->ThrowResultValueError(invocation);
   }
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
 #line 112 "./src/util/data.lzz"
-  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * context, v8::Local <v8::Value> value, CustomAggregate * function)
+  void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomAggregate * function)
 #line 112 "./src/util/data.lzz"
-                                                                                                                                      {
-                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( context , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( context , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( context ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( context , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( context , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
-                function->ThrowResultValueError(context);
+                                                                                                                                         {
+                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( invocation , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( invocation , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( invocation ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( invocation , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( invocation , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
+                function->ThrowResultValueError(invocation);
   }
 }
 #line 4 "./src/util/binder.lzz"

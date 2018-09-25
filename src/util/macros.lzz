@@ -78,6 +78,14 @@ std::string CONCAT(const char* a, const char* b, const char* c) {
 	return result;
 }
 
+// Returns a copy of a well-formed C-string.
+const char* COPY(const char* source) {
+	size_t bytes = strlen(source) + 1;
+	char* dest = new char[bytes];
+	memcpy(dest, source, bytes);
+	return dest;
+}
+
 // Allocates an empty array, without calling constructors/initializers.
 template<class T> inline T* ALLOC_ARRAY(size_t count) {
 	return static_cast<T*>(::operator new[](count * sizeof(T)));
