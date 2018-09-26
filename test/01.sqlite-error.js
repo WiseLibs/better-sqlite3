@@ -18,6 +18,8 @@ describe('SqliteError', function () {
 		expect(err.message).to.equal('foobar');
 		expect(err.code).to.equal('baz');
 		expect(SqliteError(123, 'baz').message).to.equal('123');
+		expect(() => SqliteError('foo')).to.throw(TypeError);
+		expect(() => SqliteError('foo', 123)).to.throw(TypeError);
 	});
 	it('should capture stack traces', function () {
 		expect(SqliteError(null, 'baz').stack).to.be.a('string');

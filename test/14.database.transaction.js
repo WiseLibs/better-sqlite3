@@ -1,7 +1,5 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const util = require('./util');
 
 describe('Database#transaction()', function () {
 	it('should throw an exception if an array of strings is not provided', function () {

@@ -1,7 +1,5 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const util = require('./util');
 const filepath = (() => {
 	const fs = require('fs');
 	const path = require('path');

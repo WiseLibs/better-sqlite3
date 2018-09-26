@@ -1,9 +1,12 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
 
 describe('Transaction#bind()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+	});
+	
 	it('should permanently bind the given parameters', function () {
 		db.transaction(['CREATE TABLE entries (a TEXT, b INTEGER, c BLOB)']).run();
 		const trans = db.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);

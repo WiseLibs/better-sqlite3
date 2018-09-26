@@ -1,8 +1,6 @@
 'use strict';
-const { expect } = require('chai');
 const fs = require('fs');
 const Database = require('../.');
-const util = require('./util');
 
 describe('Database#close()', function () {
 	it('should prevent statements and transactions from operating', function () {

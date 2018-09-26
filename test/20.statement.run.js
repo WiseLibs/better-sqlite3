@@ -1,9 +1,12 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
 
 describe('Statement#run()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+	});
+	
 	it('should throw an exception when used on a statement that returns data', function () {
 		const stmt = db.prepare('SELECT 555');
 		expect(() => stmt.run()).to.throw(TypeError);

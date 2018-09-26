@@ -1,9 +1,12 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
 
 describe('Transaction#run()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+	});
+	
 	it('should work with CREATE TABLE', function () {
 		const trans = db.transaction(['CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB)']);
 		const info = trans.run();

@@ -1,7 +1,5 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const util = require('./util');
 
 describe('Database#prepare()', function () {
 	const assertStmt = (stmt, source, db, reader) => {

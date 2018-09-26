@@ -1,9 +1,12 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
 
 describe('Statement#get()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+	});
+	
 	it('should throw an exception when used on a statement that returns no data', function () {
 		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
 		

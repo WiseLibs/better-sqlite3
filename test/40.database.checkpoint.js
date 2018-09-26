@@ -1,32 +1,29 @@
 'use strict';
-const { expect } = require('chai');
 const fs = require('fs');
 const Database = require('../.');
-const util = require('./util');
-
-let db1 = new Database(util.next());
-let db2 = new Database(util.next());
-
-before(function () {
-	db1.pragma('journal_mode = WAL');
-	db1.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
-	db2.pragma('journal_mode = WAL');
-	db2.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
-});
-
-function fillWall(count, expectation) {
-	[db1, db2].forEach((db) => {
-		let size1, size2;
-		for (let i = 0; i < count; ++i) {
-			size1 = fs.statSync(`${db.name}-wal`).size;
-			db.prepare('INSERT INTO entries VALUES (?, ?)').run('bar', 999);
-			size2 = fs.statSync(`${db.name}-wal`).size;
-			expectation(size2, size1, db);
-		}
-	});
-}
 
 describe('Database#checkpoint()', function () {
+	let db1, db2;
+	before(function () {
+		db1 = new Database(util.next());
+		db2 = new Database(util.next());
+		db1.pragma('journal_mode = WAL');
+		db1.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
+		db2.pragma('journal_mode = WAL');
+		db2.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
+	});
+	function fillWall(count, expectation) {
+		[db1, db2].forEach((db) => {
+			let size1, size2;
+			for (let i = 0; i < count; ++i) {
+				size1 = fs.statSync(`${db.name}-wal`).size;
+				db.prepare('INSERT INTO entries VALUES (?, ?)').run('bar', 999);
+				size2 = fs.statSync(`${db.name}-wal`).size;
+				expectation(size2, size1, db);
+			}
+		});
+	}
+	
 	describe('when used without a specified database', function () {
 		specify('every insert should increase the size of the WAL file', function () {
 			fillWall(10, (b, a) => expect(b).to.be.above(a));

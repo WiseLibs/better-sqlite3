@@ -1,8 +1,6 @@
 'use strict';
-const { expect } = require('chai');
-const fs = require('fs');
+const { existsSync } = require('fs');
 const Database = require('../.');
-const util = require('./util');
 
 describe('new Database()', function () {
 	it('should throw an exception when file path is not a string', function () {
@@ -25,75 +23,75 @@ describe('new Database()', function () {
 		expect(() => new Database(':memory:')).to.throw(TypeError);
 	});
 	it('should allow disk-based databases to be created', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		const db = Database(util.current());
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		fs.accessSync(util.current());
+		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should allow in-memory databases to be created', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		const db = new Database(util.current(), { memory: true });
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		expect(() => fs.accessSync(util.current())).to.throw(Error);
+		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should allow readonly database connections to be created', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		expect(() => new Database(util.current(), { readonly: true })).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CANTOPEN');
 		(new Database(util.current())).close();
-		fs.accessSync(util.current());
+		expect(existsSync(util.current())).to.be.true;
 		const db = new Database(util.current(), { readonly: true });
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		fs.accessSync(util.current());
+		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should allow the "readonly" and "memory" options on the same connection', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		const db = new Database(util.current(), { memory: true, readonly: true });
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		expect(() => fs.accessSync(util.current())).to.throw(Error);
+		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should accept the "fileMustExist" option', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		expect(() => new Database(util.current(), { fileMustExist: true })).to.throw(Database.SqliteError).with.property('code', 'SQLITE_CANTOPEN');
 		(new Database(util.current())).close();
-		fs.accessSync(util.current());
+		expect(existsSync(util.current())).to.be.true;
 		const db = new Database(util.current(), { fileMustExist: true });
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		fs.accessSync(util.current());
+		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should ignore "fileMustExist" when the "memory" option is true', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		const db = new Database(util.current(), { memory: true, fileMustExist: true });
 		expect(db.name).to.equal(util.current());
 		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		expect(() => fs.accessSync(util.current())).to.throw(Error);
+		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should throw an Error if opening the database failed', function () {
-		expect(() => fs.accessSync(util.next())).to.throw(Error);
+		expect(existsSync(util.next())).to.be.false;
 		expect(() => new Database(`temp/nonexistent/abcfoobar123/${util.current()}`)).to.throw(TypeError);
-		expect(() => fs.accessSync(util.current())).to.throw(Error);
+		expect(existsSync(util.current())).to.be.false;
 	})
 	it('should have a proper prototype chain', function () {
 		const db = new Database(util.next());

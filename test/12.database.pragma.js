@@ -1,7 +1,5 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const util = require('./util');
 
 describe('Database#pragma()', function () {
 	it('should throw an exception if a string is not provided', function () {

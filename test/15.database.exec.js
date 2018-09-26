@@ -1,9 +1,12 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
 
 describe('Database#exec()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+	});
+	
 	it('should throw an exception if a string is not provided', function () {
 		expect(() => db.exec(123)).to.throw(TypeError);
 		expect(() => db.exec(0)).to.throw(TypeError);

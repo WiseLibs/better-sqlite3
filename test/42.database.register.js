@@ -1,28 +1,27 @@
 'use strict';
-const { expect } = require('chai');
 const Database = require('../.');
-const db = new Database(require('./util').next());
-
-before(function () {
-	db.prepare('CREATE TABLE data (x)').run();
-	db.prepare('CREATE TABLE empty (x)').run();
-	db.prepare('INSERT INTO data VALUES (?)').run(3);
-	db.prepare('INSERT INTO data VALUES (?)').run(5);
-	db.prepare('INSERT INTO data VALUES (?)').run(7);
-	db.prepare('INSERT INTO data VALUES (?)').run(11);
-	db.prepare('INSERT INTO data VALUES (?)').run(13);
-	db.prepare('INSERT INTO data VALUES (?)').run(17);
-	db.prepare('INSERT INTO data VALUES (?)').run(19);
-});
-
-function register() {
-	expect(db.register(...arguments)).to.equal(db);
-}
-function exec(SQL, ...args) {
-	return db.prepare(`SELECT ${SQL}`).pluck().get(args);
-}
 
 describe('Database#register()', function () {
+	let db;
+	before(function () {
+		db = new Database(util.next());
+		db.prepare('CREATE TABLE data (x)').run();
+		db.prepare('CREATE TABLE empty (x)').run();
+		db.prepare('INSERT INTO data VALUES (?)').run(3);
+		db.prepare('INSERT INTO data VALUES (?)').run(5);
+		db.prepare('INSERT INTO data VALUES (?)').run(7);
+		db.prepare('INSERT INTO data VALUES (?)').run(11);
+		db.prepare('INSERT INTO data VALUES (?)').run(13);
+		db.prepare('INSERT INTO data VALUES (?)').run(17);
+		db.prepare('INSERT INTO data VALUES (?)').run(19);
+	});
+	function register() {
+		expect(db.register(...arguments)).to.equal(db);
+	}
+	function exec(SQL, ...args) {
+		return db.prepare(`SELECT ${SQL}`).pluck().get(args);
+	}
+	
 	it('should throw if a function is not provided', function () {
 		expect(() => db.register()).to.throw(TypeError);
 		expect(() => db.register(null)).to.throw(TypeError);
