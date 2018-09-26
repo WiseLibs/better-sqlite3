@@ -132,7 +132,6 @@ describe('Statement#iterate()', function () {
 	it('should not allow other database operations to execute while open', function () {
 		const stmt1 = db.prepare('SELECT * FROM entries');
 		const stmt2 = db.prepare('CREATE TABLE numbers (number INTEGER)');
-		const trans = db.transaction(['CREATE TABLE numbers (number INTEGER)']);
 		let count = 0;
 		for (const row of db.prepare('SELECT * FROM entries').iterate()) {
 			++count;
@@ -140,7 +139,7 @@ describe('Statement#iterate()', function () {
 			expect(() => db.pragma('cache_size')).to.throw(TypeError);
 			expect(() => db.checkpoint()).to.throw(TypeError);
 			expect(() => db.prepare('SELECT * FROM entries')).to.throw(TypeError);
-			expect(() => db.transaction(['CREATE TABLE numbers (number INTEGER)'])).to.throw(TypeError);
+			expect(() => db.transaction(() => {})).to.throw(TypeError);
 			expect(() => stmt1.get()).to.throw(TypeError);
 			expect(() => stmt1.all()).to.throw(TypeError);
 			expect(() => stmt1.iterate()).to.throw(TypeError);

@@ -11,17 +11,13 @@ describe('64-bit integers', function () {
 		db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
 	});
 	
-	it('should bind to statements and transactions', function () {
+	it('should bind to prepared statements', function () {
 		const int = Integer.fromBits(4243423, 234234234);
 		db1.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
-		db1.transaction(['INSERT INTO entries VALUES (?, ?, ?)']).run(int, int, int);
 		db1.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
-		db1.transaction(['INSERT INTO entries VALUES (?, ?, ?)']).bind(int, int, int).run();
 		
 		db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
-		db2.transaction(['INSERT INTO entries VALUES (?, ?, ?)']).run(int, int, int);
 		db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
-		db2.transaction(['INSERT INTO entries VALUES (?, ?, ?)']).bind(int, int, int).run();
 	});
 	it('should be allowed as a return value in user-defined functions', function () {
 		db1.function('returnsInteger', (a) => { return Integer(a + a); });
@@ -52,12 +48,6 @@ describe('64-bit integers', function () {
 		expect(stmt.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
 		expect(stmt.run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
 		expect(stmt.safeIntegers(false).run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
-		
-		const trans = db1.transaction(['INSERT INTO entries VALUES (?, ?, ?)']);
-		expect(trans.run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
-		expect(trans.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
-		expect(trans.run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
-		expect(trans.safeIntegers(false).run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
 	});
 	it('should get passed to functions defined with the "safeIntegers" option', function () {
 		db1.function('customfunc', { safeIntegers: true }, (a) => { return a.low; });
