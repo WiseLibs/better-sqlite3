@@ -2,27 +2,29 @@
 const Database = require('../.');
 
 describe('Statement#bind()', function () {
-	let db;
-	before(function () {
-		db = new Database(util.next());
+	beforeEach(function () {
+		this.db = new Database(util.next());
+		this.db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c BLOB)').run();
+	});
+	afterEach(function () {
+		this.db.close();
 	});
 	
 	it('should permanently bind the given parameters', function () {
-		db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c BLOB)').run();
-		const stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		const stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		const buffer = Buffer.alloc(4).fill(0xdd);
 		stmt.bind('foobar', 25, buffer)
 		stmt.run();
 		buffer.fill(0xaa);
 		stmt.run();
-		const row1 = db.prepare('SELECT * FROM entries WHERE rowid=1').get();
-		const row2 = db.prepare('SELECT * FROM entries WHERE rowid=2').get();
+		const row1 = this.db.prepare('SELECT * FROM entries WHERE rowid=1').get();
+		const row2 = this.db.prepare('SELECT * FROM entries WHERE rowid=2').get();
 		expect(row1.a).to.equal(row2.a);
 		expect(row1.b).to.equal(row2.b);
 		expect(row1.c).to.deep.equal(row2.c);
 	});
 	it('should not allow you to bind temporary parameters afterwards', function () {
-		const stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		const stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		const buffer = Buffer.alloc(4).fill(0xdd);
 		stmt.bind('foobar', 25, buffer)
 		expect(() => stmt.run(null)).to.throw(TypeError);
@@ -30,17 +32,17 @@ describe('Statement#bind()', function () {
 		expect(() => stmt.run('foobar', 25, buffer)).to.throw(TypeError);
 	});
 	it('should throw an exception when invoked twice on the same statement', function () {
-		let stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		let stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		stmt.bind('foobar', 25, null);
 		expect(() => stmt.bind('foobar', 25, null)).to.throw(TypeError);
 		expect(() => stmt.bind()).to.throw(TypeError);
 		
-		stmt = db.prepare('SELECT * FROM entries');
+		stmt = this.db.prepare('SELECT * FROM entries');
 		stmt.bind();
 		expect(() => stmt.bind()).to.throw(TypeError);
 	});
 	it('should throw an exception when invalid parameters are given', function () {
-		let stmt = db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
+		let stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		
 		expect(() =>
 			stmt.bind('foo', 25)
@@ -60,7 +62,7 @@ describe('Statement#bind()', function () {
 		
 		stmt.bind('foo', 25, null);
 		
-		stmt = db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
 		
 		expect(() =>
 			stmt.bind({ a: '123' })
@@ -76,7 +78,7 @@ describe('Statement#bind()', function () {
 		
 		stmt.bind({ a: '123' }, null);
 		
-		stmt = db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
 		stmt.bind({ a: '123', b: null }, null);
 	});
 	it('should propagate exceptions thrown while accessing array/object members', function () {
@@ -85,8 +87,8 @@ describe('Statement#bind()', function () {
 		const err = new TypeError('foobar');
 		Object.defineProperty(arr, '0', { get: () => { throw err; } })
 		Object.defineProperty(obj, 'baz', { get: () => { throw err; } })
-		const stmt1 = db.prepare('SELECT ?');
-		const stmt2 = db.prepare('SELECT @baz');
+		const stmt1 = this.db.prepare('SELECT ?');
+		const stmt2 = this.db.prepare('SELECT @baz');
 		expect(() => stmt1.bind(arr)).to.throw(err);
 		expect(() => stmt2.bind(obj)).to.throw(err);
 	});

@@ -23,12 +23,10 @@
 	REQUIRE_DATABASE_OPEN(db_state);                                           \
 	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
 	const bool bound = stmt->bound;                                            \
-	if (info.Length() > 0) {                                                   \
-		if (bound)                                                             \
-			return ThrowTypeError(                                             \
-				"This statement already has bound parameters");                \
+	if (!bound) {                                                              \
 		STATEMENT_BIND(handle);                                                \
-	} ((void)0)
+	} else if (info.Length() > 0)                                              \
+		return ThrowTypeError("This statement already has bound parameters")
 
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
