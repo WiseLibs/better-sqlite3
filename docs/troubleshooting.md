@@ -8,4 +8,6 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 3. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
 
+4. If you're using Windows, try running `npm install --global --production windows-build-tools --vs2015`. If that doesn't work, try assigning different versions of Visual Studio (e.g., `--vs2017, --vs2013`, etc.) until it works.
+
 If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
