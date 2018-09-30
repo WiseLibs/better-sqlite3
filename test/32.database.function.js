@@ -10,7 +10,7 @@ describe('Database#function()', function () {
 		this.db.close();
 	});
 	
-	it('should throw if invalid arguments are provided', function () {
+	it('should throw an exception if the correct arguments are not provided', function () {
 		expect(() => this.db.function()).to.throw(TypeError);
 		expect(() => this.db.function(null)).to.throw(TypeError);
 		expect(() => this.db.function('a')).to.throw(TypeError);
@@ -21,13 +21,19 @@ describe('Database#function()', function () {
 		expect(() => this.db.function('d', {})).to.throw(TypeError);
 		expect(() => this.db.function('e', { fn: function e() {} })).to.throw(TypeError);
 		expect(() => this.db.function('f', Object.create(Function.prototype))).to.throw(TypeError);
-		expect(() => this.db.function({}, function g() {})).to.throw(TypeError);
-		expect(() => this.db.function({ name: 'h' }, function h() {})).to.throw(TypeError);
-		expect(() => this.db.function('', function i() {})).to.throw(TypeError);
-		expect(() => this.db.function('', { name: 'j' }, function j() {})).to.throw(TypeError);
-		expect(() => this.db.function(new String('k'), function k() {})).to.throw(TypeError);
+		expect(() => this.db.function({ name: 'g' }, function g() {})).to.throw(TypeError);
+		expect(() => this.db.function(new String('h'), function h() {})).to.throw(TypeError);
 	});
-	it('should throw if function.length is invalid', function () {
+	it('should throw an exception if boolean options are provided as non-booleans', function () {
+		expect(() => this.db.function('a', { varargs: undefined }, () => {})).to.throw(TypeError);
+		expect(() => this.db.function('b', { deterministic: undefined }, () => {})).to.throw(TypeError);
+		expect(() => this.db.function('c', { safeIntegers: undefined }, () => {})).to.throw(TypeError);
+	});
+	it('should throw an exception if the provided name is empty', function () {
+		expect(() => this.db.function('', function a() {})).to.throw(TypeError);
+		expect(() => this.db.function('', { name: 'b' }, function b() {})).to.throw(TypeError);
+	});
+	it('should throw an exception if function.length is invalid', function () {
 		const length = x => Object.defineProperty(() => {}, 'length', { value: x });
 		expect(() => this.db.function('a', length(undefined))).to.throw(TypeError);
 		expect(() => this.db.function('b', length(null))).to.throw(TypeError);
@@ -90,7 +96,7 @@ describe('Database#function()', function () {
 		expect(this.get('fn(?, ?)', 4, 8)).to.equal(32);
 		expect(this.get('fn(?, ?, ?, ?, ?, ?)', 2, 3, 4, 5, 6, 7)).to.equal(5040);
 	});
-	it('should throw if the database is busy', function () {
+	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;
 		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
 			expect(x).to.equal(2);

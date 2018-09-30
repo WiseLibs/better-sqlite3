@@ -16,6 +16,9 @@ describe('Database#pragma()', function () {
 		expect(() => this.db.pragma()).to.throw(TypeError);
 		expect(() => this.db.pragma(new String('cache_size'))).to.throw(TypeError);
 	});
+	it('should throw an exception if boolean options are provided as non-booleans', function () {
+		expect(() => this.db.pragma('cache_size', { simple: undefined })).to.throw(TypeError);
+	});
 	it('should throw an exception if invalid/redundant SQL is provided', function () {
 		expect(() => this.db.pragma('PRAGMA cache_size')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 		expect(() => this.db.pragma('cache_size; PRAGMA cache_size')).to.throw(RangeError);

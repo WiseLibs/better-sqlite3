@@ -15,6 +15,12 @@ describe('new Database()', function () {
 	it('should throw when file path is empty', function () {
 		expect(() => new Database('')).to.throw(TypeError);
 	});
+	it('should throw when boolean options are provided as non-booleans', function () {
+		expect(() => new Database(util.next(), { readOnly: false })).to.throw(TypeError);
+		expect(() => new Database(util.next(), { readonly: undefined })).to.throw(TypeError);
+		expect(() => new Database(util.next(), { memory: undefined })).to.throw(TypeError);
+		expect(() => new Database(util.next(), { fileMustExist: undefined })).to.throw(TypeError);
+	});
 	it('should not allow URI file paths', function () {
 		expect(() => new Database(`FILE:${util.next()}`)).to.throw(TypeError);
 		expect(() => new Database(`file:${util.next()}`)).to.throw(TypeError);

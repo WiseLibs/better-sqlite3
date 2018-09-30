@@ -13,43 +13,81 @@ describe.only('Database#aggregate()', function () {
 		this.db.close();
 	});
 	
-	it('should throw if invalid arguments are provided', function () {
+	it('should throw an exception if the correct arguments are not provided', function () {
 		expect(() => this.db.aggregate()).to.throw(TypeError);
 		expect(() => this.db.aggregate(null)).to.throw(TypeError);
 		expect(() => this.db.aggregate('a')).to.throw(TypeError);
 		expect(() => this.db.aggregate({})).to.throw(TypeError);
+		expect(() => this.db.aggregate({ step: () => {} })).to.throw(TypeError);
+		expect(() => this.db.aggregate({ name: 'b', step: function b() {} })).to.throw(TypeError);
 		expect(() => this.db.aggregate(() => {})).to.throw(TypeError);
-		expect(() => this.db.aggregate(function b() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate({}, function c() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate('d', {})).to.throw(TypeError);
-		expect(() => this.db.aggregate('e', { fn: function e() {} })).to.throw(TypeError);
-		expect(() => this.db.aggregate('f', Object.create(Function.prototype))).to.throw(TypeError);
-		expect(() => this.db.aggregate({}, function g() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate({ name: 'h' }, function h() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate('', function i() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate('', { name: 'j' }, function j() {})).to.throw(TypeError);
-		expect(() => this.db.aggregate(new String('k'), function k() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate(function c() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate({}, function d() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate({ name: 'e', step: function e() {} }, function e() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate('f')).to.throw(TypeError);
+		expect(() => this.db.aggregate('g', null)).to.throw(TypeError);
+		expect(() => this.db.aggregate('h', {})).to.throw(TypeError);
+		expect(() => this.db.aggregate('i', function i() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate('j', {}, function j() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate('k', { name: 'k' }, function k() {})).to.throw(TypeError);
+		expect(() => this.db.aggregate('l', { inverse: function l() {} })).to.throw(TypeError);
+		expect(() => this.db.aggregate('m', { result: function m() {} })).to.throw(TypeError);
+		expect(() => this.db.aggregate(new String('n'), { step: function n() {} })).to.throw(TypeError);
 	});
-	it('should throw if function.length is invalid', function () {
+	it('should throw an exception if boolean options are provided as non-booleans', function () {
+		expect(() => this.db.aggregate('a', { step: () => {}, varargs: undefined })).to.throw(TypeError);
+		expect(() => this.db.aggregate('b', { step: () => {}, deterministic: undefined })).to.throw(TypeError);
+		expect(() => this.db.aggregate('c', { step: () => {}, safeIntegers: undefined })).to.throw(TypeError);
+	});
+	it('should throw an exception if function options are provided as non-fns', function () {
+		expect(() => this.db.aggregate('a', { step: undefined })).to.throw(TypeError);
+		expect(() => this.db.aggregate('b', { step: null })).to.throw(TypeError);
+		expect(() => this.db.aggregate('c', { step: false })).to.throw(TypeError);
+		expect(() => this.db.aggregate('d', { step: true })).to.throw(TypeError);
+		expect(() => this.db.aggregate('e', { step: Object.create(Function.prototype) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('f', { step: () => {}, inverse: false })).to.throw(TypeError);
+		expect(() => this.db.aggregate('g', { step: () => {}, inverse: true })).to.throw(TypeError);
+		expect(() => this.db.aggregate('h', { step: () => {}, inverse: Object.create(Function.prototype) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('i', { step: () => {}, result: false })).to.throw(TypeError);
+		expect(() => this.db.aggregate('j', { step: () => {}, result: true })).to.throw(TypeError);
+		expect(() => this.db.aggregate('k', { step: () => {}, result: Object.create(Function.prototype) })).to.throw(TypeError);
+	});
+	it('should throw an exception if the provided name is empty', function () {
+		expect(() => this.db.aggregate('', { step: () => {} })).to.throw(TypeError);
+		expect(() => this.db.aggregate('', { name: 'a', step: () => {} })).to.throw(TypeError);
+		expect(() => this.db.aggregate('', { name: 'b', step: function b() {} })).to.throw(TypeError);
+	});
+	it('should throw an exception if step.length or inverse.length is invalid', function () {
 		const length = x => Object.defineProperty(() => {}, 'length', { value: x });
-		expect(() => this.db.aggregate('a', length(undefined))).to.throw(TypeError);
-		expect(() => this.db.aggregate('b', length(null))).to.throw(TypeError);
-		expect(() => this.db.aggregate('c', length('2'))).to.throw(TypeError);
-		expect(() => this.db.aggregate('d', length(NaN))).to.throw(TypeError);
-		expect(() => this.db.aggregate('e', length(Infinity))).to.throw(TypeError);
-		expect(() => this.db.aggregate('f', length(2.000000001))).to.throw(TypeError);
-		expect(() => this.db.aggregate('g', length(-0.000000001))).to.throw(TypeError);
-		expect(() => this.db.aggregate('h', length(-2))).to.throw(TypeError);
-		expect(() => this.db.aggregate('i', length(100.000000001))).to.throw(TypeError);
-		expect(() => this.db.aggregate('j', length(101))).to.throw(RangeError);
+		expect(() => this.db.aggregate('a', { step: length(undefined) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('b', { step: length(null) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('c', { step: length('2') })).to.throw(TypeError);
+		expect(() => this.db.aggregate('d', { step: length(NaN) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('e', { step: length(Infinity) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('f', { step: length(2.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('g', { step: length(-0.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('h', { step: length(-2) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('i', { step: length(100.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('j', { step: length(102) })).to.throw(RangeError);
+		expect(() => this.db.aggregate('aa', { step: () => {}, inverse: length(undefined) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('bb', { step: () => {}, inverse: length(null) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('cc', { step: () => {}, inverse: length('2') })).to.throw(TypeError);
+		expect(() => this.db.aggregate('dd', { step: () => {}, inverse: length(NaN) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('ee', { step: () => {}, inverse: length(Infinity) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('ff', { step: () => {}, inverse: length(2.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('gg', { step: () => {}, inverse: length(-0.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('hh', { step: () => {}, inverse: length(-2) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('ii', { step: () => {}, inverse: length(100.000000001) })).to.throw(TypeError);
+		expect(() => this.db.aggregate('jj', { step: () => {}, inverse: length(102) })).to.throw(RangeError);
 	});
-	it('should register the given function and return the database object', function () {
-		expect(this.db.aggregate('a', () => {})).to.equal(this.db);
-		expect(this.db.aggregate('b', {}, () => {})).to.equal(this.db);
-		expect(this.db.aggregate('c', function x() {})).to.equal(this.db);
-		expect(this.db.aggregate('d', {}, function y() {})).to.equal(this.db);
+	it('should register an aggregate function and return the database object', function () {
+		const length = x => Object.defineProperty(() => {}, 'length', { value: x });
+		expect(this.db.aggregate('a', { step: () => {} })).to.equal(this.db);
+		expect(this.db.aggregate('b', { step: function x() {} })).to.equal(this.db);
+		expect(this.db.aggregate('c', { step: length(1) })).to.equal(this.db);
+		expect(this.db.aggregate('d', { step: length(101) })).to.equal(this.db);
 	});
-	it('should enable the registered function to be executed from SQL', function () {
+	it('should enable the registered aggregate function to be executed from SQL', function () {
 		// numbers and strings
 		this.db.aggregate('a', (a, b, c) => a + b + c);
 		expect(this.get('a(?, ?, ?)', 2, 10, 50)).to.equal(62);
@@ -93,7 +131,7 @@ describe.only('Database#aggregate()', function () {
 		expect(this.get('fn(?, ?)', 4, 8)).to.equal(32);
 		expect(this.get('fn(?, ?, ?, ?, ?, ?)', 2, 3, 4, 5, 6, 7)).to.equal(5040);
 	});
-	it('should throw if the database is busy', function () {
+	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;
 		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
 			expect(x).to.equal(2);
@@ -231,7 +269,7 @@ describe.only('Database#aggregate()', function () {
 				yield () => {};
 			});
 		});
-		it('should throw if the yielded function.length is not a positive integer', function () {
+		it('should throw an exception if the yielded function.length is not a positive integer', function () {
 			function length(n) {
 				const fn = () => {};
 				Object.defineProperty(fn, 'length', { value: n });
@@ -253,7 +291,7 @@ describe.only('Database#aggregate()', function () {
 				yield length('2');
 			})).to.throw(TypeError);
 		});
-		it('should throw if the yielded function.length is larger than 127', function () {
+		it('should throw an exception if the yielded function.length is larger than 127', function () {
 			function length(n) {
 				const fn = () => {};
 				Object.defineProperty(fn, 'length', { value: n });
@@ -277,12 +315,12 @@ describe.only('Database#aggregate()', function () {
 				})
 			).to.throw(err);
 		});
-		it('should throw if the generator function never yields', function () {
+		it('should throw an exception if the generator function never yields', function () {
 			expect(() => register(function* zf1() {
 				// no yield
 			})).to.throw(TypeError);
 		});
-		it('should throw if a non-function is yielded', function () {
+		it('should throw an exception if a non-function is yielded', function () {
 			expect(() => register(function* zf1() {
 				yield;
 			})).to.throw(TypeError);
@@ -296,7 +334,7 @@ describe.only('Database#aggregate()', function () {
 				yield { length: 0, name: '' };
 			})).to.throw(TypeError);
 		});
-		it('should throw if the generator function yields twice', function () {
+		it('should throw an exception if the generator function yields twice', function () {
 			expect(() => register(function* zg1() {
 				const fn = () => {};
 				yield fn;
@@ -323,7 +361,7 @@ describe.only('Database#aggregate()', function () {
 		});
 	});
 	describe('before executing', function () {
-		it('should throw if the generator function never yields', function () {
+		it('should throw an exception if the generator function never yields', function () {
 			let first = true;
 			register(function* zj1() {
 				if (first) {
@@ -333,7 +371,7 @@ describe.only('Database#aggregate()', function () {
 			});
 			expect(() => exec('zj1(x) FROM data')).to.throw(TypeError);
 		});
-		it('should throw if a non-function is yielded', function () {
+		it('should throw an exception if a non-function is yielded', function () {
 			function registerAggregate(name, value) {
 				let first = true;
 				register({ name }, function* () {
@@ -356,7 +394,7 @@ describe.only('Database#aggregate()', function () {
 			expect(() => exec('zk4(x) FROM data')).to.throw(TypeError);
 			exec('zk5(x) FROM data');
 		});
-		it('should throw if the generator function yields twice', function () {
+		it('should throw an exception if the generator function yields twice', function () {
 			let first = true;
 			register(function* zl1() {
 				if (first) {
@@ -412,7 +450,7 @@ describe.only('Database#aggregate()', function () {
 			});
 			expect(() => exec('zn1(x) FROM data')).to.throw(err);
 		});
-		it('should throw if the yielded function.length is inconsistent', function () {
+		it('should throw an exception if the yielded function.length is inconsistent', function () {
 			let first = true;
 			register(function* zo1() {
 				if (first) {
@@ -433,7 +471,7 @@ describe.only('Database#aggregate()', function () {
 			});
 			expect(() => exec('zp1(x) FROM data')).to.throw(err);
 		});
-		it('should throw if the generator function returns an invalid value', function () {
+		it('should throw an exception if the generator function returns an invalid value', function () {
 			const err = new Error('foobar');
 			register(function* zq1() { yield (x) => {}; return {}; });
 			register(function* zq2() { yield (x) => {}; return 123; });

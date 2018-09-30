@@ -21,7 +21,7 @@ describe('Database#loadExtension()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	it('should throw if a string argument is not given', function () {
+	it('should throw an exception if a string argument is not given', function () {
 		expect(() => this.db.loadExtension()).to.throw(TypeError);
 		expect(() => this.db.loadExtension(undefined)).to.throw(TypeError);
 		expect(() => this.db.loadExtension(null)).to.throw(TypeError);
@@ -29,11 +29,11 @@ describe('Database#loadExtension()', function () {
 		expect(() => this.db.loadExtension(new String(filepath))).to.throw(TypeError);
 		expect(() => this.db.loadExtension([filepath])).to.throw(TypeError);
 	});
-	it('should throw if the database is closed', function () {
+	it('should throw an exception if the database is closed', function () {
 		this.db.close();
 		expect(() => this.db.loadExtension(filepath)).to.throw(TypeError);
 	});
-	it('should throw if the database is busy', function () {
+	it('should throw an exception if the database is busy', function () {
 		let invoked = false;
 		for (const value of this.db.prepare('select 555').pluck().iterate()) {
 			expect(value).to.equal(555);
@@ -42,7 +42,7 @@ describe('Database#loadExtension()', function () {
 		}
 		expect(invoked).to.be.true;
 	});
-	it('should throw if the extension is not found', function () {
+	it('should throw an exception if the extension is not found', function () {
 		try {
 			this.db.loadExtension(filepath + 'x');
 		} catch (err) {
