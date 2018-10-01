@@ -299,6 +299,12 @@ describe('Database#aggregate()', function () {
 		expect(stepCount).to.equal(14);
 		expect(inverseCount).to.equal(10);
 		expect(resultCount).to.equal(14);
+		expect(this.all('wn(_, ?) OVER win FROM empty', 2))
+			.to.deep.equal([]);
+		expect(startCount).to.equal(2);
+		expect(stepCount).to.equal(14);
+		expect(inverseCount).to.equal(10);
+		expect(resultCount).to.equal(14);
 	});
 	it('should infer argument count from the greater of step() and inverse()', function () {
 		this.db.aggregate('a', {

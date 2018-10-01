@@ -4,7 +4,24 @@ public:
 	explicit CustomAggregate(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Value> _start, v8::Local<v8::Function> _step, v8::Local<v8::Value> _inverse, v8::Local<v8::Value> _result, const char* _name, bool _safe_ints)
 		: CustomFunction(_isolate, _db, _step, _name, _safe_ints), invoke_result(_result->IsFunction()), invoke_start(_start->IsFunction()), inverse(_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result(_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), start(_isolate, _start) {}
 	
-	static void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const CopyablePersistent<v8::Function> CustomAggregate::*ptrtm) {
+	static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
+		xStepBase(invocation, argc, argv, &CustomAggregate::fn);
+	}
+	
+	static void xInverse(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
+		xStepBase(invocation, argc, argv, &CustomAggregate::inverse);
+	}
+	
+	static void xValue(sqlite3_context* invocation) {
+		xValueBase(invocation, false);
+	}
+	
+	static void xFinal(sqlite3_context* invocation) {
+		xValueBase(invocation, true);
+	}
+	
+private:
+	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const CopyablePersistent<v8::Function> CustomAggregate::*ptrtm) {
 		AGGREGATE_START();
 		
 		v8::Local<v8::Value> args_fast[5];
@@ -23,16 +40,16 @@ public:
 		}
 	}
 	
-	static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
-		xStepBase(invocation, argc, argv, &CustomAggregate::fn);
-	}
-	
-	static void xInverse(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
-		xStepBase(invocation, argc, argv, &CustomAggregate::inverse);
-	}
-	
-	static void xValue(sqlite3_context* invocation) {
+	static inline void xValueBase(sqlite3_context* invocation, bool is_final) {
 		AGGREGATE_START();
+		
+		if (!is_final) {
+			acc->is_window = true;
+		} else if (acc->is_window) {
+			DestroyAccumulator(invocation);
+			return;
+		}
+		
 		v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
 		if (self->invoke_result) {
 			v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, self->result)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
@@ -42,18 +59,15 @@ public:
 			}
 			result = maybe_result.ToLocalChecked();
 		}
+		
 		Data::ResultValueFromJS(isolate, invocation, result, self);
+		if (is_final) DestroyAccumulator(invocation);
 	}
 	
-	static void xFinal(sqlite3_context* invocation) {
-		xValue(invocation);
-		DestroyAccumulator(invocation);
-	}
-	
-private:
 	struct Accumulator { public:
 		CopyablePersistent<v8::Value> value;
 		bool initialized;
+		bool is_window;
 	}
 	
 	Accumulator* GetAccumulator(sqlite3_context* invocation) {

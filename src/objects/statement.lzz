@@ -13,7 +13,7 @@ public:
 	}
 	
 	// Used by the Database::CompareStatement class.
-	inline static bool Compare(Statement const * const a, Statement const * const b) {
+	static inline bool Compare(Statement const * const a, Statement const * const b) {
 		return a->extras->id < b->extras->id;
 	}
 	

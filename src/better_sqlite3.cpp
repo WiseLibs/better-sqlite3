@@ -1103,64 +1103,32 @@ CustomAggregate::CustomAggregate (v8::Isolate * _isolate, Database * _db, v8::Lo
 #line 5 "./src/util/custom-aggregate.lzz"
                                                                                                                                                                                                                                                                                                                                                                                                             {}
 #line 7 "./src/util/custom-aggregate.lzz"
-void CustomAggregate::xStepBase (sqlite3_context * invocation, int argc, sqlite3_value * * argv, CopyablePersistent <v8::Function> const CustomAggregate::* ptrtm)
-#line 7 "./src/util/custom-aggregate.lzz"
-                                                                                                                                                           {
-                CustomAggregate * self = static_cast < CustomAggregate * > ( sqlite3_user_data ( invocation ) ) ; v8 :: Isolate * isolate = self -> isolate ; v8 :: HandleScope scope ( isolate ) ; Accumulator * acc = self -> GetAccumulator ( invocation ) ; if ( acc -> value . IsEmpty ( ) ) return ;
-
-                v8::Local<v8::Value> args_fast[5];
-                v8::Local<v8::Value>* args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc + 1);
-                args[0] = v8::Local<v8::Value>::New(isolate, acc->value);
-                if (argc != 0) Data::GetArgumentsJS(isolate, args + 1, argv, argc, self->safe_ints);
-
-                v8::MaybeLocal<v8::Value> maybe_return_value = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->*ptrtm), argc + 1, args);
-                if (args != args_fast) delete[] args;
-
-                if (maybe_return_value.IsEmpty()) {
-                        self->PropagateJSError(invocation);
-                } else {
-                        v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
-                        if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
-                }
-}
-#line 26 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::xStep (sqlite3_context * invocation, int argc, sqlite3_value * * argv)
-#line 26 "./src/util/custom-aggregate.lzz"
+#line 7 "./src/util/custom-aggregate.lzz"
                                                                                        {
                 xStepBase(invocation, argc, argv, &CustomAggregate::fn);
 }
-#line 30 "./src/util/custom-aggregate.lzz"
+#line 11 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::xInverse (sqlite3_context * invocation, int argc, sqlite3_value * * argv)
-#line 30 "./src/util/custom-aggregate.lzz"
+#line 11 "./src/util/custom-aggregate.lzz"
                                                                                           {
                 xStepBase(invocation, argc, argv, &CustomAggregate::inverse);
 }
-#line 34 "./src/util/custom-aggregate.lzz"
+#line 15 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::xValue (sqlite3_context * invocation)
-#line 34 "./src/util/custom-aggregate.lzz"
+#line 15 "./src/util/custom-aggregate.lzz"
                                                         {
-                CustomAggregate * self = static_cast < CustomAggregate * > ( sqlite3_user_data ( invocation ) ) ; v8 :: Isolate * isolate = self -> isolate ; v8 :: HandleScope scope ( isolate ) ; Accumulator * acc = self -> GetAccumulator ( invocation ) ; if ( acc -> value . IsEmpty ( ) ) return ;
-                v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
-                if (self->invoke_result) {
-                        v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, self->result)->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 1, &result);
-                        if (maybe_result.IsEmpty()) {
-                                self->PropagateJSError(invocation);
-                                return;
-                        }
-                        result = maybe_result.ToLocalChecked();
-                }
-                Data::ResultValueFromJS(isolate, invocation, result, self);
+                xValueBase(invocation, false);
 }
-#line 48 "./src/util/custom-aggregate.lzz"
+#line 19 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::xFinal (sqlite3_context * invocation)
-#line 48 "./src/util/custom-aggregate.lzz"
+#line 19 "./src/util/custom-aggregate.lzz"
                                                         {
-                xValue(invocation);
-                DestroyAccumulator(invocation);
+                xValueBase(invocation, true);
 }
-#line 59 "./src/util/custom-aggregate.lzz"
+#line 73 "./src/util/custom-aggregate.lzz"
 CustomAggregate::Accumulator * CustomAggregate::GetAccumulator (sqlite3_context * invocation)
-#line 59 "./src/util/custom-aggregate.lzz"
+#line 73 "./src/util/custom-aggregate.lzz"
                                                                  {
                 Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
                 if (!acc->initialized) {
@@ -1177,17 +1145,17 @@ CustomAggregate::Accumulator * CustomAggregate::GetAccumulator (sqlite3_context 
                 }
                 return acc;
 }
-#line 76 "./src/util/custom-aggregate.lzz"
+#line 90 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::DestroyAccumulator (sqlite3_context * invocation)
-#line 76 "./src/util/custom-aggregate.lzz"
+#line 90 "./src/util/custom-aggregate.lzz"
                                                                     {
                 Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));
                 assert(acc->initialized);
                 acc->value.Reset();
 }
-#line 82 "./src/util/custom-aggregate.lzz"
+#line 96 "./src/util/custom-aggregate.lzz"
 void CustomAggregate::PropagateJSError (sqlite3_context * invocation)
-#line 82 "./src/util/custom-aggregate.lzz"
+#line 96 "./src/util/custom-aggregate.lzz"
                                                            {
                 DestroyAccumulator(invocation);
                 CustomFunction::PropagateJSError(invocation);
