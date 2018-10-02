@@ -108,17 +108,26 @@ describe('Database#function()', function () {
 	});
 	it('should cause the database to become busy when executing the function', function () {
 		let ranOnce = false;
-		this.db.function('a', () => {
+		this.db.function('a', () => {});
+		this.db.function('b', () => {
 			ranOnce = true;
+			expect(() => this.db.exec('SELECT a()')).to.throw(TypeError);
 			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
 			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
-			expect(() => this.db.function('b', () => {})).to.throw(TypeError);
+			expect(() => this.db.function('z', () => {})).to.throw(TypeError);
 		});
-		expect(this.get('a()')).to.equal(null);
+		
+		expect(this.get('b()')).to.equal(null);
 		expect(ranOnce).to.be.true;
+		ranOnce = false;
+		
+		expect(this.db.exec('SELECT b()')).to.equal(this.db);
+		expect(ranOnce).to.be.true;
+		
+		this.db.exec('SELECT a()')
 		this.db.prepare('SELECT 555');
 		this.db.pragma('cache_size');
-		this.db.function('b', () => {});
+		this.db.function('zz', () => {});
 	});
 	it('should cause the function to throw when returning an invalid value', function () {
 		this.db.function('fn', x => ({}));

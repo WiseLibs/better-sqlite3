@@ -190,7 +190,7 @@ private:
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
 			STATEMENT_RETURN(result);
 		}
-		if (js_error) db_state->was_js_error = true;
+		if (js_error) db->GetState()->was_js_error = true;
 		STATEMENT_THROW();
 	}
 	

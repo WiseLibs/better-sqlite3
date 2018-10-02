@@ -1,9 +1,11 @@
 #define STATEMENT_THROW()                                                      \
+	db->GetState()->busy = false;                                              \
 	db->ThrowDatabaseError();                                                  \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
 
 #define STATEMENT_RETURN(return_value)                                         \
+	db->GetState()->busy = false;                                              \
 	info.GetReturnValue().Set(return_value);                                   \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
@@ -19,14 +21,14 @@
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	Database* db = stmt->db;                                                   \
-	Database::State* db_state = db->GetState();                                \
-	REQUIRE_DATABASE_OPEN(db_state);                                           \
-	REQUIRE_DATABASE_NOT_BUSY(db_state);                                       \
+	REQUIRE_DATABASE_OPEN(db->GetState());                                     \
+	REQUIRE_DATABASE_NOT_BUSY(db->GetState());                                 \
 	const bool bound = stmt->bound;                                            \
 	if (!bound) {                                                              \
 		STATEMENT_BIND(handle);                                                \
 	} else if (info.Length() > 0)                                              \
-		return ThrowTypeError("This statement already has bound parameters")
+		return ThrowTypeError("This statement already has bound parameters");  \
+	db->GetState()->busy = true
 
 
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \

@@ -19,7 +19,7 @@ public:
 			Data::GetArgumentsJS(isolate, args, argv, argc, self->safe_ints);
 		}
 		
-		v8::MaybeLocal<v8::Value> maybe_return_value = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->fn), argc, args);
+		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, self->fn)->Call(OnlyContext, v8::Undefined(isolate), argc, args);
 		if (args != args_fast) delete[] args;
 		
 		if (maybe_return_value.IsEmpty()) self->PropagateJSError(invocation);
@@ -32,15 +32,6 @@ public:
 	}
 	
 protected:
-	v8::MaybeLocal<v8::Value> InvokeBusy(v8::Local<v8::Function> fn, int argc, v8::Local<v8::Value>* args) {
-		Database::State* db_state = db->GetState();
-		const bool was_busy = db_state->busy;
-		db_state->busy = true;
-		v8::MaybeLocal<v8::Value> maybe_return_value = fn->Call(OnlyContext, v8::Undefined(isolate), argc, args);
-		db_state->busy = was_busy;
-		return maybe_return_value;
-	}
-	
 	virtual void PropagateJSError(sqlite3_context* invocation) {
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;

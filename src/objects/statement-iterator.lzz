@@ -11,7 +11,7 @@ public:
 	}
 	
 	// The ~Statement destructor currently covers any state this object creates.
-	// Additionally, we actually DON'T want to set db_state->busy in this
+	// Additionally, we actually DON'T want to set db->GetState()->busy in this
 	// destructor, to ensure deterministic database access.
 	~StatementIterator() {}
 	
@@ -53,7 +53,6 @@ private:
 			NODE_ARGUMENTS info = *caller_info;
 			STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
 			iter = new StatementIterator(stmt, bound);
-			db_state->busy = true;
 		}
 		UseIsolateAndContext;
 		iter->Wrap(info.This());
@@ -96,6 +95,7 @@ private:
 	
 	void Return(NODE_ARGUMENTS info) {
 		Cleanup();
+		Database* db = stmt->db;
 		STATEMENT_RETURN(DoneRecord(OnlyIsolate));
 	}
 	
@@ -109,7 +109,6 @@ private:
 		assert(alive == true);
 		alive = false;
 		sqlite3_reset(handle);
-		stmt->db->GetState()->busy = false;
 	}
 	
 	static v8::Local<v8::Object> NewRecord(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Value> value, bool done = false) {

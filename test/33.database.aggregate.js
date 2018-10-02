@@ -353,16 +353,24 @@ describe('Database#aggregate()', function () {
 	it('should cause the database to become busy when executing the aggregate', function () {
 		let checkCount = 0;
 		const expectBusy = () => {
+			expect(() => this.db.exec('SELECT a()')).to.throw(TypeError);
 			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
 			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
 			expect(() => this.db.function('x', () => {})).to.throw(TypeError);
 			expect(() => this.db.aggregate('y', { step: () => {} })).to.throw(TypeError);
 			checkCount += 1;
 		};
-		this.db.aggregate('a', { start: expectBusy, step: expectBusy, inverse: expectBusy, result: expectBusy });
-		expect(this.all('a(*) OVER win FROM ints'))
-			.to.deep.equal([null, null, null, null, null, null, null]);
+		this.db.aggregate('a', { step: () => {} });
+		this.db.aggregate('b', { start: expectBusy, step: expectBusy, inverse: expectBusy, result: expectBusy });
+		
+		expect(this.all('b(*) OVER win FROM ints')).to.deep.equal([null, null, null, null, null, null, null]);
 		expect(checkCount).to.equal(20);
+		checkCount = 0;
+		
+		expect(this.db.exec('SELECT b(*) OVER win FROM ints WINDOW win AS (ORDER BY rowid ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY rowid')).to.equal(this.db);
+		expect(checkCount).to.equal(20);
+		
+		this.db.exec('SELECT a()');
 		this.db.prepare('SELECT 555');
 		this.db.pragma('cache_size');
 		this.db.function('xx', () => {});
