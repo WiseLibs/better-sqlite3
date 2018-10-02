@@ -396,6 +396,69 @@ describe('Database#aggregate()', function () {
 		expect(() => this.get('d(*) FROM ints')).to.throw(TypeError);
 		expect(() => this.get('d(*) FROM empty')).to.throw(TypeError);
 	});
+	it('should close a statement iterator that caused its aggregate to throw', function () {
+		this.db.prepare('CREATE TABLE iterable (value INTEGER)').run();
+		this.db.prepare('INSERT INTO iterable WITH RECURSIVE temp(x) AS (SELECT 1 UNION ALL SELECT x * 2 FROM temp LIMIT 10) SELECT * FROM temp').run();
+		
+		let i = 0;
+		const err = new Error('foo');
+		this.db.aggregate('wn', {
+			step: (ctx, x) => { if (++i >= 5) throw err; return x; },
+			inverse: () => {},
+		});
+		const iterator = this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable').pluck().iterate();
+		
+		let total = 0;
+		expect(() => {
+			for (const value of iterator) {
+				total += value;
+				expect(() => this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable')).to.throw(TypeError);
+			}
+		}).to.throw(err);
+		
+		expect(total).to.equal(1 + 2 + 4 + 8);
+		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
+		this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable').pluck().iterate().return();
+		expect(total).to.equal(1 + 2 + 4 + 8);
+	});
+	it('should be able to register multiple aggregates with the same name', function () {
+		this.db.aggregate('agg', { step: (ctx) => 0 });
+		this.db.aggregate('agg', { step: (ctx, a) => 1 });
+		this.db.aggregate('agg', { step: (ctx, a, b) => 2 });
+		this.db.aggregate('agg', { step: (ctx, a, b, c) => 3, inverse: () => {} });
+		this.db.aggregate('agg', { step: (ctx, a, b, c, d) => 4 });
+		expect(this.get('agg()')).to.equal(0);
+		expect(this.get('agg(555)')).to.equal(1);
+		expect(this.get('agg(555, 555)')).to.equal(2);
+		expect(this.get('agg(555, 555, 555)')).to.equal(3);
+		expect(this.get('agg(555, 555, 555, 555)')).to.equal(4);
+		this.db.aggregate('agg', { step: (ctx, a, b) => 'foo', inverse: () => {} });
+		this.db.aggregate('agg', { step: (ctx, a, b, c) => 'bar' });
+		expect(this.get('agg()')).to.equal(0);
+		expect(this.get('agg(555)')).to.equal(1);
+		expect(this.get('agg(555, 555)')).to.equal('foo');
+		expect(this.get('agg(555, 555, 555)')).to.equal('bar');
+		expect(this.get('agg(555, 555, 555, 555)')).to.equal(4);
+	});
+	it('should not be able to affect bound buffers mid-query', function () {
+		const input = Buffer.alloc(1024 * 8).fill(0xbb);
+		let startCalled = false;
+		let stepCalled = false;
+		this.db.aggregate('agg', {
+			start: () => {
+				startCalled = true;
+				input[0] = 2;
+			},
+			step: () => {
+				stepCalled = true;
+				input[0] = 2;
+			},
+		});
+		const output = this.get('?, agg(*) FROM ints', input);
+		expect(startCalled).to.be.true;
+		expect(stepCalled).to.be.true;
+		expect(output.equals(Buffer.alloc(1024 * 8).fill(0xbb))).to.be.true;
+	});
 	describe('should propagate exceptions', function () {
 		const exceptions = [new TypeError('foobar'), new Error('baz'), { yup: 'ok' }, 'foobarbazqux', '', null, 123.4];
 		const expectError = (exception, fn) => {
@@ -409,51 +472,51 @@ describe('Database#aggregate()', function () {
 		specify('thrown in the start() function', function () {
 			exceptions.forEach((exception, index) => {
 				const calls = [];
-				this.db.aggregate(`agg${index}`, {
+				this.db.aggregate(`wn${index}`, {
 					start: () => { calls.push('a'); throw exception; },
 					step: () => { calls.push('b'); },
 					inverse: () => { calls.push('c'); },
 					result: () => { calls.push('d'); },
 				});
-				expectError(exception, () => this.get(`agg${index}() FROM empty`));
+				expectError(exception, () => this.get(`wn${index}() FROM empty`));
 				expect(calls.splice(0)).to.deep.equal(['a']);
-				expectError(exception, () => this.get(`agg${index}() FROM ints`));
+				expectError(exception, () => this.get(`wn${index}() FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a']);
-				expectError(exception, () => this.all(`agg${index}() OVER win FROM ints`));
+				expectError(exception, () => this.all(`wn${index}() OVER win FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a']);
 			});
 		});
 		specify('thrown in the step() function', function () {
 			exceptions.forEach((exception, index) => {
 				const calls = [];
-				this.db.aggregate(`agg${index}`, {
+				this.db.aggregate(`wn${index}`, {
 					start: () => { calls.push('a'); },
 					step: () => { calls.push('b'); throw exception; },
 					inverse: () => { calls.push('c'); },
 					result: () => { calls.push('d'); },
 				});
-				expect(this.get(`agg${index}() FROM empty`)).to.equal(null);
+				expect(this.get(`wn${index}() FROM empty`)).to.equal(null);
 				expect(calls.splice(0)).to.deep.equal(['a', 'd']);
-				expectError(exception, () => this.get(`agg${index}() FROM ints`));
+				expectError(exception, () => this.get(`wn${index}() FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a', 'b']);
-				expectError(exception, () => this.all(`agg${index}() OVER win FROM ints`));
+				expectError(exception, () => this.all(`wn${index}() OVER win FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a', 'b']);
 			});
 		});
 		specify('thrown in the inverse() function', function () {
 			exceptions.forEach((exception, index) => {
 				const calls = [];
-				this.db.aggregate(`agg${index}`, {
+				this.db.aggregate(`wn${index}`, {
 					start: () => { calls.push('a'); },
 					step: () => { calls.push('b'); },
 					inverse: () => { calls.push('c'); throw exception; },
 					result: () => { calls.push('d'); },
 				});
-				expect(this.get(`agg${index}() FROM empty`)).to.equal(null);
+				expect(this.get(`wn${index}() FROM empty`)).to.equal(null);
 				expect(calls.splice(0)).to.deep.equal(['a', 'd']);
-				expect(this.get(`agg${index}() FROM ints`)).to.equal(null);
+				expect(this.get(`wn${index}() FROM ints`)).to.equal(null);
 				expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'd']);
-				expectError(exception, () => this.all(`agg${index}() OVER win FROM ints`));
+				expectError(exception, () => this.all(`wn${index}() OVER win FROM ints`));
 				expect(calls.length).to.be.above(2);
 				expect(calls.indexOf('c')).to.equal(calls.length - 1);
 			});
@@ -461,87 +524,36 @@ describe('Database#aggregate()', function () {
 		specify('thrown in the result() function', function () {
 			exceptions.forEach((exception, index) => {
 				const calls = [];
-				this.db.aggregate(`agg${index}`, {
+				this.db.aggregate(`wn${index}`, {
 					start: () => { calls.push('a'); },
 					step: () => { calls.push('b'); },
 					inverse: () => { calls.push('c'); },
 					result: () => { calls.push('d'); throw exception; },
 				});
-				expectError(exception, () => this.get(`agg${index}() FROM empty`));
+				expectError(exception, () => this.get(`wn${index}() FROM empty`));
 				expect(calls.splice(0)).to.deep.equal(['a', 'd']);
-				expectError(exception, () => this.get(`agg${index}() FROM ints`));
+				expectError(exception, () => this.get(`wn${index}() FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'd']);
-				expectError(exception, () => this.all(`agg${index}() OVER win FROM ints`));
+				expectError(exception, () => this.all(`wn${index}() OVER win FROM ints`));
 				expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'd']);
 			});
 		});
 		specify('thrown due to returning an invalid value', function () {
 			const calls = [];
-			this.db.aggregate('agg', {
+			this.db.aggregate('wn', {
 				start: () => { calls.push('a'); },
 				step: () => { calls.push('b'); },
 				inverse: () => { calls.push('c'); },
 				result: () => { calls.push('d'); return {}; },
 			});
-			expect(() => this.get('agg() FROM empty')).to.throw(TypeError);
+			expect(() => this.get('wn() FROM empty')).to.throw(TypeError);
 			expect(calls.splice(0)).to.deep.equal(['a', 'd']);
-			expect(() => this.get('agg() FROM ints')).to.throw(TypeError);;
+			expect(() => this.get('wn() FROM ints')).to.throw(TypeError);;
 			expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'b', 'b', 'b', 'b', 'b', 'd']);
-			expect(() => this.all('agg() OVER win FROM ints')).to.throw(TypeError);;
+			expect(() => this.all('wn() OVER win FROM ints')).to.throw(TypeError);;
 			expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'd']);
 		});
 	});
-	// it('should close a statement iterator that caused its aggregate to throw', function () {
-	// 	this.db.prepare('CREATE TABLE iterable (value INTEGER)').run();
-	// 	this.db.prepare('INSERT INTO iterable WITH RECURSIVE temp(x) AS (SELECT 1 UNION ALL SELECT x * 2 FROM temp LIMIT 10) SELECT * FROM temp').run();
-		
-	// 	let i = 0;
-	// 	const err = new Error('foo');
-	// 	this.db.aggregate('fn', (x) => { if (++i >= 5) throw err; return x; });
-	// 	const iterator = this.db.prepare('SELECT fn(value) FROM iterable').pluck().iterate();
-		
-	// 	let total = 0;
-	// 	expect(() => {
-	// 		for (const value of iterator) {
-	// 			total += value;
-	// 			expect(() => this.db.prepare('SELECT fn(value) FROM iterable')).to.throw(TypeError);
-	// 		}
-	// 	}).to.throw(err);
-		
-	// 	expect(total).to.equal(1 + 2 + 4 + 8);
-	// 	expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
-	// 	this.db.prepare('SELECT fn(value) FROM iterable').pluck().iterate().return();
-	// 	expect(total).to.equal(1 + 2 + 4 + 8);
-	// });
-	// it('should be able to register multiple functions with the same name', function () {
-	// 	this.db.aggregate('fn', () => 0);
-	// 	this.db.aggregate('fn', (a) => 1);
-	// 	this.db.aggregate('fn', (a, b) => 2);
-	// 	this.db.aggregate('fn', (a, b, c) => 3);
-	// 	this.db.aggregate('fn', (a, b, c, d) => 4);
-	// 	expect(this.get('fn()')).to.equal(0);
-	// 	expect(this.get('fn(555)')).to.equal(1);
-	// 	expect(this.get('fn(555, 555)')).to.equal(2);
-	// 	expect(this.get('fn(555, 555, 555)')).to.equal(3);
-	// 	expect(this.get('fn(555, 555, 555, 555)')).to.equal(4);
-	// 	this.db.aggregate('fn', (a, b) => 'foobar');
-	// 	expect(this.get('fn()')).to.equal(0);
-	// 	expect(this.get('fn(555)')).to.equal(1);
-	// 	expect(this.get('fn(555, 555)')).to.equal('foobar');
-	// 	expect(this.get('fn(555, 555, 555)')).to.equal(3);
-	// 	expect(this.get('fn(555, 555, 555, 555)')).to.equal(4);
-	// });
-	// it('should not be able to affect bound buffers mid-query', function () {
-	// 	const input = Buffer.alloc(1024 * 8).fill(0xbb);
-	// 	let ranOnce = false;
-	// 	this.db.aggregate('fn', () => {
-	// 		ranOnce = true;
-	// 		input[0] = 2;
-	// 	});
-	// 	const output = this.get('?, fn()', input);
-	// 	expect(ranOnce).to.be.true;
-	// 	expect(output.equals(Buffer.alloc(1024 * 8).fill(0xbb))).to.be.true;
-	// });
 	// describe('should not affect external environment', function () {
 	// 	specify('busy state', function () {
 	// 		this.db.aggregate('fn', (x) => {
