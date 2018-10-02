@@ -554,38 +554,38 @@ describe('Database#aggregate()', function () {
 			expect(calls.splice(0)).to.deep.equal(['a', 'b', 'b', 'd']);
 		});
 	});
-	// describe('should not affect external environment', function () {
-	// 	specify('busy state', function () {
-	// 		this.db.aggregate('fn', (x) => {
-	// 			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-	// 			return x * 2;
-	// 		});
-	// 		let ranOnce = false;
-	// 		for (const x of this.db.prepare('SELECT fn(555)').pluck().iterate()) {
-	// 			ranOnce = true;
-	// 			expect(x).to.equal(1110);
-	// 			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-	// 		}
-	// 		expect(ranOnce).to.be.true;
-	// 		this.db.prepare('SELECT 555');
-	// 	});
-	// 	specify('was_js_error state', function () {
-	// 		this.db.prepare('CREATE TABLE data (value INTEGER)').run();
-	// 		const stmt = this.db.prepare('SELECT value FROM data');
-	// 		this.db.prepare('DROP TABLE data').run();
+	describe('should not affect external environment', function () {
+		specify('busy state', function () {
+			this.db.aggregate('agg', { step: (ctx, x) => {
+				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+				return x * 2 + ctx;
+			} });
+			let ranOnce = false;
+			for (const x of this.db.prepare('SELECT agg(555)').pluck().iterate()) {
+				ranOnce = true;
+				expect(x).to.equal(1110);
+				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+			}
+			expect(ranOnce).to.be.true;
+			this.db.prepare('SELECT 555');
+		});
+		specify('was_js_error state', function () {
+			this.db.prepare('CREATE TABLE data (value INTEGER)').run();
+			const stmt = this.db.prepare('SELECT value FROM data');
+			this.db.prepare('DROP TABLE data').run();
 			
-	// 		const err = new Error('foo');
-	// 		this.db.aggregate('fn', () => { throw err; });
+			const err = new Error('foo');
+			this.db.aggregate('agg', { step: () => { throw err; } });
 			
-	// 		expect(() => this.db.prepare('SELECT fn()').get()).to.throw(err);
-	// 		try { stmt.get(); } catch (ex) {
-	// 			expect(ex).to.be.an.instanceof(Error);
-	// 			expect(ex).to.not.equal(err);
-	// 			expect(ex.message).to.not.equal(err.message);
-	// 			expect(ex).to.be.an.instanceof(Database.SqliteError);
-	// 			return;
-	// 		}
-	// 		throw new TypeError('Expected the statement to throw an exception');
-	// 	});
-	// });
+			expect(() => this.db.prepare('SELECT agg()').get()).to.throw(err);
+			try { stmt.get(); } catch (ex) {
+				expect(ex).to.be.an.instanceof(Error);
+				expect(ex).to.not.equal(err);
+				expect(ex.message).to.not.equal(err.message);
+				expect(ex).to.be.an.instanceof(Database.SqliteError);
+				return;
+			}
+			throw new TypeError('Expected the statement to throw an exception');
+		});
+	});
 });
