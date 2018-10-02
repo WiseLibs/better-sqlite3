@@ -1135,7 +1135,7 @@ CustomAggregate::Accumulator * CustomAggregate::GetAccumulator (sqlite3_context 
                         assert(acc->value.IsEmpty());
                         acc->initialized = true;
                         if (invoke_start) {
-                                v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, start))->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 0, NULL);
+                                v8::MaybeLocal<v8::Value> maybe_seed = InvokeBusy(v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, start)), 0, NULL);
                                 if (maybe_seed.IsEmpty()) PropagateJSError(invocation);
                                 else acc->value.Reset(isolate, maybe_seed.ToLocalChecked());
                         } else {

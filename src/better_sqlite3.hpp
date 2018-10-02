@@ -765,7 +765,7 @@ LZZ_INLINE void CustomAggregate::xValueBase (sqlite3_context * invocation, bool 
 
                 v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
                 if (self->invoke_result) {
-                        v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, self->result)->Call( isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), 1, &result);
+                        v8::MaybeLocal<v8::Value> maybe_result = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->result), 1, &result);
                         if (maybe_result.IsEmpty()) {
                                 self->PropagateJSError(invocation);
                                 return;

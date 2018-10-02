@@ -52,7 +52,7 @@ private:
 		
 		v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
 		if (self->invoke_result) {
-			v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, self->result)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
+			v8::MaybeLocal<v8::Value> maybe_result = self->InvokeBusy(v8::Local<v8::Function>::New(isolate, self->result), 1, &result);
 			if (maybe_result.IsEmpty()) {
 				self->PropagateJSError(invocation);
 				return;
@@ -76,7 +76,7 @@ private:
 			assert(acc->value.IsEmpty());
 			acc->initialized = true;
 			if (invoke_start) {
-				v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, start))->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
+				v8::MaybeLocal<v8::Value> maybe_seed = InvokeBusy(v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, start)), 0, NULL);
 				if (maybe_seed.IsEmpty()) PropagateJSError(invocation);
 				else acc->value.Reset(isolate, maybe_seed.ToLocalChecked());
 			} else {
