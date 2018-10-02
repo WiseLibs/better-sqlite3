@@ -284,7 +284,7 @@ describe('Database#aggregate()', function () {
 			},
 			result: (ctx) => {
 				resultCount += 1;
-				return ctx.foo + ctx.results++ * 10000
+				return ctx.foo + ctx.results++ * 10000;
 			},
 		});
 		expect(this.all('wn(_, ?) OVER win FROM ints', 2))
@@ -340,34 +340,62 @@ describe('Database#aggregate()', function () {
 		expect(() => this.all('c(_, ?) OVER win FROM ints', 2))
 			.to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
 	});
-	// it('should throw an exception if the database is busy', function () {
-	// 	let ranOnce = false;
-	// 	for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
-	// 		expect(x).to.equal(2);
-	// 		ranOnce = true;
-	// 		expect(() => this.db.aggregate('fn', () => {})).to.throw(TypeError);
-	// 	}
-	// 	expect(ranOnce).to.be.true;
-	// 	this.db.aggregate('fn', () => {});
-	// });
-	// it('should cause the database to become busy when executing the function', function () {
-	// 	let ranOnce = false;
-	// 	this.db.aggregate('a', () => {
-	// 		ranOnce = true;
-	// 		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-	// 		expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
-	// 		expect(() => this.db.aggregate('b', () => {})).to.throw(TypeError);
-	// 	});
-	// 	expect(this.get('a()')).to.equal(null);
-	// 	expect(ranOnce).to.be.true;
-	// 	this.db.prepare('SELECT 555');
-	// 	this.db.pragma('cache_size');
-	// 	this.db.aggregate('b', () => {});
-	// });
-	// it('should cause the function to throw when returning an invalid value', function () {
-	// 	this.db.aggregate('fn', x => ({}));
-	// 	expect(() => this.get('fn(?)', 42)).to.throw(TypeError);
-	// });
+	it('should throw an exception if the database is busy', function () {
+		let ranOnce = false;
+		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
+			expect(x).to.equal(2);
+			ranOnce = true;
+			expect(() => this.db.aggregate('a', { step: () => {} })).to.throw(TypeError);
+		}
+		expect(ranOnce).to.be.true;
+		this.db.aggregate('b', { step: () => {} });
+	});
+	it('should cause the database to become busy when executing the aggregate', function () {
+		let checkCount = 0;
+		const expectBusy = () => {
+			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
+			expect(() => this.db.function('x', () => {})).to.throw(TypeError);
+			expect(() => this.db.aggregate('y', { step: () => {} })).to.throw(TypeError);
+			checkCount += 1;
+		};
+		this.db.aggregate('a', { start: expectBusy, step: expectBusy, inverse: expectBusy, result: expectBusy });
+		expect(this.all('a(*) OVER win FROM ints'))
+			.to.deep.equal([null, null, null, null, null, null, null]);
+		expect(checkCount).to.equal(20);
+		this.db.prepare('SELECT 555');
+		this.db.pragma('cache_size');
+		this.db.function('xx', () => {});
+		this.db.aggregate('yy', { step: () => {} });
+	});
+	it('should cause the aggregate to throw when returning an invalid value', function () {
+		this.db.aggregate('a', {
+			start: () => ({}),
+			step: () => ({}),
+			inverse: () => ({}),
+			result: () => 42,
+		});
+		this.db.aggregate('b', {
+			start: () => 42,
+			step: () => 42,
+			inverse: () => 42,
+			result: () => ({}),
+		});
+		this.db.aggregate('c', {
+			step: () => {},
+			result: () => 42,
+		});
+		this.db.aggregate('d', {
+			step: () => {},
+			result: () => ({}),
+		});
+		expect(this.all('a(*) OVER win FROM ints')).to.deep.equal([42, 42, 42, 42, 42, 42, 42]);
+		expect(() => this.all('b(*) OVER win FROM ints')).to.throw(TypeError);
+		expect(this.get('c(*) FROM ints')).to.equal(42);
+		expect(this.get('c(*) FROM empty')).to.equal(42);
+		expect(() => this.get('d(*) FROM ints')).to.throw(TypeError);
+		expect(() => this.get('d(*) FROM empty')).to.throw(TypeError);
+	});
 	// it('should propagate exceptions thrown in the registered function', function () {
 	// 	const expectError = (name, exception) => {
 	// 		this.db.aggregate(name, () => { throw exception; });
