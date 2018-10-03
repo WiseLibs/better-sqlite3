@@ -11,7 +11,7 @@ require('../runner')((benchmark, dbs, ctx) => {
 	
 	const betterSqlite3Select = betterSqlite3.prepare(SQL);
 	
-	benchmark.add('better-sqlite3',  () => {
+	benchmark.add('better-sqlite3', () => {
 		for (const obj of betterSqlite3Select.iterate(rowid - 98)) {}
 		rowid = (rowid + 100) % 1000;
 	});
