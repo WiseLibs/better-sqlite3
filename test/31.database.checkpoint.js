@@ -29,7 +29,7 @@ describe('Database#checkpoint()', function () {
 			fillWall(10, (b, a) => expect(b).to.be.above(a));
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
-			db1.prepare(`ATTACH \'${db2.name}\' AS foobar`).run();
+			db1.prepare(`ATTACH '${db2.name}' AS foobar`).run();
 			expect(db1.checkpoint()).to.deep.equal(db1);
 			fillWall(10, (b, a) => expect(b).to.equal(a));
 		});
@@ -46,7 +46,7 @@ describe('Database#checkpoint()', function () {
 			fillWall(10, (b, a) => expect(b).to.be.above(a));
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
-			db1.prepare(`ATTACH \'${db2.name}\' AS bazqux`).run();
+			db1.prepare(`ATTACH '${db2.name}' AS bazqux`).run();
 			expect(db1.checkpoint('bazqux')).to.equal(db1);
 			fillWall(10, (b, a, db) => {
 				if (db === db1) expect(b).to.be.above(a);

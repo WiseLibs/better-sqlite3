@@ -32,16 +32,26 @@ describe('Statement#get()', function () {
 		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
 		expect(stmt.get()).to.deep.equal({ a: 'foo', b: 6, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null });
 	});
-	it('should obey the current pluck setting', function () {
-		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
-		const row = { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null };
+	it('should obey the current pluck and expand settings', function () {
+		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
+		const expanded = { entries: { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null }, $: { c: 5.5 } };
+		const row = { ...expanded.entries, ...expanded.$ };
+		const plucked = expanded.entries.a;
 		expect(stmt.get()).to.deep.equal(row);
-		expect(stmt.pluck(true).get()).to.equal('foo');
-		expect(stmt.get()).to.equal('foo');
+		expect(stmt.pluck(true).get()).to.equal(plucked);
+		expect(stmt.get()).to.equal(plucked);
 		expect(stmt.pluck(false).get()).to.deep.equal(row);
 		expect(stmt.get()).to.deep.equal(row);
-		expect(stmt.pluck().get()).to.equal('foo');
-		expect(stmt.get()).to.equal('foo');
+		expect(stmt.pluck().get()).to.equal(plucked);
+		expect(stmt.get()).to.equal(plucked);
+		expect(stmt.expand().get()).to.deep.equal(expanded);
+		expect(stmt.get()).to.deep.equal(expanded);
+		expect(stmt.expand(false).get()).to.deep.equal(row);
+		expect(stmt.get()).to.deep.equal(row);
+		expect(stmt.expand(true).get()).to.deep.equal(expanded);
+		expect(stmt.get()).to.deep.equal(expanded);
+		expect(stmt.pluck(true).get()).to.equal(plucked);
+		expect(stmt.get()).to.equal(plucked);
 	});
 	it('should return undefined when no rows were found', function () {
 		const stmt = this.db.prepare("SELECT * FROM entries WHERE b == 999");

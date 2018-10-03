@@ -58,34 +58,55 @@ describe('Statement#iterate()', function () {
 		}
 		expect(count).to.equal(5);
 	});
-	it('should obey the current pluck setting', function () {
+	it('should obey the current pluck and expand settings', function () {
 		const shouldHave = (desiredData) => {
 			let i = 0;
 			for (const data of stmt.iterate()) {
-				++i;
+				i += 1;
 				if (typeof desiredData === 'object' && desiredData !== null) {
-					desiredData.b = i;
+					if (typeof desiredData.entries === 'object' && desiredData.entries !== null) {
+						desiredData.entries.b = i;
+					} else {
+						desiredData.b = i;
+					}
 				}
 				expect(data).to.deep.equal(desiredData);
 			}
 			expect(i).to.equal(10);
 		};
-		const row = { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null };
-		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
+		const expanded = {
+			entries: { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null },
+			$: { c: 5.5 },
+		};
+		const row = { ...expanded.entries, ...expanded.$ };
+		const plucked = expanded.entries.a;
+		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
 		shouldHave(row);
 		stmt.pluck(true);
-		shouldHave('foo');
-		shouldHave('foo');
+		shouldHave(plucked);
+		shouldHave(plucked);
 		stmt.pluck(false);
 		shouldHave(row);
 		shouldHave(row);
 		stmt.pluck();
-		shouldHave('foo');
-		shouldHave('foo');
+		shouldHave(plucked);
+		shouldHave(plucked);
+		stmt.expand();
+		shouldHave(expanded);
+		shouldHave(expanded);
+		stmt.expand(false);
+		shouldHave(row);
+		shouldHave(row);
+		stmt.expand(true);
+		shouldHave(expanded);
+		shouldHave(expanded);
+		stmt.pluck(true);
+		shouldHave(plucked);
+		shouldHave(plucked);
 	});
 	it('should not be able to invoke .pluck() while the database is busy', function () {
-		const stmt1 = this.db.prepare("SELECT * FROM entries");
-		const stmt2 = this.db.prepare("SELECT * FROM entries LIMIT 2");
+		const stmt1 = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
+		const stmt2 = this.db.prepare("SELECT * FROM entries ORDER BY rowid LIMIT 2");
 		let i = 0;
 		for (const data of stmt1.iterate()) {
 			++i;
@@ -98,7 +119,7 @@ describe('Statement#iterate()', function () {
 	});
 	it('should close the iterator when throwing in a for-of loop', function () {
 		const err = new Error('foobar');
-		const stmt = this.db.prepare("SELECT * FROM entries");
+		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
 		const iterator = stmt.iterate();
 		let count = 0;
 		expect(() => {
@@ -112,7 +133,7 @@ describe('Statement#iterate()', function () {
 		expect(count).to.equal(11);
 	});
 	it('should close the iterator when using break in a for-of loop', function () {
-		const stmt = this.db.prepare("SELECT * FROM entries");
+		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
 		const iterator = stmt.iterate();
 		let count = 0;
 		for (const row of iterator) { ++count; break; }
@@ -131,15 +152,15 @@ describe('Statement#iterate()', function () {
 		}
 	});
 	it('should not allow other database operations to execute while open', function () {
-		const stmt1 = this.db.prepare('SELECT * FROM entries');
+		const stmt1 = this.db.prepare('SELECT * FROM entries ORDER BY rowid');
 		const stmt2 = this.db.prepare('CREATE TABLE numbers (number INTEGER)');
 		let count = 0;
-		for (const row of this.db.prepare('SELECT * FROM entries').iterate()) {
+		for (const row of this.db.prepare('SELECT * FROM entries ORDER BY rowid').iterate()) {
 			++count;
 			expect(() => this.db.close()).to.throw(TypeError);
 			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
 			expect(() => this.db.checkpoint()).to.throw(TypeError);
-			expect(() => this.db.prepare('SELECT * FROM entries')).to.throw(TypeError);
+			expect(() => this.db.prepare('SELECT * FROM entries ORDER BY rowid')).to.throw(TypeError);
 			expect(() => this.db.transaction(() => {})).to.throw(TypeError);
 			expect(() => stmt1.get()).to.throw(TypeError);
 			expect(() => stmt1.all()).to.throw(TypeError);
@@ -150,7 +171,7 @@ describe('Statement#iterate()', function () {
 	});
 	it('should allow database operations after closing the iterator', function () {
 		const row = { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null };
-		const stmt = this.db.prepare("SELECT * FROM entries");
+		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
 		this.db.prepare('SELECT 555');
 		const iterator = stmt.iterate();
 		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);

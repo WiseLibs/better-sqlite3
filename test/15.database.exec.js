@@ -29,7 +29,7 @@ describe('Database#exec()', function () {
 		const returnValues = [];
 		
 		const r1 = this.db.exec('CREATE TABLE entries (a TEXT, b INTEGER)');
-		const r2 = this.db.exec('INSERT INTO entries VALUES (\'foobar\', 44); INSERT INTO entries VALUES (\'baz\', NULL);');
+		const r2 = this.db.exec("INSERT INTO entries VALUES ('foobar', 44); INSERT INTO entries VALUES ('baz', NULL);");
 		const r3 = this.db.exec('SELECT * FROM entries');
 		
 		expect(r1).to.equal(this.db);

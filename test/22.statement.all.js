@@ -43,15 +43,28 @@ describe('Statement#all()', function () {
 			expect(index).to.equal(rows.length);
 		}
 	});
-	it('should obey the current pluck setting', function () {
-		const stmt = this.db.prepare("SELECT * FROM entries");
-		const plucked = new Array(10).fill('foo');
-		expect(stmt.all()).to.not.deep.equal(plucked);
+	it('should obey the current pluck and expand settings', function () {
+		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
+		const expanded = new Array(10).fill().map((_, i) => ({
+			entries: { a: 'foo', b: i + 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null },
+			$: { c: 5.5 },
+		}));
+		const rows = expanded.map(x => ({ ...x.entries, ...x.$ }));
+		const plucked = expanded.map(x => x.entries.a);
+		expect(stmt.all()).to.deep.equal(rows);
 		expect(stmt.pluck(true).all()).to.deep.equal(plucked);
 		expect(stmt.all()).to.deep.equal(plucked);
-		expect(stmt.pluck(false).all()).to.not.deep.equal(plucked);
-		expect(stmt.all()).to.not.deep.equal(plucked);
+		expect(stmt.pluck(false).all()).to.deep.equal(rows);
+		expect(stmt.all()).to.deep.equal(rows);
 		expect(stmt.pluck().all()).to.deep.equal(plucked);
+		expect(stmt.all()).to.deep.equal(plucked);
+		expect(stmt.expand().all()).to.deep.equal(expanded);
+		expect(stmt.all()).to.deep.equal(expanded);
+		expect(stmt.expand(false).all()).to.deep.equal(rows);
+		expect(stmt.all()).to.deep.equal(rows);
+		expect(stmt.expand(true).all()).to.deep.equal(expanded);
+		expect(stmt.all()).to.deep.equal(expanded);
+		expect(stmt.pluck(true).all()).to.deep.equal(plucked);
 		expect(stmt.all()).to.deep.equal(plucked);
 	});
 	it('should return an empty array when no rows were found', function () {
