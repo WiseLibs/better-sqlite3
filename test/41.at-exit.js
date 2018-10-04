@@ -23,7 +23,7 @@ describe('node::AtExit()', function () {
 		const interval = setInterval(() => {}, 60000);
 	`;
 	
-	it('should close all databases when the process exits', async function () {
+	xit('should close all databases when the process exits', async function () {
 		const filename1 = util.next();
 		const filename2 = util.next();
 		const jsFile = filename1 + '.js';
