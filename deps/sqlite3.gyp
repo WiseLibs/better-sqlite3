@@ -34,11 +34,11 @@
   },
   'targets': [
     {
-      'target_name': 'action_before_build',
+      'target_name': 'extract_sqlite3',
       'type': 'none',
       'hard_dependency': 1,
       'actions': [{
-        'action_name': 'unpack_sqlite_dep',
+        'action_name': 'extract_script',
         'inputs': ['sqlite3.tar.gz'],
         'outputs': [
           '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
@@ -51,7 +51,7 @@
     {
       'target_name': 'sqlite3',
       'type': 'static_library',
-      'dependencies': ['action_before_build'],
+      'dependencies': ['extract_sqlite3'],
       'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
       'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
       'direct_dependent_settings': {

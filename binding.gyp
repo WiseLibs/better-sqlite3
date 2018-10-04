@@ -21,8 +21,17 @@
     },
     {
       'target_name': 'test_extension',
-      'dependencies': ['deps/sqlite3.gyp:action_before_build'],
+      'dependencies': ['deps/sqlite3.gyp:extract_sqlite3'],
       'sources': ['deps/test_extension.c'],
+    },
+    {
+      'target_name': 'place_resulting_binaries',
+      'type': 'none',
+      'dependencies': ['better_sqlite3', 'test_extension'],
+      'copies': [{
+        'files': ['<(PRODUCT_DIR)/better_sqlite3.node', '<(PRODUCT_DIR)/test_extension.node'],
+        'destination': 'build',
+      }],
     },
   ],
 }

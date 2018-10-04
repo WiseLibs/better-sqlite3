@@ -1,26 +1,15 @@
 'use strict';
 const Database = require('../.');
-const filepath = (() => {
-	const fs = require('fs');
-	const path = require('path');
-	function exists(loc) { try { fs.readFileSync(loc); return true; } catch (_) { return false; } }
-	const attempts = [
-		'../build/Debug/test_extension.node',
-		'../build/Release/test_extension.node',
-	].map(loc => path.join(__dirname, loc));
-	for (let i = 0; i < attempts.length; ++i) {
-		if (exists(attempts[i])) return attempts[i];
-	}
-	throw new TypeError('Could not find test_extension.node');
-})();
 
 describe('Database#loadExtension()', function () {
+	const filepath = require('path').join(__dirname, '../build/test_extension.node');
 	beforeEach(function () {
 		this.db = new Database(util.next());
 	});
 	afterEach(function () {
 		this.db.close();
 	});
+	
 	it('should throw an exception if a string argument is not given', function () {
 		expect(() => this.db.loadExtension()).to.throw(TypeError);
 		expect(() => this.db.loadExtension(undefined)).to.throw(TypeError);

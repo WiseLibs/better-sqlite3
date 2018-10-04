@@ -39,19 +39,14 @@ char const * COPY (char const * source)
         return dest;
 }
 #line 108 "./src/util/macros.lzz"
-v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path, bool local)
+v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path)
 #line 108 "./src/util/macros.lzz"
-                                                                                                 {
+                                                                             {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
         v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
-        v8::Local<v8::Value> requireArgs[2] = { StringFromUtf8(isolate, path, -1), v8::Undefined(isolate) };
-        if (local) {
-                require = v8::Local<v8::Function>::Cast(Require(module, "package-require"));
-                requireArgs[1] = requireArgs[0];
-                requireArgs[0] = module;
-        }
-        return require->Call(ctx, module, 2, requireArgs).ToLocalChecked();
+        v8::Local<v8::Value> requireArg = StringFromUtf8(isolate, path, -1);
+        return require->Call(ctx, module, 1, &requireArg).ToLocalChecked();
 }
 #line 6 "./src/util/constants.lzz"
 v8::Local <v8::String> CS::Code (v8::Isolate * isolate, int code)
@@ -377,7 +372,7 @@ void Database::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8
 
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-                SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "lib/sqlite-error", true)));
+                SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../lib/sqlite-error")));
                 node::AtExit(Database::AtExit);
 }
 #line 86 "./src/objects/database.lzz"

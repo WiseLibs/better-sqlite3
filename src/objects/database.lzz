@@ -79,7 +79,7 @@ private:
 		
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "lib/sqlite-error", true)));
+		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../lib/sqlite-error")));
 		node::AtExit(Database::AtExit);
 	}
 	
