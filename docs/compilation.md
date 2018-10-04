@@ -10,7 +10,7 @@ Your amalgamation directory should contain `sqlite3.c`, `sqlite3.h`, and `sqlite
 
 # Bundled configuration
 
-If you don't provide the `--sqlite3` option during installation, `better-sqlite3` will automatically use a bundled distribution. This distribution currently uses SQLite3 **version 3.25.2** with the following [compilation options](https://www.sqlite.org/compile.html).
+The bundled distribution (used by default) currently uses SQLite3 **version 3.25.2** with the following [compilation options](https://www.sqlite.org/compile.html).
 
 - SQLITE_THREADSAFE=0
 - SQLITE_DEFAULT_MEMSTATUS=0
