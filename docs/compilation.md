@@ -1,6 +1,6 @@
 # SQLite3 compilation options
 
-This distribution currently uses SQLite3 **version 3.25.1** with the following [compilation options](https://www.sqlite.org/compile.html).
+This distribution currently uses SQLite3 **version 3.25.2** with the following [compilation options](https://www.sqlite.org/compile.html).
 
 - SQLITE_THREADSAFE=0
 - SQLITE_DEFAULT_MEMSTATUS=0
@@ -22,6 +22,7 @@ This distribution currently uses SQLite3 **version 3.25.1** with the following [
 - SQLITE_USE_URI=1
 - SQLITE_ENABLE_COLUMN_METADATA
 - SQLITE_ENABLE_UPDATE_DELETE_LIMIT
+- SQLITE_ENABLE_STAT4
 - SQLITE_ENABLE_FTS3_PARENTHESIS
 - SQLITE_ENABLE_FTS3
 - SQLITE_ENABLE_FTS4
