@@ -21,7 +21,7 @@
     },
     {
       'target_name': 'test_extension',
-      'dependencies': ['deps/sqlite3.gyp:extract_sqlite3'],
+      'dependencies': ['deps/sqlite3.gyp:locate_sqlite3'],
       'sources': ['deps/test_extension.c'],
     },
     {

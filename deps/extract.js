@@ -2,8 +2,8 @@
 const path = require('path');
 const tar = require('tar');
 
-const source = path.join(__dirname, 'sqlite3.tar.gz');
 const dest = process.argv[2];
+const source = path.join(__dirname, 'sqlite3.tar.gz');
 
 process.on('unhandledRejection', (err) => { throw err; });
 
