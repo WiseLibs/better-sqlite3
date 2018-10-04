@@ -92,8 +92,9 @@ MAJOR=`expr "${VERSION:0:1}" + 0`
 MINOR=`expr "${VERSION:1:2}" + 0`
 PATCH=`expr "${VERSION:3:2}" + 0`
 sed -Ei "" -e "s/version [0-9]+\.[0-9]+\.[0-9]+/version $MAJOR.$MINOR.$PATCH/g" "$DOCS"
-sed -i "" -e "/^- SQLITE_/,\$d" "$DOCS"
-printf "$DEFINES" | sed -e "/^\s*$/d" -e "s/^/- /" >> "$DOCS"
+sed -i "" -e "/^SQLITE_/,\$d" "$DOCS"
+printf "$DEFINES" | sed -e "/^\s*$/d" >> "$DOCS"
+printf "\`\`\`\n" >> "$DOCS"
 
 echo "cleaning up..."
 cd - > /dev/null
