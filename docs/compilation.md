@@ -1,4 +1,4 @@
-# SQLite3 compilation
+# Custom configuration
 
 If you want to use a customized version of [SQLite3](https://www.sqlite.org) with `better-sqlite3`, you can do so by specifying the directory of your [custom amalgamation](https://www.sqlite.org/amalgamation.html) during installation.
 
