@@ -1,6 +1,16 @@
-# SQLite3 compilation options
+# SQLite3 compilation
 
-This distribution currently uses SQLite3 **version 3.25.2** with the following [compilation options](https://www.sqlite.org/compile.html).
+If you want to use a customized version of [SQLite3](https://www.sqlite.org) with `better-sqlite3`, you can do so by specifying the directory of your [custom amalgamation](https://www.sqlite.org/amalgamation.html) during installation.
+
+```bash
+npm install --sqlite3=/my/path/to/sqlite-amalgamation
+```
+
+Your amalgamation directory should contain `sqlite3.c`, `sqlite3.h`, and `sqlite3ext.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`.
+
+# Bundled configuration
+
+If you don't provide the `--sqlite3` option during installation, `better-sqlite3` will automatically use a bundled distribution. This distribution currently uses SQLite3 **version 3.25.2** with the following [compilation options](https://www.sqlite.org/compile.html).
 
 - SQLITE_THREADSAFE=0
 - SQLITE_DEFAULT_MEMSTATUS=0

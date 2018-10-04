@@ -6,7 +6,9 @@
 # ===
 
 {
-  'includes': ['common.gypi', 'defines.gypi'],
+  'includes': ['common.gypi'],
+  'variables': { 'sqlite3%': '' },
+  'conditions': [['sqlite3 == ""', { 'includes': ['defines.gypi'] }]],
   'target_defaults': {
     'configurations': {
       'Debug': {
@@ -38,7 +40,6 @@
       'target_name': 'locate_sqlite3',
       'type': 'none',
       'hard_dependency': 1,
-      'variables': { 'sqlite3%': '' },
       'conditions': [['sqlite3 == ""', {
         'actions': [{
           'action_name': 'extract_sqlite3',
