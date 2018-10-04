@@ -117,7 +117,7 @@ private:
 				return i;
 			}
 			if (!has_property.FromJust()) {
-				v8::String::Utf8Value param_name(isolate, key);
+				v8::String::Utf8Value param_name(EXTRACT_STRING(isolate, key));
 				Fail(ThrowRangeError, CONCAT("Missing named parameter \"", *param_name, "\"").c_str());
 				return i;
 			}

@@ -70,6 +70,15 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define ninth() 8
 #define tenth() 9
 
+#hdr
+#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                      \
+  (V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
+#define EXTRACT_STRING(isolate, string) isolate, string
+#else
+#define EXTRACT_STRING(_unused, string) string
+#endif
+#end
+
 // Returns a std:string of the concatenation of 3 well-formed C-strings.
 std::string CONCAT(const char* a, const char* b, const char* c) {
 	std::string result(a);

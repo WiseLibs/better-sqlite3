@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "bindings": "^1.3.0",
-    "integer": "^2.0.0",
+    "integer": "^2.0.1",
     "package-require": "^1.0.0",
     "tar": "^4.4.6"
   },

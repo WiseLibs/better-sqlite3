@@ -102,7 +102,7 @@ private:
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 		
 		UseIsolate;
-		v8::String::Value sql(isolate, source);
+		v8::String::Value sql(EXTRACT_STRING(isolate, source));
 		const uint16_t* tail;
 		sqlite3_stmt* handle;
 		

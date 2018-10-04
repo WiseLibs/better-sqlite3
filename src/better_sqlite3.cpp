@@ -20,27 +20,27 @@ void ThrowRangeError (char const * message)
 #line 32 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 74 "./src/util/macros.lzz"
+#line 83 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c)
-#line 74 "./src/util/macros.lzz"
+#line 83 "./src/util/macros.lzz"
                                                                 {
         std::string result(a);
         result += b;
         result += c;
         return result;
 }
-#line 82 "./src/util/macros.lzz"
+#line 91 "./src/util/macros.lzz"
 char const * COPY (char const * source)
-#line 82 "./src/util/macros.lzz"
+#line 91 "./src/util/macros.lzz"
                                      {
         size_t bytes = strlen(source) + 1;
         char* dest = new char[bytes];
         memcpy(dest, source, bytes);
         return dest;
 }
-#line 99 "./src/util/macros.lzz"
+#line 108 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path, bool local)
-#line 99 "./src/util/macros.lzz"
+#line 108 "./src/util/macros.lzz"
                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -393,7 +393,7 @@ void Database::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 sqlite3* db_handle;
-                v8::String::Utf8Value utf8(isolate, filename);
+                v8::String::Utf8Value utf8(EXTRACT_STRING(isolate, filename));
                 int mask = readonly ? SQLITE_OPEN_READONLY
                         : must_exist ? SQLITE_OPEN_READWRITE
                         : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
@@ -437,7 +437,7 @@ void Database::JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > source = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
                 if ( ! db -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
-                v8::String::Utf8Value sql( info . GetIsolate ( ) , source);
+                v8::String::Utf8Value sql(EXTRACT_STRING( info . GetIsolate ( ) , source));
                 db->busy = true;
                 int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
                 db->busy = false;
@@ -461,7 +461,7 @@ void Database::JS_checkpoint (v8::FunctionCallbackInfo <v8 :: Value> const & inf
 
                 if (info.Length()) {
                         if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > onlyDatabase = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
-                        v8::String::Utf8Value only_database( info . GetIsolate ( ) , onlyDatabase);
+                        v8::String::Utf8Value only_database(EXTRACT_STRING( info . GetIsolate ( ) , onlyDatabase));
                         if (only_database.length() == 0) {
                                 return ThrowTypeError("Invalid database name (empty string)");
                         }
@@ -508,7 +508,7 @@ void Database::JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
-                v8::String::Utf8Value name(isolate, nameString);
+                v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
                 int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
                 safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
@@ -534,7 +534,7 @@ void Database::JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
-                v8::String::Utf8Value name(isolate, nameString);
+                v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
                 auto xInverse = inverse->IsFunction() ? CustomAggregate::xInverse : NULL;
                 auto xValue = xInverse ? CustomAggregate::xValue : NULL;
                 int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
@@ -553,7 +553,7 @@ void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & 
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > filenameString = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
                 if ( ! db -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
-                v8::String::Utf8Value filename( info . GetIsolate ( ) , filenameString);
+                v8::String::Utf8Value filename(EXTRACT_STRING( info . GetIsolate ( ) , filenameString));
                 char* error;
                 int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
                 if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
@@ -736,7 +736,7 @@ void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
-                v8::String::Value sql(isolate, source);
+                v8::String::Value sql(EXTRACT_STRING(isolate, source));
                 const uint16_t* tail;
                 sqlite3_stmt* handle;
 
@@ -1231,7 +1231,7 @@ namespace Data
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value)
 #line 101 "./src/util/data.lzz"
                                                                                                                {
-                if ( value -> IsNumber ( ) ) { return sqlite3_bind_double ( handle , index , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_bind_text ( handle , index , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_bind_null ( handle , index ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_bind_blob ( handle , index , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_bind_int64 ( handle , index , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
+                if ( value -> IsNumber ( ) ) { return sqlite3_bind_double ( handle , index , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( EXTRACT_STRING ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ) ; return sqlite3_bind_text ( handle , index , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_bind_null ( handle , index ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_bind_blob ( handle , index , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_bind_int64 ( handle , index , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 return -1;
   }
 }
@@ -1242,7 +1242,7 @@ namespace Data
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function)
 #line 106 "./src/util/data.lzz"
                                                                                                                                         {
-                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( invocation , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ; return sqlite3_result_text ( invocation , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( invocation ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( invocation , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( invocation , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
+                if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( invocation , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( EXTRACT_STRING ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ) ; return sqlite3_result_text ( invocation , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( invocation ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( invocation , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( invocation , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 function->ThrowResultValueError(invocation);
   }
 }
@@ -1366,7 +1366,7 @@ int Binder::BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, State
                                 return i;
                         }
                         if (!has_property.FromJust()) {
-                                v8::String::Utf8Value param_name(isolate, key);
+                                v8::String::Utf8Value param_name(EXTRACT_STRING(isolate, key));
                                 Fail(ThrowRangeError, CONCAT("Missing named parameter \"", *param_name, "\"").c_str());
                                 return i;
                         }

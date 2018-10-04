@@ -4,8 +4,8 @@
 			v8::Local<v8::Number>::Cast(value)->Value()                        \
 		);                                                                     \
 	} else if (value->IsString()) {                                            \
-		v8::String::Utf8Value utf8(isolate,                                    \
-			v8::Local<v8::String>::Cast(value));                               \
+		v8::String::Utf8Value utf8(                                            \
+			EXTRACT_STRING(isolate, v8::Local<v8::String>::Cast(value)));      \
 		return sqlite3_##to##_text(__VA_ARGS__,                                \
 			*utf8,                                                             \
 			utf8.length(),                                                     \
