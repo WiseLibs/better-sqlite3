@@ -43,14 +43,22 @@
         'actions': [{
           'action_name': 'extract_sqlite3',
           'inputs': ['sqlite3.tar.gz'],
-          'outputs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
+          ],
           'action': ['node', 'extract.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3'],
         }],
       }, {
         'actions': [{
           'action_name': 'symlink_sqlite3',
           'inputs': [],
-          'outputs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
+          'outputs': [
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
+            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
+          ],
           'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)'],
         }],
       }]],
