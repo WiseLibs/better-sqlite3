@@ -31,7 +31,8 @@ const displayTrialName = (trial) => {
 };
 
 const createContext = (trial, driver) => {
-	const ctx = { ...trial, ...tables.get(trial.table), driver, db: `../temp/${iteration++}.db` };
+	const { data: _unused, tableInfo } = tables.get(trial.table);
+	const ctx = { ...trial, ...tableInfo, driver, db: `../temp/${iteration++}.db` };
 	return JSON.stringify(ctx);
 };
 

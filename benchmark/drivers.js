@@ -1,5 +1,11 @@
 'use strict';
 
+/*
+	Every benchmark trial will be executed once for each SQLite3 driver listed
+	below. Each driver has a function to open a new database connection on a
+	given filename and a list of PRAGMA statements.
+ */
+
 module.exports = new Map([
 	['better-sqlite3', async (filename, pragma) => {
 		const db = require('../.')(filename);
