@@ -10,6 +10,7 @@ exports['better-sqlite3'] = (db, { table, columns }) => {
 exports['node-sqlite3'] = async (db, { table, columns }) => {
 	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
 	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT * FROM ${table} LIMIT 1`))
+    .filter(([k]) => columns.includes(k))
 		.map(([k, v]) => ({ ['@' + k]: v })));
 	return () => db.run(sql, row);
 };

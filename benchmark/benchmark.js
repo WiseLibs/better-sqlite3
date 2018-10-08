@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 'use strict';
+process.on('unhandledRejection', (err) => { throw err; });
+
+
 // const nodemark = require('nodemark');
 
 // const sync = (fn) => {
@@ -24,6 +27,7 @@
 // 	if (typeof promise === 'function') setImmediate(sync, fn);
 // 	else setImmediate(async, fn);
 // })();
+
 
 let fn;
 
