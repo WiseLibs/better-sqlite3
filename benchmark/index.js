@@ -19,7 +19,7 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 		`(${trial.columns.join(', ')})`,
 		`(${trial.columns.join(',')})`,
 		...trial.columns,
-		...trial.pragma,
+		...trial.customPragma,
 	];
 	return searchTerms.every(arg => terms.includes(arg));
 };
@@ -27,13 +27,13 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 const displayTrialName = (trial) => {
 	if (trial.description) return console.log(clc.magenta(`--- ${trial.description} ---`));
 	const name = `${trial.type} ${trial.table} (${trial.columns.join(', ')})`;
-	const pragma = trial.pragma.length ? ` | ${trial.pragma.join('; ')}` : '';
+	const pragma = trial.customPragma.length ? ` | ${trial.customPragma.join('; ')}` : '';
 	console.log(clc.magenta(name) + clc.yellow(pragma));
 };
 
 const createContext = (trial, driver) => {
 	const { data: _unused, ...tableInfo } = tables.get(trial.table);
-	const ctx = { ...trial, ...tableInfo, driver, db: `../temp/${iteration++}.db` };
+	const ctx = { ...trial, ...tableInfo, driver, filename: `../temp/${iteration++}.db` };
 	return JSON.stringify(ctx);
 };
 

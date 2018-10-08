@@ -52,7 +52,14 @@ exports.searchable = [
 ];
 
 (() => {
-	const cacheSize = /^(1|true|on|yes)$/i.test(process.env.NO_CACHE) ? 'cache_size = 0' : 'cache_size = -16000';
-	const trials = [].concat(...Object.values(exports));
-	for (const trial of trials) trial.pragma = (trial.pragma || []).concat(cacheSize);
+	const defaultPragma = [];
+	const yes = /^\s*(1|true|on|yes)\s*$/i;
+	if (yes.test(process.env.NO_CACHE)) defaultPragma.push('cache_size = 0');
+	else defaultPragma.push('cache_size = -16000');
+	if (yes.test(process.env.NO_WAL)) defaultPragma.push('journal_mode = DELETE', 'synchronous = FULL');
+	else defaultPragma.push('journal_mode = WAL', 'synchronous = NORMAL');
+	for (const trial of [].concat(...Object.values(exports))) {
+		trial.customPragma = trial.pragma || [];
+		trial.pragma = defaultPragma.concat(trial.customPragma);
+	}
 })();

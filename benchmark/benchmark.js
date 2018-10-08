@@ -84,7 +84,7 @@ const finish = () => {
 
 (async () => {
 	const ctx = JSON.parse(process.argv[2]);
-	const db = await require('./drivers').get(ctx.driver)(ctx.db, ctx.pragma);
+	const db = await require('./drivers').get(ctx.driver)(ctx.filename, ctx.pragma);
 	fn = await require(`./types/${ctx.type}`)[ctx.driver](db, ctx);
 	prevTick = monoTime();
 	setImmediate(tick);
