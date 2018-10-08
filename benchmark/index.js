@@ -57,16 +57,18 @@ process.stdout.write(erase());
 
 // Execute each trial for each available driver.
 let iteration = 0;
+const nameLength = [...drivers.keys()].reduce((m, d) => Math.max(m, d.length), 0);
 for (const trial of trials) {
 	displayTrialName(trial);
 	for (const driver of drivers.keys()) {
+		const driverName = driver.padEnd(nameLength);
 		const ctx = createContext(trial, driver);
 		process.stdout.write(`${driver} (running...)\n`);
 		try {
-			const hz = execFileSync('./benchmark.js', [ctx], { stdio: 'pipe', encoding: 'utf8' });
-			console.log(erase() + `${driver} x ${hz.replace(/\B(?=(?:\d{3})+$)/g, ',')} ops/sec`);
+			const result = execFileSync('./benchmark.js', [ctx], { stdio: 'pipe', encoding: 'utf8' });
+			console.log(erase() + `${driverName} x ${result}`);
 		} catch (err) {
-			console.log(erase() + clc.red(`${driver} ERROR (probably out of memory)`));
+			console.log(erase() + clc.red(`${driverName} ERROR (probably out of memory)`));
 			process.stderr.write(clc.xterm(247)(clc.strip(err.stderr)));
 		}
 	}

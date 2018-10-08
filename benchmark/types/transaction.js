@@ -7,7 +7,7 @@ exports['better-sqlite3'] = (db, { table, columns }) => {
 	const trx = db.transaction((row) => {
 		for (let i = 0; i < 100; ++i) stmt.run(row);
 	});
-	return () => void trx(row);
+	return () => trx(row);
 };
 
 exports['node-sqlite3'] = async (db, { table, columns, driver, filename, pragma }) => {
