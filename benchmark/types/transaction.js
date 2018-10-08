@@ -1,43 +1,32 @@
 'use strict';
-// Inserts 100 rows
-require('../runner')((benchmark, dbs, ctx) => {
-	const SQL = `INSERT INTO ${ctx.table} (${ctx.columns.join(', ')}) VALUES (${namedParams(ctx.columns).join(', ')})`;
-	const betterSqlite3 = dbs['better-sqlite3'];
-	const nodeSqlite3 = dbs['node-sqlite3'];
-	const data = namedData(ctx.table, ctx.columns);
-	const dataWithPrefix = namedData(ctx.table, ctx.columns, true);
-	
-	const betterSqlite3Insert = betterSqlite3.prepare(SQL);
-	const betterSqlite3Transaction = betterSqlite3.transaction((obj) => {
-		for (let i = 0; i < 100; ++i) {
-			betterSqlite3Insert.run(obj);
-		}
+// Inserting 100 rows in a single transaction
+
+exports['better-sqlite3'] = (db, { table, columns }) => {
+	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);
+	const row = db.prepare(`SELECT * FROM ${table} LIMIT 1`).get();
+	const trx = db.transaction((row) => {
+		for (let i = 0; i < 100; ++i) stmt.run(row);
 	});
-	
-	benchmark.add('better-sqlite3', () => {
-		betterSqlite3Transaction(data);
-	});
-	benchmark.add('node-sqlite3', (deferred) => {
-		let count = 0;
-		nodeSqlite3.run('BEGIN').then(function insert() {
-			if (++count < 100) {
-				return nodeSqlite3.run(SQL, dataWithPrefix).then(insert);
-			} else {
-				return nodeSqlite3.run(SQL, dataWithPrefix).then(() => {
-					return nodeSqlite3.run('COMMIT').then(() => void deferred.resolve());
-				});
+	return () => void trx(row);
+};
+
+exports['node-sqlite3'] = async (db, { table, columns }) => {
+	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
+	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT * FROM ${table} LIMIT 1`))
+		.map(([k, v]) => ({ ['@' + k]: v })));
+	return async () => {
+		try {
+			await db.run('BEGIN');
+			try {
+				for (let i = 0; i < 100; ++i) await db.run(sql, row);
+				await db.run('COMMIT');
+			} catch (err) {
+				try { await db.run('ROLLBACK'); }
+				catch (_) { /* this is necessary because there's no db.inTransaction property */ }
+				throw err;
 			}
-		});
-	});
-});
-
-function namedParams(columns) {
-	return columns.map((_, i) => '@x' + i);
-}
-
-function namedData(table, columns, withPrefix) {
-	const data = require('../factory')(table, columns);
-	const bindNames = namedParams(columns);
-	const wrappedData = data.map((item, i) => ({ [bindNames[i].slice(+!withPrefix)]: item }));
-	return Object.assign({}, ...wrappedData);
-}
+		} finally {
+			await db.close();
+		}
+	};
+};
