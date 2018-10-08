@@ -1,11 +1,16 @@
 'use strict';
 
 exports.default = [
-	{ type: 'select', table: 'small', columns: ['nul', 'integer', 'real', 'text'] },
-	{ type: 'select-all', table: 'small', columns: ['nul', 'integer', 'real', 'text'] },
-	{ type: 'select-iterate', table: 'small', columns: ['nul', 'integer', 'real', 'text'] },
-	{ type: 'insert', table: 'small_empty', columns: ['nul', 'integer', 'real', 'text'] },
-	{ type: 'transaction', table: 'small_empty', columns: ['nul', 'integer', 'real', 'text'] },
+	{ type: 'select', table: 'small', columns: ['nul', 'integer', 'real', 'text'],
+		description: 'reading rows individually' },
+	{ type: 'select-all', table: 'small', columns: ['nul', 'integer', 'real', 'text'],
+		description: 'reading 100 rows into an array' },
+	{ type: 'select-iterate', table: 'small', columns: ['nul', 'integer', 'real', 'text'],
+		description: 'iterating over 100 rows' },
+	{ type: 'insert', table: 'small_empty', columns: ['nul', 'integer', 'real', 'text'],
+		description: 'inserting rows individually' },
+	{ type: 'transaction', table: 'small_empty', columns: ['nul', 'integer', 'real', 'text'],
+		description: 'inserting 100 rows in a single transaction' },
 ];
 
 exports.searchable = [

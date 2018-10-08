@@ -25,9 +25,10 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 };
 
 const displayTrialName = (trial) => {
-	const name = clc.cyan(`${trial.type} ${trial.table} (${trial.columns.join(', ')})`);
-	const extraName = trial.pragma.length ? clc.yellow(` | ${trial.pragma.join('; ')}`) : '';
-	console.log(name + extraName);
+	if (trial.description) return console.log(clc.magenta(`--- ${trial.description} ---`));
+	const name = `${trial.type} ${trial.table} (${trial.columns.join(', ')})`;
+	const pragma = trial.pragma.length ? ` | ${trial.pragma.join('; ')}` : '';
+	console.log(clc.magenta(name) + clc.yellow(pragma));
 };
 
 const createContext = (trial, driver) => {
@@ -52,9 +53,9 @@ if (!trials.length) {
 console.log('Generating tables...');
 const drivers = require('./drivers');
 const tables = require('./seed')(drivers.size * trials.length);
+process.stdout.write(erase());
 
 // Execute each trial for each available driver.
-console.log(erase() + clc.magenta('--- Benchmarks ---'));
 let iteration = 0;
 for (const trial of trials) {
 	displayTrialName(trial);
