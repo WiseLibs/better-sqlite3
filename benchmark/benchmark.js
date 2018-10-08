@@ -1,5 +1,30 @@
 #!/usr/bin/env node
 'use strict';
+// const nodemark = require('nodemark');
+
+// const sync = (fn) => {
+// 	const result = nodemark(fn);
+// 	process.stdout.write(String(result.hz()));
+// 	process.exit();
+// };
+
+// const async = (fn) => {
+// 	const wrapped = cb => fn().then(() => cb(), cb);
+// 	nodemark(wrapped).then((result) => {
+// 		process.stdout.write(String(result.hz()));
+// 		process.exit();
+// 	});
+// };
+
+// (async () => {
+// 	const ctx = JSON.parse(process.argv[2]);
+// 	const db = await require('./drivers').get(ctx.driver)(ctx.db, ctx.pragma);
+// 	const promise = require(`./types/${ctx.type}`)[ctx.driver](db, ctx);
+// 	const fn = await promise;
+// 	if (typeof promise === 'function') setImmediate(sync, fn);
+// 	else setImmediate(async, fn);
+// })();
+
 let fn;
 
 let hz = 10;

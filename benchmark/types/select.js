@@ -7,7 +7,7 @@ exports['better-sqlite3'] = (db, { table, columns, count }) => {
 	return () => void stmt.get(++rowid % count);
 };
 
-exports['node-sqlite3'] = (db, { table, columns, count }) => {
+exports['node-sqlite3'] = async (db, { table, columns, count }) => {
 	const sql = `SELECT ${columns.join(', ')} FROM ${table} WHERE rowid = ?`;
 	let rowid = 0;
 	return () => db.get(sql, ++rowid % count);
