@@ -2,35 +2,25 @@
 'use strict';
 const benchmark = require('nodemark');
 
-const sync = (fn, multiplier) => {
-	const wrapped = () => {
-		for (let i = 0; i < multiplier; ++i) fn();
-	};
-	display(multiplier)(benchmark(wrapped));
+const sync = (fn) => {
+	display(benchmark(fn));
 };
 
-const async = (fn, multiplier) => {
-	const wrapped = (callback) => {
-		const promises = [];
-		for (let i = 0; i < multiplier; ++i) promises.push(fn());
-		Promise.all(promises).then(() => callback(), callback);
-	};
-	benchmark(wrapped).then(display(multiplier));
+const async = (fn) => {
+	const wrapped = cb => fn().then(() => cb(), cb);
+	benchmark(wrapped).then(display);
 };
 
-const display = (multiplier) => (result) => {
-	const hz = Math.round(1e9 / result.mean * multiplier);
-	const error = Math.round(result.error * 10000) / 100;
-	process.stdout.write(`${String(hz).replace(/\B(?=(?:\d{3})+$)/g, ',')} ops/sec \xb1${error}%`);
+const display = (result) => {
+	process.stdout.write(String(result).replace(/ \(.*/, ''));
 	process.exit();
 };
 
 (async () => {
 	process.on('unhandledRejection', (err) => { throw err; });
-	const concurrency = (process.env.CONCURRENCY >>> 0) || (process.env.UV_THREADPOOL_SIZE >>> 0) || 4;
 	const ctx = JSON.parse(process.argv[2]);
 	const db = await require('./drivers').get(ctx.driver)(ctx.filename, ctx.pragma);
 	const fn = require(`./types/${ctx.type}`)[ctx.driver](db, ctx);
-	if (typeof fn === 'function') setImmediate(sync, fn, concurrency);
-	else setImmediate(async, await fn, concurrency);
+	if (typeof fn === 'function') setImmediate(sync, fn);
+	else setImmediate(async, await fn);
 })();
