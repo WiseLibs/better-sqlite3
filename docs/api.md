@@ -18,13 +18,15 @@
 
 Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
 
-- If `options.memory` is `true`, an in-memory database will be created, rather than a disk-bound one.
+Various options are accepted:
 
-- If `options.readonly` is `true`, the database connection will be opened in readonly mode.
+- `options.memory`: open an in-memory database, rather than a disk-bound one (default: `false`).
 
-- If `options.fileMustExist` is `true` and the database does not exist, an `Error` will be thrown instead of creating a new file. This option does not affect in-memory or readonly database connections.
+- `options.readonly`: open the database connection in readonly mode (default: `false`).
 
-> All options listed above default to `false`.
+- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file (default: `false`). This option does not affect in-memory or readonly database connections.
+
+- `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
 ```js
 const Database = require('better-sqlite3');
