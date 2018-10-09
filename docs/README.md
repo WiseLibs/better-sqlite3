@@ -1,0 +1,4 @@
+- [API documentation](./api.md)
+- [Performance](./performance.md) (also see [benchmark results](./benchmark.md))
+- [64-bit integer support](./integer.md)
+- [SQLite3 version and compilation options](./compilation.md)

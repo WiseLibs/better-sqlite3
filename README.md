@@ -15,7 +15,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 |better-sqlite3|1x|1x|1x|1x|1x|
 |[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|8.4x slower|3.7x slower|28.2x slower|3.6x slower|6.0x slower|
 
-> You can verify these results by [running the benchmark yourself](https://github.com/JoshuaWise/better-sqlite3/wiki/Benchmark).
+> You can verify these results by [running the benchmark yourself](./docs/benchmark.md).
 > *Both [npm/sqlite](https://www.npmjs.com/package/sqlite) and [npm/sqlite3](https://www.npmjs.com/package/sqlite3) have nearly identical performance because they both use the [same engine](https://github.com/mapbox/node-sqlite3).*
 
 ## Installation
@@ -24,7 +24,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 npm install --save better-sqlite3
 ```
 
-> If you have trouble installing, check the [troubleshooting guide](https://github.com/JoshuaWise/better-sqlite3/wiki/Troubleshooting-installation).
+> If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
 ## Usage
 
@@ -45,11 +45,11 @@ console.log(row.firstName, row.lastName, row.email);
 
 # Documentation
 
-- [API documentation](https://github.com/JoshuaWise/better-sqlite3/wiki/API)
-- [Performance](https://github.com/JoshuaWise/better-sqlite3/wiki/Performance) (also see [benchmark results](https://github.com/JoshuaWise/better-sqlite3/wiki/Benchmark))
-- [64-bit integer support](https://github.com/JoshuaWise/better-sqlite3/wiki/64-bit-integer-support)
-- [SQLite3 compilation options](https://github.com/JoshuaWise/better-sqlite3/wiki/SQLite3-compilation-options)
+- [API documentation](./docs/api.md)
+- [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
+- [64-bit integer support](./docs/integer.md)
+- [SQLite3 version and compilation options](./docs/compilation.md)
 
 # License
 
-[MIT](https://github.com/JoshuaWise/better-sqlite3/blob/master/LICENSE)
+[MIT](./LICENSE)
