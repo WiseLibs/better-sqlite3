@@ -20,13 +20,13 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 Various options are accepted:
 
-- `options.memory`: Open an in-memory database, rather than a disk-bound one (default: `false`).
+- `options.memory`: open an in-memory database, rather than a disk-bound one (default: `false`).
 
-- `options.readonly`: Open the database connection in readonly mode (default: `false`).
+- `options.readonly`: open the database connection in readonly mode (default: `false`).
 
-- `options.fileMustExist`: If the database does not exist, an `Error` will be thrown instead of creating a new file. This option does not affect in-memory or readonly database connections (default: `false`).
+- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option does not affect in-memory or readonly database connections (default: `false`).
 
-- `options.timeout`: The number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
+- `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
 ```js
 const Database = require('better-sqlite3');
@@ -263,8 +263,8 @@ An object representing a single SQL statement.
 
 Executes the prepared statement. When execution completes it returns an `info` object describing any changes made. The `info` object has two properties:
 
-- `info.changes`: The total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
-- `info.lastInsertRowid`: The [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database (ignoring those caused by [trigger programs](https://www.sqlite.org/lang_createtrigger.html)). If the current statement did not insert any rows into the database, this number should be completely ignored.
+- `info.changes`: the total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
+- `info.lastInsertRowid`: the [rowid](https://www.sqlite.org/lang_createtable.html#rowid) of the last row inserted into the database (ignoring those caused by [trigger programs](https://www.sqlite.org/lang_createtrigger.html)). If the current statement did not insert any rows into the database, this number should be completely ignored.
 
 If execution of the statement fails, an `Error` is thrown.
 
