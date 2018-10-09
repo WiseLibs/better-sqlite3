@@ -15,7 +15,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 |better-sqlite3|1x|1x|1x|1x|1x|
 |[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|10.4x slower|2.2x slower|18.8x slower|2.8x slower|12.9x slower|
 
-> You can verify these results by [running the benchmark yourself](./benchmark.md).
+> You can verify these results by [running the benchmark yourself](./docs/benchmark.md).
 > *Both [npm/sqlite](https://www.npmjs.com/package/sqlite) and [npm/sqlite3](https://www.npmjs.com/package/sqlite3) have nearly identical performance because they both use the [same engine](https://github.com/mapbox/node-sqlite3).*
 
 ## Installation
@@ -24,7 +24,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 npm install --save better-sqlite3
 ```
 
-> If you have trouble installing, check the [troubleshooting guide](./troubleshooting.md).
+> If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
 ## Usage
 
@@ -46,7 +46,7 @@ console.log(row.firstName, row.lastName, row.email);
 
 In most cases, if you're attempting something that cannot be reasonably accomplished with `better-sqlite3`, it probably cannot be reasonably accomplished with SQLite3 in general. For example, if you're executing queries that take one second to complete, and you expect to have many concurrent users executing those queries, no amount of asynchronicity will save you from SQLite3's serialized nature. Fortunately, SQLite3 is very *very* fast. With proper indexing, we've been able to achieve upward of 2000 queries per second with 5-way-joins in a 60 GB database, where each query was handling 5–50 kilobytes of real data.
 
-If you have a performance problem, the most likely causes are inefficient queries, improper indexing, or a lack of [WAL mode](./performance.md)—not `better-sqlite3` itself. However, there are some cases where `better-sqlite3` could be inappropriate:
+If you have a performance problem, the most likely causes are inefficient queries, improper indexing, or a lack of [WAL mode](./docs/performance.md)—not `better-sqlite3` itself. However, there are some cases where `better-sqlite3` could be inappropriate:
 
 - If you expect a high volume of concurrent reads each returning hundreds of megabytes of data (i.e., videos)
 - If you expect a high volume of concurrent writes (i.e., a social media site)
@@ -56,11 +56,11 @@ For these situations, you should probably use a full-fledged RDBMS such as [Post
 
 # Documentation
 
-- [API documentation](./api.md)
-- [Performance](./performance.md) (also see [benchmark results](./benchmark.md))
-- [64-bit integer support](./integer.md)
-- [SQLite3 compilation](./compilation.md)
+- [API documentation](./docs/api.md)
+- [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
+- [64-bit integer support](./docs/integer.md)
+- [SQLite3 compilation](./docs/compilation.md)
 
 # License
 
-[MIT](../LICENSE)
+[MIT](./LICENSE)
