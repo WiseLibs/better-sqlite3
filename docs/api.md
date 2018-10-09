@@ -226,10 +226,13 @@ db.exec(migration);
 
 ### .close() -> *this*
 
-Closes the database connection. After invoking this method, no statements can be created or executed. All connections are automatically closed when the process exits, so this method is rarely used.
+Closes the database connection. After invoking this method, no statements can be created or executed.
 
 ```js
-db.close();
+process.on('exit', () => db.close());
+process.on('SIGINT', () => db.close());
+process.on('SIGHUP', () => db.close());
+process.on('SIGTERM', () => db.close());
 ```
 
 ## Properties

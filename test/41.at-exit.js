@@ -3,8 +3,7 @@ const { existsSync, writeFileSync } = require('fs');
 const { fork } = require('child_process');
 
 describe('node::AtExit()', function () {
-	this.timeout(3000);
-	this.slow(1000);
+	this.slow(500);
 	const source = (filename1, filename2) => `
 		'use strict';
 		const Database = require('../.');
@@ -15,15 +14,17 @@ describe('node::AtExit()', function () {
 			db.prepare('CREATE TABLE people (name TEXT)').run();
 			db.prepare('INSERT INTO people VALUES (\\'foobar\\')').run();
 		}
-		process.on('message', (message) => {
-			if (message !== 'bar') return;
-			process.exit();
-		});
-		process.send('foo');
 		const interval = setInterval(() => {}, 60000);
+		const messageHandler = (message) => {
+			if (message !== 'bar') return;
+			clearInterval(interval);
+			process.removeListener('message', messageHandler);
+		};
+		process.on('message', messageHandler);
+		process.send('foo');
 	`;
 	
-	xit('should close all databases when the process exits', async function () {
+	it('should close all databases when the process exits gracefully', async function () {
 		const filename1 = util.next();
 		const filename2 = util.next();
 		const jsFile = filename1 + '.js';

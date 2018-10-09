@@ -92,6 +92,7 @@ describe('new Database()', function () {
 		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should accept the "timeout" option', function () {
+		this.slow(1500);
 		const testTimeout = (timeout) => {
 			const db = new Database(util.current(), { timeout });
 			const start = Date.now();
