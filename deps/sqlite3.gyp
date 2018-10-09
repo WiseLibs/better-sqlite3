@@ -38,7 +38,6 @@
     {
       'target_name': 'sqlite3',
       'type': 'static_library',
-      'conditions': [['sqlite3 == ""', { 'includes': ['defines.gypi'] }]],
       'dependencies': ['locate_sqlite3'],
       'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
       'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
@@ -59,6 +58,15 @@
           '-Wno-sign-compare',
         ],
       },
+      'conditions': [['sqlite3 == ""', {
+        'includes': ['defines.gypi'],
+      }, {
+        'defines': [
+          # These are currently required by better-sqlite3.
+          'SQLITE_USE_URI=1',
+          'SQLITE_ENABLE_COLUMN_METADATA',
+        ],
+      }]],
       'configurations': {
         'Debug': {
           'msvs_settings': { 'VCCLCompilerTool': { 'RuntimeLibrary': 1 } }, # static debug
