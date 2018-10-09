@@ -28,7 +28,7 @@
     "install-debug": "node-gyp rebuild --debug",
     "rebuild": "npm run lzz && node-gyp rebuild",
     "rebuild-debug": "npm run lzz && node-gyp rebuild --debug",
-    "test": "$(npm bin)/mocha --exit --slow=75 --timeout=1000",
+    "test": "$(npm bin)/mocha --exit --slow=75 --timeout=2000",
     "benchmark": "node benchmark"
   },
   "license": "MIT",

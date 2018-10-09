@@ -91,6 +91,28 @@ describe('new Database()', function () {
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
 	});
+	it('should accept the "timeout" option', function () {
+		const testTimeout = (timeout) => {
+			const db = new Database(util.current(), { timeout });
+			const start = Date.now();
+			expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
+			const end = Date.now();
+			expect(end - start).to.be.within(timeout - 100, timeout + 100);
+			db.close();
+		};
+		const blocker = new Database(util.next(), { timeout: 0x7fffffff });
+		blocker.exec('BEGIN EXCLUSIVE');
+		testTimeout(0);
+		testTimeout(1000);
+		blocker.close();
+		expect(() => new Database(util.current(), { timeout: undefined })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: null })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: NaN })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: '75' })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: -1 })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: 75.01 })).to.throw(TypeError);
+		expect(() => new Database(util.current(), { timeout: 0x80000000 })).to.throw(RangeError);
+	});
 	it('should throw an Error if opening the database failed', function () {
 		expect(existsSync(util.next())).to.be.false;
 		expect(() => new Database(`temp/nonexistent/abcfoobar123/${util.current()}`)).to.throw(TypeError);
