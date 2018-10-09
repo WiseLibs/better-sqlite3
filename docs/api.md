@@ -165,11 +165,11 @@ db.aggregate('addAll', {
 db.prepare('SELECT addAll(dollars) FROM expenses').pluck().get(); // => 92
 ```
 
-The mandatory `step()` function will be invoked once for each row passed to the aggregate, using the return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
+The `step()` function (required) will be invoked once for each row passed to the aggregate, using its return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
 
-If `options.start` is a function, it will be invoked at the beginning of each aggregate, using the return value as the initial aggregate value. If `options.start` is not a function, it will be used as the initial aggregate value as-is (shown in the example above). If not provided, the initial aggregate value will be `null`.
+If `options.start` is a function, it will be invoked at the beginning of each aggregate, using its return value as the initial aggregate value. If `options.start` is *not* a function, it will be used as the initial aggregate value *as-is* (shown in the example above). If not provided, the initial aggregate value will be `null`.
 
-The `result()` function can be used to transform the final aggregate value:
+You can provide a `result()` function to transform the final aggregate value:
 
 ```js
 db.aggregate('getAverage', {
@@ -183,11 +183,11 @@ db.aggregate('getAverage', {
 db.prepare('SELECT getAverage(dollars) FROM expenses').pluck().get(); // => 20.2
 ```
 
-As shown above, you can use arbitrary JavaScript objects as your aggregation context, as long as a valid SQLite3 value is returned by `result()` in the end. If `step()` doesn't return anything (`undefined`), the aggregate value will not be replaced. Be careful of this when using functions that sometimes return `undefined` in place of a real value.
+As shown above, you can use arbitrary JavaScript objects as your aggregation context, as long as a valid SQLite3 value is returned by `result()` in the end. If `step()` doesn't return anything (`undefined`), the aggregate value will not be replaced (be careful of this when using functions that sometimes return `undefined` in place of a real value).
 
-User-defined aggregate functions can accept multiple arguments, just like [regular user-defined functions](#functionname-options-function---this). Further more, `options.varargs` and `options.deterministic` [can be applied](#functionname-options-function---this) as well.
+User-defined aggregates can accept multiple arguments, just like regular [user-defined functions](#functionname-options-function---this). Furthermore, `options.varargs` and `options.deterministic` [are also](#functionname-options-function---this) accepted.
 
-User-defined aggregate functions can be used as [window functions](https://www.sqlite.org/windowfunctions.html) if you provide an `inverse()` function. Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times.
+If you provide an `inverse()` function, the aggregate can be used as a [window function](https://www.sqlite.org/windowfunctions.html). Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times.
 
 ```js
 db.aggregate('addAll', {
