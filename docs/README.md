@@ -6,7 +6,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 - High performance, efficiency, and safety
 - Easy-to-use synchronous API *(faster than an asynchronous API... yes, you read that correctly)*
 - Support for user-defined functions, aggregates, and extensions
-- 64-bit integers *(invisible until you need it)*
+- 64-bit integers *(invisible until you need them)*
 
 ## How other libraries compare
 
