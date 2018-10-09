@@ -165,7 +165,7 @@ db.aggregate('addAll', {
 db.prepare('SELECT addAll(dollars) FROM expenses').pluck().get(); // => 92
 ```
 
-The `step()` function (required) will be invoked once for each row passed to the aggregate, using its return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
+The `step()` function will be invoked once for each row passed to the aggregate, using its return value as the new aggregate value. This works similarly to [Array#reduce()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce).
 
 If `options.start` is a function, it will be invoked at the beginning of each aggregate, using its return value as the initial aggregate value. If `options.start` is *not* a function, it will be used as the initial aggregate value *as-is* (shown in the example above). If not provided, the initial aggregate value will be `null`.
 
