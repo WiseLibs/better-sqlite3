@@ -11,8 +11,7 @@ node benchmark
 
 # Results
 
-These results are from 10/08/2018, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.6), using nodejs v10.11.0. All benchmarks are executed in [WAL mode](./performance.md).
-
+These results are from 10/08/2018, on a MacBook Pro (Retina, 15-inch, Mid 2014, OSX 10.11.6), using nodejs v10.11.0.
 
 ```
 --- reading rows individually ---
@@ -35,3 +34,5 @@ node-sqlite3   x 23,564 ops/sec ±3.58%
 better-sqlite3 x 4,155 ops/sec ±4.45%
 node-sqlite3   x 321 ops/sec ±1.4%
 ```
+
+> All benchmarks are executed in [WAL mode](./performance.md).
