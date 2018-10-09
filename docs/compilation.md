@@ -1,3 +1,5 @@
+# Compilation options
+
 This distribution currently uses **SQLite version 3.24.0** with the following [compilation options]:
 
 - SQLITE_OMIT_DEPRECATED
