@@ -183,7 +183,7 @@ db.aggregate('getAverage', {
 db.prepare('SELECT getAverage(dollars) FROM expenses').pluck().get(); // => 20.2
 ```
 
-As shown above, you can use arbitrary JavaScript objects as your aggregation context, as long as a valid SQLite3 value is returned by `result()` in the end. If `step()` doesn't return anything (`undefined`), the aggregate value will not be replaced (be careful of this when using functions that return `undefined` instead of `null`).
+As shown above, you can use arbitrary JavaScript objects as your aggregation context, as long as a valid SQLite3 value is returned by `result()` in the end. If `step()` doesn't return anything (`undefined`), the aggregate value will not be replaced (be careful of this when using functions that return `undefined` when `null` is desired).
 
 User-defined aggregates can accept multiple arguments, just like regular [user-defined functions](#functionname-options-function---this). Furthermore, `options.varargs` and `options.deterministic` [are also](#functionname-options-function---this) accepted.
 
