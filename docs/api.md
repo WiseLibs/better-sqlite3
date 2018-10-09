@@ -169,7 +169,7 @@ The `step()` function will be invoked once for each row passed to the aggregate,
 
 If `options.start` is a function, it will be invoked at the beginning of each aggregate, using its return value as the initial aggregate value. If `options.start` is *not* a function, it will be used as the initial aggregate value *as-is* (shown in the example above). If not provided, the initial aggregate value will be `null`.
 
-You can provide a `result()` function to transform the final aggregate value:
+You can also provide a `result()` function to transform the final aggregate value:
 
 ```js
 db.aggregate('getAverage', {
