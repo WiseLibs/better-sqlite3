@@ -22,7 +22,6 @@ VERSION="3250200"
 YEAR="2018"
 
 # TODO: SQLITE_ENABLE_GEOPOLY (determine if the emitted warnings are safe or not)
-# TODO: SQLITE_OMIT_SHARED_CACHE/SQLITE_USE_URI (benchmark any noticeable performance difference)
 
 DEFINES="
 SQLITE_THREADSAFE=0
