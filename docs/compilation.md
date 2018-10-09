@@ -6,7 +6,7 @@ If you want to use a customized version of [SQLite3](https://www.sqlite.org) wit
 npm install --sqlite3=/my/path/to/sqlite-amalgamation
 ```
 
-Your amalgamation directory should contain `sqlite3.c`, `sqlite3.h`, and `sqlite3ext.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`.
+Your amalgamation directory should contain `sqlite3.c` and `sqlite3.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`.
 
 # Bundled configuration
 

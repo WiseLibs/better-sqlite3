@@ -10,7 +10,7 @@ const source = path.join(path.sep, process.argv[3]);
 	amalgamation files inside the directory specified by the absolute path <$3>.
  */
 
-for (const filename of ['sqlite3.c', 'sqlite3.h', 'sqlite3ext.h']) {
+for (const filename of ['sqlite3.c', 'sqlite3.h']) {
 	fs.accessSync(path.join(source, filename));
 	fs.symlinkSync(path.join(source, filename), path.join(dest, filename), 'file');
 }

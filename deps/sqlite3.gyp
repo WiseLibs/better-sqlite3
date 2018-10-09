@@ -7,34 +7,6 @@
 
 {
   'includes': ['common.gypi'],
-  'variables': { 'sqlite3%': '' },
-  'conditions': [['sqlite3 == ""', { 'includes': ['defines.gypi'] }]],
-  'target_defaults': {
-    'configurations': {
-      'Debug': {
-        'cflags': [
-          '-Wno-unused-function',
-        ],
-        'xcode_settings': {
-          'WARNING_CFLAGS': [
-            '-Wno-unused-function',
-          ],
-        },
-        'msvs_settings': {
-          'VCCLCompilerTool': {
-            'RuntimeLibrary': 1, # static debug
-          },
-        },
-      },
-      'Release': {
-        'msvs_settings': {
-          'VCCLCompilerTool': {
-            'RuntimeLibrary': 0, # static release
-          },
-        },
-      },
-    },
-  },
   'targets': [
     {
       'target_name': 'locate_sqlite3',
@@ -58,7 +30,6 @@
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
             '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
           ],
           'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)'],
         }],
@@ -67,6 +38,7 @@
     {
       'target_name': 'sqlite3',
       'type': 'static_library',
+      'conditions': [['sqlite3 == ""', { 'includes': ['defines.gypi'] }]],
       'dependencies': ['locate_sqlite3'],
       'sources': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c'],
       'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
@@ -75,6 +47,7 @@
       },
       'cflags': [
         '-std=c99',
+        '-Wno-unused-function',
         '-Wno-sign-compare',
       ],
       'xcode_settings': {
@@ -82,8 +55,17 @@
           '-std=c99',
         ],
         'WARNING_CFLAGS': [
+          '-Wno-unused-function',
           '-Wno-sign-compare',
         ],
+      },
+      'configurations': {
+        'Debug': {
+          'msvs_settings': { 'VCCLCompilerTool': { 'RuntimeLibrary': 1 } }, # static debug
+        },
+        'Release': {
+          'msvs_settings': { 'VCCLCompilerTool': { 'RuntimeLibrary': 0 } }, # static release
+        },
       },
     },
   ],

@@ -21,8 +21,8 @@
     },
     {
       'target_name': 'test_extension',
-      'dependencies': ['deps/sqlite3.gyp:locate_sqlite3'],
-      'sources': ['deps/test_extension.c'],
+      'dependencies': ['deps/sqlite3.gyp:sqlite3'],
+      'conditions': [['sqlite3 == ""', { 'sources': ['deps/test_extension.c'] }]],
     },
     {
       'target_name': 'place_resulting_binaries',
