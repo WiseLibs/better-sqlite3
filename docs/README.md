@@ -1,4 +1,55 @@
+# better-sqlite3 [![Build Status](https://travis-ci.org/JoshuaWise/better-sqlite3.svg?branch=master)](https://travis-ci.org/JoshuaWise/better-sqlite3)
+
+The fastest and simplest library for SQLite3 in Node.js.
+
+- Full transaction support
+- High performance, efficiency, and safety
+- Easy-to-use synchronous API *(faster than an asynchronous API... yes, you read that correctly)*
+- Support for user-defined functions, aggregates, and extensions
+- 64-bit integers *(invisible until you need it)*
+
+## How other libraries compare
+
+|   |select 1 row &nbsp;`get()`&nbsp;|select 100 rows &nbsp;&nbsp;`all()`&nbsp;&nbsp;|select 100 rows `iterate()` 1-by-1|insert 1 row `run()`|insert 100 rows in a transaction|
+|---|---|---|---|---|---|
+|better-sqlite3|1x|1x|1x|1x|1x|
+|[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|8.4x slower|3.7x slower|28.2x slower|3.6x slower|6.0x slower|
+
+> You can verify these results by [running the benchmark yourself](./benchmark.md).
+> *Both [npm/sqlite](https://www.npmjs.com/package/sqlite) and [npm/sqlite3](https://www.npmjs.com/package/sqlite3) have nearly identical performance because they both use the [same engine](https://github.com/mapbox/node-sqlite3).*
+
+## Installation
+
+```bash
+npm install --save better-sqlite3
+```
+
+> If you have trouble installing, check the [troubleshooting guide](./troubleshooting.md).
+
+## Usage
+
+```js
+var Database = require('better-sqlite3');
+var db = new Database('foobar.db', options);
+
+var row = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
+console.log(row.firstName, row.lastName, row.email);
+```
+
+## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
+
+- `node-sqlite3` uses asynchronous APIs for tasks that are either CPU-bound or serialized. That's not only bad design, but it wastes tons of resources. It also causes [mutex thrashing](https://en.wikipedia.org/wiki/Resource_contention) which has devastating effects on performance.
+- `node-sqlite3` exposes low-level (C language) memory management functions. `better-sqlite3` does it the JavaScript way, allowing the garbage collector to worry about memory management.
+- `better-sqlite3` is simpler to use, and it provides nice utilities for some operations that are very difficult or impossible in `node-sqlite3`.
+- `better-sqlite3` is much faster than `node-sqlite3` in most cases, and just as fast in all other cases.
+
+# Documentation
+
 - [API documentation](./api.md)
 - [Performance](./performance.md) (also see [benchmark results](./benchmark.md))
 - [64-bit integer support](./integer.md)
 - [SQLite3 version and compilation options](./compilation.md)
+
+# License
+
+[MIT](../LICENSE)

@@ -1,6 +1,9 @@
 # Helpful tips for SQLite3
+
 ## Creating good tables
+
 It's a good idea to use `INTEGER PRIMARY KEY AUTOINCREMENT` as one of the columns in a table. This ensures two things:
+
 - `INTEGER PRIMARY KEY`: improved performance by reusing SQLite3's built-in `rowid` column.
 - `AUTOINCREMENT`: no future row will have the same ID as an old one that was deleted. This can prevent potential bugs and security breaches.
 
@@ -11,9 +14,11 @@ Any column with `INTEGER PRIMARY KEY` will automatically increment when setting 
 It should be noted that `NULL` values count as unique from each other. This has implications when using the `UNIQUE` contraint or any other equality test.
 
 ## Default values
+
 When a column has a `DEFAULT` value, it only gets applied when no value is specified for an `INSERT` statement. If the `INSERT` statement specifies a `NULL` value, the `DEFAULT` value is **NOT** used.
 
 ## Foreign keys
+
 Foreign key constraints are not enforced if the child's column value is `NULL`. To ensure that a relationship is always enforced, use `NOT NULL` on the child column.
 
 Example:
@@ -22,6 +27,7 @@ CREATE TABLE comments (value TEXT, user_id INTEGER NOT NULL REFERENCES users);
 ```
 
 Foreign key clauses can be followed by `ON DELETE` and/or `ON UPDATE`, with the following possible values:
+
 - `SET NULL`: if the parent column is deleted or updated, the child column becomes `NULL`.
   - *NOTE: This still causes a constraint violation if the child column has `NOT NULL`*.
 - `SET DEFAULT`: if the parent column is updated or deleted, the child column becomes its `DEFAULT` value.

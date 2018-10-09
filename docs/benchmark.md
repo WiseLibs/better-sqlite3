@@ -1,6 +1,7 @@
-# Running the benchmark
+# Benchmark
 
 To run the benchmark yourself:
+
 ```bash
 git clone https://github.com/JoshuaWise/better-sqlite3.git
 cd better-sqlite3
