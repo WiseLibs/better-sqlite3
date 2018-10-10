@@ -15,7 +15,6 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 	const terms = [
 		trial.type,
 		trial.table,
-		trial.table.replace('_empty', ''),
 		`(${trial.columns.join(', ')})`,
 		`(${trial.columns.join(',')})`,
 		...trial.columns,
@@ -41,7 +40,7 @@ const displayTrialName = (trial) => {
 
 const createContext = (trial, driver) => {
 	const { data: _unused, ...tableInfo } = tables.get(trial.table);
-	return JSON.stringify({ ...trial, ...tableInfo, driver });
+	return JSON.stringify({ ...trial, ...tableInfo, driver, tables: [...tables.keys()] });
 };
 
 const erase = () => {
