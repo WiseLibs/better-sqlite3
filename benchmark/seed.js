@@ -26,17 +26,17 @@ const tables = new Map([
 ]);
 
 /*
-	This function creates a number of pre-populated databases that are deleted
-	when the process exits.
+	This function creates a pre-populated database that is deleted when the
+	process exits.
  */
 
-module.exports = (numberOfDatabases = 2) => {
+module.exports = () => {
 	const tempDir = path.join(__dirname, '..', 'temp');
 	process.on('exit', () => fs.removeSync(tempDir));
 	fs.removeSync(tempDir);
 	fs.ensureDirSync(tempDir);
 	
-	const db = require('../.')(path.join(tempDir, '0.db'));
+	const db = require('../.')(path.join(tempDir, 'benchmark.db'));
 	db.pragma('journal_mode = OFF');
 	db.pragma('synchronous = OFF');
 	
@@ -48,6 +48,5 @@ module.exports = (numberOfDatabases = 2) => {
 	}
 	
 	db.close();
-	for (let i = 1; i < numberOfDatabases; ++i) fs.copySync(db.name, path.join(tempDir, `${i}.db`));
 	return tables;
 };

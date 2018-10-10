@@ -19,7 +19,7 @@ const display = (result) => {
 (async () => {
 	process.on('unhandledRejection', (err) => { throw err; });
 	const ctx = JSON.parse(process.argv[2]);
-	const db = await require('./drivers').get(ctx.driver)(ctx.filename, ctx.pragma);
+	const db = await require('./drivers').get(ctx.driver)('../temp/benchmark.db', ctx.pragma);
 	const fn = require(`./types/${ctx.type}`)[ctx.driver](db, ctx);
 	if (typeof fn === 'function') setImmediate(sync, fn);
 	else setImmediate(async, await fn);

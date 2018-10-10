@@ -1,5 +1,5 @@
 'use strict';
-// Iterating over 100 rows (`.iterate()`)
+exports.readonly = true; // Iterating over 100 rows (`.iterate()`)
 
 exports['better-sqlite3'] = (db, { table, columns, count }) => {
 	const stmt = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} WHERE rowid >= ? LIMIT 100`);

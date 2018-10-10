@@ -1,5 +1,5 @@
 'use strict';
-// Inserting rows individually (`.run()`)
+exports.readonly = false; // Inserting rows individually (`.run()`)
 
 exports['better-sqlite3'] = (db, { table, columns }) => {
 	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);

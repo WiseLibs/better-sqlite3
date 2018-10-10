@@ -24,6 +24,14 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 	return searchTerms.every(arg => terms.includes(arg));
 };
 
+const sortTrials = (a, b) => {
+	const aRo = require(`./types/${a.type}`).readonly;
+	const bRo = require(`./types/${b.type}`).readonly;
+	if (typeof aRo !== 'boolean') throw new TypeError(`Missing readonly export in benchmark type ${a.type}`);
+	if (typeof bRo !== 'boolean') throw new TypeError(`Missing readonly export in benchmark type ${b.type}`);
+	return bRo - aRo;
+};
+
 const displayTrialName = (trial) => {
 	if (trial.description) return console.log(clc.magenta(`--- ${trial.description} ---`));
 	const name = `${trial.type} ${trial.table} (${trial.columns.join(', ')})`;
@@ -33,8 +41,7 @@ const displayTrialName = (trial) => {
 
 const createContext = (trial, driver) => {
 	const { data: _unused, ...tableInfo } = tables.get(trial.table);
-	const ctx = { ...trial, ...tableInfo, driver, filename: `../temp/${iteration++}.db` };
-	return JSON.stringify(ctx);
+	return JSON.stringify({ ...trial, ...tableInfo, driver });
 };
 
 const erase = () => {
@@ -43,20 +50,19 @@ const erase = () => {
 
 // Determine which trials should be executed.
 process.chdir(__dirname);
-const trials = getTrials(process.argv.slice(2));
+const trials = getTrials(process.argv.slice(2)).sort(sortTrials);
 if (!trials.length) {
 	console.log(clc.yellow('No matching benchmarks found!'));
 	process.exit();
 }
 
-// Create the temporary databases needed to run the benchmark trials.
+// Create the temporary database needed to run the benchmark trials.
 console.log('Generating tables...');
-const drivers = require('./drivers');
-const tables = require('./seed')(drivers.size * trials.length);
+const tables = require('./seed')();
 process.stdout.write(erase());
 
 // Execute each trial for each available driver.
-let iteration = 0;
+const drivers = require('./drivers');
 const nameLength = [...drivers.keys()].reduce((m, d) => Math.max(m, d.length), 0);
 for (const trial of trials) {
 	displayTrialName(trial);
