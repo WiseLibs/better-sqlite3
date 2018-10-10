@@ -48,7 +48,7 @@ In most cases, if you're attempting something that cannot be reasonably accompli
 
 If you have a performance problem, the most likely causes are inefficient queries, improper indexing, or a lack of [WAL mode](./docs/performance.md)—not `better-sqlite3` itself. However, there are some cases where `better-sqlite3` could be inappropriate:
 
-- If you expect a high volume of concurrent reads each returning tens of megabytes of data (i.e., videos)
+- If you expect a high volume of concurrent reads each returning many megabytes of data (i.e., videos)
 - If you expect a high volume of concurrent writes (i.e., a social media site)
 - If your database's size is near the terabyte range
 
