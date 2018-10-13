@@ -342,61 +342,63 @@ private:
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 89 "./src/objects/statement.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 114 "./src/objects/statement.lzz"
+#line 115 "./src/objects/statement.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 155 "./src/objects/statement.lzz"
+#line 156 "./src/objects/statement.lzz"
   static void JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 173 "./src/objects/statement.lzz"
+#line 174 "./src/objects/statement.lzz"
   static void JS_columnDeclType (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 177 "./src/objects/statement.lzz"
+#line 178 "./src/objects/statement.lzz"
   static void JS_columnTableName (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 181 "./src/objects/statement.lzz"
+#line 182 "./src/objects/statement.lzz"
   static void JS_columnOriginName (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 185 "./src/objects/statement.lzz"
+#line 186 "./src/objects/statement.lzz"
   static void JS_columnDatabaseName (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 189 "./src/objects/statement.lzz"
+#line 190 "./src/objects/statement.lzz"
   static void JS_columnName (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 193 "./src/objects/statement.lzz"
+#line 194 "./src/objects/statement.lzz"
   static void JS_columnCount (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 201 "./src/objects/statement.lzz"
+#line 202 "./src/objects/statement.lzz"
+  static void JS_columnType (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 211 "./src/objects/statement.lzz"
   static void JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 220 "./src/objects/statement.lzz"
+#line 230 "./src/objects/statement.lzz"
   static void JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 246 "./src/objects/statement.lzz"
+#line 256 "./src/objects/statement.lzz"
   static void JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 251 "./src/objects/statement.lzz"
-  static void JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 261 "./src/objects/statement.lzz"
-  static void JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+  static void JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 271 "./src/objects/statement.lzz"
-  static void JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+  static void JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 281 "./src/objects/statement.lzz"
-  static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 289 "./src/objects/statement.lzz"
-  static v8::Persistent <v8::Function> constructor;
-#line 290 "./src/objects/statement.lzz"
-  static sqlite3_uint64 next_id;
+  static void JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 291 "./src/objects/statement.lzz"
-  static bool constructing_privileges;
-#line 293 "./src/objects/statement.lzz"
-  Database * const db;
-#line 294 "./src/objects/statement.lzz"
-  sqlite3_stmt * const handle;
-#line 295 "./src/objects/statement.lzz"
-  Extras * const extras;
-#line 296 "./src/objects/statement.lzz"
-  bool alive;
-#line 297 "./src/objects/statement.lzz"
-  bool bound;
-#line 298 "./src/objects/statement.lzz"
-  bool has_bind_map;
+  static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 299 "./src/objects/statement.lzz"
-  bool safe_ints;
+  static v8::Persistent <v8::Function> constructor;
 #line 300 "./src/objects/statement.lzz"
-  bool pluck;
+  static sqlite3_uint64 next_id;
 #line 301 "./src/objects/statement.lzz"
+  static bool constructing_privileges;
+#line 303 "./src/objects/statement.lzz"
+  Database * const db;
+#line 304 "./src/objects/statement.lzz"
+  sqlite3_stmt * const handle;
+#line 305 "./src/objects/statement.lzz"
+  Extras * const extras;
+#line 306 "./src/objects/statement.lzz"
+  bool alive;
+#line 307 "./src/objects/statement.lzz"
+  bool bound;
+#line 308 "./src/objects/statement.lzz"
+  bool has_bind_map;
+#line 309 "./src/objects/statement.lzz"
+  bool safe_ints;
+#line 310 "./src/objects/statement.lzz"
+  bool pluck;
+#line 311 "./src/objects/statement.lzz"
   bool expand;
-#line 302 "./src/objects/statement.lzz"
+#line 312 "./src/objects/statement.lzz"
   bool const returns_data;
 };
 #line 1 "./src/objects/statement-iterator.lzz"
