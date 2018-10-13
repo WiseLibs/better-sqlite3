@@ -79,6 +79,14 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #endif
 #end
 
+// Set a
+#define OBJECT_SET_PROPERTY(obj, column_name, expr) \
+	obj->Set( \
+				ctx, \
+				InternalizedFromUtf8(isolate, column_name, -1), \
+				expr \
+			).FromJust();
+
 // Returns a std:string of the concatenation of 3 well-formed C-strings.
 std::string CONCAT(const char* a, const char* b, const char* c) {
 	std::string result(a);
