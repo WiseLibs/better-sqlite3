@@ -1,3 +1,4 @@
+
 {
   "name": "better-sqlite3",
   "version": "5.0.1",
@@ -9,9 +10,16 @@
     "type": "git",
     "url": "git://github.com/JoshuaWise/better-sqlite3.git"
   },
+  "binary": {
+    "module_name": "better_sqlite3",
+    "module_path": "./build/Release/",
+    "host": "https://github.com/JoshuaWise/better-sqlite3/releases/download/",
+    "remote_path": "{version}"
+  },
   "dependencies": {
     "integer": "^2.1.0",
-    "tar": "^4.4.6"
+    "tar": "^4.4.6",
+    "node-pre-gyp": "^0.11.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -22,6 +30,7 @@
     "sqlite": "^2.9.3"
   },
   "scripts": {
+    "install": "node-pre-gyp install --fallback-to-build",
     "download": "sh ./deps/download.sh",
     "lzz": "lzz -hx hpp -sx cpp -k BETTER_SQLITE3 -d -hl -sl -e ./src/better_sqlite3.lzz",
     "prepublishOnly": "npm run lzz",
