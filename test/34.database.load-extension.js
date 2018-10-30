@@ -1,7 +1,7 @@
 'use strict';
 const Database = require('../.');
 
-describe('Database#loadExtension()', function () {
+(util.isWin ? describe.skip : describe)('Database#loadExtension()', function () {
 	const filepath = require('path').join(__dirname, '../build/test_extension.node');
 	beforeEach(function () {
 		this.db = new Database(util.next());
@@ -60,6 +60,8 @@ describe('Database#loadExtension()', function () {
 		} catch (err) {
 			expect(() => this.db.prepare('SELECT load_extension(?)').get(filepath)).to.throw(Database.SqliteError);
 			return;
+		} finally {
+			this.db.close();
 		}
 		throw new Error('This code should not have been reached');
 	});

@@ -121,11 +121,15 @@ describe('new Database()', function () {
 	});
 	it('should have a proper prototype chain', function () {
 		const db = new Database(util.next());
-		expect(db).to.be.an.instanceof(Database);
-		expect(db.constructor).to.equal(Database);
-		expect(Database.prototype.constructor).to.equal(Database);
-		expect(Database.prototype.close).to.be.a('function');
-		expect(Database.prototype.close).to.equal(db.close);
-		expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
+		try {
+			expect(db).to.be.an.instanceof(Database);
+			expect(db.constructor).to.equal(Database);
+			expect(Database.prototype.constructor).to.equal(Database);
+			expect(Database.prototype.close).to.be.a('function');
+			expect(Database.prototype.close).to.equal(db.close);
+			expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
+		} finally {
+			db.close();
+		}
 	});
 });

@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs-extra');
 const path = require('path');
+const { platform } = require('os');
 const chai = require('chai');
 
 const tempDir = path.join(__dirname, '..', 'temp');
@@ -10,6 +11,7 @@ global.expect = chai.expect;
 global.util = {
 	current: () => path.join(tempDir, `${dbId}.db`),
 	next: () => (++dbId, global.util.current()),
+	isWin: platform().startsWith('win')
 };
 
 before(function () {
