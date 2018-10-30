@@ -247,8 +247,8 @@ describe('Statement#iterate()', function () {
 		).to.throw(TypeError);
 	});
 
-	it.only("should read and write non-trivial numbers of rows", function () {
-		const insertRuntime = 10000
+	it("should read and write non-trivial numbers of rows", function () {
+		const insertRuntime = 1000
 		this.timeout(insertRuntime * 2.5);
 		const runUntil = Date.now() + insertRuntime
 	  let i = 0;
