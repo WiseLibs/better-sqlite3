@@ -247,9 +247,10 @@ describe('Statement#iterate()', function () {
 		).to.throw(TypeError);
 	});
 
-	it("should read and write non-trivial numbers of rows", function () {
-		this.timeout(5000);
-		const runUntil = Date.now() + 1000
+	it.only("should read and write non-trivial numbers of rows", function () {
+		const insertRuntime = 10000
+		this.timeout(insertRuntime * 2.5);
+		const runUntil = Date.now() + insertRuntime
 	  let i = 0;
 		const r = .141592654
 	  this.db.prepare('CREATE TABLE t (id INTEGER, b TEXT, c REAL)').run();
