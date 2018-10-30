@@ -247,11 +247,11 @@ describe('Statement#iterate()', function () {
 		).to.throw(TypeError);
 	});
 	it("should read and write non-trivial numbers of rows", function () {
-		const insertRuntime = 1000
+		const insertRuntime = 1000;
 		this.timeout(insertRuntime * 2.5);
-		const runUntil = Date.now() + insertRuntime
+		const runUntil = Date.now() + insertRuntime;
 		let i = 0;
-		const r = .141592654
+		const r = .141592654;
 		this.db.prepare('CREATE TABLE t (id INTEGER, b TEXT, c REAL)').run();
 		const stmt = this.db.prepare("INSERT INTO t VALUES (?, ?, ?)");
 		while (Date.now() < runUntil) {
@@ -268,13 +268,13 @@ describe('Statement#iterate()', function () {
 		expect(i).to.be.gte(1000); // < expect ~50K and 200K on reasonable machines
 		const stmt1 = this.db.prepare("SELECT * FROM t ORDER BY id DESC");
 		for (const data of stmt1.iterate()) {
-			i--
+			i--;
 			expect(data).to.deep.equal({
 				id: i,
 				b: String(i),
 				c: i + r
-			})
+			});
 		}
-		expect(i).to.equal(0)
+		expect(i).to.equal(0);
 	});
 });
