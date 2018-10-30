@@ -246,19 +246,18 @@ describe('Statement#iterate()', function () {
 			this.db.prepare(SQL1).iterate('foo', 1, new (function(){})(), Buffer.alloc(4).fill(0xdd), null)
 		).to.throw(TypeError);
 	});
-
 	it("should read and write non-trivial numbers of rows", function () {
 		const insertRuntime = 1000
 		this.timeout(insertRuntime * 2.5);
 		const runUntil = Date.now() + insertRuntime
-	  let i = 0;
+		let i = 0;
 		const r = .141592654
-	  this.db.prepare('CREATE TABLE t (id INTEGER, b TEXT, c REAL)').run();
+		this.db.prepare('CREATE TABLE t (id INTEGER, b TEXT, c REAL)').run();
 		const stmt = this.db.prepare("INSERT INTO t VALUES (?, ?, ?)");
-		while(Date.now() < runUntil) {
+		while (Date.now() < runUntil) {
 			// Batched transactions of 100 inserts:
 			this.db.transaction(() => {
-				for(const start = i; i < start + 100 ; i++) {
+				for (const start = i; i < start + 100; i++) {
 					expect(stmt.run([i, String(i), i + r])).to.deep.equal({
 						changes: 1,
 						lastInsertRowid: i + 1
@@ -267,15 +266,15 @@ describe('Statement#iterate()', function () {
 			})();
 		}
 		expect(i).to.be.gte(1000); // < expect ~50K and 200K on reasonable machines
-	  const stmt1 = this.db.prepare("SELECT * FROM t ORDER BY id DESC");
-	  for (const data of stmt1.iterate()) {
+		const stmt1 = this.db.prepare("SELECT * FROM t ORDER BY id DESC");
+		for (const data of stmt1.iterate()) {
 			i--
-	    expect(data).to.deep.equal({
-	      id: i,
-	      b: String(i),
-	      c: i + r
-	    })
-	  }
-	  expect(i).to.equal(0)
+			expect(data).to.deep.equal({
+				id: i,
+				b: String(i),
+				c: i + r
+			})
+		}
+		expect(i).to.equal(0)
 	});
 });
