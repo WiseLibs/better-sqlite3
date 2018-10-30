@@ -94,8 +94,8 @@ describe('new Database()', function () {
 	it('should accept the "timeout" option', function () {
 		this.slow(4000); // < windows CI can be slow
 		const testTimeout = (timeout) => {
+			const db = new Database(util.current(), { timeout });
 			try {
-				const db = new Database(util.current(), { timeout });
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const end = Date.now();
