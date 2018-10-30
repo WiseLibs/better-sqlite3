@@ -92,14 +92,17 @@ describe('new Database()', function () {
 		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should accept the "timeout" option', function () {
-		this.slow(2500);
+		this.slow(4000); // < windows CI can be slow
 		const testTimeout = (timeout) => {
-			const db = new Database(util.current(), { timeout });
-			const start = Date.now();
-			expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
-			const end = Date.now();
-			expect(end - start).to.be.within(timeout - 100, timeout + 100);
-			db.close();
+			try {
+				const db = new Database(util.current(), { timeout });
+				const start = Date.now();
+				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
+				const end = Date.now();
+				expect(end - start).to.be.closeTo(timeout, util.isWin ? 1000 : 100); // < like I said, slow
+			} finally {
+				db.close();
+			}
 		};
 		const blocker = new Database(util.next(), { timeout: 0x7fffffff });
 		blocker.exec('BEGIN EXCLUSIVE');
