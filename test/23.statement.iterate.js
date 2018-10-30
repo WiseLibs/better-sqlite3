@@ -4,6 +4,7 @@ const Database = require('../.');
 describe('Statement#iterate()', function () {
 	beforeEach(function () {
 		this.db = new Database(util.next());
+		this.db.pragma("journal_mode = WAL");
 		this.db.prepare('CREATE TABLE entries (a TEXT, b INTEGER, c REAL, d BLOB, e TEXT)').run();
 		this.db.prepare("INSERT INTO entries WITH RECURSIVE temp(a, b, c, d, e) AS (SELECT 'foo', 1, 3.14, x'dddddddd', NULL UNION ALL SELECT a, b + 1, c, d, e FROM temp LIMIT 10) SELECT * FROM temp").run();
 	});
@@ -244,5 +245,36 @@ describe('Statement#iterate()', function () {
 		expect(() =>
 			this.db.prepare(SQL1).iterate('foo', 1, new (function(){})(), Buffer.alloc(4).fill(0xdd), null)
 		).to.throw(TypeError);
+	});
+
+	it("should read and write non-trivial numbers of rows", function () {
+		this.timeout(5000);
+		const runUntil = Date.now() + 1000
+	  let i = 0;
+		const r = .141592654
+	  this.db.prepare('CREATE TABLE t (id INTEGER, b TEXT, c REAL)').run();
+		const stmt = this.db.prepare("INSERT INTO t VALUES (?, ?, ?)");
+		while(Date.now() < runUntil) {
+			// Batched transactions of 100 inserts:
+			this.db.transaction(() => {
+				for(const start = i; i < start + 100 ; i++) {
+					expect(stmt.run([i, String(i), i + r])).to.deep.equal({
+						changes: 1,
+						lastInsertRowid: i + 1
+					});
+				}
+			})();
+		}
+		expect(i).to.be.gte(1000); // < expect ~50K and 200K on reasonable machines
+	  const stmt1 = this.db.prepare("SELECT * FROM t ORDER BY id DESC");
+	  for (const data of stmt1.iterate()) {
+			i--
+	    expect(data).to.deep.equal({
+	      id: i,
+	      b: String(i),
+	      c: i + r
+	    })
+	  }
+	  expect(i).to.equal(0)
 	});
 });
