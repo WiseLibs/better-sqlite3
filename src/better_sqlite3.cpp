@@ -5,42 +5,42 @@
 #line 14 "./src/better_sqlite3.lzz"
 NODE_MODULE(better_sqlite3, RegisterModule);
 #define LZZ_INLINE inline
-#line 30 "./src/util/macros.lzz"
+#line 37 "./src/util/macros.lzz"
 void ThrowError (char const * message)
-#line 30 "./src/util/macros.lzz"
+#line 37 "./src/util/macros.lzz"
                                      { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
-#line 31 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message)
-#line 31 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
                                          { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 32 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message)
-#line 32 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 91 "./src/util/macros.lzz"
+#line 98 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c)
-#line 91 "./src/util/macros.lzz"
+#line 98 "./src/util/macros.lzz"
                                                                 {
         std::string result(a);
         result += b;
         result += c;
         return result;
 }
-#line 99 "./src/util/macros.lzz"
+#line 106 "./src/util/macros.lzz"
 char const * COPY (char const * source)
-#line 99 "./src/util/macros.lzz"
+#line 106 "./src/util/macros.lzz"
                                      {
         size_t bytes = strlen(source) + 1;
         char* dest = new char[bytes];
         memcpy(dest, source, bytes);
         return dest;
 }
-#line 116 "./src/util/macros.lzz"
+#line 123 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path)
-#line 116 "./src/util/macros.lzz"
+#line 123 "./src/util/macros.lzz"
                                                                              {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -796,11 +796,11 @@ void Statement::JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 for (uint32_t i = 0; i < count; i++) {
                         v8::Local<v8::Object> column = v8::Object::New(isolate);
 
-                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "name" , - 1 ) , InternalizedFromUtf8 ( isolate , sqlite3_column_name ( stmt -> handle , i ) , - 1 ) ) . FromJust ( ) ; ;
-                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "decl_type" , - 1 ) , InternalizedFromUtf8 ( isolate , sqlite3_column_decltype ( stmt -> handle , i ) , - 1 ) ) . FromJust ( ) ; ;
-                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "table_name" , - 1 ) , InternalizedFromUtf8 ( isolate , sqlite3_column_table_name ( stmt -> handle , i ) , - 1 ) ) . FromJust ( ) ; ;
-                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "origin_name" , - 1 ) , InternalizedFromUtf8 ( isolate , sqlite3_column_origin_name ( stmt -> handle , i ) , - 1 ) ) . FromJust ( ) ; ;
-                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "database_name" , - 1 ) , InternalizedFromUtf8 ( isolate , sqlite3_column_database_name ( stmt -> handle , i ) , - 1 ) ) . FromJust ( ) ; ;
+                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "name" , - 1 ) , InternalizedFromUtf8OrNull ( isolate , sqlite3_column_name ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
+                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "decl_type" , - 1 ) , InternalizedFromUtf8OrNull ( isolate , sqlite3_column_decltype ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
+                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "table_name" , - 1 ) , InternalizedFromUtf8OrNull ( isolate , sqlite3_column_table_name ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
+                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "origin_name" , - 1 ) , InternalizedFromUtf8OrNull ( isolate , sqlite3_column_origin_name ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
+                        column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "database_name" , - 1 ) , InternalizedFromUtf8OrNull ( isolate , sqlite3_column_database_name ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
                         column -> Set ( ctx , InternalizedFromUtf8 ( isolate , "type" , - 1 ) , v8 :: Number :: New ( isolate , sqlite3_column_type ( stmt -> handle , i ) ) ) . FromJust ( ) ; ;
 
 

@@ -18,7 +18,14 @@
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kNormal, length).ToLocalChecked();
 }
+
 inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
+	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
+}
+
+inline v8::Local<v8::Value> InternalizedFromUtf8OrNull(v8::Isolate* isolate, const char* data, int length = -1) {
+	if (!data)
+		return v8::Null(isolate);
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 
@@ -79,7 +86,7 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #endif
 #end
 
-// Set a
+// Set a the property of an object
 #define OBJECT_SET_PROPERTY(obj, column_name, expr) \
 	obj->Set( \
 				ctx, \

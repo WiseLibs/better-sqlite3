@@ -164,11 +164,11 @@ private:
 		for (uint32_t i = 0; i < count; i++) {
 			v8::Local<v8::Object> column = v8::Object::New(isolate);
 
-			OBJECT_SET_PROPERTY(column, "name", InternalizedFromUtf8(isolate, sqlite3_column_name(stmt->handle, i), -1));
-			OBJECT_SET_PROPERTY(column, "decl_type", InternalizedFromUtf8(isolate, sqlite3_column_decltype(stmt->handle, i), -1));
-			OBJECT_SET_PROPERTY(column, "table_name", InternalizedFromUtf8(isolate, sqlite3_column_table_name(stmt->handle, i), -1));
-			OBJECT_SET_PROPERTY(column, "origin_name", InternalizedFromUtf8(isolate, sqlite3_column_origin_name(stmt->handle, i), -1));
-			OBJECT_SET_PROPERTY(column, "database_name", InternalizedFromUtf8(isolate, sqlite3_column_database_name(stmt->handle, i), -1));
+			OBJECT_SET_PROPERTY(column, "name", InternalizedFromUtf8OrNull(isolate, sqlite3_column_name(stmt->handle, i)));
+			OBJECT_SET_PROPERTY(column, "decl_type", InternalizedFromUtf8OrNull(isolate, sqlite3_column_decltype(stmt->handle, i)));
+			OBJECT_SET_PROPERTY(column, "table_name", InternalizedFromUtf8OrNull(isolate, sqlite3_column_table_name(stmt->handle, i)));
+			OBJECT_SET_PROPERTY(column, "origin_name", InternalizedFromUtf8OrNull(isolate, sqlite3_column_origin_name(stmt->handle, i)));
+			OBJECT_SET_PROPERTY(column, "database_name", InternalizedFromUtf8OrNull(isolate, sqlite3_column_database_name(stmt->handle, i)));
 			OBJECT_SET_PROPERTY(column, "type", v8::Number::New(isolate, sqlite3_column_type(stmt->handle, i)));
 
 			// Add column object to row
