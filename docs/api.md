@@ -257,6 +257,8 @@ An object representing a single SQL statement.
 - [Statement#iterate()](#iteratebindparameters---iterator)
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#expand()](#expandtogglestate---this)
+- [Statement#asArray()](#asarraytogglestate---this)
+- [Statement#columns()](#columns---columns)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -349,7 +351,7 @@ stmt.pluck(true); // plucking ON
 stmt.pluck(false); // plucking OFF
 ```
 
-> When plucking is turned on, [expansion](#expandtogglestate---this) is turned off (they are mutually exclusive options).
+> When plucking is turned on, [expansion](#expandtogglestate---this) and [asArray](#asarraytogglestate---this) are turned off (they are mutually exclusive options).
 
 ### .expand([toggleState]) -> *this*
 
@@ -365,7 +367,35 @@ stmt.expand(true); // expansion ON
 stmt.expand(false); // expansion OFF
 ```
 
-> When expansion is turned on, [plucking](#plucktogglestate---this) is turned off (they are mutually exclusive options).
+> When expansion is turned on, [plucking](#plucktogglestate---this) and [asArray](#asarraytogglestate---this) are turned off (they are mutually exclusive options).
+
+### .asArray([toggleState]) -> *this*
+
+**only on statements that return data*
+
+Causes the prepared statement to return rows as an array of values instead of an object.
+
+You can toggle this on/off as you please:
+
+```js
+stmt.asArray(); // asArray ON
+stmt.asArray(true); // asArray ON
+stmt.asArray(false); // asArray OFF
+```
+
+> When asArray is turned on, [plucking](#plucktogglestate---this) and [expansion](#expandtogglestate---this) are turned off (they are mutually exclusive options).
+
+
+### .columns() -> *array of column description*
+
+Return an array containing informations about the columns that the prepared statement would return.
+
+```js
+
+var cols = stmt.columns();
+console.log(cols)
+```
+
 
 ### .bind([*...bindParameters*]) -> *this*
 
