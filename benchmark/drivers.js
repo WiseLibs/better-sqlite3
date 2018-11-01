@@ -12,6 +12,11 @@ module.exports = new Map([
 		for (const str of pragma) db.pragma(str);
 		return db;
 	}],
+	['better-sqlite3-array', async (filename, pragma) => {
+		const db = require('../.')(filename);
+		for (const str of pragma) db.pragma(str);
+		return db;
+	}],
 	['node-sqlite3', async (filename, pragma) => {
 		const db = await require('sqlite').open(filename);
 		for (const str of pragma) await db.run(`PRAGMA ${str}`);

@@ -25,6 +25,10 @@ const display = (result) => {
 		for (const table of ctx.tables) await db.exec(`DELETE FROM ${table} WHERE rowid > 1;`);
 		await db.exec('VACUUM;');
 	}
+	if (!type[ctx.driver]) {
+		process.stdout.write('n/a')
+		return
+	}
 	const fn = type[ctx.driver](db, ctx);
 	if (typeof fn === 'function') setImmediate(sync, fn);
 	else setImmediate(async, await fn);

@@ -9,6 +9,15 @@ exports['better-sqlite3'] = (db, { table, columns, count }) => {
 	};
 };
 
+exports['better-sqlite3-array'] = (db, { table, columns, count }) => {
+	const stmt = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} WHERE rowid >= ? LIMIT 100`);
+	stmt.asArray();
+	let rowid = -100;
+	return () => {
+		for (const row of stmt.iterate((rowid += 100) % count + 1)) {}
+	};
+};
+
 exports['node-sqlite3'] = async (db, { table, columns, count }) => {
 	const sql = `SELECT ${columns.join(', ')} FROM ${table} WHERE rowid = ?`;
 	let rowid = -100;

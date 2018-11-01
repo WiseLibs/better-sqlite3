@@ -6,7 +6,7 @@ const clc = require('cli-color');
 const getTrials = (searchTerms) => {
 	// Without any command-line arguments, we do a general-purpose benchmark.
 	if (!searchTerms.length) return require('./trials').default;
-	
+
 	// With command-line arguments, the user can run specific groups of trials.
 	return require('./trials').searchable.filter(filterBySearchTerms(searchTerms));
 };
