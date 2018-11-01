@@ -955,17 +955,17 @@ StatementIterator::~ StatementIterator ()
 #line 20 "./src/objects/statement-iterator.lzz"
 StatementIterator::StatementIterator (Statement * _stmt, bool _bound)
 #line 20 "./src/objects/statement-iterator.lzz"
-  : node::ObjectWrap (), stmt (_stmt), handle (_stmt->handle), safe_ints (_stmt->safe_ints), pluck (_stmt->pluck), expand (_stmt->expand), bound (_bound), alive (true)
-#line 27 "./src/objects/statement-iterator.lzz"
+  : node::ObjectWrap (), stmt (_stmt), handle (_stmt->handle), safe_ints (_stmt->safe_ints), pluck (_stmt->pluck), expand (_stmt->expand), as_array (_stmt->as_array), bound (_bound), alive (true)
+#line 28 "./src/objects/statement-iterator.lzz"
                             {
                 assert(stmt != NULL);
                 assert(handle != NULL);
                 assert(stmt->bound == bound);
                 assert(stmt->alive == true);
 }
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module)
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
                        {
                 v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
                 t->InstanceTemplate()->SetInternalFieldCount(1);
@@ -978,9 +978,9 @@ void StatementIterator::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> ex
                 constructor.Reset(isolate, t->GetFunction( isolate -> GetCurrentContext ( ) ).ToLocalChecked());
                 caller_info = NULL;
 }
-#line 47 "./src/objects/statement-iterator.lzz"
+#line 48 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 47 "./src/objects/statement-iterator.lzz"
+#line 48 "./src/objects/statement-iterator.lzz"
                             {
                 if (caller_info == NULL) return ThrowTypeError("Disabled constructor");
                 assert(info.IsConstructCall());
@@ -997,31 +997,31 @@ void StatementIterator::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & i
 
                 info.GetReturnValue().Set(info.This());
 }
-#line 64 "./src/objects/statement-iterator.lzz"
+#line 65 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_next (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 64 "./src/objects/statement-iterator.lzz"
+#line 65 "./src/objects/statement-iterator.lzz"
                              {
                 StatementIterator* iter = node :: ObjectWrap :: Unwrap <StatementIterator>(info.This());
                 if (iter->alive) iter->Next(info);
                 else info.GetReturnValue().Set(DoneRecord( info . GetIsolate ( ) ));
 }
-#line 70 "./src/objects/statement-iterator.lzz"
+#line 71 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_return (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 70 "./src/objects/statement-iterator.lzz"
+#line 71 "./src/objects/statement-iterator.lzz"
                                {
                 StatementIterator* iter = node :: ObjectWrap :: Unwrap <StatementIterator>(info.This());
                 if (iter->alive) iter->Return(info);
                 else info.GetReturnValue().Set(DoneRecord( info . GetIsolate ( ) ));
 }
-#line 76 "./src/objects/statement-iterator.lzz"
+#line 77 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_symbolIterator (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 76 "./src/objects/statement-iterator.lzz"
+#line 77 "./src/objects/statement-iterator.lzz"
                                        {
                 info.GetReturnValue().Set(info.This());
 }
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 81 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Next (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 81 "./src/objects/statement-iterator.lzz"
                                        {
                 assert(alive == true);
                 int status = sqlite3_step(handle);
@@ -1029,7 +1029,8 @@ void StatementIterator::Next (v8::FunctionCallbackInfo <v8 :: Value> const & inf
                         v8 :: Isolate * isolate = info . GetIsolate ( ) ; v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                         info.GetReturnValue().Set(NewRecord(isolate, ctx,
                                 pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
-                                expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints)
+                                expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints) :
+                                as_array ? Data::GetArrayedRowJS(isolate, ctx, handle, safe_ints)
                                 : Data::GetRowJS(isolate, ctx, handle, safe_ints)
                         ));
                 } else {
@@ -1037,48 +1038,48 @@ void StatementIterator::Next (v8::FunctionCallbackInfo <v8 :: Value> const & inf
                         else Throw();
                 }
 }
-#line 96 "./src/objects/statement-iterator.lzz"
+#line 98 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Return (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 96 "./src/objects/statement-iterator.lzz"
+#line 98 "./src/objects/statement-iterator.lzz"
                                          {
                 Cleanup();
                 Database* db = stmt->db;
                 db -> GetState ( ) -> busy = false ; info . GetReturnValue ( ) . Set ( DoneRecord ( info . GetIsolate ( ) ) ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 102 "./src/objects/statement-iterator.lzz"
+#line 104 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Throw ()
-#line 102 "./src/objects/statement-iterator.lzz"
+#line 104 "./src/objects/statement-iterator.lzz"
                      {
                 Cleanup();
                 Database* db = stmt->db;
                 db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 108 "./src/objects/statement-iterator.lzz"
+#line 110 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Cleanup ()
-#line 108 "./src/objects/statement-iterator.lzz"
+#line 110 "./src/objects/statement-iterator.lzz"
                        {
                 assert(alive == true);
                 alive = false;
                 sqlite3_reset(handle);
 }
-#line 114 "./src/objects/statement-iterator.lzz"
+#line 116 "./src/objects/statement-iterator.lzz"
 v8::Local <v8::Object> StatementIterator::NewRecord (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Value> value, bool done)
-#line 114 "./src/objects/statement-iterator.lzz"
+#line 116 "./src/objects/statement-iterator.lzz"
                                                                                                                                                 {
                 v8::Local<v8::Object> record = v8::Object::New(isolate);
                 record->Set(ctx, CS::Get(isolate, CS::value), value).FromJust();
                 record->Set(ctx, CS::Get(isolate, CS::done), done ? v8::True(isolate) : v8::False(isolate)).FromJust();
                 return record;
 }
-#line 121 "./src/objects/statement-iterator.lzz"
+#line 123 "./src/objects/statement-iterator.lzz"
 v8::Local <v8::Object> StatementIterator::DoneRecord (v8::Isolate * isolate)
-#line 121 "./src/objects/statement-iterator.lzz"
+#line 123 "./src/objects/statement-iterator.lzz"
                                                                       {
                 return NewRecord(isolate, isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), true);
 }
-#line 125 "./src/objects/statement-iterator.lzz"
+#line 127 "./src/objects/statement-iterator.lzz"
 v8::Persistent <v8::Function> StatementIterator::constructor;
-#line 126 "./src/objects/statement-iterator.lzz"
+#line 128 "./src/objects/statement-iterator.lzz"
 v8::FunctionCallbackInfo <v8 :: Value> const * StatementIterator::caller_info;
 #line 4 "./src/util/custom-function.lzz"
 CustomFunction::CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints)

@@ -408,47 +408,49 @@ public:
 private:
 #line 20 "./src/objects/statement-iterator.lzz"
   explicit StatementIterator (Statement * _stmt, bool _bound);
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 47 "./src/objects/statement-iterator.lzz"
+#line 48 "./src/objects/statement-iterator.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 64 "./src/objects/statement-iterator.lzz"
+#line 65 "./src/objects/statement-iterator.lzz"
   static void JS_next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 70 "./src/objects/statement-iterator.lzz"
+#line 71 "./src/objects/statement-iterator.lzz"
   static void JS_return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 76 "./src/objects/statement-iterator.lzz"
+#line 77 "./src/objects/statement-iterator.lzz"
   static void JS_symbolIterator (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 81 "./src/objects/statement-iterator.lzz"
   void Next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 96 "./src/objects/statement-iterator.lzz"
+#line 98 "./src/objects/statement-iterator.lzz"
   void Return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 102 "./src/objects/statement-iterator.lzz"
+#line 104 "./src/objects/statement-iterator.lzz"
   void Throw ();
-#line 108 "./src/objects/statement-iterator.lzz"
+#line 110 "./src/objects/statement-iterator.lzz"
   void Cleanup ();
-#line 114 "./src/objects/statement-iterator.lzz"
+#line 116 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> NewRecord (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Value> value, bool done = false);
-#line 121 "./src/objects/statement-iterator.lzz"
+#line 123 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> DoneRecord (v8::Isolate * isolate);
-#line 125 "./src/objects/statement-iterator.lzz"
+#line 127 "./src/objects/statement-iterator.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 126 "./src/objects/statement-iterator.lzz"
-  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 128 "./src/objects/statement-iterator.lzz"
-  Statement * const stmt;
-#line 129 "./src/objects/statement-iterator.lzz"
-  sqlite3_stmt * const handle;
+  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 130 "./src/objects/statement-iterator.lzz"
-  bool const safe_ints;
+  Statement * const stmt;
 #line 131 "./src/objects/statement-iterator.lzz"
-  bool const pluck;
+  sqlite3_stmt * const handle;
 #line 132 "./src/objects/statement-iterator.lzz"
-  bool const expand;
+  bool const safe_ints;
 #line 133 "./src/objects/statement-iterator.lzz"
-  bool const bound;
+  bool const pluck;
 #line 134 "./src/objects/statement-iterator.lzz"
+  bool const expand;
+#line 135 "./src/objects/statement-iterator.lzz"
+  bool const bound;
+#line 136 "./src/objects/statement-iterator.lzz"
+  bool const as_array;
+#line 137 "./src/objects/statement-iterator.lzz"
   bool alive;
 };
 #line 1 "./src/util/custom-function.lzz"

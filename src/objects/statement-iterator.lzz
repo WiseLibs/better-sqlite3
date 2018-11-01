@@ -1,6 +1,6 @@
 class StatementIterator : public node::ObjectWrap {
 public:
-	
+
 	// Provides public access to the constructor.
 	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, NODE_ARGUMENTS info) {
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
@@ -9,20 +9,21 @@ public:
 		caller_info = NULL;
 		return maybe_iter;
 	}
-	
+
 	// The ~Statement destructor currently covers any state this object creates.
 	// Additionally, we actually DON'T want to set db->GetState()->busy in this
 	// destructor, to ensure deterministic database access.
 	~StatementIterator() {}
-	
+
 private:
-	
+
 	explicit StatementIterator(Statement* _stmt, bool _bound) : node::ObjectWrap(),
 		stmt(_stmt),
 		handle(_stmt->handle),
 		safe_ints(_stmt->safe_ints),
 		pluck(_stmt->pluck),
 		expand(_stmt->expand),
+		as_array(_stmt->as_array),
 		bound(_bound),
 		alive(true) {
 		assert(stmt != NULL);
@@ -30,24 +31,24 @@ private:
 		assert(stmt->bound == bound);
 		assert(stmt->alive == true);
 	}
-	
+
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(StringFromUtf8(isolate, "StatementIterator", -1));
-		
+
 		NODE_SET_PROTOTYPE_METHOD(t, "next", JS_next);
 		NODE_SET_PROTOTYPE_METHOD(t, "return", JS_return);
 		NODE_SET_PROTOTYPE_SYMBOL_METHOD(t, v8::Symbol::GetIterator(isolate), JS_symbolIterator);
-		
+
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		caller_info = NULL;
 	}
-	
+
 	NODE_METHOD(JS_new) {
 		if (caller_info == NULL) return ThrowTypeError("Disabled constructor");
 		assert(info.IsConstructCall());
-		
+
 		StatementIterator* iter;
 		{
 			NODE_ARGUMENTS info = *caller_info;
@@ -57,26 +58,26 @@ private:
 		UseIsolateAndContext;
 		iter->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::statement, caller_info->This());
-		
+
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_next) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
 		if (iter->alive) iter->Next(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}
-	
+
 	NODE_METHOD(JS_return) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
 		if (iter->alive) iter->Return(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}
-	
+
 	NODE_METHOD(JS_symbolIterator) {
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	void Next(NODE_ARGUMENTS info) {
 		assert(alive == true);
 		int status = sqlite3_step(handle);
@@ -84,7 +85,8 @@ private:
 			UseIsolateAndContext;
 			info.GetReturnValue().Set(NewRecord(isolate, ctx,
 				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
-				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints)
+				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints) :
+				as_array ? Data::GetArrayedRowJS(isolate, ctx, handle, safe_ints)
 				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
 			));
 		} else {
@@ -92,44 +94,45 @@ private:
 			else Throw();
 		}
 	}
-	
+
 	void Return(NODE_ARGUMENTS info) {
 		Cleanup();
 		Database* db = stmt->db;
 		STATEMENT_RETURN(DoneRecord(OnlyIsolate));
 	}
-	
+
 	void Throw() {
 		Cleanup();
 		Database* db = stmt->db;
 		STATEMENT_THROW();
 	}
-	
+
 	void Cleanup() {
 		assert(alive == true);
 		alive = false;
 		sqlite3_reset(handle);
 	}
-	
+
 	static v8::Local<v8::Object> NewRecord(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Value> value, bool done = false) {
 		v8::Local<v8::Object> record = v8::Object::New(isolate);
 		record->Set(ctx, CS::Get(isolate, CS::value), value).FromJust();
 		record->Set(ctx, CS::Get(isolate, CS::done), done ? v8::True(isolate) : v8::False(isolate)).FromJust();
 		return record;
 	}
-	
+
 	static v8::Local<v8::Object> DoneRecord(v8::Isolate* isolate) {
 		return NewRecord(isolate, OnlyContext, v8::Undefined(isolate), true);
 	}
-	
+
 	static v8::Persistent<v8::Function> constructor;
 	static const NODE_ARGUMENTS_TYPE* caller_info;
-	
+
 	Statement* const stmt;
 	sqlite3_stmt* const handle;
 	const bool safe_ints;
 	const bool pluck;
 	const bool expand;
 	const bool bound;
+	const bool as_array;
 	bool alive;
 };
