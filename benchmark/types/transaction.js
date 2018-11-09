@@ -1,5 +1,5 @@
 'use strict';
-// Inserting 100 rows in a single transaction
+exports.readonly = false; // Inserting 100 rows in a single transaction
 
 exports['better-sqlite3'] = (db, { table, columns }) => {
 	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);
@@ -10,7 +10,7 @@ exports['better-sqlite3'] = (db, { table, columns }) => {
 	return () => trx(row);
 };
 
-exports['node-sqlite3'] = async (db, { table, columns, driver, filename, pragma }) => {
+exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
 	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
 	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT * FROM ${table} LIMIT 1`))
 		.filter(([k]) => columns.includes(k))
@@ -22,7 +22,7 @@ exports['node-sqlite3'] = async (db, { table, columns, driver, filename, pragma 
 		connection for each transaction.
 		(http://github.com/mapbox/node-sqlite3/issues/304#issuecomment-45242331)
 	 */
-	return () => open(filename, pragma).then(async (db) => {
+	return () => open('../temp/benchmark.db', pragma).then(async (db) => {
 		try {
 			await db.run('BEGIN');
 			try {

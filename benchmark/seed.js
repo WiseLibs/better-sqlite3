@@ -8,35 +8,30 @@ const tables = new Map([
 		data: [null, 0x7fffffff, 1 / 3, 'this is the text', Buffer.from('this is the blob')],
 		count: 10000,
 	}],
-	['small_empty', {
-		schema: '(nul, integer INTEGER, real REAL, text TEXT, blob BLOB)',
-		data: [null, 0x7fffffff, 1 / 3, 'this is the text', Buffer.from('this is the blob')],
-		count: 1,
-	}],
-	['large', {
-		schema: '(text TEXT, blob BLOB)',
-		data: ['this is the text'.repeat(2048), Buffer.from('this is the blob'.repeat(2048))],
+	['large_text', {
+		schema: '(text TEXT)',
+		data: ['this is the text'.repeat(2048)],
 		count: 10000,
 	}],
-	['large_empty', {
-		schema: '(text TEXT, blob BLOB)',
-		data: ['this is the text'.repeat(2048), Buffer.from('this is the blob'.repeat(2048))],
-		count: 1,
+	['large_blob', {
+		schema: '(blob BLOB)',
+		data: [Buffer.from('this is the blob'.repeat(2048))],
+		count: 10000,
 	}],
 ]);
 
 /*
-	This function creates a number of pre-populated databases that are deleted
-	when the process exits.
+	This function creates a pre-populated database that is deleted when the
+	process exits.
  */
 
-module.exports = (numberOfDatabases = 2) => {
+module.exports = () => {
 	const tempDir = path.join(__dirname, '..', 'temp');
 	process.on('exit', () => fs.removeSync(tempDir));
 	fs.removeSync(tempDir);
 	fs.ensureDirSync(tempDir);
 	
-	const db = require('../.')(path.join(tempDir, '0.db'));
+	const db = require('../.')(path.join(tempDir, 'benchmark.db'));
 	db.pragma('journal_mode = OFF');
 	db.pragma('synchronous = OFF');
 	
@@ -48,6 +43,5 @@ module.exports = (numberOfDatabases = 2) => {
 	}
 	
 	db.close();
-	for (let i = 1; i < numberOfDatabases; ++i) fs.copySync(db.name, path.join(tempDir, `${i}.db`));
 	return tables;
 };
