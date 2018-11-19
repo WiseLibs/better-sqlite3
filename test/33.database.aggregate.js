@@ -15,7 +15,7 @@ describe('Database#aggregate()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if the correct arguments are not provided', function () {
 		expect(() => this.db.aggregate()).to.throw(TypeError);
 		expect(() => this.db.aggregate(null)).to.throw(TypeError);
@@ -94,11 +94,11 @@ describe('Database#aggregate()', function () {
 		// numbers
 		this.db.aggregate('a', { step: (ctx, a, b) => a * b + ctx });
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(150);
-		
+
 		// strings
 		this.db.aggregate('b', { step: (ctx, a, b) => a + b + ctx });
 		expect(this.get('b(_, ?) FROM texts', '!')).to.equal('g!f!e!d!c!b!a!null');
-		
+
 		// starting value is null
 		this.db.aggregate('c', { step: (ctx, x) => null });
 		this.db.aggregate('d', { step: (ctx, x) => ctx });
@@ -106,7 +106,7 @@ describe('Database#aggregate()', function () {
 		expect(this.get('c(_) FROM ints')).to.equal(null);
 		expect(this.get('d(_) FROM ints')).to.equal(null);
 		expect(this.get('e(_) FROM ints')).to.equal(null);
-		
+
 		// buffers
 		this.db.aggregate('f', { step: (ctx, x) => x });
 		const input = Buffer.alloc(8).fill(0xdd);
@@ -114,7 +114,7 @@ describe('Database#aggregate()', function () {
 		expect(input).to.not.equal(output);
 		expect(input.equals(output)).to.be.true;
 		expect(output.equals(Buffer.alloc(8).fill(0xdd))).to.be.true;
-		
+
 		// zero arguments
 		this.db.aggregate('g', { step: (ctx) => 'z' + ctx });
 		this.db.aggregate('h', { step: (ctx) => 12 });
@@ -152,11 +152,11 @@ describe('Database#aggregate()', function () {
 		this.db.aggregate('a', { start: 10000, step: (ctx, a, b) => a * b + ++ctx });
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(10157);
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(10157);
-		
+
 		this.db.aggregate('b', { start: { foo: 1000 }, step: (ctx, a, b) => a * b + (ctx.foo ? ++ctx.foo : ++ctx) });
 		expect(this.get('b(_, ?) FROM ints', 2)).to.equal(1157);
 		expect(this.get('b(_, ?) FROM ints', 2)).to.equal(1158);
-		
+
 		let ranOnce = false;
 		this.db.aggregate('c', { start: undefined, step: (ctx, a, b) => {
 			if (ranOnce) expect(ctx).to.be.NaN;
@@ -172,17 +172,17 @@ describe('Database#aggregate()', function () {
 	});
 	it('should accept an optional start() function', function () {
 		let start = 10000;
-		
+
 		this.db.aggregate('a', { start: () => start++, step: (ctx, a, b) => a * b + ctx });
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(10150);
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(10151);
 		expect(this.get('a(_, ?) FROM ints', 2)).to.equal(10152);
-		
+
 		this.db.aggregate('b', { start: () => ({ foo: start-- }), step: (ctx, a, b) => a * b + (ctx.foo || ctx) });
 		expect(this.get('b(_, ?) FROM ints', 2)).to.equal(10153);
 		expect(this.get('b(_, ?) FROM ints', 2)).to.equal(10152);
 		expect(this.get('b(_, ?) FROM ints', 2)).to.equal(10151);
-		
+
 		let ranOnce = false;
 		this.db.aggregate('c', { start: () => undefined, step: (ctx, a, b) => {
 			if (ranOnce) expect(ctx).to.be.NaN;
@@ -362,14 +362,14 @@ describe('Database#aggregate()', function () {
 		};
 		this.db.aggregate('a', { step: () => {} });
 		this.db.aggregate('b', { start: expectBusy, step: expectBusy, inverse: expectBusy, result: expectBusy });
-		
+
 		expect(this.all('b(*) OVER win FROM ints')).to.deep.equal([null, null, null, null, null, null, null]);
 		expect(checkCount).to.equal(20);
 		checkCount = 0;
-		
+
 		expect(this.db.exec('SELECT b(*) OVER win FROM ints WINDOW win AS (ORDER BY rowid ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING) ORDER BY rowid')).to.equal(this.db);
 		expect(checkCount).to.equal(20);
-		
+
 		this.db.exec('SELECT a()');
 		this.db.prepare('SELECT 555');
 		this.db.pragma('cache_size');
@@ -407,7 +407,7 @@ describe('Database#aggregate()', function () {
 	it('should close a statement iterator that caused its aggregate to throw', function () {
 		this.db.prepare('CREATE TABLE iterable (value INTEGER)').run();
 		this.db.prepare('INSERT INTO iterable WITH RECURSIVE temp(x) AS (SELECT 1 UNION ALL SELECT x * 2 FROM temp LIMIT 10) SELECT * FROM temp').run();
-		
+
 		let i = 0;
 		const err = new Error('foo');
 		this.db.aggregate('wn', {
@@ -415,7 +415,7 @@ describe('Database#aggregate()', function () {
 			inverse: () => {},
 		});
 		const iterator = this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable').pluck().iterate();
-		
+
 		let total = 0;
 		expect(() => {
 			for (const value of iterator) {
@@ -423,7 +423,7 @@ describe('Database#aggregate()', function () {
 				expect(() => this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable')).to.throw(TypeError);
 			}
 		}).to.throw(err);
-		
+
 		expect(total).to.equal(1 + 2 + 4 + 8);
 		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
 		this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable').pluck().iterate().return();
@@ -476,7 +476,7 @@ describe('Database#aggregate()', function () {
 			}
 			throw new TypeError('Expected aggregate to throw an exception');
 		};
-		
+
 		specify('thrown in the start() function', function () {
 			exceptions.forEach((exception, index) => {
 				const calls = [];
@@ -581,10 +581,10 @@ describe('Database#aggregate()', function () {
 			this.db.prepare('CREATE TABLE data (value INTEGER)').run();
 			const stmt = this.db.prepare('SELECT value FROM data');
 			this.db.prepare('DROP TABLE data').run();
-			
+
 			const err = new Error('foo');
 			this.db.aggregate('agg', { step: () => { throw err; } });
-			
+
 			expect(() => this.db.prepare('SELECT agg()').get()).to.throw(err);
 			try { stmt.get(); } catch (ex) {
 				expect(ex).to.be.an.instanceof(Error);

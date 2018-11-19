@@ -8,7 +8,7 @@ describe('Database#pragma()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if a string is not provided', function () {
 		expect(() => this.db.pragma(123)).to.throw(TypeError);
 		expect(() => this.db.pragma(0)).to.throw(TypeError);

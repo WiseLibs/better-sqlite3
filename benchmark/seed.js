@@ -30,18 +30,18 @@ module.exports = () => {
 	process.on('exit', () => fs.removeSync(tempDir));
 	fs.removeSync(tempDir);
 	fs.ensureDirSync(tempDir);
-	
+
 	const db = require('../.')(path.join(tempDir, 'benchmark.db'));
 	db.pragma('journal_mode = OFF');
 	db.pragma('synchronous = OFF');
-	
+
 	for (const [name, ctx] of tables.entries()) {
 		db.exec(`CREATE TABLE ${name} ${ctx.schema}`);
 		const columns = db.pragma(`table_info(${name})`).map(() => '?');
 		const insert = db.prepare(`INSERT INTO ${name} VALUES (${columns.join(', ')})`).bind(ctx.data);
 		for (let i = 0; i < ctx.count; ++i) insert.run();
 	}
-	
+
 	db.close();
 	return tables;
 };

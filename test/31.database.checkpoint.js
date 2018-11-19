@@ -23,7 +23,7 @@ describe('Database#checkpoint()', function () {
 			}
 		});
 	}
-	
+
 	describe('when used without a specified database', function () {
 		specify('every insert should increase the size of the WAL file', function () {
 			fillWall(10, (b, a) => expect(b).to.be.above(a));
