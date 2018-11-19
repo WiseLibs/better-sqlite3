@@ -1,7 +1,7 @@
 class Statement : public node::ObjectWrap {
 friend class StatementIterator;
 public:
-	
+
 	// Provides public access to the constructor.
 	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> source) {
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
@@ -11,12 +11,12 @@ public:
 		constructing_privileges = false;
 		return maybe_statement;
 	}
-	
+
 	// Used by the Database::CompareStatement class.
 	static inline bool Compare(Statement const * const a, Statement const * const b) {
 		return a->extras->id < b->extras->id;
 	}
-	
+
 	// Returns the Statement's bind map (creates it upon first execution).
 	BindMap* GetBindMap(v8::Isolate* isolate) {
 		if (has_bind_map) return &extras->bind_map;
@@ -29,7 +29,7 @@ public:
 		has_bind_map = true;
 		return bind_map;
 	}
-	
+
 	// This should only be used by Database::CloseHandles() and ~Statement().
 	void CloseHandles() {
 		if (alive) {
@@ -37,22 +37,22 @@ public:
 			sqlite3_finalize(handle);
 		}
 	}
-	
+
 	~Statement() {
 		if (alive) db->RemoveStatement(this);
 		CloseHandles();
 		delete extras;
 	}
-	
+
 private:
-	
+
 	// A class for holding values that are less often used.
 	class Extras { friend class Statement;
 		explicit Extras(sqlite3_uint64 _id) : bind_map(0), id(_id) {}
 		BindMap bind_map;
 		const sqlite3_uint64 id;
 	};
-	
+
 	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : node::ObjectWrap(),
 		db(_db),
 		handle(_handle),
@@ -70,12 +70,12 @@ private:
 		assert(!db->GetState()->busy);
 		db->AddStatement(this);
 	}
-	
+
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(StringFromUtf8(isolate, "Statement", -1));
-		
+
 		NODE_SET_PROTOTYPE_METHOD(t, "run", JS_run);
 		NODE_SET_PROTOTYPE_METHOD(t, "get", JS_get);
 		NODE_SET_PROTOTYPE_METHOD(t, "all", JS_all);
@@ -84,12 +84,12 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
 		NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
-		
+
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
 	}
-	
+
 	NODE_METHOD(JS_new) {
 		if (!constructing_privileges) {
 			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
@@ -100,12 +100,12 @@ private:
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
-		
+
 		UseIsolate;
 		v8::String::Value sql(EXTRACT_STRING(isolate, source));
 		const uint16_t* tail;
 		sqlite3_stmt* handle;
-		
+
 		if (sqlite3_prepare16_v3(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, SQLITE_PREPARE_PERSISTENT, &handle, reinterpret_cast<const void**>(&tail)) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
@@ -120,22 +120,22 @@ private:
 			}
 		}
 		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
-		
+
 		UseContext;
 		Statement* stmt = new Statement(db, handle, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::reader, v8::Boolean::New(isolate, returns_data));
 		SetFrozen(isolate, ctx, info.This(), CS::source, source);
 		SetFrozen(isolate, ctx, info.This(), CS::database, database);
-		
+
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_run) {
 		STATEMENT_START(REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
 		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
-		
+
 		sqlite3_step(handle);
 		if (sqlite3_reset(handle) == SQLITE_OK) {
 			int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
@@ -148,7 +148,7 @@ private:
 		}
 		STATEMENT_THROW();
 	}
-	
+
 	NODE_METHOD(JS_get) {
 		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolate;
@@ -167,7 +167,7 @@ private:
 		sqlite3_reset(handle);
 		STATEMENT_THROW();
 	}
-	
+
 	NODE_METHOD(JS_all) {
 		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
 		UseIsolateAndContext;
@@ -177,7 +177,7 @@ private:
 		const bool pluck = stmt->pluck;
 		const bool expand = stmt->expand;
 		bool js_error = false;
-		
+
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
 			result->Set(ctx, row_count++,
@@ -186,19 +186,19 @@ private:
 				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
 			).FromJust();
 		}
-		
+
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
 			STATEMENT_RETURN(result);
 		}
 		if (js_error) db->GetState()->was_js_error = true;
 		STATEMENT_THROW();
 	}
-	
+
 	NODE_METHOD(JS_iterate) {
 		v8::MaybeLocal<v8::Object> maybe_iter = StatementIterator::New(OnlyIsolate, info);
 		if (!maybe_iter.IsEmpty()) info.GetReturnValue().Set(maybe_iter.ToLocalChecked());
 	}
-	
+
 	NODE_METHOD(JS_bind) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
@@ -208,7 +208,7 @@ private:
 		stmt->bound = true;
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_pluck) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
@@ -218,7 +218,7 @@ private:
 		if (stmt->pluck) stmt->expand = false;
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_expand) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The expand() method is only for statements that return data");
@@ -228,7 +228,7 @@ private:
 		if (stmt->expand) stmt->pluck = false;
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_safeIntegers) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
@@ -236,11 +236,11 @@ private:
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints); }
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	static v8::Persistent<v8::Function> constructor;
 	static sqlite3_uint64 next_id;
 	static bool constructing_privileges;
-	
+
 	Database* const db;
 	sqlite3_stmt* const handle;
 	Extras* const extras;

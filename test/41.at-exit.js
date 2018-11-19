@@ -23,7 +23,7 @@ describe('node::AtExit()', function () {
 		process.on('message', messageHandler);
 		process.send('foo');
 	`;
-	
+
 	it('should close all databases when the process exits gracefully', async function () {
 		const filename1 = util.next();
 		const filename2 = util.next();

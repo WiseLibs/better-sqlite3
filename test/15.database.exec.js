@@ -8,7 +8,7 @@ describe('Database#exec()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if a string is not provided', function () {
 		expect(() => this.db.exec(123)).to.throw(TypeError);
 		expect(() => this.db.exec(0)).to.throw(TypeError);
@@ -27,15 +27,15 @@ describe('Database#exec()', function () {
 	});
 	it('should execute the SQL, returning the database object itself', function () {
 		const returnValues = [];
-		
+
 		const r1 = this.db.exec('CREATE TABLE entries (a TEXT, b INTEGER)');
 		const r2 = this.db.exec("INSERT INTO entries VALUES ('foobar', 44); INSERT INTO entries VALUES ('baz', NULL);");
 		const r3 = this.db.exec('SELECT * FROM entries');
-		
+
 		expect(r1).to.equal(this.db);
 		expect(r2).to.equal(this.db);
 		expect(r3).to.equal(this.db);
-		
+
 		const rows = this.db.prepare('SELECT * FROM entries ORDER BY rowid').all();
 		expect(rows.length).to.equal(2);
 		expect(rows[0].a).to.equal('foobar');

@@ -1,17 +1,17 @@
 class Statement;
 class Database : public node::ObjectWrap {
 public:
-	
+
 	// Proper error handling logic for when an sqlite3 operation fails.
 	void ThrowDatabaseError() {
 		if (was_js_error) was_js_error = false;
 		else ThrowSqliteError(db_handle);
 	}
-	
+
 	// Allow Statements to manage themselves when created and garbage collected.
 	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
 	inline void RemoveStatement(Statement* stmt) { stmts.erase(stmt); }
-	
+
 	// A view for Statements to see and modify Database state.
 	// The order of these fields must exactly match their actual order.
 	struct State {
@@ -21,33 +21,33 @@ public:
 		const bool safe_ints;
 		bool was_js_error;
 	};
-	
+
 	inline State* GetState() {
 		return reinterpret_cast<State*>(&open);
 	}
 	inline sqlite3* GetHandle() {
 		return db_handle;
 	}
-	
+
 	~Database() {
 		if (open) dbs.erase(this);
 		CloseHandles();
 	}
-	
+
 private:
-	
+
 	class CompareDatabase { public:
 		bool operator() (Database const * const a, Database const * const b) const {
 			return a < b;
 		}
 	};
-	
+
 	class CompareStatement { public:
 		bool operator() (Statement const * const a, Statement const * const b) const {
 			return Statement::Compare(a, b);
 		}
 	};
-	
+
 	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
@@ -59,12 +59,12 @@ private:
 		assert(_db_handle != NULL);
 		dbs.insert(this);
 	}
-	
+
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
 		t->SetClassName(StringFromUtf8(isolate, "Database", -1));
-		
+
 		NODE_SET_PROTOTYPE_METHOD(t, "prepare", JS_prepare);
 		NODE_SET_PROTOTYPE_METHOD(t, "exec", JS_exec);
 		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
@@ -76,13 +76,13 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
 		NODE_SET_PROTOTYPE_GETTER(t, "inTransaction", JS_inTransaction);
-		
+
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../lib/sqlite-error")));
 		node::AtExit(Database::AtExit);
 	}
-	
+
 	NODE_METHOD(JS_new) {
 		assert(info.IsConstructCall());
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filename);
@@ -91,44 +91,44 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
-		
+
 		UseIsolate;
 		sqlite3* db_handle;
 		v8::String::Utf8Value utf8(EXTRACT_STRING(isolate, filename));
 		int mask = readonly ? SQLITE_OPEN_READONLY
 			: must_exist ? SQLITE_OPEN_READWRITE
 			: (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
-		
+
 		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
 			ThrowSqliteError(db_handle);
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
 		}
-		
+
 		assert(sqlite3_db_mutex(db_handle) == NULL);
 		sqlite3_busy_timeout(db_handle, timeout);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
 		int status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, NULL);
 		assert(status == SQLITE_OK); ((void)status);
-		
+
 		UseContext;
 		Database* db = new Database(db_handle);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::name, filenameGiven);
-		
+
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_prepare) {
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		v8::MaybeLocal<v8::Object> maybe_statement = Statement::New(OnlyIsolate, info.This(), source);
 		if (!maybe_statement.IsEmpty()) info.GetReturnValue().Set(maybe_statement.ToLocalChecked());
 	}
-	
+
 	NODE_METHOD(JS_exec) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
@@ -141,17 +141,17 @@ private:
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
 		else db->ThrowDatabaseError();
 	}
-	
+
 	NODE_METHOD(JS_pragma) {
 		REQUIRE_ARGUMENT_BOOLEAN(first, Unwrap<Database>(info.This())->pragma_mode);
 	}
-	
+
 	NODE_METHOD(JS_checkpoint) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		sqlite3* db_handle = db->db_handle;
-		
+
 		if (info.Length()) {
 			REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> onlyDatabase);
 			v8::String::Utf8Value only_database(EXTRACT_STRING(OnlyIsolate, onlyDatabase));
@@ -163,7 +163,7 @@ private:
 			}
 			return info.GetReturnValue().Set(info.This());
 		}
-		
+
 		sqlite3_stmt* stmt;
 		if (sqlite3_prepare_v2(db_handle, "PRAGMA database_list", -1, &stmt, NULL) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
@@ -175,7 +175,7 @@ private:
 		if (sqlite3_finalize(stmt) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
-		
+
 		bool threw_error = false;
 		for (std::string const &name : database_names) {
 			if (sqlite3_wal_checkpoint_v2(db_handle, name.c_str(), SQLITE_CHECKPOINT_RESTART, NULL, NULL) != SQLITE_OK) {
@@ -187,7 +187,7 @@ private:
 		}
 		if (!threw_error) info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_function) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> fn);
@@ -197,18 +197,18 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		
+
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
 		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
-		
+
 		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, fn, *name, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_aggregate) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_ANY(first, v8::Local<v8::Value> start);
@@ -221,20 +221,20 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(eighth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		
+
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
 		auto xInverse = inverse->IsFunction() ? CustomAggregate::xInverse : NULL;
 		auto xValue = xInverse ? CustomAggregate::xValue : NULL;
 		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
-		
+
 		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_loadExtension) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
@@ -247,7 +247,7 @@ private:
 		else ThrowSqliteError(db->db_handle, error, status);
 		sqlite3_free(error);
 	}
-	
+
 	NODE_METHOD(JS_close) {
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
@@ -257,7 +257,7 @@ private:
 		}
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_METHOD(JS_defaultSafeIntegers) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(db);
@@ -265,16 +265,16 @@ private:
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
 		info.GetReturnValue().Set(info.This());
 	}
-	
+
 	NODE_GETTER(JS_open) {
 		info.GetReturnValue().Set(Unwrap<Database>(info.This())->open);
 	}
-	
+
 	NODE_GETTER(JS_inTransaction) {
 		Database* db = Unwrap<Database>(info.This());
 		info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 	}
-	
+
 	void CloseHandles() {
 		if (open) {
 			open = false;
@@ -284,7 +284,7 @@ private:
 			assert(status == SQLITE_OK); ((void)status);
 		}
 	}
-	
+
 	static void ThrowSqliteError(sqlite3* db_handle) {
 		assert(db_handle != NULL);
 		ThrowSqliteError(db_handle, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
@@ -297,17 +297,17 @@ private:
 		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
 		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
-	
+
 	static void AtExit(void* _) {
 		for (Database* db : dbs) db->CloseHandles();
 		dbs.clear();
 	}
-	
+
 	static std::set<Database*, Database::CompareDatabase> dbs;
 	static v8::Persistent<v8::Function> SqliteError;
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
-	
+
 	sqlite3* const db_handle;
 	bool open;
 	bool busy;

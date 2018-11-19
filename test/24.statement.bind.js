@@ -9,7 +9,7 @@ describe('Statement#bind()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should permanently bind the given parameters', function () {
 		const stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		const buffer = Buffer.alloc(4).fill(0xdd);
@@ -36,48 +36,48 @@ describe('Statement#bind()', function () {
 		stmt.bind('foobar', 25, null);
 		expect(() => stmt.bind('foobar', 25, null)).to.throw(TypeError);
 		expect(() => stmt.bind()).to.throw(TypeError);
-		
+
 		stmt = this.db.prepare('SELECT * FROM entries');
 		stmt.bind();
 		expect(() => stmt.bind()).to.throw(TypeError);
 	});
 	it('should throw an exception when invalid parameters are given', function () {
 		let stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		
+
 		expect(() =>
 			stmt.bind('foo', 25)
 		).to.throw(RangeError);
-		
+
 		expect(() =>
 			stmt.bind('foo', 25, null, null)
 		).to.throw(RangeError);
-		
+
 		expect(() =>
 			stmt.bind('foo', new Number(25), null)
 		).to.throw(TypeError);
-		
+
 		expect(() =>
 			stmt.bind()
 		).to.throw(RangeError);
-		
+
 		stmt.bind('foo', 25, null);
-		
+
 		stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
-		
+
 		expect(() =>
 			stmt.bind({ a: '123' })
 		).to.throw(RangeError);
-		
+
 		expect(() =>
 			stmt.bind({ a: '123', 1: null })
 		).to.throw(RangeError);
-		
+
 		expect(() =>
 			stmt.bind({ a: '123' }, null, null)
 		).to.throw(RangeError);
-		
+
 		stmt.bind({ a: '123' }, null);
-		
+
 		stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
 		stmt.bind({ a: '123', b: null }, null);
 	});

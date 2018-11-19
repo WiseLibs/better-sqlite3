@@ -10,7 +10,7 @@ describe('Database#transaction()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if a function is not provided', function () {
 		expect(() => this.db.transaction(123)).to.throw(TypeError);
 		expect(() => this.db.transaction(0)).to.throw(TypeError);
