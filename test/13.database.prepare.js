@@ -15,7 +15,7 @@ describe('Database#prepare()', function () {
 		expect(stmt.reader).to.equal(reader);
 		expect(() => new stmt.constructor(source)).to.throw(TypeError);
 	};
-	
+
 	it('should throw an exception if a string is not provided', function () {
 		expect(() => this.db.prepare(123)).to.throw(TypeError);
 		expect(() => this.db.prepare(0)).to.throw(TypeError);

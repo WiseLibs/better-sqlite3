@@ -18,7 +18,7 @@ describe('Statement#run()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception when used on a statement that returns data', function () {
 		const stmt = this.db.prepare('SELECT 555');
 		expect(() => stmt.run()).to.throw(TypeError);
@@ -39,11 +39,11 @@ describe('Statement#run()', function () {
 		let info = stmt.run();
 		expect(info.changes).to.equal(1);
 		expect(info.lastInsertRowid).to.equal(1);
-		
+
 		info = stmt.run();
 		expect(info.changes).to.equal(1);
 		expect(info.lastInsertRowid).to.equal(2);
-		
+
 		stmt = this.db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff'), ('foo', 25, 3.14, x'1133ddff')");
 		info = stmt.run();
 		expect(info.changes).to.equal(2);
@@ -56,7 +56,7 @@ describe('Statement#run()', function () {
 	it('should work with DELETE FROM', function () {
 		let stmt = this.db.init(true).prepare("DELETE FROM entries WHERE a='foo'");
 		expect(stmt.run().changes).to.equal(3);
-		
+
 		stmt = this.db.prepare("INSERT INTO entries VALUES ('foo', 25, 3.14, x'1133ddff')");
 		stmt.run();
 		const info = stmt.run();
@@ -156,7 +156,7 @@ describe('Statement#run()', function () {
 		expect(() =>
 			this.db.prepare('INSERT INTO entries VALUES (@a, @b, @c, @d)').run(new Foo)
 		).to.throw(TypeError);
-		
+
 		// This part of the test may fail is Statement#get() does not work.
 		let i = 0;
 		let row;

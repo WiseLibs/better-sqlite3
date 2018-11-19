@@ -9,7 +9,7 @@ describe('Database#loadExtension()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if a string argument is not given', function () {
 		expect(() => this.db.loadExtension()).to.throw(TypeError);
 		expect(() => this.db.loadExtension(undefined)).to.throw(TypeError);

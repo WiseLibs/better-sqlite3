@@ -2,7 +2,7 @@
 
 # ===
 # This script defines and generates the bundled SQLite3 unit (sqlite3.c).
-# 
+#
 # The following steps are taken:
 # 1. populate the shell environment with the defined compile-time options.
 # 2. download and extract the SQLite3 source code into a temporary directory.
@@ -10,7 +10,7 @@
 # 4. bundle the generated amalgamation into a tar.gz file (sqlite3.tar.gz).
 # 5. export the defined compile-time options to a gyp file (defines.gypi).
 # 6. update the docs (../docs/compilation.md) with details of this distribution.
-# 
+#
 # When a user builds better-sqlite3, the following steps are taken:
 # 1. node-gyp loads the previously exported compile-time options (defines.gypi).
 # 2. the extract.js script unpacks the bundled amalgamation (sqlite3.tar.gz).

@@ -1,13 +1,13 @@
 class Binder {
 public:
-	
+
 	explicit Binder(sqlite3_stmt* _handle) {
 		handle = _handle;
 		param_count = sqlite3_bind_parameter_count(_handle);
 		anon_index = 0;
 		success = true;
 	}
-	
+
 	bool Bind(NODE_ARGUMENTS info, int argc, Statement* stmt) {
 		assert(anon_index == 0);
 		Result result = BindArgs(info, argc, stmt);
@@ -24,13 +24,13 @@ public:
 		}
 		return success;
 	}
-	
+
 private:
 	struct Result {
 		int count;
 		bool bound_object;
 	};
-	
+
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
 		v8::Local<v8::Context> ctx = obj->CreationContext();
@@ -39,7 +39,7 @@ private:
 		ctx->Exit();
 		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
 	}
-	
+
 	void Fail(void (*Throw)(const char* _), const char* message) {
 		assert(success == true);
 		assert((Throw == NULL) == (message == NULL));
@@ -47,12 +47,12 @@ private:
 		if (Throw) Throw(message);
 		success = false;
 	}
-	
+
 	int NextAnonIndex() {
 		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
 		return anon_index;
 	}
-	
+
 	// Binds the value at the given index or throws an appropriate error.
 	void BindValue(v8::Isolate* isolate, v8::Local<v8::Value> value, int index) {
 		int status = Data::BindValueFromJS(isolate, handle, index, value);
@@ -72,7 +72,7 @@ private:
 			assert(false);
 		}
 	}
-	
+
 	// Binds each value in the array or throws an appropriate error.
 	// The number of successfully bound parameters is returned.
 	int BindArray(v8::Isolate* isolate, v8::Local<v8::Array> arr) {
@@ -96,7 +96,7 @@ private:
 		}
 		return len;
 	}
-	
+
 	// Binds all named parameters using the values found in the given object.
 	// The number of successfully bound parameters is returned.
 	// If a named parameter is missing from the object, an error is thrown.
@@ -106,10 +106,10 @@ private:
 		BindMap* bind_map = stmt->GetBindMap(isolate);
 		BindMap::Pair* pairs = bind_map->GetPairs();
 		int len = bind_map->GetSize();
-		
+
 		for (int i=0; i<len; ++i) {
 			v8::Local<v8::String> key = pairs[i].GetName(isolate);
-			
+
 			// Check if the named parameter was provided.
 			v8::Maybe<bool> has_property = obj->HasOwnProperty(ctx, key);
 			if (has_property.IsNothing()) {
@@ -121,23 +121,23 @@ private:
 				Fail(ThrowRangeError, CONCAT("Missing named parameter \"", *param_name, "\"").c_str());
 				return i;
 			}
-			
+
 			// Get the current property value.
 			v8::MaybeLocal<v8::Value> maybeValue = obj->Get(ctx, key);
 			if (maybeValue.IsEmpty()) {
 				Fail(NULL, NULL);
 				return i;
 			}
-			
+
 			BindValue(isolate, maybeValue.ToLocalChecked(), pairs[i].GetIndex());
 			if (!success) {
 				return i;
 			}
 		}
-		
+
 		return len;
 	}
-	
+
 	// Binds all parameters using the values found in the arguments object.
 	// Anonymous parameter values can be directly in the arguments object or in an Array.
 	// Named parameter values can be provided in a plain Object argument.
@@ -149,16 +149,16 @@ private:
 		UseIsolate;
 		int count = 0;
 		bool bound_object = false;
-		
+
 		for (int i=0; i<argc; ++i) {
 			v8::Local<v8::Value> arg = info[i];
-			
+
 			if (arg->IsArray()) {
 				count += BindArray(isolate, v8::Local<v8::Array>::Cast(arg));
 				if (!success) break;
 				continue;
 			}
-			
+
 			if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
 				v8::Local<v8::Object> obj = v8::Local<v8::Object>::Cast(arg);
 				if (IsPlainObject(isolate, obj)) {
@@ -167,21 +167,21 @@ private:
 						break;
 					}
 					bound_object = true;
-					
+
 					count += BindObject(isolate, obj, stmt);
 					if (!success) break;
 					continue;
 				}
 			}
-			
+
 			BindValue(isolate, arg, NextAnonIndex());
 			if (!success) break;
 			count += 1;
 		}
-		
+
 		return { count, bound_object };
 	}
-	
+
 	sqlite3_stmt* handle;
 	int param_count;
 	int anon_index; // This value should only be used by NextAnonIndex()

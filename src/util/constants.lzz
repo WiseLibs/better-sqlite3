@@ -8,7 +8,7 @@ public:
 		if (element != codes.end()) return v8::Local<v8::String>::New(isolate, element->second);
 		return StringFromUtf8(isolate, CONCAT("UNKNOWN_SQLITE_ERROR_", std::to_string(code).c_str(), "").c_str(), -1);
 	}
-	
+
 	static ConstantString database;
 	static ConstantString reader;
 	static ConstantString source;
@@ -23,7 +23,7 @@ public:
 	static ConstantString lastInsertRowid;
 	static ConstantString code;
 	static ConstantString statement;
-	
+
 private:
 	REGISTER(Init) {
 		AddString(isolate, CS::database, "database");
@@ -40,7 +40,7 @@ private:
 		AddString(isolate, CS::lastInsertRowid, "lastInsertRowid");
 		AddString(isolate, CS::code, "code");
 		AddString(isolate, CS::statement, "statement");
-		
+
 		AddCode(isolate, SQLITE_OK, "SQLITE_OK");
 		AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
 		AddCode(isolate, SQLITE_INTERNAL, "SQLITE_INTERNAL");
@@ -129,7 +129,7 @@ private:
 		AddCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
 		AddCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 	}
-	
+
 	static v8::Local<v8::String> InternalizedFromLatin1(v8::Isolate* isolate, const char* str) {
 		return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
 	}
@@ -140,7 +140,7 @@ private:
 		codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
 	explicit CS(char _) { assert(false); }
-	
+
 	static std::unordered_map<int, ConstantString> codes;
 }
 
