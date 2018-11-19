@@ -12,7 +12,7 @@ describe('miscellaneous', function () {
   it('persists non-trivial quantities of reads and writes', function () {
     const runDuration = 1000;
     const runUntil = Date.now() + runDuration;
-    this.slow(Infinity);
+    this.slow(runDuration * 10);
     this.timeout(runDuration * 3);
     this.db.pragma("journal_mode = WAL");
     this.db.prepare("CREATE TABLE foo (a INTEGER, b TEXT, c REAL)").run();
@@ -30,7 +30,7 @@ describe('miscellaneous', function () {
     // Batched transactions of 100 inserts.
     while (Date.now() < runUntil) insertMany(100);
 
-    // Expect 50K~200K on reasonable machines.
+    // Expect 10K~50K on reasonable machines.
     expect(i).to.be.above(1000);
 
     const select = this.db.prepare("SELECT * FROM foo ORDER BY a DESC");
