@@ -14,15 +14,15 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
-#line 74 "./src/util/macros.lzz"
+#line 79 "./src/util/macros.lzz"
 #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                        (V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
 #define EXTRACT_STRING(isolate, string) isolate, string
 #else
 #define EXTRACT_STRING(_unused, string) string
 #endif
-#line 142 "./src/util/macros.lzz"
+#line 147 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#line 148 "./src/util/constants.lzz"
+#line 154 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
 #define LZZ_INLINE inline
 #line 18 "./src/util/macros.lzz"
@@ -30,30 +30,32 @@ v8::Local <v8::String> StringFromUtf8 (v8::Isolate * isolate, char const * data,
 #line 21 "./src/util/macros.lzz"
 v8::Local <v8::String> InternalizedFromUtf8 (v8::Isolate * isolate, char const * data, int length);
 #line 25 "./src/util/macros.lzz"
-void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Object> obj, ConstantString & key, v8::Local <v8::Value> value);
+v8::Local <v8::Value> InternalizedFromUtf8OrNull (v8::Isolate * isolate, char const * data, int length);
 #line 30 "./src/util/macros.lzz"
+void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Object> obj, ConstantString & key, v8::Local <v8::Value> value);
+#line 35 "./src/util/macros.lzz"
 void ThrowError (char const * message);
-#line 31 "./src/util/macros.lzz"
+#line 36 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message);
-#line 32 "./src/util/macros.lzz"
+#line 37 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message);
-#line 83 "./src/util/macros.lzz"
+#line 88 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c);
-#line 91 "./src/util/macros.lzz"
+#line 96 "./src/util/macros.lzz"
 char const * COPY (char const * source);
-#line 99 "./src/util/macros.lzz"
+#line 104 "./src/util/macros.lzz"
 template <typename T>
-#line 99 "./src/util/macros.lzz"
+#line 104 "./src/util/macros.lzz"
 T * ALLOC_ARRAY (size_t count);
-#line 104 "./src/util/macros.lzz"
+#line 109 "./src/util/macros.lzz"
 template <typename T>
-#line 104 "./src/util/macros.lzz"
+#line 109 "./src/util/macros.lzz"
 void FREE_ARRAY (T * array_pointer);
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path);
-#line 116 "./src/util/macros.lzz"
+#line 121 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter);
-#line 130 "./src/util/macros.lzz"
+#line 135 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback);
 #line 1 "./src/util/constants.lzz"
 class CS
@@ -92,21 +94,27 @@ public:
   static ConstantString code;
 #line 25 "./src/util/constants.lzz"
   static ConstantString statement;
+#line 26 "./src/util/constants.lzz"
+  static ConstantString column;
 #line 27 "./src/util/constants.lzz"
+  static ConstantString table;
+#line 28 "./src/util/constants.lzz"
+  static ConstantString type;
+#line 30 "./src/util/constants.lzz"
 private:
-#line 28 "./src/util/constants.lzz"
+#line 31 "./src/util/constants.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 28 "./src/util/constants.lzz"
+#line 31 "./src/util/constants.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 133 "./src/util/constants.lzz"
-  static v8::Local <v8::String> InternalizedFromLatin1 (v8::Isolate * isolate, char const * str);
-#line 136 "./src/util/constants.lzz"
-  static void AddString (v8::Isolate * isolate, ConstantString & constant, char const * str);
 #line 139 "./src/util/constants.lzz"
-  static void AddCode (v8::Isolate * isolate, int code, char const * str);
+  static v8::Local <v8::String> InternalizedFromLatin1 (v8::Isolate * isolate, char const * str);
 #line 142 "./src/util/constants.lzz"
+  static void AddString (v8::Isolate * isolate, ConstantString & constant, char const * str);
+#line 145 "./src/util/constants.lzz"
+  static void AddCode (v8::Isolate * isolate, int code, char const * str);
+#line 148 "./src/util/constants.lzz"
   explicit CS (char _);
-#line 144 "./src/util/constants.lzz"
+#line 150 "./src/util/constants.lzz"
   static std::unordered_map <int, ConstantString> codes;
 };
 #line 1 "./src/util/bind-map.lzz"
@@ -342,53 +350,55 @@ private:
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 75 "./src/objects/statement.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 95 "./src/objects/statement.lzz"
+#line 96 "./src/objects/statement.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 136 "./src/objects/statement.lzz"
+#line 137 "./src/objects/statement.lzz"
   static void JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 154 "./src/objects/statement.lzz"
+#line 155 "./src/objects/statement.lzz"
   static void JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 174 "./src/objects/statement.lzz"
+#line 175 "./src/objects/statement.lzz"
   static void JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 202 "./src/objects/statement.lzz"
+#line 203 "./src/objects/statement.lzz"
   static void JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 207 "./src/objects/statement.lzz"
+#line 208 "./src/objects/statement.lzz"
   static void JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 217 "./src/objects/statement.lzz"
+#line 218 "./src/objects/statement.lzz"
   static void JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 227 "./src/objects/statement.lzz"
+#line 228 "./src/objects/statement.lzz"
   static void JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 237 "./src/objects/statement.lzz"
+#line 238 "./src/objects/statement.lzz"
   static void JS_raw (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 247 "./src/objects/statement.lzz"
+#line 248 "./src/objects/statement.lzz"
   static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 255 "./src/objects/statement.lzz"
-  static v8::Persistent <v8::Function> constructor;
 #line 256 "./src/objects/statement.lzz"
+  static void JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 297 "./src/objects/statement.lzz"
+  static v8::Persistent <v8::Function> constructor;
+#line 298 "./src/objects/statement.lzz"
   static sqlite3_uint64 next_id;
-#line 257 "./src/objects/statement.lzz"
+#line 299 "./src/objects/statement.lzz"
   static bool constructing_privileges;
-#line 259 "./src/objects/statement.lzz"
+#line 301 "./src/objects/statement.lzz"
   Database * const db;
-#line 260 "./src/objects/statement.lzz"
+#line 302 "./src/objects/statement.lzz"
   sqlite3_stmt * const handle;
-#line 261 "./src/objects/statement.lzz"
+#line 303 "./src/objects/statement.lzz"
   Extras * const extras;
-#line 262 "./src/objects/statement.lzz"
+#line 304 "./src/objects/statement.lzz"
   bool alive;
-#line 263 "./src/objects/statement.lzz"
+#line 305 "./src/objects/statement.lzz"
   bool bound;
-#line 264 "./src/objects/statement.lzz"
+#line 306 "./src/objects/statement.lzz"
   bool has_bind_map;
-#line 265 "./src/objects/statement.lzz"
+#line 307 "./src/objects/statement.lzz"
   bool safe_ints;
-#line 266 "./src/objects/statement.lzz"
+#line 308 "./src/objects/statement.lzz"
   bool pluck;
-#line 267 "./src/objects/statement.lzz"
+#line 309 "./src/objects/statement.lzz"
   bool expand;
-#line 268 "./src/objects/statement.lzz"
+#line 310 "./src/objects/statement.lzz"
   bool raw;
-#line 269 "./src/objects/statement.lzz"
+#line 311 "./src/objects/statement.lzz"
   bool const returns_data;
 };
 #line 1 "./src/objects/statement-iterator.lzz"
@@ -638,31 +648,38 @@ LZZ_INLINE v8::Local <v8::String> InternalizedFromUtf8 (v8::Isolate * isolate, c
         return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 #line 25 "./src/util/macros.lzz"
-LZZ_INLINE void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Object> obj, ConstantString & key, v8::Local <v8::Value> value)
+LZZ_INLINE v8::Local <v8::Value> InternalizedFromUtf8OrNull (v8::Isolate * isolate, char const * data, int length)
 #line 25 "./src/util/macros.lzz"
+                                                                                                           {
+        if (data == NULL) return v8::Null(isolate);
+        return InternalizedFromUtf8(isolate, data, length);
+}
+#line 30 "./src/util/macros.lzz"
+LZZ_INLINE void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Object> obj, ConstantString & key, v8::Local <v8::Value> value)
+#line 30 "./src/util/macros.lzz"
                                                                                                                                                     {
         static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
         obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
-#line 99 "./src/util/macros.lzz"
+#line 104 "./src/util/macros.lzz"
 template <typename T>
-#line 99 "./src/util/macros.lzz"
+#line 104 "./src/util/macros.lzz"
 LZZ_INLINE T * ALLOC_ARRAY (size_t count)
-#line 99 "./src/util/macros.lzz"
+#line 104 "./src/util/macros.lzz"
                                                       {
         return static_cast<T*>(::operator new[](count * sizeof(T)));
 }
-#line 104 "./src/util/macros.lzz"
+#line 109 "./src/util/macros.lzz"
 template <typename T>
-#line 104 "./src/util/macros.lzz"
+#line 109 "./src/util/macros.lzz"
 LZZ_INLINE void FREE_ARRAY (T * array_pointer)
-#line 104 "./src/util/macros.lzz"
+#line 109 "./src/util/macros.lzz"
                                                            {
         ::operator delete[](array_pointer);
 }
-#line 116 "./src/util/macros.lzz"
+#line 121 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter)
-#line 116 "./src/util/macros.lzz"
+#line 121 "./src/util/macros.lzz"
                                                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
@@ -676,9 +693,9 @@ LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv
                 v8::AccessorSignature::New(isolate, recv)
         );
 }
-#line 130 "./src/util/macros.lzz"
+#line 135 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback)
-#line 130 "./src/util/macros.lzz"
+#line 135 "./src/util/macros.lzz"
                                                                                                                                                 {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;

@@ -62,8 +62,8 @@ namespace Data {
 	}
 
 	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		int column_count = sqlite3_column_count(handle);
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
+		int column_count = sqlite3_column_count(handle);
 		for (int i=0; i<column_count; ++i) {
 			row->Set(ctx,
 				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
@@ -73,8 +73,8 @@ namespace Data {
 	}
 
 	v8::Local<v8::Value> GetExpandedRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		int column_count = sqlite3_column_count(handle);
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
+		int column_count = sqlite3_column_count(handle);
 		for (int i=0; i<column_count; ++i) {
 			const char* table_raw = sqlite3_column_table_name(handle, i);
 			v8::Local<v8::String> table = InternalizedFromUtf8(isolate, table_raw == NULL ? "$" : table_raw, -1);
@@ -92,10 +92,10 @@ namespace Data {
 	}
 
 	v8::Local<v8::Value> GetRawRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
+		v8::Local<v8::Array> row = v8::Array::New(isolate);
 		int column_count = sqlite3_column_count(handle);
-		v8::Local<v8::Array> row = v8::Array::New(isolate, (uint32_t)column_count);
 		for (int i=0; i<column_count; ++i) {
-			row->Set(ctx, (uint32_t)i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
+			row->Set(ctx, i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
 		}
 		return row;
 	}

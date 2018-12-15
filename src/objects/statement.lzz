@@ -86,6 +86,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
 		NODE_SET_PROTOTYPE_METHOD(t, "raw", JS_raw);
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
+		NODE_SET_PROTOTYPE_METHOD(t, "columns", JS_columns);
 
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
@@ -250,6 +251,47 @@ private:
 		if (info.Length() == 0) stmt->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints); }
 		info.GetReturnValue().Set(info.This());
+	}
+
+	NODE_METHOD(JS_columns) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		if (!stmt->returns_data) return ThrowTypeError("The columns() method is only for statements that return data");
+		REQUIRE_DATABASE_OPEN(stmt->db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		UseIsolateAndContext;
+
+		int column_count = sqlite3_column_count(stmt->handle);
+		v8::Local<v8::Array> columns = v8::Array::New(isolate);
+
+		v8::Local<v8::String> name = CS::Get(isolate, CS::name);
+		v8::Local<v8::String> columnName = CS::Get(isolate, CS::column);
+		v8::Local<v8::String> tableName = CS::Get(isolate, CS::table);
+		v8::Local<v8::String> databaseName = CS::Get(isolate, CS::database);
+		v8::Local<v8::String> typeName = CS::Get(isolate, CS::type);
+
+		for (int i=0; i<column_count; ++i) {
+			v8::Local<v8::Object> column = v8::Object::New(isolate);
+
+			column->Set(ctx, name,
+				InternalizedFromUtf8OrNull(isolate, sqlite3_column_name(stmt->handle, i), -1)
+			).FromJust();
+			column->Set(ctx, columnName,
+				InternalizedFromUtf8OrNull(isolate, sqlite3_column_origin_name(stmt->handle, i), -1)
+			).FromJust();
+			column->Set(ctx, tableName,
+				InternalizedFromUtf8OrNull(isolate, sqlite3_column_table_name(stmt->handle, i), -1)
+			).FromJust();
+			column->Set(ctx, databaseName,
+				InternalizedFromUtf8OrNull(isolate, sqlite3_column_database_name(stmt->handle, i), -1)
+			).FromJust();
+			column->Set(ctx, typeName,
+				InternalizedFromUtf8OrNull(isolate, sqlite3_column_decltype(stmt->handle, i), -1)
+			).FromJust();
+
+			columns->Set(ctx, i, column).FromJust();
+		}
+
+		info.GetReturnValue().Set(columns);
 	}
 
 	static v8::Persistent<v8::Function> constructor;

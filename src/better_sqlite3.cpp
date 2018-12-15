@@ -5,42 +5,42 @@
 #line 14 "./src/better_sqlite3.lzz"
 NODE_MODULE(better_sqlite3, RegisterModule);
 #define LZZ_INLINE inline
-#line 30 "./src/util/macros.lzz"
+#line 35 "./src/util/macros.lzz"
 void ThrowError (char const * message)
-#line 30 "./src/util/macros.lzz"
+#line 35 "./src/util/macros.lzz"
                                      { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
-#line 31 "./src/util/macros.lzz"
+#line 36 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message)
-#line 31 "./src/util/macros.lzz"
+#line 36 "./src/util/macros.lzz"
                                          { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 32 "./src/util/macros.lzz"
+#line 37 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message)
-#line 32 "./src/util/macros.lzz"
+#line 37 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 83 "./src/util/macros.lzz"
+#line 88 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c)
-#line 83 "./src/util/macros.lzz"
+#line 88 "./src/util/macros.lzz"
                                                                 {
         std::string result(a);
         result += b;
         result += c;
         return result;
 }
-#line 91 "./src/util/macros.lzz"
+#line 96 "./src/util/macros.lzz"
 char const * COPY (char const * source)
-#line 91 "./src/util/macros.lzz"
+#line 96 "./src/util/macros.lzz"
                                      {
         size_t bytes = strlen(source) + 1;
         char* dest = new char[bytes];
         memcpy(dest, source, bytes);
         return dest;
 }
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path)
-#line 108 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
                                                                              {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -84,9 +84,15 @@ ConstantString CS::lastInsertRowid;
 ConstantString CS::code;
 #line 25 "./src/util/constants.lzz"
 ConstantString CS::statement;
+#line 26 "./src/util/constants.lzz"
+ConstantString CS::column;
+#line 27 "./src/util/constants.lzz"
+ConstantString CS::table;
 #line 28 "./src/util/constants.lzz"
+ConstantString CS::type;
+#line 31 "./src/util/constants.lzz"
 void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module)
-#line 28 "./src/util/constants.lzz"
+#line 31 "./src/util/constants.lzz"
                        {
                 AddString(isolate, CS::database, "database");
                 AddString(isolate, CS::reader, "reader");
@@ -102,6 +108,9 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddString(isolate, CS::lastInsertRowid, "lastInsertRowid");
                 AddString(isolate, CS::code, "code");
                 AddString(isolate, CS::statement, "statement");
+                AddString(isolate, CS::column, "column");
+                AddString(isolate, CS::table, "table");
+                AddString(isolate, CS::type, "type");
 
                 AddCode(isolate, SQLITE_OK, "SQLITE_OK");
                 AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
@@ -191,30 +200,30 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
                 AddCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 }
-#line 133 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
 v8::Local <v8::String> CS::InternalizedFromLatin1 (v8::Isolate * isolate, char const * str)
-#line 133 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
                                                                                                    {
                 return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
 }
-#line 136 "./src/util/constants.lzz"
+#line 142 "./src/util/constants.lzz"
 void CS::AddString (v8::Isolate * isolate, ConstantString & constant, char const * str)
-#line 136 "./src/util/constants.lzz"
+#line 142 "./src/util/constants.lzz"
                                                                                                {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
-#line 139 "./src/util/constants.lzz"
+#line 145 "./src/util/constants.lzz"
 void CS::AddCode (v8::Isolate * isolate, int code, char const * str)
-#line 139 "./src/util/constants.lzz"
+#line 145 "./src/util/constants.lzz"
                                                                              {
                 codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 }
-#line 142 "./src/util/constants.lzz"
+#line 148 "./src/util/constants.lzz"
 CS::CS (char _)
-#line 142 "./src/util/constants.lzz"
+#line 148 "./src/util/constants.lzz"
                             { assert(false);
 }
-#line 144 "./src/util/constants.lzz"
+#line 150 "./src/util/constants.lzz"
 std::unordered_map <int, ConstantString> CS::codes;
 #line 19 "./src/util/bind-map.lzz"
 BindMap::Pair::Pair (v8::Isolate * isolate, char const * _name, int _index)
@@ -715,14 +724,15 @@ void Statement::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v
                 NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
                 NODE_SET_PROTOTYPE_METHOD(t, "raw", JS_raw);
                 NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
+                NODE_SET_PROTOTYPE_METHOD(t, "columns", JS_columns);
 
                 constructor.Reset(isolate, t->GetFunction( isolate -> GetCurrentContext ( ) ).ToLocalChecked());
                 next_id = 0;
                 constructing_privileges = false;
 }
-#line 95 "./src/objects/statement.lzz"
+#line 96 "./src/objects/statement.lzz"
 void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 95 "./src/objects/statement.lzz"
+#line 96 "./src/objects/statement.lzz"
                             {
                 if (!constructing_privileges) {
                         return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
@@ -763,9 +773,9 @@ void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 
                 info.GetReturnValue().Set(info.This());
 }
-#line 136 "./src/objects/statement.lzz"
+#line 137 "./src/objects/statement.lzz"
 void Statement::JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 136 "./src/objects/statement.lzz"
+#line 137 "./src/objects/statement.lzz"
                             {
                 Statement * stmt = node :: ObjectWrap :: Unwrap < Statement > ( info . This ( ) ) ; if ( stmt -> returns_data ) return ThrowTypeError ( "This statement returns data. Use get(), all(), or iterate() instead" ) ; sqlite3_stmt * handle = stmt -> handle ; Database * db = stmt -> db ; if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ; if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; const bool bound = stmt -> bound ; if ( ! bound ) { Binder binder ( handle ) ; if ( ! binder . Bind ( info , info . Length ( ) , stmt ) ) { sqlite3_clear_bindings ( handle ) ; return ; } ( ( void ) 0 ) ; } else if ( info . Length ( ) > 0 ) return ThrowTypeError ( "This statement already has bound parameters" ) ; db -> GetState ( ) -> busy = true ;
                 sqlite3* db_handle = db->GetHandle();
@@ -783,9 +793,9 @@ void Statement::JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 }
                 db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 154 "./src/objects/statement.lzz"
+#line 155 "./src/objects/statement.lzz"
 void Statement::JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 154 "./src/objects/statement.lzz"
+#line 155 "./src/objects/statement.lzz"
                             {
                 Statement * stmt = node :: ObjectWrap :: Unwrap < Statement > ( info . This ( ) ) ; if ( ! stmt -> returns_data ) return ThrowTypeError ( "This statement does not return data. Use run() instead" ) ; sqlite3_stmt * handle = stmt -> handle ; Database * db = stmt -> db ; if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ; if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; const bool bound = stmt -> bound ; if ( ! bound ) { Binder binder ( handle ) ; if ( ! binder . Bind ( info , info . Length ( ) , stmt ) ) { sqlite3_clear_bindings ( handle ) ; return ; } ( ( void ) 0 ) ; } else if ( info . Length ( ) > 0 ) return ThrowTypeError ( "This statement already has bound parameters" ) ; db -> GetState ( ) -> busy = true ;
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
@@ -805,9 +815,9 @@ void Statement::JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 sqlite3_reset(handle);
                 db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 174 "./src/objects/statement.lzz"
+#line 175 "./src/objects/statement.lzz"
 void Statement::JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 174 "./src/objects/statement.lzz"
+#line 175 "./src/objects/statement.lzz"
                             {
                 Statement * stmt = node :: ObjectWrap :: Unwrap < Statement > ( info . This ( ) ) ; if ( ! stmt -> returns_data ) return ThrowTypeError ( "This statement does not return data. Use run() instead" ) ; sqlite3_stmt * handle = stmt -> handle ; Database * db = stmt -> db ; if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ; if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; const bool bound = stmt -> bound ; if ( ! bound ) { Binder binder ( handle ) ; if ( ! binder . Bind ( info , info . Length ( ) , stmt ) ) { sqlite3_clear_bindings ( handle ) ; return ; } ( ( void ) 0 ) ; } else if ( info . Length ( ) > 0 ) return ThrowTypeError ( "This statement already has bound parameters" ) ; db -> GetState ( ) -> busy = true ;
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ; v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -835,16 +845,16 @@ void Statement::JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if (js_error) db->GetState()->was_js_error = true;
                 db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 202 "./src/objects/statement.lzz"
+#line 203 "./src/objects/statement.lzz"
 void Statement::JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 202 "./src/objects/statement.lzz"
+#line 203 "./src/objects/statement.lzz"
                                 {
                 v8::MaybeLocal<v8::Object> maybe_iter = StatementIterator::New( info . GetIsolate ( ) , info);
                 if (!maybe_iter.IsEmpty()) info.GetReturnValue().Set(maybe_iter.ToLocalChecked());
 }
-#line 207 "./src/objects/statement.lzz"
+#line 208 "./src/objects/statement.lzz"
 void Statement::JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 207 "./src/objects/statement.lzz"
+#line 208 "./src/objects/statement.lzz"
                              {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
                 if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
@@ -854,9 +864,9 @@ void Statement::JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 stmt->bound = true;
                 info.GetReturnValue().Set(info.This());
 }
-#line 217 "./src/objects/statement.lzz"
+#line 218 "./src/objects/statement.lzz"
 void Statement::JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 217 "./src/objects/statement.lzz"
+#line 218 "./src/objects/statement.lzz"
                               {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
                 if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
@@ -866,9 +876,9 @@ void Statement::JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if (stmt->pluck) stmt->expand = stmt->raw = false;
                 info.GetReturnValue().Set(info.This());
 }
-#line 227 "./src/objects/statement.lzz"
+#line 228 "./src/objects/statement.lzz"
 void Statement::JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 227 "./src/objects/statement.lzz"
+#line 228 "./src/objects/statement.lzz"
                                {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
                 if (!stmt->returns_data) return ThrowTypeError("The expand() method is only for statements that return data");
@@ -878,9 +888,9 @@ void Statement::JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if (stmt->expand) stmt->pluck = stmt->raw = false;
                 info.GetReturnValue().Set(info.This());
 }
-#line 237 "./src/objects/statement.lzz"
+#line 238 "./src/objects/statement.lzz"
 void Statement::JS_raw (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 237 "./src/objects/statement.lzz"
+#line 238 "./src/objects/statement.lzz"
                             {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
                 if (!stmt->returns_data) return ThrowTypeError("The raw() method is only for statements that return data");
@@ -890,9 +900,9 @@ void Statement::JS_raw (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if (stmt->raw) stmt->pluck = stmt->expand = false;
                 info.GetReturnValue().Set(info.This());
 }
-#line 247 "./src/objects/statement.lzz"
+#line 248 "./src/objects/statement.lzz"
 void Statement::JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 247 "./src/objects/statement.lzz"
+#line 248 "./src/objects/statement.lzz"
                                      {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
                 if ( stmt -> db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
@@ -900,11 +910,54 @@ void Statement::JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & 
                 else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; stmt -> safe_ints = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
                 info.GetReturnValue().Set(info.This());
 }
-#line 255 "./src/objects/statement.lzz"
-v8::Persistent <v8::Function> Statement::constructor;
 #line 256 "./src/objects/statement.lzz"
+void Statement::JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info)
+#line 256 "./src/objects/statement.lzz"
+                                {
+                Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
+                if (!stmt->returns_data) return ThrowTypeError("The columns() method is only for statements that return data");
+                if ( ! stmt -> db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
+                if ( stmt -> db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
+                v8 :: Isolate * isolate = info . GetIsolate ( ) ; v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
+
+                int column_count = sqlite3_column_count(stmt->handle);
+                v8::Local<v8::Array> columns = v8::Array::New(isolate);
+
+                v8::Local<v8::String> name = CS::Get(isolate, CS::name);
+                v8::Local<v8::String> columnName = CS::Get(isolate, CS::column);
+                v8::Local<v8::String> tableName = CS::Get(isolate, CS::table);
+                v8::Local<v8::String> databaseName = CS::Get(isolate, CS::database);
+                v8::Local<v8::String> typeName = CS::Get(isolate, CS::type);
+
+                for (int i=0; i<column_count; ++i) {
+                        v8::Local<v8::Object> column = v8::Object::New(isolate);
+
+                        column->Set(ctx, name,
+                                InternalizedFromUtf8OrNull(isolate, sqlite3_column_name(stmt->handle, i), -1)
+                        ).FromJust();
+                        column->Set(ctx, columnName,
+                                InternalizedFromUtf8OrNull(isolate, sqlite3_column_origin_name(stmt->handle, i), -1)
+                        ).FromJust();
+                        column->Set(ctx, tableName,
+                                InternalizedFromUtf8OrNull(isolate, sqlite3_column_table_name(stmt->handle, i), -1)
+                        ).FromJust();
+                        column->Set(ctx, databaseName,
+                                InternalizedFromUtf8OrNull(isolate, sqlite3_column_database_name(stmt->handle, i), -1)
+                        ).FromJust();
+                        column->Set(ctx, typeName,
+                                InternalizedFromUtf8OrNull(isolate, sqlite3_column_decltype(stmt->handle, i), -1)
+                        ).FromJust();
+
+                        columns->Set(ctx, i, column).FromJust();
+                }
+
+                info.GetReturnValue().Set(columns);
+}
+#line 297 "./src/objects/statement.lzz"
+v8::Persistent <v8::Function> Statement::constructor;
+#line 298 "./src/objects/statement.lzz"
 sqlite3_uint64 Statement::next_id;
-#line 257 "./src/objects/statement.lzz"
+#line 299 "./src/objects/statement.lzz"
 bool Statement::constructing_privileges;
 #line 5 "./src/objects/statement-iterator.lzz"
 v8::MaybeLocal <v8::Object> StatementIterator::New (v8::Isolate * isolate, v8::FunctionCallbackInfo <v8 :: Value> const & info)
@@ -1191,8 +1244,8 @@ namespace Data
   v8::Local <v8::Value> GetRowJS (v8::Isolate * isolate, v8::Local <v8::Context> ctx, sqlite3_stmt * handle, bool safe_ints)
 #line 64 "./src/util/data.lzz"
                                                                                                                               {
-                int column_count = sqlite3_column_count(handle);
                 v8::Local<v8::Object> row = v8::Object::New(isolate);
+                int column_count = sqlite3_column_count(handle);
                 for (int i=0; i<column_count; ++i) {
                         row->Set(ctx,
                                 InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
@@ -1208,8 +1261,8 @@ namespace Data
   v8::Local <v8::Value> GetExpandedRowJS (v8::Isolate * isolate, v8::Local <v8::Context> ctx, sqlite3_stmt * handle, bool safe_ints)
 #line 75 "./src/util/data.lzz"
                                                                                                                                       {
-                int column_count = sqlite3_column_count(handle);
                 v8::Local<v8::Object> row = v8::Object::New(isolate);
+                int column_count = sqlite3_column_count(handle);
                 for (int i=0; i<column_count; ++i) {
                         const char* table_raw = sqlite3_column_table_name(handle, i);
                         v8::Local<v8::String> table = InternalizedFromUtf8(isolate, table_raw == NULL ? "$" : table_raw, -1);
@@ -1233,10 +1286,10 @@ namespace Data
   v8::Local <v8::Value> GetRawRowJS (v8::Isolate * isolate, v8::Local <v8::Context> ctx, sqlite3_stmt * handle, bool safe_ints)
 #line 94 "./src/util/data.lzz"
                                                                                                                                  {
+                v8::Local<v8::Array> row = v8::Array::New(isolate);
                 int column_count = sqlite3_column_count(handle);
-                v8::Local<v8::Array> row = v8::Array::New(isolate, (uint32_t)column_count);
                 for (int i=0; i<column_count; ++i) {
-                        row->Set(ctx, (uint32_t)i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
+                        row->Set(ctx, i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
                 }
                 return row;
   }

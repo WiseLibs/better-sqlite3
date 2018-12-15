@@ -258,6 +258,7 @@ An object representing a single SQL statement.
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#expand()](#expandtogglestate---this)
 - [Statement#raw()](#rawtogglestate---this)
+- [Statement#columns()](#columns---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -372,7 +373,7 @@ stmt.expand(false); // expansion OFF
 
 **(only on statements that return data)*
 
-Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows.
+Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows. Column names can be recovered by using the [`.columns()`](#columns---this) method.
 
 You can toggle this on/off as you please:
 
@@ -383,6 +384,41 @@ stmt.raw(false); // arrays OFF
 ```
 
 > When raw mode is turned on, [plucking](#plucktogglestate---this) and [expansion](#expandtogglestate---this) are turned off (they are mutually exclusive options).
+
+### .columns() -> *array of objects*
+
+**(only on statements that return data)*
+
+Provides introspection of the prepared statement's result columns. This method is primarily used in conjunction with [raw mode](#rawtogglestate---this). It returns an array of objects, where each object represents a result column of the prepared statement. Each object has the following properties:
+
+- `.name`: the name (or alias) of the result column.
+- `.column`: the name of the originating table column, or `null` if it's an expression or subquery.
+- `.table`: the name of the originating table, or `null` if it's an expression or subquery.
+- `.database`: the name of the originating database, or `null` if it's an
+expression or subquery.
+- `.type`: the name of the [declared type](https://www.sqlite.org/datatype3.html#determination_of_column_affinity), or `null` if it's an expression or subquery.
+
+```js
+const fs = require('fs');
+
+function* toRows(stmt) {
+  yield stmt.columns().map(column => column.name);
+  yield* stmt.raw().iterate();
+}
+
+function writeToCSV(filename, stmt) {
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filename);
+    for (const row of toRows(stmt)) {
+      stream.write(row.join(',') + '\n');
+    }
+    stream.on('error', reject);
+    stream.end(resolve);
+  });
+}
+```
+
+> When a table's schema is altered, the result columns of existing prepared statements can also change. However, such changes will not be reflected by this method until the prepared statement is re-executed. For this reason, it's perhaps better to invoke `.columns()` _after_ `.get()`, `.all()`, or `.iterate()`.
 
 ### .bind([*...bindParameters*]) -> *this*
 

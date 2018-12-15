@@ -22,6 +22,11 @@ inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const ch
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
 
+inline v8::Local<v8::Value> InternalizedFromUtf8OrNull(v8::Isolate* isolate, const char* data, int length) {
+	if (data == NULL) return v8::Null(isolate);
+	return InternalizedFromUtf8(isolate, data, length);
+}
+
 inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, ConstantString& key, v8::Local<v8::Value> value) {
 	static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
 	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();

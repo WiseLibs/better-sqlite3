@@ -23,6 +23,9 @@ public:
 	static ConstantString lastInsertRowid;
 	static ConstantString code;
 	static ConstantString statement;
+	static ConstantString column;
+	static ConstantString table;
+	static ConstantString type;
 
 private:
 	REGISTER(Init) {
@@ -40,6 +43,9 @@ private:
 		AddString(isolate, CS::lastInsertRowid, "lastInsertRowid");
 		AddString(isolate, CS::code, "code");
 		AddString(isolate, CS::statement, "statement");
+		AddString(isolate, CS::column, "column");
+		AddString(isolate, CS::table, "table");
+		AddString(isolate, CS::type, "type");
 
 		AddCode(isolate, SQLITE_OK, "SQLITE_OK");
 		AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
