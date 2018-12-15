@@ -389,7 +389,7 @@ stmt.raw(false); // raw mode OFF
 
 **(only on statements that return data)*
 
-Provides introspection of the prepared statement's result columns. This method is primarily used in conjunction with [raw mode](#rawtogglestate---this). It returns an array of objects, where each object represents a result column of the prepared statement. Each object has the following properties:
+This method is primarily used in conjunction with [raw mode](#rawtogglestate---this). It returns an array of objects, where each object describes a result column of the prepared statement. Each object has the following properties:
 
 - `.name`: the name (or alias) of the result column.
 - `.column`: the name of the originating table column, or `null` if it's an expression or subquery.
@@ -418,7 +418,7 @@ function writeToCSV(filename, stmt) {
 }
 ```
 
-> When a table's schema is altered, the result columns of existing prepared statements can also change. However, such changes will not be reflected by this method until the prepared statement is re-executed. For this reason, it's perhaps better to invoke `.columns()` _after_ `.get()`, `.all()`, or `.iterate()`.
+> When a table's schema is altered, existing prepared statements might start returning different result columns. However, such changes will not be reflected by this method until the prepared statement is re-executed. For this reason, it's perhaps better to invoke `.columns()` _after_ `.get()`, `.all()`, or `.iterate()`.
 
 ### .bind([*...bindParameters*]) -> *this*
 
