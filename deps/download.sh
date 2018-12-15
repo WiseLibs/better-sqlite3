@@ -18,7 +18,7 @@
 # 3. node-gyp links the two resulting binaries to generate better_sqlite3.node.
 # ===
 
-VERSION="3250200"
+VERSION="3260000"
 YEAR="2018"
 
 # TODO: SQLITE_ENABLE_GEOPOLY (determine if the emitted warnings are safe or not)

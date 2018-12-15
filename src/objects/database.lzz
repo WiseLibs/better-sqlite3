@@ -112,6 +112,8 @@ private:
 		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
 		int status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, NULL);
 		assert(status == SQLITE_OK); ((void)status);
+		status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_DEFENSIVE, 1);
+		assert(status == SQLITE_OK); ((void)status);
 
 		UseContext;
 		Database* db = new Database(db_handle);

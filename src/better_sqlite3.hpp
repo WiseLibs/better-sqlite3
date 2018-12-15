@@ -252,57 +252,57 @@ private:
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 86 "./src/objects/database.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 126 "./src/objects/database.lzz"
+#line 128 "./src/objects/database.lzz"
   static void JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 132 "./src/objects/database.lzz"
+#line 134 "./src/objects/database.lzz"
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 145 "./src/objects/database.lzz"
+#line 147 "./src/objects/database.lzz"
   static void JS_pragma (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 149 "./src/objects/database.lzz"
+#line 151 "./src/objects/database.lzz"
   static void JS_checkpoint (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 191 "./src/objects/database.lzz"
+#line 193 "./src/objects/database.lzz"
   static void JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 212 "./src/objects/database.lzz"
+#line 214 "./src/objects/database.lzz"
   static void JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 238 "./src/objects/database.lzz"
+#line 240 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 251 "./src/objects/database.lzz"
+#line 253 "./src/objects/database.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 261 "./src/objects/database.lzz"
+#line 263 "./src/objects/database.lzz"
   static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 269 "./src/objects/database.lzz"
+#line 271 "./src/objects/database.lzz"
   static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 273 "./src/objects/database.lzz"
+#line 275 "./src/objects/database.lzz"
   static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 278 "./src/objects/database.lzz"
+#line 280 "./src/objects/database.lzz"
   void CloseHandles ();
-#line 288 "./src/objects/database.lzz"
+#line 290 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle);
-#line 292 "./src/objects/database.lzz"
+#line 294 "./src/objects/database.lzz"
   static void ThrowSqliteError (sqlite3 * db_handle, char const * message, int code);
-#line 301 "./src/objects/database.lzz"
+#line 303 "./src/objects/database.lzz"
   static void AtExit (void * _);
-#line 306 "./src/objects/database.lzz"
-  static std::set <Database*, Database::CompareDatabase> dbs;
-#line 307 "./src/objects/database.lzz"
-  static v8::Persistent <v8::Function> SqliteError;
 #line 308 "./src/objects/database.lzz"
-  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+  static std::set <Database*, Database::CompareDatabase> dbs;
 #line 309 "./src/objects/database.lzz"
-  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
+  static v8::Persistent <v8::Function> SqliteError;
+#line 310 "./src/objects/database.lzz"
+  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 #line 311 "./src/objects/database.lzz"
-  sqlite3 * const db_handle;
-#line 312 "./src/objects/database.lzz"
-  bool open;
+  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 #line 313 "./src/objects/database.lzz"
-  bool busy;
+  sqlite3 * const db_handle;
 #line 314 "./src/objects/database.lzz"
-  bool pragma_mode;
+  bool open;
 #line 315 "./src/objects/database.lzz"
-  bool safe_ints;
+  bool busy;
 #line 316 "./src/objects/database.lzz"
-  bool was_js_error;
+  bool pragma_mode;
 #line 317 "./src/objects/database.lzz"
+  bool safe_ints;
+#line 318 "./src/objects/database.lzz"
+  bool was_js_error;
+#line 319 "./src/objects/database.lzz"
   std::set <Statement*, Database::CompareStatement> stmts;
 };
 #line 1 "./src/objects/statement.lzz"
