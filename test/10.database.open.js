@@ -26,15 +26,14 @@ describe('new Database()', function () {
 		expect(() => new Database(`file:${util.next()}`)).to.throw(TypeError);
 		expect(() => new Database(`file:${util.next()}?mode=memory&cache=shared`)).to.throw(TypeError);
 	});
-	it('should allow disk-bound databases to be created', function () {
-		expect(existsSync(util.next())).to.be.false;
-		const db = Database(util.current());
-		expect(db.name).to.equal(util.current());
-		expect(db.memory).to.be.false;
+	it('should allow anonymous in-memory databases to be created', function () {
+		const db = new Database(':memory:');
+		expect(db.name).to.equal(':memory:');
+		expect(db.memory).to.be.true;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		expect(existsSync(util.current())).to.be.true;
+		expect(existsSync(':memory:')).to.be.false;
 	});
 	it('should allow named in-memory databases to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -46,14 +45,15 @@ describe('new Database()', function () {
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.false;
 	});
-	it('should allow anonymous in-memory databases to be created', function () {
-		const db = new Database(':memory:');
-		expect(db.name).to.equal(':memory:');
-		expect(db.memory).to.be.true;
+	it('should allow disk-bound databases to be created', function () {
+		expect(existsSync(util.next())).to.be.false;
+		const db = Database(util.current());
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
-		expect(existsSync(':memory:')).to.be.false;
+		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should not allow conflicting in-memory options', function () {
 		expect(() => new Database(':memory:', { memory: false })).to.throw(TypeError);
