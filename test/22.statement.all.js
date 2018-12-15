@@ -51,6 +51,7 @@ describe('Statement#all()', function () {
 		}));
 		const rows = expanded.map(x => ({ ...x.entries, ...x.$ }));
 		const plucked = expanded.map(x => x.entries.a);
+		const raw = expanded.map(x => Object.values(x.entries).concat(x.$.c))
 		expect(stmt.all()).to.deep.equal(rows);
 		expect(stmt.pluck(true).all()).to.deep.equal(plucked);
 		expect(stmt.all()).to.deep.equal(plucked);
@@ -66,6 +67,14 @@ describe('Statement#all()', function () {
 		expect(stmt.all()).to.deep.equal(expanded);
 		expect(stmt.pluck(true).all()).to.deep.equal(plucked);
 		expect(stmt.all()).to.deep.equal(plucked);
+		expect(stmt.raw().all()).to.deep.equal(raw);
+		expect(stmt.all()).to.deep.equal(raw);
+		expect(stmt.raw(false).all()).to.deep.equal(rows);
+		expect(stmt.all()).to.deep.equal(rows);
+		expect(stmt.raw(true).all()).to.deep.equal(raw);
+		expect(stmt.all()).to.deep.equal(raw);
+		expect(stmt.expand(true).all()).to.deep.equal(expanded);
+		expect(stmt.all()).to.deep.equal(expanded);
 	});
 	it('should return an empty array when no rows were found', function () {
 		const stmt = this.db.prepare("SELECT * FROM entries WHERE b == 999");

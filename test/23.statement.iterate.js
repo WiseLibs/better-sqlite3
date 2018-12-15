@@ -64,7 +64,9 @@ describe('Statement#iterate()', function () {
 			for (const data of stmt.iterate()) {
 				i += 1;
 				if (typeof desiredData === 'object' && desiredData !== null) {
-					if (typeof desiredData.entries === 'object' && desiredData.entries !== null) {
+					if (Array.isArray(desiredData)) {
+						desiredData[1] = i;
+					} else if (typeof desiredData.entries === 'object' && desiredData.entries !== null) {
 						desiredData.entries.b = i;
 					} else {
 						desiredData.b = i;
@@ -80,6 +82,7 @@ describe('Statement#iterate()', function () {
 		};
 		const row = { ...expanded.entries, ...expanded.$ };
 		const plucked = expanded.entries.a;
+		const raw = Object.values(expanded.entries).concat(expanded.$.c);
 		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
 		shouldHave(row);
 		stmt.pluck(true);
@@ -103,6 +106,18 @@ describe('Statement#iterate()', function () {
 		stmt.pluck(true);
 		shouldHave(plucked);
 		shouldHave(plucked);
+		stmt.raw();
+		shouldHave(raw);
+		shouldHave(raw);
+		stmt.raw(false);
+		shouldHave(row);
+		shouldHave(row);
+		stmt.raw(true);
+		shouldHave(raw);
+		shouldHave(raw);
+		stmt.expand(true);
+		shouldHave(expanded);
+		shouldHave(expanded);
 	});
 	it('should not be able to invoke .pluck() while the database is busy', function () {
 		const stmt1 = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
