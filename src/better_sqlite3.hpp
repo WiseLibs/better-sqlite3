@@ -338,53 +338,57 @@ private:
   };
 #line 56 "./src/objects/statement.lzz"
   explicit Statement (Database * _db, sqlite3_stmt * _handle, bool _returns_data);
-#line 74 "./src/objects/statement.lzz"
+#line 75 "./src/objects/statement.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 74 "./src/objects/statement.lzz"
+#line 75 "./src/objects/statement.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 93 "./src/objects/statement.lzz"
+#line 95 "./src/objects/statement.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 134 "./src/objects/statement.lzz"
+#line 136 "./src/objects/statement.lzz"
   static void JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 152 "./src/objects/statement.lzz"
+#line 154 "./src/objects/statement.lzz"
   static void JS_get (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 171 "./src/objects/statement.lzz"
+#line 174 "./src/objects/statement.lzz"
   static void JS_all (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 197 "./src/objects/statement.lzz"
-  static void JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 202 "./src/objects/statement.lzz"
+  static void JS_iterate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 207 "./src/objects/statement.lzz"
   static void JS_bind (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 212 "./src/objects/statement.lzz"
+#line 217 "./src/objects/statement.lzz"
   static void JS_pluck (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 222 "./src/objects/statement.lzz"
+#line 227 "./src/objects/statement.lzz"
   static void JS_expand (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 232 "./src/objects/statement.lzz"
-  static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 240 "./src/objects/statement.lzz"
-  static v8::Persistent <v8::Function> constructor;
-#line 241 "./src/objects/statement.lzz"
-  static sqlite3_uint64 next_id;
-#line 242 "./src/objects/statement.lzz"
-  static bool constructing_privileges;
-#line 244 "./src/objects/statement.lzz"
-  Database * const db;
-#line 245 "./src/objects/statement.lzz"
-  sqlite3_stmt * const handle;
-#line 246 "./src/objects/statement.lzz"
-  Extras * const extras;
+#line 237 "./src/objects/statement.lzz"
+  static void JS_raw (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 247 "./src/objects/statement.lzz"
+  static void JS_safeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 255 "./src/objects/statement.lzz"
+  static v8::Persistent <v8::Function> constructor;
+#line 256 "./src/objects/statement.lzz"
+  static sqlite3_uint64 next_id;
+#line 257 "./src/objects/statement.lzz"
+  static bool constructing_privileges;
+#line 259 "./src/objects/statement.lzz"
+  Database * const db;
+#line 260 "./src/objects/statement.lzz"
+  sqlite3_stmt * const handle;
+#line 261 "./src/objects/statement.lzz"
+  Extras * const extras;
+#line 262 "./src/objects/statement.lzz"
   bool alive;
-#line 248 "./src/objects/statement.lzz"
+#line 263 "./src/objects/statement.lzz"
   bool bound;
-#line 249 "./src/objects/statement.lzz"
+#line 264 "./src/objects/statement.lzz"
   bool has_bind_map;
-#line 250 "./src/objects/statement.lzz"
+#line 265 "./src/objects/statement.lzz"
   bool safe_ints;
-#line 251 "./src/objects/statement.lzz"
+#line 266 "./src/objects/statement.lzz"
   bool pluck;
-#line 252 "./src/objects/statement.lzz"
+#line 267 "./src/objects/statement.lzz"
   bool expand;
-#line 253 "./src/objects/statement.lzz"
+#line 268 "./src/objects/statement.lzz"
+  bool raw;
+#line 269 "./src/objects/statement.lzz"
   bool const returns_data;
 };
 #line 1 "./src/objects/statement-iterator.lzz"
@@ -400,47 +404,49 @@ public:
 private:
 #line 20 "./src/objects/statement-iterator.lzz"
   explicit StatementIterator (Statement * _stmt, bool _bound);
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 34 "./src/objects/statement-iterator.lzz"
+#line 35 "./src/objects/statement-iterator.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 47 "./src/objects/statement-iterator.lzz"
+#line 48 "./src/objects/statement-iterator.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 64 "./src/objects/statement-iterator.lzz"
+#line 65 "./src/objects/statement-iterator.lzz"
   static void JS_next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 70 "./src/objects/statement-iterator.lzz"
+#line 71 "./src/objects/statement-iterator.lzz"
   static void JS_return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 76 "./src/objects/statement-iterator.lzz"
+#line 77 "./src/objects/statement-iterator.lzz"
   static void JS_symbolIterator (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 81 "./src/objects/statement-iterator.lzz"
   void Next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 96 "./src/objects/statement-iterator.lzz"
+#line 98 "./src/objects/statement-iterator.lzz"
   void Return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 102 "./src/objects/statement-iterator.lzz"
+#line 104 "./src/objects/statement-iterator.lzz"
   void Throw ();
-#line 108 "./src/objects/statement-iterator.lzz"
+#line 110 "./src/objects/statement-iterator.lzz"
   void Cleanup ();
-#line 114 "./src/objects/statement-iterator.lzz"
+#line 116 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> NewRecord (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Value> value, bool done = false);
-#line 121 "./src/objects/statement-iterator.lzz"
+#line 123 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> DoneRecord (v8::Isolate * isolate);
-#line 125 "./src/objects/statement-iterator.lzz"
+#line 127 "./src/objects/statement-iterator.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 126 "./src/objects/statement-iterator.lzz"
-  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 128 "./src/objects/statement-iterator.lzz"
-  Statement * const stmt;
-#line 129 "./src/objects/statement-iterator.lzz"
-  sqlite3_stmt * const handle;
+  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 130 "./src/objects/statement-iterator.lzz"
-  bool const safe_ints;
+  Statement * const stmt;
 #line 131 "./src/objects/statement-iterator.lzz"
-  bool const pluck;
+  sqlite3_stmt * const handle;
 #line 132 "./src/objects/statement-iterator.lzz"
-  bool const expand;
+  bool const safe_ints;
 #line 133 "./src/objects/statement-iterator.lzz"
-  bool const bound;
+  bool const pluck;
 #line 134 "./src/objects/statement-iterator.lzz"
+  bool const expand;
+#line 135 "./src/objects/statement-iterator.lzz"
+  bool const raw;
+#line 136 "./src/objects/statement-iterator.lzz"
+  bool const bound;
+#line 137 "./src/objects/statement-iterator.lzz"
   bool alive;
 };
 #line 1 "./src/util/custom-function.lzz"
@@ -555,18 +561,24 @@ namespace Data
 namespace Data
 {
 #line 94 "./src/util/data.lzz"
+  v8::Local <v8::Value> GetRawRowJS (v8::Isolate * isolate, v8::Local <v8::Context> ctx, sqlite3_stmt * handle, bool safe_ints);
+}
+#line 54 "./src/util/data.lzz"
+namespace Data
+{
+#line 103 "./src/util/data.lzz"
   void GetArgumentsJS (v8::Isolate * isolate, v8::Local <v8::Value> * out, sqlite3_value * * values, int argument_count, bool safe_ints);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 101 "./src/util/data.lzz"
+#line 110 "./src/util/data.lzz"
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 106 "./src/util/data.lzz"
+#line 115 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function);
 }
 #line 1 "./src/util/binder.lzz"

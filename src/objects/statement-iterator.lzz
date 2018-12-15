@@ -23,6 +23,7 @@ private:
 		safe_ints(_stmt->safe_ints),
 		pluck(_stmt->pluck),
 		expand(_stmt->expand),
+		raw(_stmt->raw),
 		bound(_bound),
 		alive(true) {
 		assert(stmt != NULL);
@@ -84,7 +85,8 @@ private:
 			UseIsolateAndContext;
 			info.GetReturnValue().Set(NewRecord(isolate, ctx,
 				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
-				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints)
+				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints) :
+				raw ? Data::GetRawRowJS(isolate, ctx, handle, safe_ints)
 				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
 			));
 		} else {
@@ -130,6 +132,7 @@ private:
 	const bool safe_ints;
 	const bool pluck;
 	const bool expand;
+	const bool raw;
 	const bool bound;
 	bool alive;
 };
