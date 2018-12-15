@@ -257,6 +257,7 @@ An object representing a single SQL statement.
 - [Statement#iterate()](#iteratebindparameters---iterator)
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#expand()](#expandtogglestate---this)
+- [Statement#raw()](#rawtogglestate---this)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -349,7 +350,7 @@ stmt.pluck(true); // plucking ON
 stmt.pluck(false); // plucking OFF
 ```
 
-> When plucking is turned on, [expansion](#expandtogglestate---this) is turned off (they are mutually exclusive options).
+> When plucking is turned on, [expansion](#expandtogglestate---this) and [raw mode](#rawtogglestate---this) are turned off (they are mutually exclusive options).
 
 ### .expand([toggleState]) -> *this*
 
@@ -365,7 +366,23 @@ stmt.expand(true); // expansion ON
 stmt.expand(false); // expansion OFF
 ```
 
-> When expansion is turned on, [plucking](#plucktogglestate---this) is turned off (they are mutually exclusive options).
+> When expansion is turned on, [plucking](#plucktogglestate---this) and [raw mode](#rawtogglestate---this) are turned off (they are mutually exclusive options).
+
+### .raw([toggleState]) -> *this*
+
+**(only on statements that return data)*
+
+Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows.
+
+You can toggle this on/off as you please:
+
+```js
+stmt.raw(); // arrays ON
+stmt.raw(true); // arrays ON
+stmt.raw(false); // arrays OFF
+```
+
+> When raw mode is turned on, [plucking](#plucktogglestate---this) and [expansion](#expandtogglestate---this) are turned off (they are mutually exclusive options).
 
 ### .bind([*...bindParameters*]) -> *this*
 
