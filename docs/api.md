@@ -258,7 +258,7 @@ An object representing a single SQL statement.
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#expand()](#expandtogglestate---this)
 - [Statement#raw()](#rawtogglestate---this)
-- [Statement#columns()](#columns---this)
+- [Statement#columns()](#columns---array-of-objects)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -373,14 +373,14 @@ stmt.expand(false); // expansion OFF
 
 **(only on statements that return data)*
 
-Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows. Column names can be recovered by using the [`.columns()`](#columns---this) method.
+Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows. Column names can be recovered by using the [`.columns()`](#columns---array-of-objects) method.
 
 You can toggle this on/off as you please:
 
 ```js
-stmt.raw(); // arrays ON
-stmt.raw(true); // arrays ON
-stmt.raw(false); // arrays OFF
+stmt.raw(); // raw mode ON
+stmt.raw(true); // raw mode ON
+stmt.raw(false); // raw mode OFF
 ```
 
 > When raw mode is turned on, [plucking](#plucktogglestate---this) and [expansion](#expandtogglestate---this) are turned off (they are mutually exclusive options).
