@@ -49,7 +49,7 @@ describe('Statement#all()', function () {
 			entries: { a: 'foo', b: i + 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null },
 			$: { c: 5.5 },
 		}));
-		const rows = expanded.map(x => ({ ...x.entries, ...x.$ }));
+		const rows = expanded.map(x => Object.assign({}, x.entries, x.$));
 		const plucked = expanded.map(x => x.entries.a);
 		const raw = expanded.map(x => Object.values(x.entries).concat(x.$.c))
 		expect(stmt.all()).to.deep.equal(rows);

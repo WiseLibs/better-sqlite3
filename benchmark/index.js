@@ -39,8 +39,8 @@ const displayTrialName = (trial) => {
 };
 
 const createContext = (trial, driver) => {
-	const { data: _unused, ...tableInfo } = tables.get(trial.table);
-	return JSON.stringify({ ...trial, ...tableInfo, driver, tables: [...tables.keys()] });
+	const tableInfo = Object.assign({}, tables.get(trial.table), { data: undefined });
+	return JSON.stringify(Object.assign({}, trial, tableInfo, { driver, tables: [...tables.keys()] }));
 };
 
 const erase = () => {

@@ -80,7 +80,7 @@ describe('Statement#iterate()', function () {
 			entries: { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null },
 			$: { c: 5.5 },
 		};
-		const row = { ...expanded.entries, ...expanded.$ };
+		const row = Object.assign({}, expanded.entries, expanded.$);
 		const plucked = expanded.entries.a;
 		const raw = Object.values(expanded.entries).concat(expanded.$.c);
 		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");

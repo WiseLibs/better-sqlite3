@@ -35,7 +35,7 @@ describe('Statement#get()', function () {
 	it('should obey the current pluck and expand settings', function () {
 		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
 		const expanded = { entries: { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null }, $: { c: 5.5 } };
-		const row = { ...expanded.entries, ...expanded.$ };
+		const row = Object.assign({}, expanded.entries, expanded.$);
 		const plucked = expanded.entries.a;
 		const raw = Object.values(expanded.entries).concat(expanded.$.c);
 		expect(stmt.get()).to.deep.equal(row);
