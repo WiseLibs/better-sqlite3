@@ -14,13 +14,13 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
-#line 79 "./src/util/macros.lzz"
+#line 82 "./src/util/macros.lzz"
 #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                        (V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
 #define EXTRACT_STRING(isolate, string) isolate, string
 #else
 #define EXTRACT_STRING(_unused, string) string
 #endif
-#line 147 "./src/util/macros.lzz"
+#line 150 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #line 154 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
@@ -39,23 +39,23 @@ void ThrowError (char const * message);
 void ThrowTypeError (char const * message);
 #line 37 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message);
-#line 88 "./src/util/macros.lzz"
+#line 91 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c);
-#line 96 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
 char const * COPY (char const * source);
-#line 104 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
 template <typename T>
-#line 104 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
 T * ALLOC_ARRAY (size_t count);
-#line 109 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 template <typename T>
-#line 109 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 void FREE_ARRAY (T * array_pointer);
-#line 113 "./src/util/macros.lzz"
+#line 116 "./src/util/macros.lzz"
 v8::Local <v8::Value> Require (v8::Local <v8::Object> module, char const * path);
-#line 121 "./src/util/macros.lzz"
+#line 124 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter);
-#line 135 "./src/util/macros.lzz"
+#line 138 "./src/util/macros.lzz"
 void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback);
 #line 1 "./src/util/constants.lzz"
 class CS
@@ -211,106 +211,114 @@ public:
 #line 6 "./src/objects/database.lzz"
   void ThrowDatabaseError ();
 #line 12 "./src/objects/database.lzz"
-  void AddStatement (Statement * stmt);
-#line 13 "./src/objects/database.lzz"
-  void RemoveStatement (Statement * stmt);
+  static void ThrowBackupError (sqlite3 * db_handle);
 #line 17 "./src/objects/database.lzz"
+  void AddStatement (Statement * stmt);
+#line 18 "./src/objects/database.lzz"
+  void RemoveStatement (Statement * stmt);
+#line 22 "./src/objects/database.lzz"
   struct State
   {
-#line 18 "./src/objects/database.lzz"
+#line 23 "./src/objects/database.lzz"
     bool const open;
-#line 19 "./src/objects/database.lzz"
+#line 24 "./src/objects/database.lzz"
     bool busy;
-#line 20 "./src/objects/database.lzz"
-    bool const pragma_mode;
-#line 21 "./src/objects/database.lzz"
-    bool const safe_ints;
-#line 22 "./src/objects/database.lzz"
-    bool was_js_error;
-  };
 #line 25 "./src/objects/database.lzz"
-  State * GetState ();
+    bool const pragma_mode;
+#line 26 "./src/objects/database.lzz"
+    bool const safe_ints;
+#line 27 "./src/objects/database.lzz"
+    bool was_js_error;
 #line 28 "./src/objects/database.lzz"
-  sqlite3 * GetHandle ();
-#line 32 "./src/objects/database.lzz"
-  ~ Database ();
-#line 37 "./src/objects/database.lzz"
-private:
-#line 39 "./src/objects/database.lzz"
-  class CompareDatabase
-  {
-#line 39 "./src/objects/database.lzz"
-  public:
-#line 40 "./src/objects/database.lzz"
-    bool operator () (Database const * const a, Database const * const b) const;
+    unsigned char backups;
   };
+#line 31 "./src/objects/database.lzz"
+  State * GetState ();
+#line 34 "./src/objects/database.lzz"
+  sqlite3 * GetHandle ();
+#line 38 "./src/objects/database.lzz"
+  ~ Database ();
+#line 43 "./src/objects/database.lzz"
+private:
 #line 45 "./src/objects/database.lzz"
-  class CompareStatement
+  class CompareDatabase
   {
 #line 45 "./src/objects/database.lzz"
   public:
 #line 46 "./src/objects/database.lzz"
-    bool operator () (Statement const * const a, Statement const * const b) const;
+    bool operator () (Database const * const a, Database const * const b) const;
   };
 #line 51 "./src/objects/database.lzz"
+  class CompareStatement
+  {
+#line 51 "./src/objects/database.lzz"
+  public:
+#line 52 "./src/objects/database.lzz"
+    bool operator () (Statement const * const a, Statement const * const b) const;
+  };
+#line 57 "./src/objects/database.lzz"
   explicit Database (sqlite3 * _db_handle);
-#line 63 "./src/objects/database.lzz"
+#line 70 "./src/objects/database.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 63 "./src/objects/database.lzz"
+#line 70 "./src/objects/database.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 86 "./src/objects/database.lzz"
+#line 94 "./src/objects/database.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 128 "./src/objects/database.lzz"
+#line 136 "./src/objects/database.lzz"
   static void JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 134 "./src/objects/database.lzz"
+#line 142 "./src/objects/database.lzz"
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 147 "./src/objects/database.lzz"
+#line 155 "./src/objects/database.lzz"
   static void JS_pragma (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 151 "./src/objects/database.lzz"
+#line 159 "./src/objects/database.lzz"
   static void JS_checkpoint (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 193 "./src/objects/database.lzz"
+#line 201 "./src/objects/database.lzz"
+  static void JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 210 "./src/objects/database.lzz"
   static void JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 214 "./src/objects/database.lzz"
+#line 231 "./src/objects/database.lzz"
   static void JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 240 "./src/objects/database.lzz"
+#line 257 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 253 "./src/objects/database.lzz"
-  static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 263 "./src/objects/database.lzz"
-  static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 271 "./src/objects/database.lzz"
-  static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 275 "./src/objects/database.lzz"
-  static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 280 "./src/objects/database.lzz"
-  void CloseHandles ();
+  static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 282 "./src/objects/database.lzz"
+  static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 290 "./src/objects/database.lzz"
-  static void ThrowSqliteError (sqlite3 * db_handle);
+  static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
 #line 294 "./src/objects/database.lzz"
-  static void ThrowSqliteError (sqlite3 * db_handle, char const * message, int code);
-#line 303 "./src/objects/database.lzz"
-  static void AtExit (void * _);
-#line 308 "./src/objects/database.lzz"
-  static std::set <Database*, Database::CompareDatabase> dbs;
+  static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
+#line 299 "./src/objects/database.lzz"
+  void CloseHandles ();
 #line 309 "./src/objects/database.lzz"
-  static v8::Persistent <v8::Function> SqliteError;
-#line 310 "./src/objects/database.lzz"
-  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
-#line 311 "./src/objects/database.lzz"
-  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
+  static void ThrowSqliteError (sqlite3 * db_handle);
 #line 313 "./src/objects/database.lzz"
+  static void ThrowSqliteError (sqlite3 * db_handle, char const * message, int code);
+#line 322 "./src/objects/database.lzz"
+  static void AtExit (void * _);
+#line 327 "./src/objects/database.lzz"
+  static std::set <Database*, Database::CompareDatabase> dbs;
+#line 328 "./src/objects/database.lzz"
+  static v8::Persistent <v8::Function> SqliteError;
+#line 329 "./src/objects/database.lzz"
+  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+#line 330 "./src/objects/database.lzz"
+  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
+#line 332 "./src/objects/database.lzz"
   sqlite3 * const db_handle;
-#line 314 "./src/objects/database.lzz"
+#line 333 "./src/objects/database.lzz"
   bool open;
-#line 315 "./src/objects/database.lzz"
+#line 334 "./src/objects/database.lzz"
   bool busy;
-#line 316 "./src/objects/database.lzz"
+#line 335 "./src/objects/database.lzz"
   bool pragma_mode;
-#line 317 "./src/objects/database.lzz"
+#line 336 "./src/objects/database.lzz"
   bool safe_ints;
-#line 318 "./src/objects/database.lzz"
+#line 337 "./src/objects/database.lzz"
   bool was_js_error;
-#line 319 "./src/objects/database.lzz"
+#line 338 "./src/objects/database.lzz"
+  unsigned char backups;
+#line 339 "./src/objects/database.lzz"
   std::set <Statement*, Database::CompareStatement> stmts;
 };
 #line 1 "./src/objects/statement.lzz"
@@ -457,6 +465,44 @@ private:
 #line 136 "./src/objects/statement-iterator.lzz"
   bool const bound;
 #line 137 "./src/objects/statement-iterator.lzz"
+  bool alive;
+};
+#line 1 "./src/objects/backup.lzz"
+class Backup : public node::ObjectWrap
+{
+#line 2 "./src/objects/backup.lzz"
+public:
+#line 5 "./src/objects/backup.lzz"
+  static v8::MaybeLocal <v8::Object> New (v8::Isolate * isolate, v8::Local <v8::Object> database, v8::Local <v8::String> sourceDatabase, v8::Local <v8::String> destFile, v8::Local <v8::Int32> pages);
+#line 14 "./src/objects/backup.lzz"
+  ~ Backup ();
+#line 18 "./src/objects/backup.lzz"
+private:
+#line 20 "./src/objects/backup.lzz"
+  explicit Backup (Database * _db, sqlite3 * _dest_handle, sqlite3_backup * _backup_handle, int _pages);
+#line 32 "./src/objects/backup.lzz"
+  friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
+#line 32 "./src/objects/backup.lzz"
+  static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
+#line 43 "./src/objects/backup.lzz"
+  static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 85 "./src/objects/backup.lzz"
+  static void JS_step (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 99 "./src/objects/backup.lzz"
+  void CloseHandles ();
+#line 109 "./src/objects/backup.lzz"
+  static v8::Persistent <v8::Function> constructor;
+#line 110 "./src/objects/backup.lzz"
+  static bool constructing_privileges;
+#line 112 "./src/objects/backup.lzz"
+  Database * const db;
+#line 113 "./src/objects/backup.lzz"
+  sqlite3 * const dest_handle;
+#line 114 "./src/objects/backup.lzz"
+  sqlite3_backup * const backup_handle;
+#line 115 "./src/objects/backup.lzz"
+  int const pages;
+#line 116 "./src/objects/backup.lzz"
   bool alive;
 };
 #line 1 "./src/util/custom-function.lzz"
@@ -633,7 +679,7 @@ private:
 #line 188 "./src/util/binder.lzz"
   bool success;
 };
-#line 30 "./src/better_sqlite3.lzz"
+#line 31 "./src/better_sqlite3.lzz"
 void RegisterModule (v8::Local <v8::Object> exports, v8::Local <v8::Object> module);
 #line 18 "./src/util/macros.lzz"
 LZZ_INLINE v8::Local <v8::String> StringFromUtf8 (v8::Isolate * isolate, char const * data, int length)
@@ -661,25 +707,25 @@ LZZ_INLINE void SetFrozen (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v
         static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
         obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
 }
-#line 104 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
 template <typename T>
-#line 104 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
 LZZ_INLINE T * ALLOC_ARRAY (size_t count)
-#line 104 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
                                                       {
         return static_cast<T*>(::operator new[](count * sizeof(T)));
 }
-#line 109 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 template <typename T>
-#line 109 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
 LZZ_INLINE void FREE_ARRAY (T * array_pointer)
-#line 109 "./src/util/macros.lzz"
+#line 112 "./src/util/macros.lzz"
                                                            {
         ::operator delete[](array_pointer);
 }
-#line 121 "./src/util/macros.lzz"
+#line 124 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback getter)
-#line 121 "./src/util/macros.lzz"
+#line 124 "./src/util/macros.lzz"
                                                                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
@@ -693,9 +739,9 @@ LZZ_INLINE void NODE_SET_PROTOTYPE_GETTER (v8::Local <v8::FunctionTemplate> recv
                 v8::AccessorSignature::New(isolate, recv)
         );
 }
-#line 135 "./src/util/macros.lzz"
+#line 138 "./src/util/macros.lzz"
 LZZ_INLINE void NODE_SET_PROTOTYPE_SYMBOL_METHOD (v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback callback)
-#line 135 "./src/util/macros.lzz"
+#line 138 "./src/util/macros.lzz"
                                                                                                                                                 {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;
@@ -735,24 +781,30 @@ LZZ_INLINE int BindMap::GetSize ()
                              { return length;
 }
 #line 12 "./src/objects/database.lzz"
-LZZ_INLINE void Database::AddStatement (Statement * stmt)
+LZZ_INLINE void Database::ThrowBackupError (sqlite3 * db_handle)
 #line 12 "./src/objects/database.lzz"
+                                                                {
+                ThrowSqliteError(db_handle);
+}
+#line 17 "./src/objects/database.lzz"
+LZZ_INLINE void Database::AddStatement (Statement * stmt)
+#line 17 "./src/objects/database.lzz"
                                                   { stmts.insert(stmts.end(), stmt);
 }
-#line 13 "./src/objects/database.lzz"
+#line 18 "./src/objects/database.lzz"
 LZZ_INLINE void Database::RemoveStatement (Statement * stmt)
-#line 13 "./src/objects/database.lzz"
+#line 18 "./src/objects/database.lzz"
                                                      { stmts.erase(stmt);
 }
-#line 25 "./src/objects/database.lzz"
+#line 31 "./src/objects/database.lzz"
 LZZ_INLINE Database::State * Database::GetState ()
-#line 25 "./src/objects/database.lzz"
+#line 31 "./src/objects/database.lzz"
                                  {
                 return reinterpret_cast<State*>(&open);
 }
-#line 28 "./src/objects/database.lzz"
+#line 34 "./src/objects/database.lzz"
 LZZ_INLINE sqlite3 * Database::GetHandle ()
-#line 28 "./src/objects/database.lzz"
+#line 34 "./src/objects/database.lzz"
                                     {
                 return db_handle;
 }

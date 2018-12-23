@@ -55,9 +55,9 @@ private:
 			STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
 			iter = new StatementIterator(stmt, bound);
 		}
-		UseIsolateAndContext;
+		UseIsolate;
 		iter->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::statement, caller_info->This());
+		SetFrozen(isolate, OnlyContext, info.This(), CS::statement, caller_info->This());
 
 		info.GetReturnValue().Set(info.This());
 	}

@@ -63,6 +63,9 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define REQUIRE_DATABASE_NOT_BUSY(db)                                          \
 	if (db->busy)                                                              \
 		return ThrowTypeError("This database connection is busy executing a query")
+#define REQUIRE_DATABASE_NO_BACKUPS(db)                                        \
+	if (db->backups)                                                           \
+		return ThrowTypeError("This database connection is busy performing a backup")
 
 #define first() 0
 #define second() 1
