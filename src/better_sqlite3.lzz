@@ -36,4 +36,5 @@ void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
 	Database::Init(isolate, exports, module);
 	Statement::Init(isolate, exports, module);
 	StatementIterator::Init(isolate, exports, module);
+	Backup::Init(isolate, exports, module);
 }

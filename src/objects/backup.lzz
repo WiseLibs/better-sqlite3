@@ -2,11 +2,11 @@ class Backup : public node::ObjectWrap {
 public:
 
 	// Provides public access to the constructor.
-	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> sourceDatabase, v8::Local<v8::String> destFile, v8::Local<v8::Int32> pages) {
+	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> sourceDatabase, v8::Local<v8::String> destFile) {
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
-		v8::Local<v8::Value> args[4] = { database, sourceDatabase, destFile, pages };
+		v8::Local<v8::Value> args[3] = { database, sourceDatabase, destFile };
 		constructing_privileges = true;
-		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 4, args);
+		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 3, args);
 		constructing_privileges = false;
 		return maybe_backup;
 	}
@@ -33,17 +33,16 @@ public:
 
 private:
 
-	explicit Backup(Database* _db, sqlite3* _dest_handle, sqlite3_backup* _backup_handle, int _pages) : node::ObjectWrap(),
+	explicit Backup(Database* _db, sqlite3* _dest_handle, sqlite3_backup* _backup_handle) : node::ObjectWrap(),
 		db(_db),
 		dest_handle(_dest_handle),
 		backup_handle(_backup_handle),
-		pages(_pages),
+		id(next_id++),
 		alive(true),
-		id(next_id++) {
+		success(false) {
 		assert(db != NULL);
 		assert(dest_handle != NULL);
 		assert(backup_handle != NULL);
-		assert(pages > 0);
 		db->AddBackup(this);
 	}
 
@@ -53,6 +52,8 @@ private:
 		t->SetClassName(StringFromUtf8(isolate, "BackupOperation", -1));
 
 		NODE_SET_PROTOTYPE_METHOD(t, "step", JS_step);
+		NODE_SET_PROTOTYPE_METHOD(t, "abort", JS_abort);
+		NODE_SET_PROTOTYPE_GETTER(t, "state", JS_state);
 
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
@@ -65,7 +66,6 @@ private:
 		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> sourceDatabase);
 		REQUIRE_ARGUMENT_STRING(third, v8::Local<v8::String> destFile);
-		REQUIRE_ARGUMENT_INT32(fourth, int pages);
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
@@ -77,41 +77,83 @@ private:
 		int mask = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
 		if (sqlite3_open_v2(*dest_file, &dest_handle, mask, NULL) != SQLITE_OK) {
-			Database::ThrowBackupError(dest_handle);
+			Database::ThrowSqliteError(dest_handle);
 			int status = sqlite3_close(dest_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
 		}
 
+		sqlite3_extended_result_codes(dest_handle, 1);
 		sqlite3_limit(dest_handle, SQLITE_LIMIT_LENGTH, INT_MAX);
 		sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), *source_database);
 		if (backup_handle == NULL) {
-			Database::ThrowBackupError(dest_handle);
+			Database::ThrowSqliteError(dest_handle);
 			int status = sqlite3_close(dest_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
 		}
 
-		Backup* backup = new Backup(db, dest_handle, backup_handle, pages);
+		UseContext;
+		Backup* backup = new Backup(db, dest_handle, backup_handle);
 		backup->Wrap(info.This());
-		SetFrozen(isolate, OnlyContext, info.This(), CS::database, database);
+		SetFrozen(isolate, ctx, info.This(), CS::filename, destFile);
+		SetFrozen(isolate, ctx, info.This(), CS::database, database);
 
 		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_step) {
 		Backup* backup = Unwrap<Backup>(info.This());
-		if (!backup->alive) return ThrowTypeError("Backup operation was previously terminated");
-
-		int status = sqlite3_backup_step(backup->backup_handle, backup->pages);
-		if (status == SQLITE_OK || status == SQLITE_BUSY) {
-			info.GetReturnValue().Set(v8::False(OnlyIsolate));
-		} else {
-			if (status == SQLITE_DONE) info.GetReturnValue().Set(v8::True(OnlyIsolate));
-			else Database::ThrowBackupError(backup->dest_handle);
-			backup->db->RemoveBackup(backup);
-			backup->CloseHandles();
+		REQUIRE_ARGUMENT_INT32(first, int pages);
+		REQUIRE_DATABASE_OPEN(backup->db->GetState());
+		REQUIRE_DATABASE_NOT_BUSY(backup->db->GetState());
+		if (!backup->alive) {
+			return ThrowTypeError(backup->success
+				? "Backup operation is already complete"
+				: "Backup operation was previously aborted"
+			);
 		}
+
+		sqlite3_backup* backup_handle = backup->backup_handle;
+		int status = sqlite3_backup_step(backup_handle, pages);
+
+		if (status == SQLITE_OK || status == SQLITE_DONE) {
+			int total_pages = sqlite3_backup_pagecount(backup_handle);
+			int remaining_pages = sqlite3_backup_remaining(backup_handle);
+			UseIsolateAndContext;
+			v8::Local<v8::Object> result = v8::Object::New(isolate);
+			result->Set(ctx, CS::Get(isolate, CS::totalPages), v8::Int32::New(isolate, total_pages)).FromJust();
+			result->Set(ctx, CS::Get(isolate, CS::remainingPages), v8::Int32::New(isolate, remaining_pages)).FromJust();
+			info.GetReturnValue().Set(result);
+			if (status == SQLITE_DONE) {
+				backup->db->RemoveBackup(backup);
+				backup->CloseHandles();
+				backup->success = true;
+			}
+		} else {
+			Database::ThrowSqliteError(sqlite3_errstr(status), status);
+			if ((status & 0xff) != SQLITE_BUSY) {
+				backup->db->RemoveBackup(backup);
+				backup->CloseHandles();
+			}
+		}
+	}
+
+	NODE_METHOD(JS_abort) {
+		Backup* backup = Unwrap<Backup>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(backup->db->GetState());
+		if (backup->alive) backup->db->RemoveBackup(backup);
+		backup->CloseHandles();
+		info.GetReturnValue().Set(info.This());
+	}
+
+	NODE_GETTER(JS_state) {
+		Backup* backup = Unwrap<Backup>(info.This());
+		info.GetReturnValue().Set(CS::Get(OnlyIsolate,
+			backup->alive ? CS::pending :
+			backup->success ? CS::completed
+			: CS::aborted
+		));
 	}
 
 	static v8::Persistent<v8::Function> constructor;
@@ -121,7 +163,7 @@ private:
 	Database* const db;
 	sqlite3* const dest_handle;
 	sqlite3_backup* const backup_handle;
-	const int pages;
+	const sqlite3_uint64 id;
 	bool alive;
-	sqlite3_uint64 id;
+	bool success;
 };

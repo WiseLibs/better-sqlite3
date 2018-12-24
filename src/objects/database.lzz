@@ -8,10 +8,18 @@ public:
 		if (was_js_error) was_js_error = false;
 		else ThrowSqliteError(db_handle);
 	}
-
-	// Error handling exposed for when a backup operation fails.
-	static inline void ThrowBackupError(sqlite3* db_handle) {
-		ThrowSqliteError(db_handle);
+	static void ThrowSqliteError(sqlite3* db_handle) {
+		assert(db_handle != NULL);
+		ThrowSqliteError(sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
+	}
+	static void ThrowSqliteError(const char* message, int code) {
+		assert(message != NULL);
+		assert((code & 0xff) != SQLITE_OK);
+		assert((code & 0xff) != SQLITE_ROW);
+		assert((code & 0xff) != SQLITE_DONE);
+		EasyIsolate;
+		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
+		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 
 	// Allow Statements to manage themselves when created and garbage collected.
@@ -125,6 +133,7 @@ private:
 		}
 
 		assert(sqlite3_db_mutex(db_handle) == NULL);
+		sqlite3_extended_result_codes(db_handle, 1);
 		sqlite3_busy_timeout(db_handle, timeout);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
@@ -211,9 +220,7 @@ private:
 	NODE_METHOD(JS_backup) {
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> sourceDatabase);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> destFile);
-		REQUIRE_ARGUMENT_INT32(third, int pages);
-		UseIsolate;
-		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(isolate, info.This(), sourceDatabase, destFile, v8::Local<v8::Int32>::Cast(v8::Int32::New(isolate, pages)));
+		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(OnlyIsolate, info.This(), sourceDatabase, destFile);
 		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
 	}
 
@@ -273,7 +280,7 @@ private:
 		char* error;
 		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
-		else ThrowSqliteError(db->db_handle, error, status);
+		else ThrowSqliteError(error, status);
 		sqlite3_free(error);
 	}
 
@@ -314,19 +321,6 @@ private:
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
-	}
-
-	static void ThrowSqliteError(sqlite3* db_handle) {
-		assert(db_handle != NULL);
-		ThrowSqliteError(db_handle, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
-	}
-	static void ThrowSqliteError(sqlite3* db_handle, const char* message, int code) {
-		assert(db_handle != NULL);
-		assert(message != NULL);
-		assert((code & 0xff) != SQLITE_OK);
-		EasyIsolate;
-		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
-		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 
 	static void AtExit(void* _) {

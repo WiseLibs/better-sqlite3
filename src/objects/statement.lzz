@@ -145,7 +145,7 @@ private:
 			sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 			UseIsolateAndContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Number::New(isolate, static_cast<double>(changes))).FromJust();
+			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Int32::New(isolate, changes)).FromJust();
 			result->Set(ctx, CS::Get(isolate, CS::lastInsertRowid), Integer::New(isolate, id, stmt->safe_ints)).FromJust();
 			STATEMENT_RETURN(result);
 		}
