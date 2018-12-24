@@ -1,4 +1,5 @@
 class Statement;
+class Backup;
 class Database : public node::ObjectWrap {
 public:
 
@@ -17,6 +18,10 @@ public:
 	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
 	inline void RemoveStatement(Statement* stmt) { stmts.erase(stmt); }
 
+	// Allow Backups to manage themselves when created and garbage collected.
+	inline void AddBackup(Backup* backup) { backups.insert(backups.end(), backup); }
+	inline void RemoveBackup(Backup* backup) { backups.erase(backup); }
+
 	// A view for Statements to see and modify Database state.
 	// The order of these fields must exactly match their actual order.
 	struct State {
@@ -25,7 +30,6 @@ public:
 		const bool pragma_mode;
 		const bool safe_ints;
 		bool was_js_error;
-		unsigned char backups;
 	};
 
 	inline State* GetState() {
@@ -54,6 +58,12 @@ private:
 		}
 	};
 
+	class CompareBackup { public:
+		bool operator() (Backup const * const a, Backup const * const b) const {
+			return Backup::Compare(a, b);
+		}
+	};
+
 	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
@@ -61,8 +71,8 @@ private:
 		pragma_mode(false),
 		safe_ints(false),
 		was_js_error(false),
-		backups(0),
-		stmts() {
+		stmts(),
+		backups() {
 		assert(_db_handle != NULL);
 		dbs.insert(this);
 	}
@@ -259,7 +269,6 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NO_BACKUPS(db);
 		v8::String::Utf8Value filename(EXTRACT_STRING(OnlyIsolate, filenameString));
 		char* error;
 		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
@@ -272,7 +281,6 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
 			REQUIRE_DATABASE_NOT_BUSY(db);
-			REQUIRE_DATABASE_NO_BACKUPS(db);
 			dbs.erase(db);
 			db->CloseHandles();
 		}
@@ -300,7 +308,9 @@ private:
 		if (open) {
 			open = false;
 			for (Statement* stmt : stmts) stmt->CloseHandles();
+			for (Backup* backup : backups) backup->CloseHandles();
 			stmts.clear();
+			backups.clear();
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
@@ -335,6 +345,6 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
-	unsigned char backups;
 	std::set<Statement*, Database::CompareStatement> stmts;
+	std::set<Backup*, Database::CompareBackup> backups;
 };

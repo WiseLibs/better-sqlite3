@@ -11,7 +11,23 @@ public:
 		return maybe_backup;
 	}
 
+	// Used by the Database::CompareBackup class.
+	static inline bool Compare(Backup const * const a, Backup const * const b) {
+		return a->id < b->id;
+	}
+
+	// Whenever this is used, db->RemoveBackup must be invoked beforehand.
+	void CloseHandles() {
+		if (alive) {
+			alive = false;
+			sqlite3_backup_finish(backup_handle);
+			int status = sqlite3_close(dest_handle);
+			assert(status == SQLITE_OK); ((void)status);
+		}
+	}
+
 	~Backup() {
+		if (alive) db->RemoveBackup(this);
 		CloseHandles();
 	}
 
@@ -22,11 +38,13 @@ private:
 		dest_handle(_dest_handle),
 		backup_handle(_backup_handle),
 		pages(_pages),
-		alive(true) {
+		alive(true),
+		id(next_id++) {
 		assert(db != NULL);
 		assert(dest_handle != NULL);
 		assert(backup_handle != NULL);
 		assert(pages > 0);
+		db->AddBackup(this);
 	}
 
 	REGISTER(Init) {
@@ -37,6 +55,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "step", JS_step);
 
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
+		next_id = 0;
 		constructing_privileges = false;
 	}
 
@@ -50,7 +69,6 @@ private:
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
-		if (db->GetState()->backups == UCHAR_MAX) return ThrowRangeError("Too many active backups");
 
 		UseIsolate;
 		sqlite3* dest_handle;
@@ -74,7 +92,6 @@ private:
 			return;
 		}
 
-		db->GetState()->backups += 1;
 		Backup* backup = new Backup(db, dest_handle, backup_handle, pages);
 		backup->Wrap(info.This());
 		SetFrozen(isolate, OnlyContext, info.This(), CS::database, database);
@@ -92,21 +109,13 @@ private:
 		} else {
 			if (status == SQLITE_DONE) info.GetReturnValue().Set(v8::True(OnlyIsolate));
 			else Database::ThrowBackupError(backup->dest_handle);
+			backup->db->RemoveBackup(backup);
 			backup->CloseHandles();
 		}
 	}
 
-	void CloseHandles() {
-		if (alive) {
-			alive = false;
-			sqlite3_backup_finish(backup_handle);
-			int status = sqlite3_close(dest_handle);
-			assert(status == SQLITE_OK); ((void)status);
-			db->GetState()->backups -= 1;
-		}
-	}
-
 	static v8::Persistent<v8::Function> constructor;
+	static sqlite3_uint64 next_id;
 	static bool constructing_privileges;
 
 	Database* const db;
@@ -114,4 +123,5 @@ private:
 	sqlite3_backup* const backup_handle;
 	const int pages;
 	bool alive;
+	sqlite3_uint64 id;
 };

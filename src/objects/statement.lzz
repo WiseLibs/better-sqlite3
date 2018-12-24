@@ -30,7 +30,7 @@ public:
 		return bind_map;
 	}
 
-	// This should only be used by Database::CloseHandles() and ~Statement().
+	// Whenever this is used, db->RemoveStatement must be invoked beforehand.
 	void CloseHandles() {
 		if (alive) {
 			alive = false;
