@@ -7,6 +7,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
+- [Database#backup()](#backupdestination-options---this) (see [`Backup`](#class-backup))
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
@@ -126,6 +127,12 @@ setInterval(() => db.checkpoint(), 30000).unref();
 If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
 
 If the checkpoint fails, an `Error` is thrown.
+
+### .backup(*destination*, [*options*]) -> *Backup*
+
+Initiates a backup of the database, returning a new [`Backup`](#class-backup) object. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+
+If a backup cannot be started, an `Error` is thrown.
 
 ### .function(*name*, [*options*], *function*) -> *this*
 
@@ -442,6 +449,78 @@ console.log(cat.name); // => "Joey"
 **.source -> _string_** - The source string that was used to create the prepared statement.
 
 **.reader -> _boolean_** - Whether the prepared statement returns data.
+
+# class *Backup*
+
+An object that facilitates a [backup](https://sqlite.org/backup.html) of the database.
+
+- [Backup#transfer()](#transferpagecount---object)
+- [Backup#abort()](#abort---this)
+- [Properties](#properties-2)
+
+### .transfer([*pageCount*]) -> *object*
+
+Transfers the specified number of [database pages](https://www.sqlite.org/fileformat.html#pages) to the backup file. If a `pageCount` is not provided, all remaining pages are transferred. After the pages are transferred, it returns an object with the following properties:
+
+- `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this transfer operation.
+- `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
+
+It's important to understand that because the database can be modified between transfer operations, the returned object only provides an *estimate* of the backup progress. Also, if the source database is being used by another process simultaneously, it's possible for this method to return without actually transferring any pages, regardless of the desired `pageCount`.
+
+If a transfer fails, an `Error` is thrown and the backup operation is automatically aborted.
+
+Each transfer is a blocking operation, but you can access the database in a normal way between transfers. The example below demonstrates how you could perform a backup asynchronously, configuring exactly how much thread time is allotted to the backup operation.
+
+```js
+const PAGES_PER_TRANSFER = 100;
+const THREAD_UTILIZATION = 0.1; // This means 10%
+
+const sleep = ms => new Promise(done => setTimeout(done, ms));
+
+async function backupAsync(db, destination) {
+  const backup = db.backup(destination);
+  let time, ms, carryover = 0;
+
+  while (true) {
+    // Execute a transfer, and measure its duration.
+    time = process.hrtime();
+    backup.transfer(PAGES_PER_TRANSFER);
+    if (backup.state === 'completed') break;
+    time = process.hrtime(time);
+    ms = time[0] * 1e3 + time[1] / 1e6;
+
+    // Sleep for a while, and measure the actual sleep duration.
+    const sleepTarget = ms / THREAD_UTILIZATION - ms + carryover;
+    time = process.hrtime();
+    await sleep(Math.max(0, Math.round(sleepTarget)));
+    time = process.hrtime(time);
+    ms = time[0] * 1e3 + time[1] / 1e6;
+
+    // Keep track of the imprecision (don't trust setTimeout).
+    carryover = sleepTarget - ms;
+  }
+}
+```
+
+> In the future, it may be possible to use `better-sqlite3` within a [worker thread](https://nodejs.org/api/worker_threads.html). Currently though, worker threads do not support native addons.
+
+### .abort() -> *this*
+
+Aborts the backup operation. If the backup destination was an existing database file, that database will be rolled back to its prior state. If the backup operation had created a new database file, that file will be left as an empty database.
+
+```js
+backup.abort();
+```
+
+> When a database connection is closed, any pending associated backups will automatically be aborted.
+
+## Properties
+
+**.database -> _object_** - The source database object.
+
+**.filename -> _string_** - The destination of the backup.
+
+**.state -> _string_** - Either `"pending"`, `"completed"`, or `"aborted"`.
 
 # Binding Parameters
 

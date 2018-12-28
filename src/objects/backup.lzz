@@ -115,10 +115,13 @@ private:
 
 		sqlite3_backup* backup_handle = backup->backup_handle;
 		int pages = -1;
-		if (info.Length()) { REQUIRE_ARGUMENT_INT32(first, pages); }
-		int status = sqlite3_backup_step(backup_handle, pages);
+		if (info.Length()) {
+			REQUIRE_ARGUMENT_INT32(first, pages);
+			if (pages < 0) return ThrowRangeError("Cannot transfer a negative number of pages");
+		}
+		int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
 
-		if (status == SQLITE_OK || status == SQLITE_DONE) {
+		if (status == SQLITE_OK || status == SQLITE_DONE || status == SQLITE_BUSY) {
 			int total_pages = sqlite3_backup_pagecount(backup_handle);
 			int remaining_pages = sqlite3_backup_remaining(backup_handle);
 			UseIsolateAndContext;
@@ -133,10 +136,8 @@ private:
 			}
 		} else {
 			Database::ThrowSqliteError(sqlite3_errstr(status), status);
-			if ((status & 0xff) != SQLITE_BUSY) {
-				backup->db->RemoveBackup(backup);
-				backup->CloseHandles();
-			}
+			backup->db->RemoveBackup(backup);
+			backup->CloseHandles();
 		}
 	}
 

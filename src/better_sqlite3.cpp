@@ -1188,7 +1188,7 @@ void Backup::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::
                 t->InstanceTemplate()->SetInternalFieldCount(1);
                 t->SetClassName(StringFromUtf8(isolate, "BackupOperation", -1));
 
-                NODE_SET_PROTOTYPE_METHOD(t, "step", JS_step);
+                NODE_SET_PROTOTYPE_METHOD(t, "transfer", JS_transfer);
                 NODE_SET_PROTOTYPE_METHOD(t, "abort", JS_abort);
                 NODE_SET_PROTOTYPE_GETTER(t, "state", JS_state);
 
@@ -1241,9 +1241,9 @@ void Backup::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 info.GetReturnValue().Set(info.This());
 }
 #line 105 "./src/objects/backup.lzz"
-void Backup::JS_step (v8::FunctionCallbackInfo <v8 :: Value> const & info)
+void Backup::JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 #line 105 "./src/objects/backup.lzz"
-                             {
+                                 {
                 Backup* backup = node :: ObjectWrap :: Unwrap <Backup>(info.This());
                 if ( ! backup -> db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( backup -> db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
@@ -1256,10 +1256,13 @@ void Backup::JS_step (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 
                 sqlite3_backup* backup_handle = backup->backup_handle;
                 int pages = -1;
-                if (info.Length()) { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a 32-bit signed integer" ) ; pages = v8 :: Local < v8 :: Int32 > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
-                int status = sqlite3_backup_step(backup_handle, pages);
+                if (info.Length()) {
+                        if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a 32-bit signed integer" ) ; pages = v8 :: Local < v8 :: Int32 > :: Cast ( info [ 0 ] ) -> Value ( ) ;
+                        if (pages < 0) return ThrowRangeError("Cannot transfer a negative number of pages");
+                }
+                int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
 
-                if (status == SQLITE_OK || status == SQLITE_DONE) {
+                if (status == SQLITE_OK || status == SQLITE_DONE || status == SQLITE_BUSY) {
                         int total_pages = sqlite3_backup_pagecount(backup_handle);
                         int remaining_pages = sqlite3_backup_remaining(backup_handle);
                         v8 :: Isolate * isolate = info . GetIsolate ( ) ; v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
@@ -1274,15 +1277,13 @@ void Backup::JS_step (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                         }
                 } else {
                         Database::ThrowSqliteError(sqlite3_errstr(status), status);
-                        if ((status & 0xff) != SQLITE_BUSY) {
-                                backup->db->RemoveBackup(backup);
-                                backup->CloseHandles();
-                        }
+                        backup->db->RemoveBackup(backup);
+                        backup->CloseHandles();
                 }
 }
-#line 143 "./src/objects/backup.lzz"
+#line 144 "./src/objects/backup.lzz"
 void Backup::JS_abort (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 143 "./src/objects/backup.lzz"
+#line 144 "./src/objects/backup.lzz"
                               {
                 Backup* backup = node :: ObjectWrap :: Unwrap <Backup>(info.This());
                 if ( backup -> db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
@@ -1290,9 +1291,9 @@ void Backup::JS_abort (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 backup->CloseHandles();
                 info.GetReturnValue().Set(info.This());
 }
-#line 151 "./src/objects/backup.lzz"
+#line 152 "./src/objects/backup.lzz"
 void Backup::JS_state (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 151 "./src/objects/backup.lzz"
+#line 152 "./src/objects/backup.lzz"
                               {
                 Backup* backup = node :: ObjectWrap :: Unwrap <Backup>(info.This());
                 info.GetReturnValue().Set(CS::Get( info . GetIsolate ( ) ,
@@ -1301,11 +1302,11 @@ void Backup::JS_state (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 
                         : CS::aborted
                 ));
 }
-#line 160 "./src/objects/backup.lzz"
-v8::Persistent <v8::Function> Backup::constructor;
 #line 161 "./src/objects/backup.lzz"
-sqlite3_uint64 Backup::next_id;
+v8::Persistent <v8::Function> Backup::constructor;
 #line 162 "./src/objects/backup.lzz"
+sqlite3_uint64 Backup::next_id;
+#line 163 "./src/objects/backup.lzz"
 bool Backup::constructing_privileges;
 #line 4 "./src/util/custom-function.lzz"
 CustomFunction::CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints)
