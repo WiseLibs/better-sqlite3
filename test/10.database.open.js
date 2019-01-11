@@ -3,17 +3,16 @@ const { existsSync } = require('fs');
 const Database = require('../.');
 
 describe('new Database()', function () {
-	it('should throw when file path is not a string', function () {
-		expect(() => new Database()).to.throw(TypeError);
-		expect(() => new Database(null)).to.throw(TypeError);
+	it('should throw when given invalid argument types', function () {
+		expect(() => new Database('', '')).to.throw(TypeError);
+		expect(() => new Database({}, '')).to.throw(TypeError);
+		expect(() => new Database({}, {})).to.throw(TypeError);
+		expect(() => new Database({})).to.throw(TypeError);
 		expect(() => new Database(0)).to.throw(TypeError);
 		expect(() => new Database(123)).to.throw(TypeError);
 		expect(() => new Database(new String(util.next()))).to.throw(TypeError);
 		expect(() => new Database(() => util.next())).to.throw(TypeError);
 		expect(() => new Database([util.next()])).to.throw(TypeError);
-	});
-	it('should throw when file path is empty', function () {
-		expect(() => new Database('')).to.throw(TypeError);
 	});
 	it('should throw when boolean options are provided as non-booleans', function () {
 		expect(() => new Database(util.next(), { readOnly: false })).to.throw(TypeError);
@@ -25,6 +24,20 @@ describe('new Database()', function () {
 		expect(() => new Database(`FILE:${util.next()}`)).to.throw(TypeError);
 		expect(() => new Database(`file:${util.next()}`)).to.throw(TypeError);
 		expect(() => new Database(`file:${util.next()}?mode=memory&cache=shared`)).to.throw(TypeError);
+	});
+	it('should allow anonymous temporary databases to be created', function () {
+		for (const args of [[''], [], [null], [undefined], ['', { timeout: 2000 }]]) {
+			const db = new Database(...args);
+			expect(db.name).to.equal('');
+			expect(db.memory).to.be.true;
+			expect(db.readonly).to.be.false;
+			expect(db.open).to.be.true;
+			expect(db.inTransaction).to.be.false;
+			expect(existsSync('')).to.be.false;
+			expect(existsSync('null')).to.be.false;
+			expect(existsSync('undefined')).to.be.false;
+			expect(existsSync('[object Object]')).to.be.false;
+		}
 	});
 	it('should allow anonymous in-memory databases to be created', function () {
 		const db = new Database(':memory:');
@@ -57,7 +70,9 @@ describe('new Database()', function () {
 	});
 	it('should not allow conflicting in-memory options', function () {
 		expect(() => new Database(':memory:', { memory: false })).to.throw(TypeError);
+		expect(() => new Database('', { memory: false })).to.throw(TypeError);
 		(new Database(':memory:', { memory: true })).close();
+		(new Database('', { memory: true })).close();
 	});
 	it('should allow readonly database connections to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -76,6 +91,7 @@ describe('new Database()', function () {
 		expect(existsSync(util.next())).to.be.false;
 		expect(() => new Database(util.current(), { memory: true, readonly: true })).to.throw(TypeError);
 		expect(() => new Database(':memory:', { readonly: true })).to.throw(TypeError);
+		expect(() => new Database('', { readonly: true })).to.throw(TypeError);
 		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should accept the "fileMustExist" option', function () {
