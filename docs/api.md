@@ -28,9 +28,11 @@ Various options are accepted:
 
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
+- `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
+
 ```js
 const Database = require('better-sqlite3');
-const db = new Database('foobar.db', { readonly: true });
+const db = new Database('foobar.db', { verbose: console.log });
 ```
 
 ### .prepare(*string*) -> *Statement*
