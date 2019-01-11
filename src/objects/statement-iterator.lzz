@@ -25,7 +25,8 @@ private:
 		expand(_stmt->expand),
 		raw(_stmt->raw),
 		bound(_bound),
-		alive(true) {
+		alive(true),
+		logged(false) {
 		assert(stmt != NULL);
 		assert(handle != NULL);
 		assert(stmt->bound == bound);
@@ -80,6 +81,10 @@ private:
 
 	void Next(NODE_ARGUMENTS info) {
 		assert(alive == true);
+		if (!logged) {
+			logged = true;
+			stmt->db->Log(OnlyIsolate, handle);
+		}
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
 			UseIsolateAndContext;
@@ -135,4 +140,5 @@ private:
 	const bool raw;
 	const bool bound;
 	bool alive;
+	bool logged;
 };
