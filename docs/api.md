@@ -7,7 +7,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
-- [Database#backup()](#backupdestination-options---this) (see [`Backup`](#class-backup))
+- [Database#backup()](#backupdestination-options---backup) (see [`Backup`](#class-backup))
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
