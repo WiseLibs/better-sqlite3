@@ -465,7 +465,7 @@ Transfers the specified number of [database pages](https://www.sqlite.org/filefo
 - `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this transfer operation.
 - `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
 
-It's important to understand that because the database can be modified between transfer operations, the returned object only provides an *estimate* of the backup progress. Also, if the source database is busy being used by another process simultaneously, it's possible for this method to return without actually transferring any pages, regardless of the desired `pageCount` (an error will *not* be thrown).
+It's important to understand that because the database can be modified between transfer operations, the returned object only provides an *estimate* of the backup progress. Also, if the source database is busy (being used by another process simultaneously), it's possible for this method to return without actually transferring any pages, regardless of the desired `pageCount` (an error will *not* be thrown).
 
 If a fatal error occurs, an `Error` is thrown and the backup operation is automatically aborted.
 
