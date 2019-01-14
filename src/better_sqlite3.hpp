@@ -15,7 +15,7 @@
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 #line 79 "./src/util/macros.lzz"
-#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                        (V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
+#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                      	(V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
 #define EXTRACT_STRING(isolate, string) isolate, string
 #else
 #define EXTRACT_STRING(_unused, string) string
@@ -514,27 +514,27 @@ private:
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 107 "./src/objects/backup.lzz"
   static void JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 146 "./src/objects/backup.lzz"
+#line 142 "./src/objects/backup.lzz"
   static void JS_abort (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 154 "./src/objects/backup.lzz"
+#line 150 "./src/objects/backup.lzz"
   static void JS_state (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 163 "./src/objects/backup.lzz"
+#line 159 "./src/objects/backup.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 164 "./src/objects/backup.lzz"
+#line 160 "./src/objects/backup.lzz"
   static sqlite3_uint64 next_id;
-#line 165 "./src/objects/backup.lzz"
+#line 161 "./src/objects/backup.lzz"
   static bool constructing_privileges;
-#line 167 "./src/objects/backup.lzz"
+#line 163 "./src/objects/backup.lzz"
   Database * const db;
-#line 168 "./src/objects/backup.lzz"
+#line 164 "./src/objects/backup.lzz"
   sqlite3 * const dest_handle;
-#line 169 "./src/objects/backup.lzz"
+#line 165 "./src/objects/backup.lzz"
   sqlite3_backup * const backup_handle;
-#line 170 "./src/objects/backup.lzz"
+#line 166 "./src/objects/backup.lzz"
   sqlite3_uint64 const id;
-#line 171 "./src/objects/backup.lzz"
+#line 167 "./src/objects/backup.lzz"
   bool alive;
-#line 172 "./src/objects/backup.lzz"
+#line 168 "./src/objects/backup.lzz"
   bool success;
 };
 #line 1 "./src/util/custom-function.lzz"

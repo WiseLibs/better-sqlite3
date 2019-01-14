@@ -49,14 +49,14 @@ private:
 	REGISTER(Init) {
 		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
 		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "BackupOperation", -1));
+		t->SetClassName(StringFromUtf8(isolate, "Backup", -1));
 
 		NODE_SET_PROTOTYPE_METHOD(t, "transfer", JS_transfer);
 		NODE_SET_PROTOTYPE_METHOD(t, "abort", JS_abort);
 		NODE_SET_PROTOTYPE_GETTER(t, "state", JS_state);
 
 		UseContext;
-		exports->Set(ctx, StringFromUtf8(isolate, "BackupOperation", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
+		exports->Set(ctx, StringFromUtf8(isolate, "Backup", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
