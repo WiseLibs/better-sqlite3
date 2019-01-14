@@ -467,7 +467,7 @@ Transfers the specified number of [database pages](https://www.sqlite.org/filefo
 
 It's important to understand that because the database can be modified between transfer operations, the returned object only provides an *estimate* of the backup progress. Also, if the source database is busy being used by another process simultaneously, it's possible for this method to return without actually transferring any pages, regardless of the desired `pageCount` (an error will *not* be thrown).
 
-If a transfer fails, an `Error` is thrown and the backup operation is automatically aborted.
+If a fatal error occurs, an `Error` is thrown and the backup operation is automatically aborted.
 
 Each transfer is a blocking operation, but you can access the database in a normal way between transfers. The example below demonstrates how you could perform a backup asynchronously, configuring exactly how much thread time is allotted to the backup operation.
 
