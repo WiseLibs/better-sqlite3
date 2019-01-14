@@ -506,7 +506,7 @@ async function backupAsync(db, destination) {
 
 ### .abort() -> *this*
 
-Aborts the backup operation. If the backup destination was an existing database file, that database will be rolled back to its prior state. If the backup operation had created a new database file, that file will be left as an empty database.
+Aborts the backup operation. If the backup was started on an existing database file, that database will be rolled back to its prior state. If the backup operation had created a new database file, that file will be left as an empty database.
 
 ```js
 backup.abort();
