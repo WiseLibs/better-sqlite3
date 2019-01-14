@@ -2,9 +2,9 @@ class Backup : public node::ObjectWrap {
 public:
 
 	// Provides public access to the constructor.
-	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> sourceDatabase, v8::Local<v8::String> destFile) {
+	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> attachedName, v8::Local<v8::String> destFile) {
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
-		v8::Local<v8::Value> args[3] = { database, sourceDatabase, destFile };
+		v8::Local<v8::Value> args[3] = { database, attachedName, destFile };
 		constructing_privileges = true;
 		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 3, args);
 		constructing_privileges = false;
@@ -51,7 +51,7 @@ private:
 		t->SetClassName(StringFromUtf8(isolate, "Backup", -1));
 
 		NODE_SET_PROTOTYPE_METHOD(t, "transfer", JS_transfer);
-		NODE_SET_PROTOTYPE_METHOD(t, "abort", JS_abort);
+		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
 
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Backup", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
@@ -64,7 +64,7 @@ private:
 		if (!constructing_privileges) return ThrowTypeError("Disabled constructor");
 		assert(info.IsConstructCall());
 		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
-		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> sourceDatabase);
+		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> attachedName);
 		REQUIRE_ARGUMENT_STRING(third, v8::Local<v8::String> destFile);
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
@@ -73,7 +73,7 @@ private:
 		UseIsolate;
 		sqlite3* dest_handle;
 		v8::String::Utf8Value dest_file(EXTRACT_STRING(isolate, destFile));
-		v8::String::Utf8Value source_database(EXTRACT_STRING(isolate, sourceDatabase));
+		v8::String::Utf8Value attached_name(EXTRACT_STRING(isolate, attachedName));
 		int mask = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
 		if (sqlite3_open_v2(*dest_file, &dest_handle, mask, NULL) != SQLITE_OK) {
@@ -85,7 +85,7 @@ private:
 
 		sqlite3_extended_result_codes(dest_handle, 1);
 		sqlite3_limit(dest_handle, SQLITE_LIMIT_LENGTH, INT_MAX);
-		sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), *source_database);
+		sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), *attached_name);
 		if (backup_handle == NULL) {
 			Database::ThrowSqliteError(dest_handle);
 			int status = sqlite3_close(dest_handle);
@@ -106,8 +106,8 @@ private:
 		Backup* backup = Unwrap<Backup>(info.This());
 		REQUIRE_ARGUMENT_INT32(first, int pages);
 		REQUIRE_DATABASE_OPEN(backup->db->GetState());
-		REQUIRE_DATABASE_NOT_BUSY(backup->db->GetState());
-		if (!backup->alive) return ThrowTypeError("Backup operation is no longer active");
+		assert(backup->db->GetState()->busy == false);
+		assert(backup->alive == true);
 
 		sqlite3_backup* backup_handle = backup->backup_handle;
 		int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
@@ -120,20 +120,14 @@ private:
 			result->Set(ctx, CS::Get(isolate, CS::totalPages), v8::Int32::New(isolate, total_pages)).FromJust();
 			result->Set(ctx, CS::Get(isolate, CS::remainingPages), v8::Int32::New(isolate, remaining_pages)).FromJust();
 			info.GetReturnValue().Set(result);
-			if (status == SQLITE_DONE) {
-				backup->db->RemoveBackup(backup);
-				backup->CloseHandles();
-			}
 		} else {
 			Database::ThrowSqliteError(sqlite3_errstr(status), status);
-			backup->db->RemoveBackup(backup);
-			backup->CloseHandles();
 		}
 	}
 
-	NODE_METHOD(JS_abort) {
+	NODE_METHOD(JS_close) {
 		Backup* backup = Unwrap<Backup>(info.This());
-		REQUIRE_DATABASE_NOT_BUSY(backup->db->GetState());
+		assert(backup->db->GetState()->busy == false);
 		if (backup->alive) backup->db->RemoveBackup(backup);
 		backup->CloseHandles();
 		info.GetReturnValue().Set(info.This());

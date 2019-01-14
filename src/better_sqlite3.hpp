@@ -22,7 +22,7 @@
 #endif
 #line 147 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#line 166 "./src/util/constants.lzz"
+#line 163 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
 #define LZZ_INLINE inline
 #line 18 "./src/util/macros.lzz"
@@ -118,15 +118,15 @@ private:
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 37 "./src/util/constants.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 151 "./src/util/constants.lzz"
+#line 148 "./src/util/constants.lzz"
   static v8::Local <v8::String> InternalizedFromLatin1 (v8::Isolate * isolate, char const * str);
-#line 154 "./src/util/constants.lzz"
+#line 151 "./src/util/constants.lzz"
   static void AddString (v8::Isolate * isolate, ConstantString & constant, char const * str);
-#line 157 "./src/util/constants.lzz"
+#line 154 "./src/util/constants.lzz"
   static void AddCode (v8::Isolate * isolate, int code, char const * str);
-#line 160 "./src/util/constants.lzz"
+#line 157 "./src/util/constants.lzz"
   explicit CS (char _);
-#line 162 "./src/util/constants.lzz"
+#line 159 "./src/util/constants.lzz"
   static std::unordered_map <int, ConstantString> codes;
 };
 #line 1 "./src/util/bind-map.lzz"
@@ -495,7 +495,7 @@ class Backup : public node::ObjectWrap
 #line 2 "./src/objects/backup.lzz"
 public:
 #line 5 "./src/objects/backup.lzz"
-  static v8::MaybeLocal <v8::Object> New (v8::Isolate * isolate, v8::Local <v8::Object> database, v8::Local <v8::String> sourceDatabase, v8::Local <v8::String> destFile);
+  static v8::MaybeLocal <v8::Object> New (v8::Isolate * isolate, v8::Local <v8::Object> database, v8::Local <v8::String> attachedName, v8::Local <v8::String> destFile);
 #line 15 "./src/objects/backup.lzz"
   static bool Compare (Backup const * const a, Backup const * const b);
 #line 20 "./src/objects/backup.lzz"
@@ -506,36 +506,32 @@ public:
 private:
 #line 36 "./src/objects/backup.lzz"
   explicit Backup (Database * _db, sqlite3 * _dest_handle, sqlite3_backup * _backup_handle);
-#line 49 "./src/objects/backup.lzz"
+#line 48 "./src/objects/backup.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 49 "./src/objects/backup.lzz"
+#line 48 "./src/objects/backup.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 65 "./src/objects/backup.lzz"
+#line 63 "./src/objects/backup.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 107 "./src/objects/backup.lzz"
+#line 105 "./src/objects/backup.lzz"
   static void JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 142 "./src/objects/backup.lzz"
-  static void JS_abort (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 150 "./src/objects/backup.lzz"
-  static void JS_state (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 159 "./src/objects/backup.lzz"
+#line 128 "./src/objects/backup.lzz"
+  static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+#line 136 "./src/objects/backup.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 160 "./src/objects/backup.lzz"
+#line 137 "./src/objects/backup.lzz"
   static sqlite3_uint64 next_id;
-#line 161 "./src/objects/backup.lzz"
+#line 138 "./src/objects/backup.lzz"
   static bool constructing_privileges;
-#line 163 "./src/objects/backup.lzz"
+#line 140 "./src/objects/backup.lzz"
   Database * const db;
-#line 164 "./src/objects/backup.lzz"
+#line 141 "./src/objects/backup.lzz"
   sqlite3 * const dest_handle;
-#line 165 "./src/objects/backup.lzz"
+#line 142 "./src/objects/backup.lzz"
   sqlite3_backup * const backup_handle;
-#line 166 "./src/objects/backup.lzz"
+#line 143 "./src/objects/backup.lzz"
   sqlite3_uint64 const id;
-#line 167 "./src/objects/backup.lzz"
+#line 144 "./src/objects/backup.lzz"
   bool alive;
-#line 168 "./src/objects/backup.lzz"
-  bool success;
 };
 #line 1 "./src/util/custom-function.lzz"
 class CustomFunction
