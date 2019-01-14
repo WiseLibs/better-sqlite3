@@ -53,9 +53,6 @@ private:
 		AddString(isolate, CS::table, "table");
 		AddString(isolate, CS::type, "type");
 		AddString(isolate, CS::filename, "filename");
-		AddString(isolate, CS::pending, "pending");
-		AddString(isolate, CS::completed, "completed");
-		AddString(isolate, CS::aborted, "aborted");
 		AddString(isolate, CS::totalPages, "totalPages");
 		AddString(isolate, CS::remainingPages, "remainingPages");
 

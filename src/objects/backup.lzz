@@ -38,8 +38,7 @@ private:
 		dest_handle(_dest_handle),
 		backup_handle(_backup_handle),
 		id(next_id++),
-		alive(true),
-		success(false) {
+		alive(true) {
 		assert(db != NULL);
 		assert(dest_handle != NULL);
 		assert(backup_handle != NULL);
@@ -53,7 +52,6 @@ private:
 
 		NODE_SET_PROTOTYPE_METHOD(t, "transfer", JS_transfer);
 		NODE_SET_PROTOTYPE_METHOD(t, "abort", JS_abort);
-		NODE_SET_PROTOTYPE_GETTER(t, "state", JS_state);
 
 		UseContext;
 		exports->Set(ctx, StringFromUtf8(isolate, "Backup", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
@@ -109,12 +107,7 @@ private:
 		REQUIRE_ARGUMENT_INT32(first, int pages);
 		REQUIRE_DATABASE_OPEN(backup->db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(backup->db->GetState());
-		if (!backup->alive) {
-			return ThrowTypeError(backup->success
-				? "Backup operation is already complete"
-				: "Backup operation was previously aborted"
-			);
-		}
+		if (!backup->alive) return ThrowTypeError("Backup operation is no longer active");
 
 		sqlite3_backup* backup_handle = backup->backup_handle;
 		int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
@@ -130,7 +123,6 @@ private:
 			if (status == SQLITE_DONE) {
 				backup->db->RemoveBackup(backup);
 				backup->CloseHandles();
-				backup->success = true;
 			}
 		} else {
 			Database::ThrowSqliteError(sqlite3_errstr(status), status);
@@ -147,15 +139,6 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 
-	NODE_GETTER(JS_state) {
-		Backup* backup = Unwrap<Backup>(info.This());
-		info.GetReturnValue().Set(CS::Get(OnlyIsolate,
-			backup->alive ? CS::pending :
-			backup->success ? CS::completed
-			: CS::aborted
-		));
-	}
-
 	static v8::Persistent<v8::Function> constructor;
 	static sqlite3_uint64 next_id;
 	static bool constructing_privileges;
@@ -165,5 +148,4 @@ private:
 	sqlite3_backup* const backup_handle;
 	const sqlite3_uint64 id;
 	bool alive;
-	bool success;
 };
