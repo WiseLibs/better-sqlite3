@@ -88,6 +88,8 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
 		NODE_SET_PROTOTYPE_METHOD(t, "columns", JS_columns);
 
+		UseContext;
+		exports->Set(ctx, StringFromUtf8(isolate, "Statement", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
