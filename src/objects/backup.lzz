@@ -56,7 +56,7 @@ private:
 		NODE_SET_PROTOTYPE_GETTER(t, "state", JS_state);
 
 		UseContext;
-		exports->Set(ctx, StringFromUtf8(isolate, "Backup", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
+		exports->Set(ctx, StringFromUtf8(isolate, "BackupOperation", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
 		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
 		next_id = 0;
 		constructing_privileges = false;
