@@ -220,7 +220,9 @@ private:
 	NODE_METHOD(JS_backup) {
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> attachedName);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> destFile);
-		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(OnlyIsolate, info.This(), attachedName, destFile);
+		REQUIRE_ARGUMENT_BOOLEAN(third, bool unlink);
+		UseIsolate;
+		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(isolate, info.This(), attachedName, destFile, v8::Boolean::New(isolate, unlink));
 		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
 	}
 
