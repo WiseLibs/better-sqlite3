@@ -58,12 +58,11 @@ private:
 		handle(_handle),
 		extras(new Extras(next_id++)),
 		alive(true),
+		locked(false),
 		bound(false),
 		has_bind_map(false),
 		safe_ints(_db->GetState()->safe_ints),
-		pluck(false),
-		expand(false),
-		raw(false),
+		mode(Data::FLAT),
 		returns_data(_returns_data) {
 		assert(db != NULL);
 		assert(handle != NULL);
@@ -105,6 +104,7 @@ private:
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
+		if (db->GetState()->pragma_mode) { REQUIRE_DATABASE_NO_ITERATORS(db->GetState()); }
 
 		UseIsolate;
 		v8::String::Value sql(EXTRACT_STRING(isolate, source));
@@ -137,7 +137,7 @@ private:
 	}
 
 	NODE_METHOD(JS_run) {
-		STATEMENT_START(REQUIRE_STATEMENT_DOESNT_RETURN_DATA);
+		STATEMENT_START(REQUIRE_STATEMENT_DOESNT_RETURN_DATA, DOES_MUTATE);
 		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
 
@@ -155,15 +155,11 @@ private:
 	}
 
 	NODE_METHOD(JS_get) {
-		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
 		UseIsolate;
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
-			v8::Local<v8::Value> result =
-				stmt->pluck ? Data::GetValueJS(isolate, handle, 0, stmt->safe_ints) :
-				stmt->expand ? Data::GetExpandedRowJS(isolate, OnlyContext, handle, stmt->safe_ints) :
-				stmt->raw ? Data::GetRawRowJS(isolate, OnlyContext, handle, stmt->safe_ints)
-				: Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints);
+			v8::Local<v8::Value> result = Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints, stmt->mode);
 			sqlite3_reset(handle);
 			STATEMENT_RETURN(result);
 		} else if (status == SQLITE_DONE) {
@@ -175,24 +171,17 @@ private:
 	}
 
 	NODE_METHOD(JS_all) {
-		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
+		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
 		UseIsolateAndContext;
 		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
 		uint32_t row_count = 0;
 		const bool safe_ints = stmt->safe_ints;
-		const bool pluck = stmt->pluck;
-		const bool expand = stmt->expand;
-		const bool raw = stmt->raw;
+		const char mode = stmt->mode;
 		bool js_error = false;
 
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
-			result->Set(ctx, row_count++,
-				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
-				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints) :
-				raw ? Data::GetRawRowJS(isolate, ctx, handle, safe_ints)
-				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
-			).FromJust();
+			result->Set(ctx, row_count++, Data::GetRowJS(isolate, ctx, handle, safe_ints, mode)).FromJust();
 		}
 
 		if (sqlite3_reset(handle) == SQLITE_OK && !js_error) {
@@ -212,6 +201,7 @@ private:
 		if (stmt->bound) return ThrowTypeError("The bind() method can only be invoked once per statement object");
 		REQUIRE_DATABASE_OPEN(stmt->db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		REQUIRE_STATEMENT_NOT_LOCKED(stmt);
 		STATEMENT_BIND(stmt->handle);
 		stmt->bound = true;
 		info.GetReturnValue().Set(info.This());
@@ -221,9 +211,10 @@ private:
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The pluck() method is only for statements that return data");
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
-		if (info.Length() == 0) stmt->pluck = true;
-		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->pluck); }
-		if (stmt->pluck) stmt->expand = stmt->raw = false;
+		REQUIRE_STATEMENT_NOT_LOCKED(stmt);
+		bool use = true;
+		if (info.Length() != 0) { REQUIRE_ARGUMENT_BOOLEAN(first, use); }
+		stmt->mode = use ? Data::PLUCK : stmt->mode == Data::PLUCK ? Data::FLAT : stmt->mode;
 		info.GetReturnValue().Set(info.This());
 	}
 
@@ -231,9 +222,10 @@ private:
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The expand() method is only for statements that return data");
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
-		if (info.Length() == 0) stmt->expand = true;
-		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->expand); }
-		if (stmt->expand) stmt->pluck = stmt->raw = false;
+		REQUIRE_STATEMENT_NOT_LOCKED(stmt);
+		bool use = true;
+		if (info.Length() != 0) { REQUIRE_ARGUMENT_BOOLEAN(first, use); }
+		stmt->mode = use ? Data::EXPAND : stmt->mode == Data::EXPAND ? Data::FLAT : stmt->mode;
 		info.GetReturnValue().Set(info.This());
 	}
 
@@ -241,15 +233,17 @@ private:
 		Statement* stmt = Unwrap<Statement>(info.This());
 		if (!stmt->returns_data) return ThrowTypeError("The raw() method is only for statements that return data");
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
-		if (info.Length() == 0) stmt->raw = true;
-		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->raw); }
-		if (stmt->raw) stmt->pluck = stmt->expand = false;
+		REQUIRE_STATEMENT_NOT_LOCKED(stmt);
+		bool use = true;
+		if (info.Length() != 0) { REQUIRE_ARGUMENT_BOOLEAN(first, use); }
+		stmt->mode = use ? Data::RAW : stmt->mode == Data::RAW ? Data::FLAT : stmt->mode;
 		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_safeIntegers) {
 		Statement* stmt = Unwrap<Statement>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
+		REQUIRE_STATEMENT_NOT_LOCKED(stmt);
 		if (info.Length() == 0) stmt->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, stmt->safe_ints); }
 		info.GetReturnValue().Set(info.This());
@@ -304,11 +298,10 @@ private:
 	sqlite3_stmt* const handle;
 	Extras* const extras;
 	bool alive;
+	bool locked;
 	bool bound;
 	bool has_bind_map;
 	bool safe_ints;
-	bool pluck;
-	bool expand;
-	bool raw;
+	char mode;
 	const bool returns_data;
 };

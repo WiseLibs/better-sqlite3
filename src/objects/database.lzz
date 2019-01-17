@@ -38,6 +38,7 @@ public:
 		const bool pragma_mode;
 		const bool safe_ints;
 		bool was_js_error;
+		unsigned short iterators;
 	};
 
 	inline State* GetState() {
@@ -79,6 +80,7 @@ private:
 		pragma_mode(false),
 		safe_ints(false),
 		was_js_error(false),
+		iterators(0),
 		stmts(),
 		backups() {
 		assert(_db_handle != NULL);
@@ -163,6 +165,7 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		v8::String::Utf8Value sql(EXTRACT_STRING(OnlyIsolate, source));
 		db->busy = true;
 		int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
@@ -179,6 +182,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		sqlite3* db_handle = db->db_handle;
 
 		if (info.Length()) {
@@ -235,6 +239,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
@@ -259,6 +264,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(eighth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
@@ -278,6 +284,7 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		v8::String::Utf8Value filename(EXTRACT_STRING(OnlyIsolate, filenameString));
 		char* error;
 		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
@@ -290,6 +297,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
 			REQUIRE_DATABASE_NOT_BUSY(db);
+			REQUIRE_DATABASE_NO_ITERATORS(db);
 			dbs.erase(db);
 			db->CloseHandles();
 		}
@@ -298,7 +306,6 @@ private:
 
 	NODE_METHOD(JS_defaultSafeIntegers) {
 		Database* db = Unwrap<Database>(info.This());
-		REQUIRE_DATABASE_NOT_BUSY(db);
 		if (info.Length() == 0) db->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
 		info.GetReturnValue().Set(info.This());
@@ -341,6 +348,7 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
+	unsigned short iterators;
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;
 };

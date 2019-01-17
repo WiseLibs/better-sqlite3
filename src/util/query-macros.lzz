@@ -1,36 +1,46 @@
-#define STATEMENT_THROW()                                                      \
-	db->GetState()->busy = false;                                              \
+#define STATEMENT_BIND(handle)                                                 \
+	Binder binder(handle);                                                     \
+	if (!binder.Bind(info, info.Length(), stmt)) {                             \
+		sqlite3_clear_bindings(handle);                                        \
+		return;                                                                \
+	} ((void)0)
+
+#define STATEMENT_THROW_LOGIC()                                                \
 	db->ThrowDatabaseError();                                                  \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
 
-#define STATEMENT_RETURN(return_value)                                         \
-	db->GetState()->busy = false;                                              \
+#define STATEMENT_RETURN_LOGIC(return_value)                                   \
 	info.GetReturnValue().Set(return_value);                                   \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
 	return
 
-#define STATEMENT_BIND(handle)                                                 \
-	Binder binder(handle);                                                     \
-	if (!binder.Bind(info, info.Length(), stmt)) {                             \
-		sqlite3_clear_bindings(handle); return;                                \
-	} ((void)0)
-
-#define STATEMENT_START(RETURNS_DATA_CHECK)                                    \
+#define STATEMENT_START_LOGIC(RETURNS_DATA_CHECK, MUTATE_CHECK)                \
 	Statement* stmt = Unwrap<Statement>(info.This());                          \
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	Database* db = stmt->db;                                                   \
 	REQUIRE_DATABASE_OPEN(db->GetState());                                     \
 	REQUIRE_DATABASE_NOT_BUSY(db->GetState());                                 \
+	MUTATE_CHECK();                                                            \
 	const bool bound = stmt->bound;                                            \
 	if (!bound) {                                                              \
 		STATEMENT_BIND(handle);                                                \
-	} else if (info.Length() > 0)                                              \
+	} else if (info.Length() > 0) {                                            \
 		return ThrowTypeError("This statement already has bound parameters");  \
-	db->GetState()->busy = true
+	} ((void)0)
+
+#define STATEMENT_THROW() db->GetState()->busy = false; STATEMENT_THROW_LOGIC()
+#define STATEMENT_RETURN(x) db->GetState()->busy = false; STATEMENT_RETURN_LOGIC(x)
+#define STATEMENT_START(x, y) STATEMENT_START_LOGIC(x, y); db->GetState()->busy = true
 
 
+#define DOES_NOT_MUTATE() REQUIRE_STATEMENT_NOT_LOCKED(stmt)
+#define DOES_MUTATE() REQUIRE_DATABASE_NO_ITERATORS(db->GetState())
+#define ADDS_ITERATOR()                                                        \
+	DOES_NOT_MUTATE();                                                         \
+	if (db->GetState()->iterators == USHRT_MAX)                                \
+		return ThrowRangeError("Too many active database iterators")
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
 	if (!stmt->returns_data)                                                   \
 		return ThrowTypeError("This statement does not return data. Use run() instead")
