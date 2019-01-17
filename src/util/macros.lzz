@@ -77,7 +77,7 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 
 #hdr
 #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                      \
-  (V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
+	(V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
 #define EXTRACT_STRING(isolate, string) isolate, string
 #else
 #define EXTRACT_STRING(_unused, string) string
