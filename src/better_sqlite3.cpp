@@ -1237,17 +1237,15 @@ void Backup::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                         return;
                 }
 
-                v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 Backup* backup = new Backup(db, dest_handle, backup_handle, unlink);
                 backup->Wrap(info.This());
-                SetFrozen(isolate, ctx, info.This(), CS::filename, destFile);
-                SetFrozen(isolate, ctx, info.This(), CS::database, database);
+                SetFrozen(isolate, isolate -> GetCurrentContext ( ) , info.This(), CS::database, database);
 
                 info.GetReturnValue().Set(info.This());
 }
-#line 109 "./src/objects/backup.lzz"
+#line 107 "./src/objects/backup.lzz"
 void Backup::JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 109 "./src/objects/backup.lzz"
+#line 107 "./src/objects/backup.lzz"
                                  {
                 Backup* backup = node :: ObjectWrap :: Unwrap <Backup>(info.This());
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a 32-bit signed integer" ) ; int pages = v8 :: Local < v8 :: Int32 > :: Cast ( info [ 0 ] ) -> Value ( ) ;
@@ -1271,9 +1269,9 @@ void Backup::JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                         Database::ThrowSqliteError(sqlite3_errstr(status), status);
                 }
 }
-#line 133 "./src/objects/backup.lzz"
+#line 131 "./src/objects/backup.lzz"
 void Backup::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 133 "./src/objects/backup.lzz"
+#line 131 "./src/objects/backup.lzz"
                               {
                 Backup* backup = node :: ObjectWrap :: Unwrap <Backup>(info.This());
                 assert(backup->db->GetState()->busy == false);
@@ -1281,11 +1279,11 @@ void Backup::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 backup->CloseHandles();
                 info.GetReturnValue().Set(info.This());
 }
-#line 141 "./src/objects/backup.lzz"
+#line 139 "./src/objects/backup.lzz"
 v8::Persistent <v8::Function> Backup::constructor;
-#line 142 "./src/objects/backup.lzz"
+#line 140 "./src/objects/backup.lzz"
 sqlite3_uint64 Backup::next_id;
-#line 143 "./src/objects/backup.lzz"
+#line 141 "./src/objects/backup.lzz"
 bool Backup::constructing_privileges;
 #line 4 "./src/util/custom-function.lzz"
 CustomFunction::CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints)

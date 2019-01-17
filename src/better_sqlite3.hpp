@@ -513,27 +513,27 @@ private:
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
 #line 66 "./src/objects/backup.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 109 "./src/objects/backup.lzz"
+#line 107 "./src/objects/backup.lzz"
   static void JS_transfer (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 133 "./src/objects/backup.lzz"
+#line 131 "./src/objects/backup.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 141 "./src/objects/backup.lzz"
+#line 139 "./src/objects/backup.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 142 "./src/objects/backup.lzz"
+#line 140 "./src/objects/backup.lzz"
   static sqlite3_uint64 next_id;
-#line 143 "./src/objects/backup.lzz"
+#line 141 "./src/objects/backup.lzz"
   static bool constructing_privileges;
-#line 145 "./src/objects/backup.lzz"
+#line 143 "./src/objects/backup.lzz"
   Database * const db;
-#line 146 "./src/objects/backup.lzz"
+#line 144 "./src/objects/backup.lzz"
   sqlite3 * const dest_handle;
-#line 147 "./src/objects/backup.lzz"
+#line 145 "./src/objects/backup.lzz"
   sqlite3_backup * const backup_handle;
-#line 148 "./src/objects/backup.lzz"
+#line 146 "./src/objects/backup.lzz"
   sqlite3_uint64 const id;
-#line 149 "./src/objects/backup.lzz"
+#line 147 "./src/objects/backup.lzz"
   bool alive;
-#line 150 "./src/objects/backup.lzz"
+#line 148 "./src/objects/backup.lzz"
   bool unlink;
 };
 #line 1 "./src/util/custom-function.lzz"

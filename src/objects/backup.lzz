@@ -97,11 +97,9 @@ private:
 			return;
 		}
 
-		UseContext;
 		Backup* backup = new Backup(db, dest_handle, backup_handle, unlink);
 		backup->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::filename, destFile);
-		SetFrozen(isolate, ctx, info.This(), CS::database, database);
+		SetFrozen(isolate, OnlyContext, info.This(), CS::database, database);
 
 		info.GetReturnValue().Set(info.This());
 	}
