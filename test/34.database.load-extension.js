@@ -18,10 +18,6 @@ describe('Database#loadExtension()', function () {
 		expect(() => this.db.loadExtension(new String(filepath))).to.throw(TypeError);
 		expect(() => this.db.loadExtension([filepath])).to.throw(TypeError);
 	});
-	it('should throw an exception if the database is closed', function () {
-		this.db.close();
-		expect(() => this.db.loadExtension(filepath)).to.throw(TypeError);
-	});
 	it('should throw an exception if the database is busy', function () {
 		let invoked = false;
 		for (const value of this.db.prepare('select 555').pluck().iterate()) {

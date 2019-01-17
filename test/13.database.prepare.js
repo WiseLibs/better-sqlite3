@@ -8,13 +8,14 @@ describe('Database#prepare()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	const assertStmt = (stmt, source, db, reader) => {
+
+	function assertStmt(stmt, source, db, reader) {
 		expect(stmt.source).to.equal(source);
 		expect(stmt.constructor.name).to.equal('Statement');
 		expect(stmt.database).to.equal(db);
 		expect(stmt.reader).to.equal(reader);
 		expect(() => new stmt.constructor(source)).to.throw(TypeError);
-	};
+	}
 
 	it('should throw an exception if a string is not provided', function () {
 		expect(() => this.db.prepare(123)).to.throw(TypeError);

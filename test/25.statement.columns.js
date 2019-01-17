@@ -10,21 +10,6 @@ describe('Statement#columns()', function () {
 		this.db.close();
 	});
 
-	it('should throw an exception if the database is closed', function () {
-		const stmt = this.db.prepare('SELECT 5.0 as d, * FROM entries');
-		this.db.close();
-		expect(() => stmt.columns()).to.throw(TypeError);
-	});
-	it('should throw an exception if the database is busy', function () {
-		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run('foo', 5, Buffer.from('bar'));
-		const stmt = this.db.prepare('SELECT 5.0 as d, * FROM entries');
-		let invoked = false;
-		for (const row of this.db.prepare(stmt.source).iterate()) {
-			expect(() => stmt.columns()).to.throw(TypeError);
-			invoked = true;
-		}
-		expect(invoked).to.be.true;
-	});
 	it('should throw an exception if invoked on a non-reader statement', function () {
 		const stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		expect(() => stmt.columns()).to.throw(TypeError);

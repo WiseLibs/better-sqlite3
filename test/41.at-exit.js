@@ -4,6 +4,7 @@ const { fork } = require('child_process');
 
 describe('node::AtExit()', function () {
 	this.slow(500);
+
 	const source = (filename1, filename2) => `
 		'use strict';
 		const Database = require('../.');

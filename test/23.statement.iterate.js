@@ -119,19 +119,6 @@ describe('Statement#iterate()', function () {
 		shouldHave(expanded);
 		shouldHave(expanded);
 	});
-	it('should not be able to invoke .pluck() while the database is busy', function () {
-		const stmt1 = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
-		const stmt2 = this.db.prepare("SELECT * FROM entries ORDER BY rowid LIMIT 2");
-		let i = 0;
-		for (const data of stmt1.iterate()) {
-			++i;
-			expect(() => stmt1.pluck()).to.throw(TypeError);
-			expect(() => stmt2.pluck()).to.throw(TypeError);
-			expect(() => stmt1.pluck(false)).to.throw(TypeError);
-			expect(() => stmt2.pluck(false)).to.throw(TypeError);
-		}
-		expect(i).to.equal(10);
-	});
 	it('should close the iterator when throwing in a for-of loop', function () {
 		const err = new Error('foobar');
 		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
@@ -165,47 +152,6 @@ describe('Statement#iterate()', function () {
 		for (const data of stmt.pluck().iterate()) {
 			throw new Error('This callback should not have been invoked');
 		}
-	});
-	it('should not allow other database operations to execute while open', function () {
-		const stmt1 = this.db.prepare('SELECT * FROM entries ORDER BY rowid');
-		const stmt2 = this.db.prepare('CREATE TABLE numbers (number INTEGER)');
-		let count = 0;
-		for (const row of this.db.prepare('SELECT * FROM entries ORDER BY rowid').iterate()) {
-			++count;
-			expect(() => this.db.close()).to.throw(TypeError);
-			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
-			expect(() => this.db.checkpoint()).to.throw(TypeError);
-			expect(() => this.db.prepare('SELECT * FROM entries ORDER BY rowid')).to.throw(TypeError);
-			expect(() => this.db.transaction(() => {})).to.throw(TypeError);
-			expect(() => stmt1.get()).to.throw(TypeError);
-			expect(() => stmt1.all()).to.throw(TypeError);
-			expect(() => stmt1.iterate()).to.throw(TypeError);
-			expect(() => stmt2.run()).to.throw(TypeError);
-		}
-		expect(count).to.equal(10);
-	});
-	it('should allow database operations after closing the iterator', function () {
-		const row = { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null };
-		const stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
-		this.db.prepare('SELECT 555');
-		const iterator = stmt.iterate();
-		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-		expect(iterator.next()).to.deep.equal({ value: row, done: false });
-		row.b += 1;
-		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-		expect(iterator.next()).to.deep.equal({ value: row, done: false });
-		row.b += 1;
-		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-		expect(iterator.next()).to.deep.equal({ value: row, done: false });
-		expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-		expect(iterator.return()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT 555');
-		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT 555');
-		expect(iterator.return()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT 555');
-		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT 555');
 	});
 	it('should accept bind parameters', function () {
 		const shouldHave = (SQL, desiredData, args) => {

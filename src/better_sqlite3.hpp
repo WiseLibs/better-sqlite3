@@ -455,39 +455,39 @@ private:
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 68 "./src/objects/statement-iterator.lzz"
   static void JS_next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 74 "./src/objects/statement-iterator.lzz"
+#line 75 "./src/objects/statement-iterator.lzz"
   static void JS_return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 82 "./src/objects/statement-iterator.lzz"
   static void JS_symbolIterator (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 84 "./src/objects/statement-iterator.lzz"
+#line 86 "./src/objects/statement-iterator.lzz"
   void Next (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 100 "./src/objects/statement-iterator.lzz"
+#line 102 "./src/objects/statement-iterator.lzz"
   void Return (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 105 "./src/objects/statement-iterator.lzz"
+#line 107 "./src/objects/statement-iterator.lzz"
   void Throw ();
-#line 111 "./src/objects/statement-iterator.lzz"
+#line 113 "./src/objects/statement-iterator.lzz"
   void Cleanup ();
-#line 119 "./src/objects/statement-iterator.lzz"
+#line 121 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> NewRecord (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Value> value, bool done = false);
-#line 126 "./src/objects/statement-iterator.lzz"
+#line 128 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> DoneRecord (v8::Isolate * isolate);
-#line 130 "./src/objects/statement-iterator.lzz"
+#line 132 "./src/objects/statement-iterator.lzz"
   static v8::Persistent <v8::Function> constructor;
-#line 131 "./src/objects/statement-iterator.lzz"
-  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 133 "./src/objects/statement-iterator.lzz"
-  Statement * const stmt;
-#line 134 "./src/objects/statement-iterator.lzz"
-  sqlite3_stmt * const handle;
+  static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 135 "./src/objects/statement-iterator.lzz"
-  Database::State * const db_state;
+  Statement * const stmt;
 #line 136 "./src/objects/statement-iterator.lzz"
-  bool const bound;
+  sqlite3_stmt * const handle;
 #line 137 "./src/objects/statement-iterator.lzz"
-  bool const safe_ints;
+  Database::State * const db_state;
 #line 138 "./src/objects/statement-iterator.lzz"
-  char const mode;
+  bool const bound;
 #line 139 "./src/objects/statement-iterator.lzz"
+  bool const safe_ints;
+#line 140 "./src/objects/statement-iterator.lzz"
+  char const mode;
+#line 141 "./src/objects/statement-iterator.lzz"
   bool alive;
 };
 #line 1 "./src/objects/backup.lzz"

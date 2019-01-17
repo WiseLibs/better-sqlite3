@@ -67,12 +67,14 @@ private:
 
 	NODE_METHOD(JS_next) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Next(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}
 
 	NODE_METHOD(JS_return) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Return(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}

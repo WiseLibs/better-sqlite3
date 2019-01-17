@@ -1090,26 +1090,28 @@ void StatementIterator::JS_next (v8::FunctionCallbackInfo <v8 :: Value> const & 
 #line 68 "./src/objects/statement-iterator.lzz"
                              {
                 StatementIterator* iter = node :: ObjectWrap :: Unwrap <StatementIterator>(info.This());
+                if ( iter -> db_state -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
                 if (iter->alive) iter->Next(info);
                 else info.GetReturnValue().Set(DoneRecord( info . GetIsolate ( ) ));
 }
-#line 74 "./src/objects/statement-iterator.lzz"
+#line 75 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_return (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 74 "./src/objects/statement-iterator.lzz"
+#line 75 "./src/objects/statement-iterator.lzz"
                                {
                 StatementIterator* iter = node :: ObjectWrap :: Unwrap <StatementIterator>(info.This());
+                if ( iter -> db_state -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
                 if (iter->alive) iter->Return(info);
                 else info.GetReturnValue().Set(DoneRecord( info . GetIsolate ( ) ));
 }
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 82 "./src/objects/statement-iterator.lzz"
 void StatementIterator::JS_symbolIterator (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 80 "./src/objects/statement-iterator.lzz"
+#line 82 "./src/objects/statement-iterator.lzz"
                                        {
                 info.GetReturnValue().Set(info.This());
 }
-#line 84 "./src/objects/statement-iterator.lzz"
+#line 86 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Next (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 84 "./src/objects/statement-iterator.lzz"
+#line 86 "./src/objects/statement-iterator.lzz"
                                        {
                 assert(alive == true);
                 db_state->busy = true;
@@ -1125,24 +1127,24 @@ void StatementIterator::Next (v8::FunctionCallbackInfo <v8 :: Value> const & inf
                         else Throw();
                 }
 }
-#line 100 "./src/objects/statement-iterator.lzz"
+#line 102 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Return (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 100 "./src/objects/statement-iterator.lzz"
+#line 102 "./src/objects/statement-iterator.lzz"
                                          {
                 Cleanup();
                 info . GetReturnValue ( ) . Set ( DoneRecord ( info . GetIsolate ( ) ) ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 105 "./src/objects/statement-iterator.lzz"
+#line 107 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Throw ()
-#line 105 "./src/objects/statement-iterator.lzz"
+#line 107 "./src/objects/statement-iterator.lzz"
                      {
                 Cleanup();
                 Database* db = stmt->db;
                 db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ;
 }
-#line 111 "./src/objects/statement-iterator.lzz"
+#line 113 "./src/objects/statement-iterator.lzz"
 void StatementIterator::Cleanup ()
-#line 111 "./src/objects/statement-iterator.lzz"
+#line 113 "./src/objects/statement-iterator.lzz"
                        {
                 assert(alive == true);
                 alive = false;
@@ -1150,24 +1152,24 @@ void StatementIterator::Cleanup ()
                 db_state->iterators -= 1;
                 sqlite3_reset(handle);
 }
-#line 119 "./src/objects/statement-iterator.lzz"
+#line 121 "./src/objects/statement-iterator.lzz"
 v8::Local <v8::Object> StatementIterator::NewRecord (v8::Isolate * isolate, v8::Local <v8::Context> ctx, v8::Local <v8::Value> value, bool done)
-#line 119 "./src/objects/statement-iterator.lzz"
+#line 121 "./src/objects/statement-iterator.lzz"
                                                                                                                                                 {
                 v8::Local<v8::Object> record = v8::Object::New(isolate);
                 record->Set(ctx, CS::Get(isolate, CS::value), value).FromJust();
                 record->Set(ctx, CS::Get(isolate, CS::done), done ? v8::True(isolate) : v8::False(isolate)).FromJust();
                 return record;
 }
-#line 126 "./src/objects/statement-iterator.lzz"
+#line 128 "./src/objects/statement-iterator.lzz"
 v8::Local <v8::Object> StatementIterator::DoneRecord (v8::Isolate * isolate)
-#line 126 "./src/objects/statement-iterator.lzz"
+#line 128 "./src/objects/statement-iterator.lzz"
                                                                       {
                 return NewRecord(isolate, isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), true);
 }
-#line 130 "./src/objects/statement-iterator.lzz"
+#line 132 "./src/objects/statement-iterator.lzz"
 v8::Persistent <v8::Function> StatementIterator::constructor;
-#line 131 "./src/objects/statement-iterator.lzz"
+#line 133 "./src/objects/statement-iterator.lzz"
 v8::FunctionCallbackInfo <v8 :: Value> const * StatementIterator::caller_info;
 #line 5 "./src/objects/backup.lzz"
 v8::MaybeLocal <v8::Object> Backup::New (v8::Isolate * isolate, v8::Local <v8::Object> database, v8::Local <v8::String> attachedName, v8::Local <v8::String> destFile, v8::Local <v8::Boolean> unlink)
