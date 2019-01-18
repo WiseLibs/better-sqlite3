@@ -111,6 +111,7 @@ namespace Data {
 		if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
 		if (mode == RAW) return GetRawRowJS(isolate, ctx, handle, safe_ints);
 		assert(false);
+		return v8::Local<v8::Value>();
 	}
 
 	void GetArgumentsJS(v8::Isolate* isolate, v8::Local<v8::Value>* out, sqlite3_value** values, int argument_count, bool safe_ints) {
