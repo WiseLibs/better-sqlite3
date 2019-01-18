@@ -1519,14 +1519,15 @@ namespace Data
                 if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
                 if (mode == RAW) return GetRawRowJS(isolate, ctx, handle, safe_ints);
                 assert(false);
+                return v8::Local<v8::Value>();
   }
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 116 "./src/util/data.lzz"
+#line 117 "./src/util/data.lzz"
   void GetArgumentsJS (v8::Isolate * isolate, v8::Local <v8::Value> * out, sqlite3_value * * values, int argument_count, bool safe_ints)
-#line 116 "./src/util/data.lzz"
+#line 117 "./src/util/data.lzz"
                                                                                                                                          {
                 assert(argument_count > 0);
                 for (int i=0; i<argument_count; ++i) {
@@ -1537,9 +1538,9 @@ namespace Data
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 123 "./src/util/data.lzz"
+#line 124 "./src/util/data.lzz"
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value)
-#line 123 "./src/util/data.lzz"
+#line 124 "./src/util/data.lzz"
                                                                                                                {
                 if ( value -> IsNumber ( ) ) { return sqlite3_bind_double ( handle , index , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( EXTRACT_STRING ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ) ; return sqlite3_bind_text ( handle , index , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_bind_null ( handle , index ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_bind_blob ( handle , index , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_bind_int64 ( handle , index , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 return -1;
@@ -1548,9 +1549,9 @@ namespace Data
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 128 "./src/util/data.lzz"
+#line 129 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function)
-#line 128 "./src/util/data.lzz"
+#line 129 "./src/util/data.lzz"
                                                                                                                                         {
                 if ( value -> IsNumber ( ) ) { return sqlite3_result_double ( invocation , v8 :: Local < v8 :: Number > :: Cast ( value ) -> Value ( ) ) ; } else if ( value -> IsString ( ) ) { v8 :: String :: Utf8Value utf8 ( EXTRACT_STRING ( isolate , v8 :: Local < v8 :: String > :: Cast ( value ) ) ) ; return sqlite3_result_text ( invocation , * utf8 , utf8 . length ( ) , SQLITE_TRANSIENT ) ; } else if ( value -> IsNull ( ) || value -> IsUndefined ( ) ) { return sqlite3_result_null ( invocation ) ; } else if ( node :: Buffer :: HasInstance ( value ) ) { return sqlite3_result_blob ( invocation , node :: Buffer :: Data ( value ) , node :: Buffer :: Length ( value ) , SQLITE_TRANSIENT ) ; } else if ( Integer :: HasInstance ( isolate , value ) ) { return sqlite3_result_int64 ( invocation , Integer :: GetValue ( v8 :: Local < v8 :: Object > :: Cast ( value ) ) ) ; } ;
                 function->ThrowResultValueError(invocation);

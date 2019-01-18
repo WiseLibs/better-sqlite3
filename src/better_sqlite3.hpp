@@ -659,19 +659,19 @@ namespace Data
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 116 "./src/util/data.lzz"
+#line 117 "./src/util/data.lzz"
   void GetArgumentsJS (v8::Isolate * isolate, v8::Local <v8::Value> * out, sqlite3_value * * values, int argument_count, bool safe_ints);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 123 "./src/util/data.lzz"
+#line 124 "./src/util/data.lzz"
   int BindValueFromJS (v8::Isolate * isolate, sqlite3_stmt * handle, int index, v8::Local <v8::Value> value);
 }
 #line 54 "./src/util/data.lzz"
 namespace Data
 {
-#line 128 "./src/util/data.lzz"
+#line 129 "./src/util/data.lzz"
   void ResultValueFromJS (v8::Isolate * isolate, sqlite3_context * invocation, v8::Local <v8::Value> value, CustomFunction * function);
 }
 #line 1 "./src/util/binder.lzz"
