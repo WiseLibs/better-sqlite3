@@ -115,20 +115,12 @@ ConstantString CS::table;
 #line 28 "./src/util/constants.lzz"
 ConstantString CS::type;
 #line 29 "./src/util/constants.lzz"
-ConstantString CS::filename;
-#line 30 "./src/util/constants.lzz"
-ConstantString CS::pending;
-#line 31 "./src/util/constants.lzz"
-ConstantString CS::completed;
-#line 32 "./src/util/constants.lzz"
-ConstantString CS::aborted;
-#line 33 "./src/util/constants.lzz"
 ConstantString CS::totalPages;
-#line 34 "./src/util/constants.lzz"
+#line 30 "./src/util/constants.lzz"
 ConstantString CS::remainingPages;
-#line 37 "./src/util/constants.lzz"
+#line 33 "./src/util/constants.lzz"
 void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module)
-#line 37 "./src/util/constants.lzz"
+#line 33 "./src/util/constants.lzz"
                        {
                 AddString(isolate, CS::database, "database");
                 AddString(isolate, CS::reader, "reader");
@@ -147,7 +139,6 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddString(isolate, CS::column, "column");
                 AddString(isolate, CS::table, "table");
                 AddString(isolate, CS::type, "type");
-                AddString(isolate, CS::filename, "filename");
                 AddString(isolate, CS::totalPages, "totalPages");
                 AddString(isolate, CS::remainingPages, "remainingPages");
 
@@ -239,30 +230,30 @@ void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Loca
                 AddCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
                 AddCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 }
-#line 148 "./src/util/constants.lzz"
+#line 143 "./src/util/constants.lzz"
 v8::Local <v8::String> CS::InternalizedFromLatin1 (v8::Isolate * isolate, char const * str)
-#line 148 "./src/util/constants.lzz"
+#line 143 "./src/util/constants.lzz"
                                                                                                    {
                 return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
 }
-#line 151 "./src/util/constants.lzz"
+#line 146 "./src/util/constants.lzz"
 void CS::AddString (v8::Isolate * isolate, ConstantString & constant, char const * str)
-#line 151 "./src/util/constants.lzz"
+#line 146 "./src/util/constants.lzz"
                                                                                                {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
-#line 154 "./src/util/constants.lzz"
+#line 149 "./src/util/constants.lzz"
 void CS::AddCode (v8::Isolate * isolate, int code, char const * str)
-#line 154 "./src/util/constants.lzz"
+#line 149 "./src/util/constants.lzz"
                                                                              {
                 codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 }
-#line 157 "./src/util/constants.lzz"
+#line 152 "./src/util/constants.lzz"
 CS::CS (char _)
-#line 157 "./src/util/constants.lzz"
+#line 152 "./src/util/constants.lzz"
                             { assert(false);
 }
-#line 159 "./src/util/constants.lzz"
+#line 154 "./src/util/constants.lzz"
 std::unordered_map <int, ConstantString> CS::codes;
 #line 19 "./src/util/bind-map.lzz"
 BindMap::Pair::Pair (v8::Isolate * isolate, char const * _name, int _index)

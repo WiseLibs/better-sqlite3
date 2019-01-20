@@ -23,7 +23,7 @@
 #endif
 #line 153 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#line 163 "./src/util/constants.lzz"
+#line 158 "./src/util/constants.lzz"
 typedef v8::Persistent<v8::String> ConstantString;
 #define LZZ_INLINE inline
 #line 18 "./src/util/macros.lzz"
@@ -102,32 +102,24 @@ public:
 #line 28 "./src/util/constants.lzz"
   static ConstantString type;
 #line 29 "./src/util/constants.lzz"
-  static ConstantString filename;
-#line 30 "./src/util/constants.lzz"
-  static ConstantString pending;
-#line 31 "./src/util/constants.lzz"
-  static ConstantString completed;
-#line 32 "./src/util/constants.lzz"
-  static ConstantString aborted;
-#line 33 "./src/util/constants.lzz"
   static ConstantString totalPages;
-#line 34 "./src/util/constants.lzz"
+#line 30 "./src/util/constants.lzz"
   static ConstantString remainingPages;
-#line 36 "./src/util/constants.lzz"
+#line 32 "./src/util/constants.lzz"
 private:
-#line 37 "./src/util/constants.lzz"
+#line 33 "./src/util/constants.lzz"
   friend void RegisterModule (v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 37 "./src/util/constants.lzz"
+#line 33 "./src/util/constants.lzz"
   static void Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module);
-#line 148 "./src/util/constants.lzz"
+#line 143 "./src/util/constants.lzz"
   static v8::Local <v8::String> InternalizedFromLatin1 (v8::Isolate * isolate, char const * str);
-#line 151 "./src/util/constants.lzz"
+#line 146 "./src/util/constants.lzz"
   static void AddString (v8::Isolate * isolate, ConstantString & constant, char const * str);
-#line 154 "./src/util/constants.lzz"
+#line 149 "./src/util/constants.lzz"
   static void AddCode (v8::Isolate * isolate, int code, char const * str);
-#line 157 "./src/util/constants.lzz"
+#line 152 "./src/util/constants.lzz"
   explicit CS (char _);
-#line 159 "./src/util/constants.lzz"
+#line 154 "./src/util/constants.lzz"
   static std::unordered_map <int, ConstantString> codes;
 };
 #line 1 "./src/util/bind-map.lzz"
