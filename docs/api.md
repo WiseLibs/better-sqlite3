@@ -7,7 +7,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
-- [Database#backup()](#backupdestination-options---backup) (see [`Backup`](#class-backup))
+- [Database#backup()](#backupdestination-options---promise)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
@@ -128,11 +128,22 @@ If `databaseName` is provided, it should be the name of an attached database (or
 
 If the checkpoint fails, an `Error` is thrown.
 
-### .backup(*destination*, [*options*]) -> *Backup*
+### .backup(*destination*, [*options*]) -> *promise*
 
-Initiates a backup of the database, returning a new [`Backup`](#class-backup) object. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`.
 
-If a backup cannot be started, an `Error` is thrown.
+You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+
+You can monitor the progress of the backup by setting the `progress` option to a callback function. That function will be invoked every time the backup makes progress, providing an object with two properties:
+
+- `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this progress report.
+- `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
+
+You can force the backup to be aborted by throwing an exception from within the `progress` function.
+
+By default, `100` [pages](https://www.sqlite.org/fileformat.html#pages) will be transferred after each cycle of the event loop. However, you can change this setting as often as you like by returning a number from the progress function. You can even return `0` to effectively pause the backup altogether. In general, the goal is to maximize throughput while reducing pause times. If the page count is very low, pause times will be low, but it may take a while to complete the backup. On the flip side, if the setting is too high, pause times will be greater, but the backup might complete sooner. In most cases, `100` has proven to be a strong compromise, but the best setting is dependent on your computer's specifications and the nature of your program. Do not change this setting without measuring the effectiveness of your change. You should not assume that your change will even have the intended effect, unless you measure it for your unique situation.
+
+Other database operations can be executed while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
 
 ### .function(*name*, [*options*], *function*) -> *this*
 
@@ -449,78 +460,6 @@ console.log(cat.name); // => "Joey"
 **.source -> _string_** - The source string that was used to create the prepared statement.
 
 **.reader -> _boolean_** - Whether the prepared statement returns data.
-
-# class *Backup*
-
-An object that facilitates a [backup](https://sqlite.org/backup.html) of the database.
-
-- [Backup#transfer()](#transferpagecount---object)
-- [Backup#abort()](#abort---this)
-- [Properties](#properties-2)
-
-### .transfer([*pageCount*]) -> *object*
-
-Transfers the specified number of [database pages](https://www.sqlite.org/fileformat.html#pages) to the backup file. If a `pageCount` is not provided, all remaining pages are transferred. After the pages are transferred, it returns an object with the following properties:
-
-- `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this transfer operation.
-- `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
-
-It's important to understand that because the database can be modified between transfer operations, the returned object only provides an *estimate* of the backup progress. Also, if the source database is busy (being used by another process simultaneously), it's possible for this method to return without actually transferring any pages, regardless of the desired `pageCount` (an error will *not* be thrown).
-
-If a fatal error occurs, an `Error` is thrown and the backup operation is automatically aborted.
-
-Each transfer is a blocking operation, but you can access the database in a normal way between transfers. The example below demonstrates how you could perform a backup asynchronously, configuring exactly how much thread time is allotted to the backup operation.
-
-```js
-const PAGES_PER_TRANSFER = 100;
-const THREAD_UTILIZATION = 0.1; // This means 10%
-
-const sleep = ms => new Promise(done => setTimeout(done, ms));
-
-async function backupAsync(db, destination) {
-  const backup = db.backup(destination);
-  let time, ms, carryover = 0;
-
-  while (true) {
-    // Execute a transfer, and measure its duration.
-    time = process.hrtime();
-    backup.transfer(PAGES_PER_TRANSFER);
-    if (backup.state === 'completed') break;
-    time = process.hrtime(time);
-    ms = time[0] * 1e3 + time[1] / 1e6;
-
-    // Sleep for a while, and measure the actual sleep duration.
-    const sleepTarget = ms / THREAD_UTILIZATION - ms + carryover;
-    time = process.hrtime();
-    await sleep(Math.max(0, Math.round(sleepTarget)));
-    time = process.hrtime(time);
-    ms = time[0] * 1e3 + time[1] / 1e6;
-
-    // Keep track of the imprecision (don't trust setTimeout).
-    carryover = sleepTarget - ms;
-  }
-}
-```
-
-> In the future, it may be possible to use `better-sqlite3` within a [worker thread](https://nodejs.org/api/worker_threads.html). Currently though, worker threads do not support native addons.
-
-### .abort() -> *this*
-
-Aborts the backup operation. If the backup was started on an existing database file, that database will be rolled back to its prior state. If the backup operation had created a new database file, that file will be left as an empty database.
-
-```js
-backup.abort();
-```
-
-> When a database connection is closed, any pending associated backups will automatically be aborted.
-
-## Properties
-
-**.database -> _object_** - The source database object.
-
-**.filename -> _string_** - The destination of the backup.
-
-**.state -> _string_** - Either `"pending"`, `"completed"`, or `"aborted"`.
 
 # Binding Parameters
 

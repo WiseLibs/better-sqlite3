@@ -26,10 +26,6 @@ public:
 	static ConstantString column;
 	static ConstantString table;
 	static ConstantString type;
-	static ConstantString filename;
-	static ConstantString pending;
-	static ConstantString completed;
-	static ConstantString aborted;
 	static ConstantString totalPages;
 	static ConstantString remainingPages;
 
@@ -52,7 +48,6 @@ private:
 		AddString(isolate, CS::column, "column");
 		AddString(isolate, CS::table, "table");
 		AddString(isolate, CS::type, "type");
-		AddString(isolate, CS::filename, "filename");
 		AddString(isolate, CS::totalPages, "totalPages");
 		AddString(isolate, CS::remainingPages, "remainingPages");
 
