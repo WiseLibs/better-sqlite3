@@ -130,9 +130,9 @@ If the checkpoint fails, an `Error` is thrown.
 
 ### .backup(*destination*, [*options*]) -> *promise*
 
-Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`.
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
 
-You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+Other database operations can be executed while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
 
 You can monitor the progress of the backup by setting the `progress` option to a callback function. That function will be invoked every time the backup makes progress, providing an object with two properties:
 
@@ -142,8 +142,6 @@ You can monitor the progress of the backup by setting the `progress` option to a
 You can force the backup to be aborted by throwing an exception from within the `progress` function.
 
 By default, `100` [pages](https://www.sqlite.org/fileformat.html#pages) will be transferred after each cycle of the event loop. However, you can change this setting as often as you like by returning a number from the progress function. You can even return `0` to effectively pause the backup altogether. In general, the goal is to maximize throughput while reducing pause times. If the page count is very low, pause times will be low, but it may take a while to complete the backup. On the flip side, if the setting is too high, pause times will be greater, but the backup might complete sooner. In most cases, `100` has proven to be a strong compromise, but the best setting is dependent on your computer's specifications and the nature of your program. Do not change this setting without measuring the effectiveness of your change. You should not assume that your change will even have the intended effect, unless you measure it for your unique situation.
-
-Other database operations can be executed while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
 
 ### .function(*name*, [*options*], *function*) -> *this*
 
