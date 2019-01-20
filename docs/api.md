@@ -132,7 +132,7 @@ If the checkpoint fails, an `Error` is thrown.
 
 Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
 
-The database can used as normal while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
+You can continue to use the database normally while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
 
 You can monitor the progress of the backup by setting the `progress` option to a callback function. That function will be invoked every time the backup makes progress, providing an object with two properties:
 
