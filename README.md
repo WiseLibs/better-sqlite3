@@ -8,7 +8,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 - Support for user-defined functions, aggregates, and extensions
 - 64-bit integers *(invisible until you need them)*
 
-## Help this project stay strong!
+## Help this project stay strong! &#128170;
 
 The `better-sqlite3` project is used by thousands of developers and engineers on a daily basis. Long nights and weekends were spent for the health of `better-sqlite3`, with no ask for compensation or funding (until now). Help keep `better-sqlite3` strong and dependable. If your company uses `better-sqlite3`, ask your manager to consider supporting the project:
 
