@@ -10,7 +10,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 
 ## Help this project stay strong!
 
-The `better-sqlite3` project is used by thousands of developers and engineers on a daily basis. It takes time and effort to keep the project strong and dependable. Long nights and weekends were spent for the health of `better-sqlite3`, with no ask for compensation or funding (until now). If your company uses `better-sqlite3`, ask your manager to consider supporting the project:
+The `better-sqlite3` project is used by thousands of developers and engineers on a daily basis. Long nights and weekends were spent for the health of `better-sqlite3`, with no ask for compensation or funding (until now). Help keep `better-sqlite3` strong and dependable. If your company uses `better-sqlite3`, ask your manager to consider supporting the project:
 
 - [Become a backer on Patreon](https://www.patreon.com/joshuawise)
 - [Make a one-time donation on PayPal](https://www.paypal.me/joshuathomaswise)
