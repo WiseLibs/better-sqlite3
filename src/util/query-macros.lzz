@@ -30,9 +30,16 @@
 		return ThrowTypeError("This statement already has bound parameters");  \
 	} ((void)0)
 
+
 #define STATEMENT_THROW() db->GetState()->busy = false; STATEMENT_THROW_LOGIC()
 #define STATEMENT_RETURN(x) db->GetState()->busy = false; STATEMENT_RETURN_LOGIC(x)
-#define STATEMENT_START(x, y) STATEMENT_START_LOGIC(x, y); db->GetState()->busy = true
+#define STATEMENT_START(x, y)                                                  \
+	STATEMENT_START_LOGIC(x, y);                                               \
+	db->GetState()->busy = true;                                               \
+	UseIsolate;                                                                \
+	if (db->Log(isolate, handle)) {                                            \
+		STATEMENT_THROW();                                                     \
+	} ((void)0)
 
 
 #define DOES_NOT_MUTATE() REQUIRE_STATEMENT_NOT_LOCKED(stmt)

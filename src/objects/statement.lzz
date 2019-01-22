@@ -138,11 +138,9 @@ private:
 
 	NODE_METHOD(JS_run) {
 		STATEMENT_START(REQUIRE_STATEMENT_DOESNT_RETURN_DATA, DOES_MUTATE);
-		UseIsolate;
 		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
 
-		db->Log(isolate, handle);
 		sqlite3_step(handle);
 		if (sqlite3_reset(handle) == SQLITE_OK) {
 			int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
@@ -158,9 +156,6 @@ private:
 
 	NODE_METHOD(JS_get) {
 		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
-		UseIsolate;
-
-		db->Log(isolate, handle);
 		int status = sqlite3_step(handle);
 		if (status == SQLITE_ROW) {
 			v8::Local<v8::Value> result = Data::GetRowJS(isolate, OnlyContext, handle, stmt->safe_ints, stmt->mode);
@@ -176,14 +171,13 @@ private:
 
 	NODE_METHOD(JS_all) {
 		STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
-		UseIsolateAndContext;
+		UseContext;
 		v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
 		uint32_t row_count = 0;
 		const bool safe_ints = stmt->safe_ints;
 		const char mode = stmt->mode;
 		bool js_error = false;
 
-		db->Log(isolate, handle);
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
 			result->Set(ctx, row_count++, Data::GetRowJS(isolate, ctx, handle, safe_ints, mode)).FromJust();

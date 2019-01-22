@@ -59,9 +59,9 @@ private:
 			STATEMENT_START_LOGIC(REQUIRE_STATEMENT_RETURNS_DATA, ADDS_ITERATOR);
 			iter = new StatementIterator(stmt, bound);
 		}
-		UseIsolate;
+		UseIsolateAndContext;
 		iter->Wrap(info.This());
-		SetFrozen(isolate, OnlyContext, info.This(), CS::statement, caller_info->This());
+		SetFrozen(isolate, ctx, info.This(), CS::statement, caller_info->This());
 
 		info.GetReturnValue().Set(info.This());
 	}
@@ -89,7 +89,11 @@ private:
 		db_state->busy = true;
 		if (!logged) {
 			logged = true;
-			stmt->db->Log(OnlyIsolate, handle);
+			if (stmt->db->Log(OnlyIsolate, handle)) {
+				db_state->busy = false;
+				Throw();
+				return;
+			}
 		}
 		int status = sqlite3_step(handle);
 		db_state->busy = false;
