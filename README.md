@@ -23,7 +23,6 @@ The fastest and simplest library for SQLite3 in Node.js.
 |[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|10.4x slower|2.2x slower|18.8x slower|2.8x slower|12.9x slower|
 
 > You can verify these results by [running the benchmark yourself](./docs/benchmark.md).
-> *Both [npm/sqlite](https://www.npmjs.com/package/sqlite) and [npm/sqlite3](https://www.npmjs.com/package/sqlite3) have nearly identical performance because they both use the [same engine](https://github.com/mapbox/node-sqlite3).*
 
 ## Installation
 
