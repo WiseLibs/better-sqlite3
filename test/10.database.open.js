@@ -37,6 +37,7 @@ describe('new Database()', function () {
 			expect(existsSync('null')).to.be.false;
 			expect(existsSync('undefined')).to.be.false;
 			expect(existsSync('[object Object]')).to.be.false;
+			db.close();
 		}
 	});
 	it('should allow anonymous in-memory databases to be created', function () {
@@ -47,6 +48,7 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(':memory:')).to.be.false;
+		db.close();
 	});
 	it('should allow named in-memory databases to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -57,6 +59,7 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.false;
+		db.close();
 	});
 	it('should allow disk-bound databases to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -67,6 +70,7 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
+		db.close();
 	});
 	it('should not allow conflicting in-memory options', function () {
 		expect(() => new Database(':memory:', { memory: false })).to.throw(TypeError);
@@ -86,6 +90,7 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
+		db.close();
 	});
 	it('should not allow the "readonly" option for in-memory databases', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -106,6 +111,7 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
+		db.close();
 	});
 	it('should accept the "timeout" option', function () {
 		this.slow(2500);
@@ -129,6 +135,7 @@ describe('new Database()', function () {
 		expect(() => new Database(util.current(), { timeout: -1 })).to.throw(TypeError);
 		expect(() => new Database(util.current(), { timeout: 75.01 })).to.throw(TypeError);
 		expect(() => new Database(util.current(), { timeout: 0x80000000 })).to.throw(RangeError);
+		blocker.close();
 	});
 	it('should throw an Error if the directory does not exist', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -145,5 +152,6 @@ describe('new Database()', function () {
 		expect(Database.prototype.close).to.be.a('function');
 		expect(Database.prototype.close).to.equal(db.close);
 		expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
+		db.close();
 	});
 });

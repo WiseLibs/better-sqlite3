@@ -12,6 +12,10 @@ describe('Database#checkpoint()', function () {
 		db2.pragma('journal_mode = WAL');
 		db2.prepare('CREATE TABLE entries (a TEXT, b INTEGER)').run();
 	});
+	after(function () {
+		db1.close();
+		db2.close();
+	});
 
 	function fillWall(count, expectation) {
 		[db1, db2].forEach((db) => {

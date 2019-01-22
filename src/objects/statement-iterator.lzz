@@ -24,7 +24,8 @@ private:
 		bound(_bound),
 		safe_ints(_stmt->safe_ints),
 		mode(_stmt->mode),
-		alive(true) {
+		alive(true),
+		logged(false) {
 		assert(stmt != NULL);
 		assert(handle != NULL);
 		assert(stmt->bound == bound);
@@ -86,6 +87,10 @@ private:
 	void Next(NODE_ARGUMENTS info) {
 		assert(alive == true);
 		db_state->busy = true;
+		if (!logged) {
+			logged = true;
+			stmt->db->Log(OnlyIsolate, handle);
+		}
 		int status = sqlite3_step(handle);
 		db_state->busy = false;
 		if (status == SQLITE_ROW) {
@@ -139,4 +144,5 @@ private:
 	const bool safe_ints;
 	const char mode;
 	bool alive;
+	bool logged;
 };

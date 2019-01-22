@@ -22,6 +22,22 @@ public:
 		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 
+	// Allows Statements to log their executed SQL.
+	void Log(v8::Isolate* isolate, v8::Local<v8::Value> data) {
+		if (has_logger) {
+			v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, logger))
+				->Call(OnlyContext, v8::Undefined(isolate), 1, &data)
+				.ToLocalChecked();
+		}
+	}
+	void Log(v8::Isolate* isolate, sqlite3_stmt* handle) {
+		if (has_logger) {
+			char* expanded = sqlite3_expanded_sql(handle);
+			Log(isolate, StringFromUtf8(isolate, expanded ? expanded : sqlite3_sql(handle), -1));
+			if (expanded) sqlite3_free(expanded);
+		}
+	}
+
 	// Allow Statements to manage themselves when created and garbage collected.
 	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
 	inline void RemoveStatement(Statement* stmt) { stmts.erase(stmt); }
@@ -73,14 +89,16 @@ private:
 		}
 	};
 
-	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
+	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
 		busy(false),
 		pragma_mode(false),
 		safe_ints(false),
 		was_js_error(false),
+		has_logger(_logger->IsFunction()),
 		iterators(0),
+		logger(isolate, _logger),
 		stmts(),
 		backups() {
 		assert(_db_handle != NULL);
@@ -119,6 +137,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
+		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
 
 		UseIsolate;
 		sqlite3* db_handle;
@@ -145,7 +164,7 @@ private:
 		assert(status == SQLITE_OK);
 
 		UseContext;
-		Database* db = new Database(db_handle);
+		Database* db = new Database(db_handle, isolate, logger);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
@@ -166,8 +185,10 @@ private:
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
-		v8::String::Utf8Value sql(EXTRACT_STRING(OnlyIsolate, source));
+		UseIsolate;
+		v8::String::Utf8Value sql(EXTRACT_STRING(isolate, source));
 		db->busy = true;
+		db->Log(isolate, source);
 		int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
 		db->busy = false;
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
@@ -348,7 +369,9 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
+	const bool has_logger;
 	unsigned short iterators;
+	const CopyablePersistent<v8::Value> logger;
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;
 };
