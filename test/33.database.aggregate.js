@@ -420,14 +420,17 @@ describe('Database#aggregate()', function () {
 		expect(() => {
 			for (const value of iterator) {
 				total += value;
-				expect(() => this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable LIMIT 4')).to.throw(TypeError);
 			}
 		}).to.throw(err);
 
 		expect(total).to.equal(1 + 2 + 4 + 8);
 		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable').pluck().iterate().return();
 		expect(total).to.equal(1 + 2 + 4 + 8);
+
+		i = 0;
+		this.db.exec('SELECT wn(value) OVER (ROWS CURRENT ROW) FROM iterable LIMIT 4');
+		expect(i).to.equal(4);
 	});
 	it('should be able to register multiple aggregates with the same name', function () {
 		this.db.aggregate('agg', { step: (ctx) => 0 });
@@ -565,17 +568,17 @@ describe('Database#aggregate()', function () {
 	describe('should not affect external environment', function () {
 		specify('busy state', function () {
 			this.db.aggregate('agg', { step: (ctx, x) => {
-				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT 555')).to.throw(TypeError);
 				return x * 2 + ctx;
 			} });
 			let ranOnce = false;
 			for (const x of this.db.prepare('SELECT agg(555)').pluck().iterate()) {
 				ranOnce = true;
 				expect(x).to.equal(1110);
-				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT 555')).to.throw(TypeError);
 			}
 			expect(ranOnce).to.be.true;
-			this.db.prepare('SELECT 555');
+			this.db.exec('SELECT 555');
 		});
 		specify('was_js_error state', function () {
 			this.db.prepare('CREATE TABLE data (value INTEGER)').run();

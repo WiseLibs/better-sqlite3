@@ -1,4 +1,5 @@
 class Statement;
+class Backup;
 class Database : public node::ObjectWrap {
 public:
 
@@ -7,10 +8,27 @@ public:
 		if (was_js_error) was_js_error = false;
 		else ThrowSqliteError(db_handle);
 	}
+	static void ThrowSqliteError(sqlite3* db_handle) {
+		assert(db_handle != NULL);
+		ThrowSqliteError(sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
+	}
+	static void ThrowSqliteError(const char* message, int code) {
+		assert(message != NULL);
+		assert((code & 0xff) != SQLITE_OK);
+		assert((code & 0xff) != SQLITE_ROW);
+		assert((code & 0xff) != SQLITE_DONE);
+		EasyIsolate;
+		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
+		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
+	}
 
 	// Allow Statements to manage themselves when created and garbage collected.
 	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
 	inline void RemoveStatement(Statement* stmt) { stmts.erase(stmt); }
+
+	// Allow Backups to manage themselves when created and garbage collected.
+	inline void AddBackup(Backup* backup) { backups.insert(backups.end(), backup); }
+	inline void RemoveBackup(Backup* backup) { backups.erase(backup); }
 
 	// A view for Statements to see and modify Database state.
 	// The order of these fields must exactly match their actual order.
@@ -20,6 +38,7 @@ public:
 		const bool pragma_mode;
 		const bool safe_ints;
 		bool was_js_error;
+		unsigned short iterators;
 	};
 
 	inline State* GetState() {
@@ -48,6 +67,12 @@ private:
 		}
 	};
 
+	class CompareBackup { public:
+		bool operator() (Backup const * const a, Backup const * const b) const {
+			return Backup::Compare(a, b);
+		}
+	};
+
 	explicit Database(sqlite3* _db_handle) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
@@ -55,7 +80,9 @@ private:
 		pragma_mode(false),
 		safe_ints(false),
 		was_js_error(false),
-		stmts() {
+		iterators(0),
+		stmts(),
+		backups() {
 		assert(_db_handle != NULL);
 		dbs.insert(this);
 	}
@@ -69,6 +96,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "exec", JS_exec);
 		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
 		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
+		NODE_SET_PROTOTYPE_METHOD(t, "backup", JS_backup);
 		NODE_SET_PROTOTYPE_METHOD(t, "function", JS_function);
 		NODE_SET_PROTOTYPE_METHOD(t, "aggregate", JS_aggregate);
 		NODE_SET_PROTOTYPE_METHOD(t, "loadExtension", JS_loadExtension);
@@ -107,6 +135,7 @@ private:
 		}
 
 		assert(sqlite3_db_mutex(db_handle) == NULL);
+		sqlite3_extended_result_codes(db_handle, 1);
 		sqlite3_busy_timeout(db_handle, timeout);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
 		sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
@@ -136,6 +165,7 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		v8::String::Utf8Value sql(EXTRACT_STRING(OnlyIsolate, source));
 		db->busy = true;
 		int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
@@ -152,6 +182,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		sqlite3* db_handle = db->db_handle;
 
 		if (info.Length()) {
@@ -190,6 +221,15 @@ private:
 		if (!threw_error) info.GetReturnValue().Set(info.This());
 	}
 
+	NODE_METHOD(JS_backup) {
+		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> attachedName);
+		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> destFile);
+		REQUIRE_ARGUMENT_BOOLEAN(third, bool unlink);
+		UseIsolate;
+		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(isolate, info.This(), attachedName, destFile, v8::Boolean::New(isolate, unlink));
+		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
+	}
+
 	NODE_METHOD(JS_function) {
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> fn);
@@ -199,6 +239,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
@@ -223,6 +264,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(eighth, bool deterministic);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
 		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
@@ -242,11 +284,12 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
 		v8::String::Utf8Value filename(EXTRACT_STRING(OnlyIsolate, filenameString));
 		char* error;
 		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
-		else ThrowSqliteError(db->db_handle, error, status);
+		else ThrowSqliteError(error, status);
 		sqlite3_free(error);
 	}
 
@@ -254,6 +297,7 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
 			REQUIRE_DATABASE_NOT_BUSY(db);
+			REQUIRE_DATABASE_NO_ITERATORS(db);
 			dbs.erase(db);
 			db->CloseHandles();
 		}
@@ -262,7 +306,6 @@ private:
 
 	NODE_METHOD(JS_defaultSafeIntegers) {
 		Database* db = Unwrap<Database>(info.This());
-		REQUIRE_DATABASE_NOT_BUSY(db);
 		if (info.Length() == 0) db->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
 		info.GetReturnValue().Set(info.This());
@@ -281,23 +324,12 @@ private:
 		if (open) {
 			open = false;
 			for (Statement* stmt : stmts) stmt->CloseHandles();
+			for (Backup* backup : backups) backup->CloseHandles();
 			stmts.clear();
+			backups.clear();
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
-	}
-
-	static void ThrowSqliteError(sqlite3* db_handle) {
-		assert(db_handle != NULL);
-		ThrowSqliteError(db_handle, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
-	}
-	static void ThrowSqliteError(sqlite3* db_handle, const char* message, int code) {
-		assert(db_handle != NULL);
-		assert(message != NULL);
-		assert((code & 0xff) != SQLITE_OK);
-		EasyIsolate;
-		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
-		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 
 	static void AtExit(void* _) {
@@ -316,5 +348,7 @@ private:
 	bool pragma_mode;
 	bool safe_ints;
 	bool was_js_error;
+	unsigned short iterators;
 	std::set<Statement*, Database::CompareStatement> stmts;
+	std::set<Backup*, Database::CompareBackup> backups;
 };

@@ -100,21 +100,4 @@ describe('64-bit integers', function () {
 		expect(customFunctionArg('a5')).to.deep.equal(int);
 		expect(customFunctionArg('a6', { safeIntegers: false })).to.equal(1006028374637854700);
 	});
-	it('should forbid invoking .safeIntegers() while the database is busy', function () {
-		const int = Integer.fromBits(4243423, 234234234);
-		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
-		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
-
-		let ranOnce = false;
-		const stmt1 = this.db.prepare('SELECT * FROM entries LIMIT 10');
-		const stmt2 = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
-		for (const row of stmt1.iterate()) {
-			ranOnce = true;
-			expect(() => stmt1.safeIntegers()).to.throw(TypeError);
-			expect(() => stmt2.safeIntegers()).to.throw(TypeError);
-			expect(() => stmt1.safeIntegers(false)).to.throw(TypeError);
-			expect(() => stmt2.safeIntegers(false)).to.throw(TypeError);
-		}
-		expect(ranOnce).to.be.true;
-	});
 });

@@ -53,6 +53,11 @@
 
 namespace Data {
 
+	static const char FLAT = 0;
+	static const char PLUCK = 1;
+	static const char EXPAND = 2;
+	static const char RAW = 3;
+
 	v8::Local<v8::Value> GetValueJS(v8::Isolate* isolate, sqlite3_stmt* handle, int column, bool safe_ints) {
 		SQLITE_VALUE_TO_JS(column, isolate, safe_ints, handle, column);
 	}
@@ -61,7 +66,7 @@ namespace Data {
 		SQLITE_VALUE_TO_JS(value, isolate, safe_ints, value);
 	}
 
-	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
+	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
 		int column_count = sqlite3_column_count(handle);
 		for (int i=0; i<column_count; ++i) {
@@ -98,6 +103,15 @@ namespace Data {
 			row->Set(ctx, i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
 		}
 		return row;
+	}
+
+	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints, char mode) {
+		if (mode == FLAT) return GetFlatRowJS(isolate, ctx, handle, safe_ints);
+		if (mode == PLUCK) return GetValueJS(isolate, handle, 0, safe_ints);
+		if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
+		if (mode == RAW) return GetRawRowJS(isolate, ctx, handle, safe_ints);
+		assert(false);
+		return v8::Local<v8::Value>();
 	}
 
 	void GetArgumentsJS(v8::Isolate* isolate, v8::Local<v8::Value>* out, sqlite3_value** values, int argument_count, bool safe_ints) {

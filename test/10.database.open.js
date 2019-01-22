@@ -130,9 +130,11 @@ describe('new Database()', function () {
 		expect(() => new Database(util.current(), { timeout: 75.01 })).to.throw(TypeError);
 		expect(() => new Database(util.current(), { timeout: 0x80000000 })).to.throw(RangeError);
 	});
-	it('should throw an Error if opening the database failed', function () {
+	it('should throw an Error if the directory does not exist', function () {
 		expect(existsSync(util.next())).to.be.false;
-		expect(() => new Database(`temp/nonexistent/abcfoobar123/${util.current()}`)).to.throw(TypeError);
+		const filepath = `temp/nonexistent/abcfoobar123/${util.current()}`;
+		expect(() => new Database(filepath)).to.throw(TypeError);
+		expect(existsSync(filepath)).to.be.false;
 		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should have a proper prototype chain', function () {

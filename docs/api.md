@@ -7,6 +7,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
+- [Database#backup()](#backupdestination-options---promise)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
@@ -126,6 +127,41 @@ setInterval(() => db.checkpoint(), 30000).unref();
 If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
 
 If the checkpoint fails, an `Error` is thrown.
+
+### .backup(*destination*, [*options*]) -> *promise*
+
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+
+```js
+db.backup(`backup-${Date.now()}.db`)
+  .then(() => {
+    console.log('backup complete!');
+  })
+  .catch((err) => {
+    console.log('backup failed:', err);
+  });
+```
+
+You can continue to use the database normally while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
+
+You can monitor the progress of the backup by setting the `progress` option to a callback function. That function will be invoked every time the backup makes progress, providing an object with two properties:
+
+- `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this progress report.
+- `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
+
+By default, `100` [pages](https://www.sqlite.org/fileformat.html#pages) will be transferred after each cycle of the event loop. However, you can change this setting as often as you like by returning a number from the `progress` callback. You can even return `0` to effectively pause the backup altogether. In general, the goal is to maximize throughput while reducing pause times. If the transfer size is very low, pause times will be low, but it may take a while to complete the backup. On the flip side, if the setting is too high, pause times will be greater, but the backup might complete sooner. In most cases, `100` has proven to be a strong compromise, but the best setting is dependent on your computer's specifications and the nature of your program. Do not change this setting without measuring the effectiveness of your change. You should not assume that your change will even have the intended effect, unless you measure it for your unique situation.
+
+If the `progress` callback throws an exception, the backup will be aborted. Usually this happens due to an unexpected error, but you can also use this behavior to voluntarily cancel the backup operation. If the parent database connection is closed, all pending backups will be automatically aborted.
+
+```js
+let paused = false;
+db.backup(`backup-${Date.now()}.db`, {
+  progress({ totalPages: t, remainingPages: r }) {
+    console.log(`progress: ${((t - r) / t * 100).toFixed(1)}%`);
+    return paused ? 0 : 200;
+  }
+});
+```
 
 ### .function(*name*, [*options*], *function*) -> *this*
 

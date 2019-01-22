@@ -63,6 +63,12 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define REQUIRE_DATABASE_NOT_BUSY(db)                                          \
 	if (db->busy)                                                              \
 		return ThrowTypeError("This database connection is busy executing a query")
+#define REQUIRE_DATABASE_NO_ITERATORS(db)                                      \
+	if (db->iterators)                                                         \
+		return ThrowTypeError("This database connection is busy executing a query")
+#define REQUIRE_STATEMENT_NOT_LOCKED(stmt)                                     \
+	if (stmt->locked)                                                          \
+		return ThrowTypeError("This statement is busy executing a query")
 
 #define first() 0
 #define second() 1

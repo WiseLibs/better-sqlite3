@@ -26,6 +26,8 @@ public:
 	static ConstantString column;
 	static ConstantString table;
 	static ConstantString type;
+	static ConstantString totalPages;
+	static ConstantString remainingPages;
 
 private:
 	REGISTER(Init) {
@@ -46,6 +48,8 @@ private:
 		AddString(isolate, CS::column, "column");
 		AddString(isolate, CS::table, "table");
 		AddString(isolate, CS::type, "type");
+		AddString(isolate, CS::totalPages, "totalPages");
+		AddString(isolate, CS::remainingPages, "remainingPages");
 
 		AddCode(isolate, SQLITE_OK, "SQLITE_OK");
 		AddCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");

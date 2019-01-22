@@ -11,8 +11,8 @@ public:
 	}
 
 	// The ~Statement destructor currently covers any state this object creates.
-	// Additionally, we actually DON'T want to set db->GetState()->busy in this
-	// destructor, to ensure deterministic database access.
+	// Additionally, we actually DON'T want to set stmt->locked or db_state
+	// ->iterators in this destructor, to ensure deterministic database access.
 	~StatementIterator() {}
 
 private:
@@ -20,16 +20,19 @@ private:
 	explicit StatementIterator(Statement* _stmt, bool _bound) : node::ObjectWrap(),
 		stmt(_stmt),
 		handle(_stmt->handle),
-		safe_ints(_stmt->safe_ints),
-		pluck(_stmt->pluck),
-		expand(_stmt->expand),
-		raw(_stmt->raw),
+		db_state(_stmt->db->GetState()),
 		bound(_bound),
+		safe_ints(_stmt->safe_ints),
+		mode(_stmt->mode),
 		alive(true) {
 		assert(stmt != NULL);
 		assert(handle != NULL);
 		assert(stmt->bound == bound);
 		assert(stmt->alive == true);
+		assert(stmt->locked == false);
+		assert(db_state->iterators < USHRT_MAX);
+		stmt->locked = true;
+		db_state->iterators += 1;
 	}
 
 	REGISTER(Init) {
@@ -52,24 +55,26 @@ private:
 		StatementIterator* iter;
 		{
 			NODE_ARGUMENTS info = *caller_info;
-			STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA);
+			STATEMENT_START_LOGIC(REQUIRE_STATEMENT_RETURNS_DATA, ADDS_ITERATOR);
 			iter = new StatementIterator(stmt, bound);
 		}
-		UseIsolateAndContext;
+		UseIsolate;
 		iter->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::statement, caller_info->This());
+		SetFrozen(isolate, OnlyContext, info.This(), CS::statement, caller_info->This());
 
 		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_next) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Next(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}
 
 	NODE_METHOD(JS_return) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
+		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Return(info);
 		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
 	}
@@ -80,14 +85,13 @@ private:
 
 	void Next(NODE_ARGUMENTS info) {
 		assert(alive == true);
+		db_state->busy = true;
 		int status = sqlite3_step(handle);
+		db_state->busy = false;
 		if (status == SQLITE_ROW) {
 			UseIsolateAndContext;
 			info.GetReturnValue().Set(NewRecord(isolate, ctx,
-				pluck ? Data::GetValueJS(isolate, handle, 0, safe_ints) :
-				expand ? Data::GetExpandedRowJS(isolate, ctx, handle, safe_ints) :
-				raw ? Data::GetRawRowJS(isolate, ctx, handle, safe_ints)
-				: Data::GetRowJS(isolate, ctx, handle, safe_ints)
+				Data::GetRowJS(isolate, ctx, handle, safe_ints, mode)
 			));
 		} else {
 			if (status == SQLITE_DONE) Return(info);
@@ -97,19 +101,20 @@ private:
 
 	void Return(NODE_ARGUMENTS info) {
 		Cleanup();
-		Database* db = stmt->db;
-		STATEMENT_RETURN(DoneRecord(OnlyIsolate));
+		STATEMENT_RETURN_LOGIC(DoneRecord(OnlyIsolate));
 	}
 
 	void Throw() {
 		Cleanup();
 		Database* db = stmt->db;
-		STATEMENT_THROW();
+		STATEMENT_THROW_LOGIC();
 	}
 
 	void Cleanup() {
 		assert(alive == true);
 		alive = false;
+		stmt->locked = false;
+		db_state->iterators -= 1;
 		sqlite3_reset(handle);
 	}
 
@@ -129,10 +134,9 @@ private:
 
 	Statement* const stmt;
 	sqlite3_stmt* const handle;
-	const bool safe_ints;
-	const bool pluck;
-	const bool expand;
-	const bool raw;
+	Database::State* const db_state;
 	const bool bound;
+	const bool safe_ints;
+	const char mode;
 	bool alive;
 };
