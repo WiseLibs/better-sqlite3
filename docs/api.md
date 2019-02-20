@@ -68,7 +68,7 @@ Transaction functions can be called from inside other transaction functions. Whe
 const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
 
 const adopt = db.transaction((cats) => {
-  newExpense('adoption fees', 20);
+  newExpense.run('adoption fees', 20);
   insertMany(cats); // nested transaction
 });
 ```
