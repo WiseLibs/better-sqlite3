@@ -6,7 +6,7 @@ const clc = require('cli-color');
 const getTrials = (searchTerms) => {
 	// Without any command-line arguments, we do a general-purpose benchmark.
 	if (!searchTerms.length) return require('./trials').default;
-	
+
 	// With command-line arguments, the user can run specific groups of trials.
 	return require('./trials').searchable.filter(filterBySearchTerms(searchTerms));
 };
@@ -39,8 +39,8 @@ const displayTrialName = (trial) => {
 };
 
 const createContext = (trial, driver) => {
-	const { data: _unused, ...tableInfo } = tables.get(trial.table);
-	return JSON.stringify({ ...trial, ...tableInfo, driver, tables: [...tables.keys()] });
+	const tableInfo = Object.assign({}, tables.get(trial.table), { data: undefined });
+	return JSON.stringify(Object.assign({}, trial, tableInfo, { driver, tables: [...tables.keys()] }));
 };
 
 const erase = () => {

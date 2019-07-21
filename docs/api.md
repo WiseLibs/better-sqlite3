@@ -7,6 +7,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#checkpoint()](#checkpointdatabasename---this)
+- [Database#backup()](#backupdestination-options---promise)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
@@ -28,9 +29,11 @@ Various options are accepted:
 
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
+- `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
+
 ```js
 const Database = require('better-sqlite3');
-const db = new Database('foobar.db', { readonly: true });
+const db = new Database('foobar.db', { verbose: console.log });
 ```
 
 ### .prepare(*string*) -> *Statement*
@@ -65,7 +68,7 @@ Transaction functions can be called from inside other transaction functions. Whe
 const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
 
 const adopt = db.transaction((cats) => {
-  newExpense('adoption fees', 20);
+  newExpense.run('adoption fees', 20);
   insertMany(cats); // nested transaction
 });
 ```
@@ -83,7 +86,7 @@ insertMany.exclusive(cats); // uses "BEGIN EXCLUSIVE"
 
 If you'd like to manage transactions manually, you're free to do so with regular [prepared statements](#preparestring---statement) (using `BEGIN`, `COMMIT`, etc.). However, manually managed transactions should not be mixed with transactions managed by this `.transaction()` method. In other words, using raw `COMMIT` or `ROLLBACK` statements inside a transaction function is not supported.
 
-Transaction functions do not work with async functions. Technically speaking, async functions always return immediately, which means the transaction will already be committed before any code executes. Also, because SQLite3 serializes all transactions, it's generally a very bad idea to keep a transaction open across event loop ticks anyways.
+Transaction functions do not work with async functions. Technically speaking, async functions always return after the first `await`, which means the transaction will already be committed before any async code executes. Also, because SQLite3 serializes all transactions, it's generally a very bad idea to keep a transaction open across event loop ticks anyways.
 
 It's important to know that SQLite3 may sometimes rollback a transaction without us asking it to. This can happen either because of an [`ON CONFLICT`](https://sqlite.org/lang_conflict.html) clause, the [`RAISE()`](https://www.sqlite.org/lang_createtrigger.html) trigger function, or certain errors such as `SQLITE_FULL` or `SQLITE_BUSY`. When this occurs, transaction functions will automatically detect the situation and handle it appropriately. However, if you catch one of these errors with a try-catch statement, you become responsible for handling the case. In other words, all catch statements within transaction functions should look like this:
 
@@ -126,6 +129,41 @@ setInterval(() => db.checkpoint(), 30000).unref();
 If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
 
 If the checkpoint fails, an `Error` is thrown.
+
+### .backup(*destination*, [*options*]) -> *promise*
+
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+
+```js
+db.backup(`backup-${Date.now()}.db`)
+  .then(() => {
+    console.log('backup complete!');
+  })
+  .catch((err) => {
+    console.log('backup failed:', err);
+  });
+```
+
+You can continue to use the database normally while a backup is in progress. If the same database connection mutates the database while performing a backup, those mutations will be reflected in the backup automatically. However, if a *different* connection mutates the database during a backup, the backup will be forcefully restarted. Therefore, it's recommended that only a single connection is responsible for mutating the database if online backups are being performed.
+
+You can monitor the progress of the backup by setting the `progress` option to a callback function. That function will be invoked every time the backup makes progress, providing an object with two properties:
+
+- `.totalPages`: the total number of pages in the source database (and thus, the number of pages that the backup will have when completed) at the time of this progress report.
+- `.remainingPages`: the number of pages that still must be transferred before the backup is complete.
+
+By default, `100` [pages](https://www.sqlite.org/fileformat.html#pages) will be transferred after each cycle of the event loop. However, you can change this setting as often as you like by returning a number from the `progress` callback. You can even return `0` to effectively pause the backup altogether. In general, the goal is to maximize throughput while reducing pause times. If the transfer size is very low, pause times will be low, but it may take a while to complete the backup. On the flip side, if the setting is too high, pause times will be greater, but the backup might complete sooner. In most cases, `100` has proven to be a strong compromise, but the best setting is dependent on your computer's specifications and the nature of your program. Do not change this setting without measuring the effectiveness of your change. You should not assume that your change will even have the intended effect, unless you measure it for your unique situation.
+
+If the `progress` callback throws an exception, the backup will be aborted. Usually this happens due to an unexpected error, but you can also use this behavior to voluntarily cancel the backup operation. If the parent database connection is closed, all pending backups will be automatically aborted.
+
+```js
+let paused = false;
+db.backup(`backup-${Date.now()}.db`, {
+  progress({ totalPages: t, remainingPages: r }) {
+    console.log(`progress: ${((t - r) / t * 100).toFixed(1)}%`);
+    return paused ? 0 : 200;
+  }
+});
+```
 
 ### .function(*name*, [*options*], *function*) -> *this*
 
@@ -230,9 +268,9 @@ Closes the database connection. After invoking this method, no statements can be
 
 ```js
 process.on('exit', () => db.close());
-process.on('SIGINT', () => db.close());
-process.on('SIGHUP', () => db.close());
-process.on('SIGTERM', () => db.close());
+process.on('SIGHUP', () => process.exit(128 + 1));
+process.on('SIGINT', () => process.exit(128 + 2));
+process.on('SIGTERM', () => process.exit(128 + 15));
 ```
 
 ## Properties
@@ -257,6 +295,8 @@ An object representing a single SQL statement.
 - [Statement#iterate()](#iteratebindparameters---iterator)
 - [Statement#pluck()](#plucktogglestate---this)
 - [Statement#expand()](#expandtogglestate---this)
+- [Statement#raw()](#rawtogglestate---this)
+- [Statement#columns()](#columns---array-of-objects)
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
@@ -349,7 +389,7 @@ stmt.pluck(true); // plucking ON
 stmt.pluck(false); // plucking OFF
 ```
 
-> When plucking is turned on, [expansion](#expandtogglestate---this) is turned off (they are mutually exclusive options).
+> When plucking is turned on, [expansion](#expandtogglestate---this) and [raw mode](#rawtogglestate---this) are turned off (they are mutually exclusive options).
 
 ### .expand([toggleState]) -> *this*
 
@@ -365,7 +405,58 @@ stmt.expand(true); // expansion ON
 stmt.expand(false); // expansion OFF
 ```
 
-> When expansion is turned on, [plucking](#plucktogglestate---this) is turned off (they are mutually exclusive options).
+> When expansion is turned on, [plucking](#plucktogglestate---this) and [raw mode](#rawtogglestate---this) are turned off (they are mutually exclusive options).
+
+### .raw([toggleState]) -> *this*
+
+**(only on statements that return data)*
+
+Causes the prepared statement to return rows as arrays instead of objects. This is primarily used as a performance optimization when retrieving a very high number of rows. Column names can be recovered by using the [`.columns()`](#columns---array-of-objects) method.
+
+You can toggle this on/off as you please:
+
+```js
+stmt.raw(); // raw mode ON
+stmt.raw(true); // raw mode ON
+stmt.raw(false); // raw mode OFF
+```
+
+> When raw mode is turned on, [plucking](#plucktogglestate---this) and [expansion](#expandtogglestate---this) are turned off (they are mutually exclusive options).
+
+### .columns() -> *array of objects*
+
+**(only on statements that return data)*
+
+This method is primarily used in conjunction with [raw mode](#rawtogglestate---this). It returns an array of objects, where each object describes a result column of the prepared statement. Each object has the following properties:
+
+- `.name`: the name (or alias) of the result column.
+- `.column`: the name of the originating table column, or `null` if it's an expression or subquery.
+- `.table`: the name of the originating table, or `null` if it's an expression or subquery.
+- `.database`: the name of the originating database, or `null` if it's an
+expression or subquery.
+- `.type`: the name of the [declared type](https://www.sqlite.org/datatype3.html#determination_of_column_affinity), or `null` if it's an expression or subquery.
+
+```js
+const fs = require('fs');
+
+function* toRows(stmt) {
+  yield stmt.columns().map(column => column.name);
+  yield* stmt.raw().iterate();
+}
+
+function writeToCSV(filename, stmt) {
+  return new Promise((resolve, reject) => {
+    const stream = fs.createWriteStream(filename);
+    for (const row of toRows(stmt)) {
+      stream.write(row.join(',') + '\n');
+    }
+    stream.on('error', reject);
+    stream.end(resolve);
+  });
+}
+```
+
+> When a table's schema is altered, existing prepared statements might start returning different result columns. However, such changes will not be reflected by this method until the prepared statement is re-executed. For this reason, it's perhaps better to invoke `.columns()` _after_ `.get()`, `.all()`, or `.iterate()`.
 
 ### .bind([*...bindParameters*]) -> *this*
 

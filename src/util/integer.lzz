@@ -1,16 +1,16 @@
 class Integer : public node::ObjectWrap {
 public:
-	
+
 	static bool HasInstance(v8::Isolate* isolate, v8::Local<v8::Value> value) {
 		return v8::Local<v8::Boolean>::Cast(
 			v8::Local<v8::Function>::New(isolate, isInstance)->Call(OnlyContext, v8::Undefined(isolate), 1, &value).ToLocalChecked()
 		)->Value();
 	}
-	
+
 	static sqlite3_int64 GetValue(v8::Local<v8::Object> integer) {
 		return static_cast<Integer*>(integer->GetAlignedPointerFromInternalField(0))->value;
 	}
-	
+
 	static v8::Local<v8::Value> New(v8::Isolate* isolate, sqlite3_int64 value, bool safe_ints) {
 		if (safe_ints) {
 			*controller = { true, value };
@@ -18,7 +18,7 @@ public:
 		}
 		return v8::Number::New(isolate, (double)value);
 	}
-	
+
 private:
 	REGISTER(Init) {
 		UseContext;
@@ -29,17 +29,17 @@ private:
 		isInstance.Reset(isolate, _isInstance);
 		controller = static_cast<ConstructorController*>(prototype->GetAlignedPointerFromInternalField(0));
 	}
-	
+
 	explicit Integer(char _) : node::ObjectWrap() { assert(false); }
-	
+
 	struct ConstructorController {
 		bool privileges;
 		int64_t value;
 	};
-	
+
 	static v8::Persistent<v8::Function> constructor;
 	static v8::Persistent<v8::Function> isInstance;
 	static Integer::ConstructorController* controller;
-	
+
 	int64_t value;
 };

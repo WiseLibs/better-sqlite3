@@ -2,7 +2,7 @@
 
 # ===
 # This script defines and generates the bundled SQLite3 unit (sqlite3.c).
-# 
+#
 # The following steps are taken:
 # 1. populate the shell environment with the defined compile-time options.
 # 2. download and extract the SQLite3 source code into a temporary directory.
@@ -10,7 +10,7 @@
 # 4. bundle the generated amalgamation into a tar.gz file (sqlite3.tar.gz).
 # 5. export the defined compile-time options to a gyp file (defines.gypi).
 # 6. update the docs (../docs/compilation.md) with details of this distribution.
-# 
+#
 # When a user builds better-sqlite3, the following steps are taken:
 # 1. node-gyp loads the previously exported compile-time options (defines.gypi).
 # 2. the extract.js script unpacks the bundled amalgamation (sqlite3.tar.gz).
@@ -18,8 +18,8 @@
 # 3. node-gyp links the two resulting binaries to generate better_sqlite3.node.
 # ===
 
-VERSION="3250200"
-YEAR="2018"
+VERSION="3290000"
+YEAR="2019"
 
 # TODO: SQLITE_ENABLE_GEOPOLY (determine if the emitted warnings are safe or not)
 
@@ -28,9 +28,9 @@ SQLITE_THREADSAFE=0
 SQLITE_DEFAULT_MEMSTATUS=0
 SQLITE_OMIT_DEPRECATED
 SQLITE_OMIT_GET_TABLE
-SQLITE_OMIT_TRACE
 SQLITE_OMIT_TCL_VARIABLE
 SQLITE_OMIT_PROGRESS_CALLBACK
+SQLITE_TRACE_SIZE_LIMIT=32
 SQLITE_DEFAULT_CACHE_SIZE=-16000
 SQLITE_DEFAULT_FOREIGN_KEYS=1
 SQLITE_DEFAULT_WAL_SYNCHRONOUS=1

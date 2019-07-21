@@ -8,6 +8,13 @@ The fastest and simplest library for SQLite3 in Node.js.
 - Support for user-defined functions, aggregates, and extensions
 - 64-bit integers *(invisible until you need them)*
 
+## Help this project stay strong! &#128170;
+
+`better-sqlite3` is used by thousands of developers and engineers on a daily basis. Long nights and weekends were spent keeping this project strong and dependable, with no ask for compensation or funding, until now. If your company uses `better-sqlite3`, ask your manager to consider supporting the project:
+
+- [Become a backer on Patreon](https://www.patreon.com/joshuawise)
+- [Make a one-time donation on PayPal](https://www.paypal.me/joshuathomaswise)
+
 ## How other libraries compare
 
 |   |select 1 row &nbsp;`get()`&nbsp;|select 100 rows &nbsp;&nbsp;`all()`&nbsp;&nbsp;|select 100 rows `iterate()` 1-by-1|insert 1 row `run()`|insert 100 rows in a transaction|
@@ -16,7 +23,6 @@ The fastest and simplest library for SQLite3 in Node.js.
 |[sqlite](https://www.npmjs.com/package/sqlite) and [sqlite3](https://www.npmjs.com/package/sqlite3)|10.4x slower|2.2x slower|18.8x slower|2.8x slower|12.9x slower|
 
 > You can verify these results by [running the benchmark yourself](./docs/benchmark.md).
-> *Both [npm/sqlite](https://www.npmjs.com/package/sqlite) and [npm/sqlite3](https://www.npmjs.com/package/sqlite3) have nearly identical performance because they both use the [same engine](https://github.com/mapbox/node-sqlite3).*
 
 ## Installation
 

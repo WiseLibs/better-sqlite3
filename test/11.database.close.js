@@ -9,7 +9,7 @@ describe('Database#close()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should cause db.open to return false', function () {
 		expect(this.db.open).to.be.true;
 		this.db.close();
@@ -36,16 +36,16 @@ describe('Database#close()', function () {
 		this.db.prepare('CREATE TABLE people (name TEXT)').run();
 		const stmt1 = this.db.prepare('SELECT * FROM people');
 		const stmt2 = this.db.prepare("INSERT INTO people VALUES ('foobar')");
-		
+
 		this.db.prepare('SELECT * FROM people').bind();
 		this.db.prepare("INSERT INTO people VALUES ('foobar')").bind();
 		this.db.prepare('SELECT * FROM people').get();
 		this.db.prepare('SELECT * FROM people').all();
 		this.db.prepare('SELECT * FROM people').iterate().return();
 		this.db.prepare("INSERT INTO people VALUES ('foobar')").run();
-		
+
 		this.db.close();
-		
+
 		expect(() => stmt1.bind()).to.throw(TypeError);
 		expect(() => stmt2.bind()).to.throw(TypeError);
 		expect(() => stmt1.get()).to.throw(TypeError);
@@ -59,9 +59,9 @@ describe('Database#close()', function () {
 		this.db.prepare('CREATE TABLE people (name TEXT)').run();
 		this.db.prepare('INSERT INTO people VALUES (?)').run('foobar');
 		expect(existsSync(`${util.current()}-wal`)).to.be.true;
-		
+
 		this.db.close();
-		
+
 		expect(existsSync(util.current())).to.be.true;
 		expect(existsSync(`${util.current()}-wal`)).to.be.false;
 	});
