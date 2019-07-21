@@ -8,7 +8,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 3. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
 
-4. If you're using Windows:
+4. If you're using Windows, follow these steps. Do them **in this order**, and **don't skip steps**.
 
     1. Install the **latest** node 8, node 10, or node 12. Earlier versions of node (like 10.2.x) will not compile.
     1. Start an Admin PowerShell: Right-click the start icon, then pick `Windows PowerShell (Admin)`
@@ -26,6 +26,6 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
        python=python2.7
        ```
        (where `%USERPROFILE%` is your home directory).
-
+    1. Run `yarn install` or `npm install`
 
 If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
