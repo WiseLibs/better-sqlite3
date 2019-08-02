@@ -165,7 +165,7 @@ describe('integrity checks', function () {
 		});
 	});
 
-	describe('Database#loadExtension()', function () {
+	util.describe('Database#loadExtension()', function () {
 		const filepath = require('path').join(__dirname, '../build/test_extension.node');
 		specify('while iterating (blocked)', function () {
 			whileIterating(this, blocked(() => this.db.loadExtension(filepath)));

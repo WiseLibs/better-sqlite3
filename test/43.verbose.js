@@ -71,29 +71,33 @@ describe('verbose mode', function () {
 		let failures = 0;
 		const err = new Error('foo');
 		const db = new Database(util.next(), { verbose: () => { if (fail) throw err; } });
-		db.prepare('create table data (x)').run();
-		db.function('fn', (value) => {
-			if (fail) failures += 1;
-			return value;
-		});
-		const shouldThrow = (fn) => {
-			expect(fn).to.not.throw();
-			expect(fn).to.not.throw();
-			fail = true;
-			try {
-				expect(fn).to.throw(err);
-			} finally {
-				fail = false;
-			}
-			expect(fn).to.not.throw();
-			expect(failures).to.equal(0);
-		};
-		const use = (stmt, fn) => () => fn(stmt);
-		shouldThrow(() => db.exec('select fn(5)'));
-		shouldThrow(use(db.prepare('insert into data values (fn(5))'), stmt => stmt.run()));
-		shouldThrow(use(db.prepare('insert into data values (fn(?))'), stmt => stmt.run(5)));
-		shouldThrow(use(db.prepare('select fn(?)'), stmt => stmt.get(5)));
-		shouldThrow(use(db.prepare('select fn(?)'), stmt => stmt.all(5)));
-		shouldThrow(use(db.prepare('select fn(?)'), stmt => Array.from(stmt.iterate(5))));
+		try {
+			db.prepare('create table data (x)').run();
+			db.function('fn', (value) => {
+				if (fail) failures += 1;
+				return value;
+			});
+			const shouldThrow = (fn) => {
+				expect(fn).to.not.throw();
+				expect(fn).to.not.throw();
+				fail = true;
+				try {
+					expect(fn).to.throw(err);
+				} finally {
+					fail = false;
+				}
+				expect(fn).to.not.throw();
+				expect(failures).to.equal(0);
+			};
+			const use = (stmt, fn) => () => fn(stmt);
+			shouldThrow(() => db.exec('select fn(5)'));
+			shouldThrow(use(db.prepare('insert into data values (fn(5))'), stmt => stmt.run()));
+			shouldThrow(use(db.prepare('insert into data values (fn(?))'), stmt => stmt.run(5)));
+			shouldThrow(use(db.prepare('select fn(?)'), stmt => stmt.get(5)));
+			shouldThrow(use(db.prepare('select fn(?)'), stmt => stmt.all(5)));
+			shouldThrow(use(db.prepare('select fn(?)'), stmt => Array.from(stmt.iterate(5))));
+		} finally {
+			db.close()
+		}
 	});
 });
