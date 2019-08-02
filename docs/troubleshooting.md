@@ -10,7 +10,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 4. If you're using Windows, follow these steps. Do them **in this order**, and **don't skip steps**.
 
-    1. Install the **latest** node 8, node 10, or node 12. Earlier versions of node (like 10.2.x) will not compile.
+    1. Install the **latest** of node 8, node 10, or node 12. Earlier versions of node (like 10.2.x) will not compile.
     1. Start an Admin PowerShell: Right-click the start icon, then pick `Windows PowerShell (Admin)`
     1. Install *both* vs2015 and vs2017 libraries. Each line will take ~5-10 minutes.
        ```sh
@@ -26,6 +26,6 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
        python=python2.7
        ```
        (where `%USERPROFILE%` is your home directory).
-    1. Run `yarn install` or `npm install`
+    1. Run `npm install` or `yarn install`
 
 If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
