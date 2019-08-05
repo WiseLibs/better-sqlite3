@@ -185,7 +185,7 @@ describe('Database#backup()', function () {
 		await rejectsWith(SyntaxError, promise);
 		expect(actual).to.deep.equal(expected);
 		expect(existsSync(util.current())).to.be.true;
-		this.db.close() // < prevent leak
+		this.db.close();
 		this.db = new Database(util.current());
 		expect(this.db.prepare('SELECT bar FROM foo').pluck().all()).to.deep.equal([2, 8]);
 	});

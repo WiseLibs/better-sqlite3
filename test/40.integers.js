@@ -17,10 +17,13 @@ describe('64-bit integers', function () {
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
 
 		const db2 = new Database(util.next());
-		db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
-		db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
-		db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
-		db2.close();
+		try {
+			db2.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
+			db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
+			db2.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
+		} finally {
+			db2.close();
+		}
 	});
 	it('should be allowed as a return value in user-defined functions', function () {
 		this.db.function('returnsInteger', a => Integer(a + a));

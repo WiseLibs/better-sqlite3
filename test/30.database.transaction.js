@@ -49,30 +49,33 @@ describe('Database#transaction()', function () {
 		});
 		it('should execute within an isolated transaction', function () {
 			const other = new Database(util.current());
-			expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
-			expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
-			expect(this.db.inTransaction).to.be.false;
-			let ranOnce = false;
-			const trx = this.db.transaction((arg) => {
-				expect(this.db.inTransaction).to.be.true;
-				expect(arg).to.equal('foo');
-				this.db.prepare('INSERT INTO data VALUES (100)').run();
-				expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
+			try {
+				expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
 				expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
-				ranOnce = true;
-				expect(this.db.inTransaction).to.be.true;
-				return 'bar';
-			});
-			expect(ranOnce).to.be.false;
-			expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
-			expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
-			expect(this.db.inTransaction).to.be.false;
-			expect(trx('foo')).to.equal('bar');
-			expect(this.db.inTransaction).to.be.false;
-			expect(ranOnce).to.be.true;
-			expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
-			expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
-			other.close();
+				expect(this.db.inTransaction).to.be.false;
+				let ranOnce = false;
+				const trx = this.db.transaction((arg) => {
+					expect(this.db.inTransaction).to.be.true;
+					expect(arg).to.equal('foo');
+					this.db.prepare('INSERT INTO data VALUES (100)').run();
+					expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
+					expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
+					ranOnce = true;
+					expect(this.db.inTransaction).to.be.true;
+					return 'bar';
+				});
+				expect(ranOnce).to.be.false;
+				expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
+				expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
+				expect(this.db.inTransaction).to.be.false;
+				expect(trx('foo')).to.equal('bar');
+				expect(this.db.inTransaction).to.be.false;
+				expect(ranOnce).to.be.true;
+				expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
+				expect(other.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3, 100]);
+			} finally {
+				other.close();
+			}
 		});
 		it('should rollback the transaction if an exception is thrown', function () {
 			expect(this.db.prepare('SELECT x FROM data').pluck().all()).to.deep.equal([1, 2, 3]);
