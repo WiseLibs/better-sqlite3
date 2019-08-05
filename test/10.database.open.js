@@ -114,14 +114,17 @@ describe('new Database()', function () {
 		db.close();
 	});
 	it('should accept the "timeout" option', function () {
-		this.slow(2500);
+		this.slow(4000); // < windows CI can be slow
 		const testTimeout = (timeout) => {
 			const db = new Database(util.current(), { timeout });
-			const start = Date.now();
-			expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
-			const end = Date.now();
-			expect(end - start).to.be.within(timeout - 100, timeout + 100);
-			db.close();
+			try {
+				const start = Date.now();
+				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
+				const end = Date.now();
+				expect(end - start).to.be.closeTo(timeout, util.isWin ? 1000 : 100); // < like I said, slow
+			} finally {
+				db.close();
+			}
 		};
 		const blocker = new Database(util.next(), { timeout: 0x7fffffff });
 		blocker.exec('BEGIN EXCLUSIVE');
@@ -146,12 +149,15 @@ describe('new Database()', function () {
 	});
 	it('should have a proper prototype chain', function () {
 		const db = new Database(util.next());
-		expect(db).to.be.an.instanceof(Database);
-		expect(db.constructor).to.equal(Database);
-		expect(Database.prototype.constructor).to.equal(Database);
-		expect(Database.prototype.close).to.be.a('function');
-		expect(Database.prototype.close).to.equal(db.close);
-		expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
-		db.close();
+		try {
+			expect(db).to.be.an.instanceof(Database);
+			expect(db.constructor).to.equal(Database);
+			expect(Database.prototype.constructor).to.equal(Database);
+			expect(Database.prototype.close).to.be.a('function');
+			expect(Database.prototype.close).to.equal(db.close);
+			expect(Database.prototype).to.equal(Object.getPrototypeOf(db));
+		} finally {
+			db.close();
+		}
 	});
 });
