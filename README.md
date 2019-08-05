@@ -1,4 +1,4 @@
-# better-sqlite3 [![Build Status](https://travis-ci.org/JoshuaWise/better-sqlite3.svg?branch=master)](https://travis-ci.org/JoshuaWise/better-sqlite3)[![Build status](https://ci.appveyor.com/api/projects/status/ilk8hb8v95m54v6f/branch/master?svg=true)](https://ci.appveyor.com/project/JoshuaWise/better-sqlite3/branch/master)
+# better-sqlite3 [![Build Status](https://travis-ci.org/JoshuaWise/better-sqlite3.svg?branch=master)](https://travis-ci.org/JoshuaWise/better-sqlite3) [![Build status](https://ci.appveyor.com/api/projects/status/ilk8hb8v95m54v6f/branch/master?svg=true)](https://ci.appveyor.com/project/JoshuaWise/better-sqlite3/branch/master)
 
 
 The fastest and simplest library for SQLite3 in Node.js.
