@@ -4,6 +4,7 @@ const path = require('path');
 const os = require('os');
 const chai = require('chai');
 
+const isWindows = os.platform().startsWith('win');
 const tempDir = path.join(__dirname, '..', 'temp');
 let dbId = 0;
 
@@ -11,7 +12,8 @@ global.expect = chai.expect;
 global.util = {
 	current: () => path.join(tempDir, `${dbId}.db`),
 	next: () => (++dbId, global.util.current()),
-	describeUnix: os.platform().startsWith('win') ? describe.skip : describe,
+  describeUnix: isWindows ? describe.skip : describe,
+	itUnix: isWindows ? it.skip : it,
 };
 
 before(function () {

@@ -112,15 +112,15 @@ describe('new Database()', function () {
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
 	});
-	it('should accept the "timeout" option', function () {
-		this.slow(7000);
+	util.itUnix('should accept the "timeout" option', function () {
+		this.slow(4000);
 		const testTimeout = (timeout) => {
 			const db = new Database(util.current(), { timeout });
 			try {
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const end = Date.now();
-				expect(end - start).to.be.closeTo(timeout, 1000);
+				expect(end - start).to.be.closeTo(timeout, 100);
 			} finally {
 				db.close();
 			}
@@ -128,7 +128,7 @@ describe('new Database()', function () {
 		const blocker = this.db = new Database(util.next(), { timeout: 0x7fffffff });
 		blocker.exec('BEGIN EXCLUSIVE');
 		testTimeout(0);
-		testTimeout(3000);
+		testTimeout(1000);
 		blocker.close();
 		expect(() => (this.db = new Database(util.current(), { timeout: undefined }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.current(), { timeout: null }))).to.throw(TypeError);
