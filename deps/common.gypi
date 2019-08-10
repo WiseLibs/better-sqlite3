@@ -7,7 +7,6 @@
   'variables': { 'sqlite3%': '' },
   'target_defaults': {
     'default_configuration': 'Release',
-    'msbuild_toolset': '',
     'msvs_settings': {
       'VCCLCompilerTool': {
         'ExceptionHandling': 1,
