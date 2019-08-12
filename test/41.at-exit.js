@@ -4,6 +4,7 @@ const { fork } = require('child_process');
 
 describe('node::AtExit()', function () {
 	this.slow(500);
+
 	const source = (filename1, filename2) => `
 		'use strict';
 		const Database = require('../.');
@@ -23,7 +24,7 @@ describe('node::AtExit()', function () {
 		process.on('message', messageHandler);
 		process.send('foo');
 	`;
-	
+
 	it('should close all databases when the process exits gracefully', async function () {
 		const filename1 = util.next();
 		const filename2 = util.next();

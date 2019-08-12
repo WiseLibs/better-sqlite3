@@ -9,7 +9,7 @@ describe('Database#function()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if the correct arguments are not provided', function () {
 		expect(() => this.db.function()).to.throw(TypeError);
 		expect(() => this.db.function(null)).to.throw(TypeError);
@@ -58,13 +58,13 @@ describe('Database#function()', function () {
 		expect(this.get('a(?, ?, ?)', 2, 10, 50)).to.equal(62);
 		expect(this.get('a(?, ?, ?)', 2, 10, null)).to.equal(12);
 		expect(this.get('a(?, ?, ?)', 'foo', 'z', 12)).to.equal('fooz12');
-		
+
 		// undefined is interpreted as null
 		this.db.function('b', (a, b) => null);
 		this.db.function('c', (a, b) => {});
 		expect(this.get('b(?, ?)', 2, 10)).to.equal(null);
 		expect(this.get('c(?, ?)', 2, 10)).to.equal(null);
-		
+
 		// buffers
 		this.db.function('d', function foo(x) { return x; });
 		const input = Buffer.alloc(8).fill(0xdd);
@@ -72,10 +72,10 @@ describe('Database#function()', function () {
 		expect(input).to.not.equal(output);
 		expect(input.equals(output)).to.be.true;
 		expect(output.equals(Buffer.alloc(8).fill(0xdd))).to.be.true;
-		
+
 		// should not register based on function.name
 		expect(() => this.get('foo(?)', input)).to.throw(Database.SqliteError).with.property('code', 'SQLITE_ERROR');
-		
+
 		// zero arguments
 		this.db.function('e', () => 12);
 		expect(this.get('e()')).to.equal(12);
@@ -95,39 +95,6 @@ describe('Database#function()', function () {
 		expect(this.get('fn(?)', 7)).to.equal(7);
 		expect(this.get('fn(?, ?)', 4, 8)).to.equal(32);
 		expect(this.get('fn(?, ?, ?, ?, ?, ?)', 2, 3, 4, 5, 6, 7)).to.equal(5040);
-	});
-	it('should throw an exception if the database is busy', function () {
-		let ranOnce = false;
-		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
-			expect(x).to.equal(2);
-			ranOnce = true;
-			expect(() => this.db.function('fn', () => {})).to.throw(TypeError);
-		}
-		expect(ranOnce).to.be.true;
-		this.db.function('fn', () => {});
-	});
-	it('should cause the database to become busy when executing the function', function () {
-		let ranOnce = false;
-		this.db.function('a', () => {});
-		this.db.function('b', () => {
-			ranOnce = true;
-			expect(() => this.db.exec('SELECT a()')).to.throw(TypeError);
-			expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
-			expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
-			expect(() => this.db.function('z', () => {})).to.throw(TypeError);
-		});
-		
-		expect(this.get('b()')).to.equal(null);
-		expect(ranOnce).to.be.true;
-		ranOnce = false;
-		
-		expect(this.db.exec('SELECT b()')).to.equal(this.db);
-		expect(ranOnce).to.be.true;
-		
-		this.db.exec('SELECT a()')
-		this.db.prepare('SELECT 555');
-		this.db.pragma('cache_size');
-		this.db.function('zz', () => {});
 	});
 	it('should cause the function to throw when returning an invalid value', function () {
 		this.db.function('fn', x => ({}));
@@ -155,24 +122,27 @@ describe('Database#function()', function () {
 	it('should close a statement iterator that caused its function to throw', function () {
 		this.db.prepare('CREATE TABLE iterable (value INTEGER)').run();
 		this.db.prepare('INSERT INTO iterable WITH RECURSIVE temp(x) AS (SELECT 1 UNION ALL SELECT x * 2 FROM temp LIMIT 10) SELECT * FROM temp').run();
-		
+
 		let i = 0;
 		const err = new Error('foo');
 		this.db.function('fn', (x) => { if (++i >= 5) throw err; return x; });
 		const iterator = this.db.prepare('SELECT fn(value) FROM iterable').pluck().iterate();
-		
+
 		let total = 0;
 		expect(() => {
 			for (const value of iterator) {
 				total += value;
-				expect(() => this.db.prepare('SELECT fn(value) FROM iterable')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT fn(value) FROM iterable LIMIT 4')).to.throw(TypeError);
 			}
 		}).to.throw(err);
-		
+
 		expect(total).to.equal(1 + 2 + 4 + 8);
 		expect(iterator.next()).to.deep.equal({ value: undefined, done: true });
-		this.db.prepare('SELECT fn(value) FROM iterable').pluck().iterate().return();
 		expect(total).to.equal(1 + 2 + 4 + 8);
+
+		i = 0;
+		this.db.exec('SELECT fn(value) FROM iterable LIMIT 4');
+		expect(i).to.equal(4);
 	});
 	it('should be able to register multiple functions with the same name', function () {
 		this.db.function('fn', () => 0);
@@ -206,26 +176,26 @@ describe('Database#function()', function () {
 	describe('should not affect external environment', function () {
 		specify('busy state', function () {
 			this.db.function('fn', (x) => {
-				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT 555')).to.throw(TypeError);
 				return x * 2;
 			});
 			let ranOnce = false;
 			for (const x of this.db.prepare('SELECT fn(555)').pluck().iterate()) {
 				ranOnce = true;
 				expect(x).to.equal(1110);
-				expect(() => this.db.prepare('SELECT 555')).to.throw(TypeError);
+				expect(() => this.db.exec('SELECT 555')).to.throw(TypeError);
 			}
 			expect(ranOnce).to.be.true;
-			this.db.prepare('SELECT 555');
+			this.db.exec('SELECT 555');
 		});
 		specify('was_js_error state', function () {
 			this.db.prepare('CREATE TABLE data (value INTEGER)').run();
 			const stmt = this.db.prepare('SELECT value FROM data');
 			this.db.prepare('DROP TABLE data').run();
-			
+
 			const err = new Error('foo');
 			this.db.function('fn', () => { throw err; });
-			
+
 			expect(() => this.db.prepare('SELECT fn()').get()).to.throw(err);
 			try { stmt.get(); } catch (ex) {
 				expect(ex).to.be.an.instanceof(Error);

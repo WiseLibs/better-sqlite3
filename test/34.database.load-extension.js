@@ -1,7 +1,7 @@
 'use strict';
 const Database = require('../.');
 
-describe('Database#loadExtension()', function () {
+util.describeUnix('Database#loadExtension()', function () {
 	const filepath = require('path').join(__dirname, '../build/test_extension.node');
 	beforeEach(function () {
 		this.db = new Database(util.next());
@@ -9,7 +9,7 @@ describe('Database#loadExtension()', function () {
 	afterEach(function () {
 		this.db.close();
 	});
-	
+
 	it('should throw an exception if a string argument is not given', function () {
 		expect(() => this.db.loadExtension()).to.throw(TypeError);
 		expect(() => this.db.loadExtension(undefined)).to.throw(TypeError);
@@ -17,10 +17,6 @@ describe('Database#loadExtension()', function () {
 		expect(() => this.db.loadExtension(123)).to.throw(TypeError);
 		expect(() => this.db.loadExtension(new String(filepath))).to.throw(TypeError);
 		expect(() => this.db.loadExtension([filepath])).to.throw(TypeError);
-	});
-	it('should throw an exception if the database is closed', function () {
-		this.db.close();
-		expect(() => this.db.loadExtension(filepath)).to.throw(TypeError);
 	});
 	it('should throw an exception if the database is busy', function () {
 		let invoked = false;
