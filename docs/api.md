@@ -1,5 +1,10 @@
 # API
 
+# Classes
+
+- [`Database`](#class-database)
+- [`Statement`](#class-statement)
+
 # class *Database*
 
 - [new Database()](#new-databasepath-options)
