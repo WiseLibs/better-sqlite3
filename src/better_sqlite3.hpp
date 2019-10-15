@@ -15,6 +15,7 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
+#include "thread_local.h"
 #line 85 "./src/util/macros.lzz"
 #if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                      	(V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
 #define EXTRACT_STRING(isolate, string) isolate, string
@@ -68,43 +69,43 @@ public:
 #line 6 "./src/util/constants.lzz"
   static v8::Local <v8::String> Code (v8::Isolate * isolate, int code);
 #line 12 "./src/util/constants.lzz"
-  static ConstantString database;
+  STATIC_THREAD_LOCAL (ConstantString database);
 #line 13 "./src/util/constants.lzz"
-  static ConstantString reader;
+  STATIC_THREAD_LOCAL (ConstantString reader);
 #line 14 "./src/util/constants.lzz"
-  static ConstantString source;
+  STATIC_THREAD_LOCAL (ConstantString source);
 #line 15 "./src/util/constants.lzz"
-  static ConstantString memory;
+  STATIC_THREAD_LOCAL (ConstantString memory);
 #line 16 "./src/util/constants.lzz"
-  static ConstantString readonly;
+  STATIC_THREAD_LOCAL (ConstantString readonly);
 #line 17 "./src/util/constants.lzz"
-  static ConstantString name;
+  STATIC_THREAD_LOCAL (ConstantString name);
 #line 18 "./src/util/constants.lzz"
-  static ConstantString next;
+  STATIC_THREAD_LOCAL (ConstantString next);
 #line 19 "./src/util/constants.lzz"
-  static ConstantString length;
+  STATIC_THREAD_LOCAL (ConstantString length);
 #line 20 "./src/util/constants.lzz"
-  static ConstantString done;
+  STATIC_THREAD_LOCAL (ConstantString done);
 #line 21 "./src/util/constants.lzz"
-  static ConstantString value;
+  STATIC_THREAD_LOCAL (ConstantString value);
 #line 22 "./src/util/constants.lzz"
-  static ConstantString changes;
+  STATIC_THREAD_LOCAL (ConstantString changes);
 #line 23 "./src/util/constants.lzz"
-  static ConstantString lastInsertRowid;
+  STATIC_THREAD_LOCAL (ConstantString lastInsertRowid);
 #line 24 "./src/util/constants.lzz"
-  static ConstantString code;
+  STATIC_THREAD_LOCAL (ConstantString code);
 #line 25 "./src/util/constants.lzz"
-  static ConstantString statement;
+  STATIC_THREAD_LOCAL (ConstantString statement);
 #line 26 "./src/util/constants.lzz"
-  static ConstantString column;
+  STATIC_THREAD_LOCAL (ConstantString column);
 #line 27 "./src/util/constants.lzz"
-  static ConstantString table;
+  STATIC_THREAD_LOCAL (ConstantString table);
 #line 28 "./src/util/constants.lzz"
-  static ConstantString type;
+  STATIC_THREAD_LOCAL (ConstantString type);
 #line 29 "./src/util/constants.lzz"
-  static ConstantString totalPages;
+  STATIC_THREAD_LOCAL (ConstantString totalPages);
 #line 30 "./src/util/constants.lzz"
-  static ConstantString remainingPages;
+  STATIC_THREAD_LOCAL (ConstantString remainingPages);
 #line 32 "./src/util/constants.lzz"
 private:
 #line 33 "./src/util/constants.lzz"
@@ -198,11 +199,11 @@ private:
     int64_t value;
   };
 #line 40 "./src/util/integer.lzz"
-  static v8::Persistent <v8::Function> constructor;
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> constructor);
 #line 41 "./src/util/integer.lzz"
-  static v8::Persistent <v8::Function> isInstance;
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> isInstance);
 #line 42 "./src/util/integer.lzz"
-  static Integer::ConstructorController * controller;
+  STATIC_THREAD_LOCAL (Integer::ConstructorController * controller);
 #line 44 "./src/util/integer.lzz"
   int64_t value;
 };
@@ -318,34 +319,34 @@ private:
 #line 360 "./src/objects/database.lzz"
   static void AtExit (void * _);
 #line 365 "./src/objects/database.lzz"
-  static std::set <Database*, Database::CompareDatabase> dbs;
+  STATIC_THREAD_LOCAL (std::set <Database*, Database::CompareDatabase> dbs);
 #line 366 "./src/objects/database.lzz"
-  static v8::Persistent <v8::Function> SqliteError;
-#line 367 "./src/objects/database.lzz"
-  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> SqliteError);
 #line 368 "./src/objects/database.lzz"
+  static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
+#line 369 "./src/objects/database.lzz"
   static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
-#line 370 "./src/objects/database.lzz"
-  sqlite3 * const db_handle;
 #line 371 "./src/objects/database.lzz"
-  bool open;
+  sqlite3 * const db_handle;
 #line 372 "./src/objects/database.lzz"
-  bool busy;
+  bool open;
 #line 373 "./src/objects/database.lzz"
-  bool pragma_mode;
+  bool busy;
 #line 374 "./src/objects/database.lzz"
-  bool safe_ints;
+  bool pragma_mode;
 #line 375 "./src/objects/database.lzz"
-  bool was_js_error;
+  bool safe_ints;
 #line 376 "./src/objects/database.lzz"
-  bool const has_logger;
+  bool was_js_error;
 #line 377 "./src/objects/database.lzz"
-  unsigned short int iterators;
+  bool const has_logger;
 #line 378 "./src/objects/database.lzz"
-  CopyablePersistent <v8::Value> const logger;
+  unsigned short int iterators;
 #line 379 "./src/objects/database.lzz"
-  std::set <Statement*, Database::CompareStatement> stmts;
+  CopyablePersistent <v8::Value> const logger;
 #line 380 "./src/objects/database.lzz"
+  std::set <Statement*, Database::CompareStatement> stmts;
+#line 381 "./src/objects/database.lzz"
   std::set <Backup*, Database::CompareBackup> backups;
 };
 #line 1 "./src/objects/statement.lzz"
@@ -408,11 +409,11 @@ private:
 #line 251 "./src/objects/statement.lzz"
   static void JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 292 "./src/objects/statement.lzz"
-  static v8::Persistent <v8::Function> constructor;
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> constructor);
 #line 293 "./src/objects/statement.lzz"
-  static sqlite3_uint64 next_id;
+  STATIC_THREAD_LOCAL (sqlite3_uint64 next_id);
 #line 294 "./src/objects/statement.lzz"
-  static bool constructing_privileges;
+  STATIC_THREAD_LOCAL (bool constructing_privileges);
 #line 296 "./src/objects/statement.lzz"
   Database * const db;
 #line 297 "./src/objects/statement.lzz"
@@ -472,7 +473,7 @@ private:
 #line 137 "./src/objects/statement-iterator.lzz"
   static v8::Local <v8::Object> DoneRecord (v8::Isolate * isolate);
 #line 141 "./src/objects/statement-iterator.lzz"
-  static v8::Persistent <v8::Function> constructor;
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> constructor);
 #line 142 "./src/objects/statement-iterator.lzz"
   static v8::FunctionCallbackInfo <v8 :: Value> const * caller_info;
 #line 144 "./src/objects/statement-iterator.lzz"
@@ -520,11 +521,11 @@ private:
 #line 131 "./src/objects/backup.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 139 "./src/objects/backup.lzz"
-  static v8::Persistent <v8::Function> constructor;
+  STATIC_THREAD_LOCAL (v8::Persistent <v8::Function> constructor);
 #line 140 "./src/objects/backup.lzz"
-  static sqlite3_uint64 next_id;
+  STATIC_THREAD_LOCAL (sqlite3_uint64 next_id);
 #line 141 "./src/objects/backup.lzz"
-  static bool constructing_privileges;
+  STATIC_THREAD_LOCAL (bool constructing_privileges);
 #line 143 "./src/objects/backup.lzz"
   Database * const db;
 #line 144 "./src/objects/backup.lzz"
@@ -718,7 +719,7 @@ private:
 #line 188 "./src/util/binder.lzz"
   bool success;
 };
-#line 32 "./src/better_sqlite3.lzz"
+#line 33 "./src/better_sqlite3.lzz"
 void RegisterModule (v8::Local <v8::Object> exports, v8::Local <v8::Object> module);
 #line 18 "./src/util/macros.lzz"
 LZZ_INLINE v8::Local <v8::String> StringFromUtf8 (v8::Isolate * isolate, char const * data, int length)

@@ -2,8 +2,45 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 15 "./src/better_sqlite3.lzz"
-NODE_MODULE(better_sqlite3, RegisterModule);
+#line 16 "./src/better_sqlite3.lzz"
+NODE_MODULE_CONTEXT_AWARE(better_sqlite3, RegisterModule);
+#line 162 "./src/util/constants.lzz"
+thread_local ConstantString CS::database;
+thread_local ConstantString CS::reader;
+thread_local ConstantString CS::source;
+thread_local ConstantString CS::memory;
+thread_local ConstantString CS::readonly;
+thread_local ConstantString CS::name;
+thread_local ConstantString CS::next;
+thread_local ConstantString CS::length;
+thread_local ConstantString CS::done;
+thread_local ConstantString CS::value;
+thread_local ConstantString CS::changes;
+thread_local ConstantString CS::lastInsertRowid;
+thread_local ConstantString CS::code;
+thread_local ConstantString CS::statement;
+thread_local ConstantString CS::column;
+thread_local ConstantString CS::table;
+thread_local ConstantString CS::type;
+thread_local ConstantString CS::totalPages;
+thread_local ConstantString CS::remainingPages;
+#line 48 "./src/util/integer.lzz"
+thread_local v8::Persistent<v8::Function> Integer::constructor;
+thread_local v8::Persistent<v8::Function> Integer::isInstance;
+thread_local Integer::ConstructorController* Integer::controller;
+#line 385 "./src/objects/database.lzz"
+thread_local std::set <Database*, Database::CompareDatabase> Database::dbs;
+thread_local v8::Persistent<v8::Function> Database::SqliteError;
+#line 309 "./src/objects/statement.lzz"
+thread_local v8::Persistent<v8::Function> Statement::constructor;
+thread_local sqlite3_uint64 Statement::next_id;
+thread_local bool Statement::constructing_privileges;
+#line 155 "./src/objects/statement-iterator.lzz"
+thread_local v8::Persistent<v8::Function> StatementIterator::constructor;
+#line 152 "./src/objects/backup.lzz"
+thread_local v8::Persistent<v8::Function> Backup::constructor;
+thread_local sqlite3_uint64 Backup::next_id;
+thread_local bool Backup::constructing_privileges;
 #define LZZ_INLINE inline
 #line 54 "./src/util/data.lzz"
 namespace Data
@@ -80,44 +117,6 @@ v8::Local <v8::String> CS::Code (v8::Isolate * isolate, int code)
                 if (element != codes.end()) return v8::Local<v8::String>::New(isolate, element->second);
                 return StringFromUtf8(isolate, CONCAT("UNKNOWN_SQLITE_ERROR_", std::to_string(code).c_str(), "").c_str(), -1);
 }
-#line 12 "./src/util/constants.lzz"
-ConstantString CS::database;
-#line 13 "./src/util/constants.lzz"
-ConstantString CS::reader;
-#line 14 "./src/util/constants.lzz"
-ConstantString CS::source;
-#line 15 "./src/util/constants.lzz"
-ConstantString CS::memory;
-#line 16 "./src/util/constants.lzz"
-ConstantString CS::readonly;
-#line 17 "./src/util/constants.lzz"
-ConstantString CS::name;
-#line 18 "./src/util/constants.lzz"
-ConstantString CS::next;
-#line 19 "./src/util/constants.lzz"
-ConstantString CS::length;
-#line 20 "./src/util/constants.lzz"
-ConstantString CS::done;
-#line 21 "./src/util/constants.lzz"
-ConstantString CS::value;
-#line 22 "./src/util/constants.lzz"
-ConstantString CS::changes;
-#line 23 "./src/util/constants.lzz"
-ConstantString CS::lastInsertRowid;
-#line 24 "./src/util/constants.lzz"
-ConstantString CS::code;
-#line 25 "./src/util/constants.lzz"
-ConstantString CS::statement;
-#line 26 "./src/util/constants.lzz"
-ConstantString CS::column;
-#line 27 "./src/util/constants.lzz"
-ConstantString CS::table;
-#line 28 "./src/util/constants.lzz"
-ConstantString CS::type;
-#line 29 "./src/util/constants.lzz"
-ConstantString CS::totalPages;
-#line 30 "./src/util/constants.lzz"
-ConstantString CS::remainingPages;
 #line 33 "./src/util/constants.lzz"
 void CS::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8::Local <v8 :: Object> module)
 #line 33 "./src/util/constants.lzz"
@@ -348,12 +347,6 @@ Integer::Integer (char _)
 #line 33 "./src/util/integer.lzz"
                                                       { assert(false);
 }
-#line 40 "./src/util/integer.lzz"
-v8::Persistent <v8::Function> Integer::constructor;
-#line 41 "./src/util/integer.lzz"
-v8::Persistent <v8::Function> Integer::isInstance;
-#line 42 "./src/util/integer.lzz"
-Integer::ConstructorController * Integer::controller;
 #line 7 "./src/objects/database.lzz"
 void Database::ThrowDatabaseError ()
 #line 7 "./src/objects/database.lzz"
@@ -723,13 +716,9 @@ void Database::AtExit (void * _)
                 for (Database* db : dbs) db->CloseHandles();
                 dbs.clear();
 }
-#line 365 "./src/objects/database.lzz"
-std::set <Database*, Database::CompareDatabase> Database::dbs;
-#line 366 "./src/objects/database.lzz"
-v8::Persistent <v8::Function> Database::SqliteError;
-#line 367 "./src/objects/database.lzz"
-int const Database::MAX_BUFFER_SIZE;
 #line 368 "./src/objects/database.lzz"
+int const Database::MAX_BUFFER_SIZE;
+#line 369 "./src/objects/database.lzz"
 int const Database::MAX_STRING_SIZE;
 #line 6 "./src/objects/statement.lzz"
 v8::MaybeLocal <v8::Object> Statement::New (v8::Isolate * isolate, v8::Local <v8::Object> database, v8::Local <v8::String> source)
@@ -1033,12 +1022,6 @@ void Statement::JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 
                 info.GetReturnValue().Set(columns);
 }
-#line 292 "./src/objects/statement.lzz"
-v8::Persistent <v8::Function> Statement::constructor;
-#line 293 "./src/objects/statement.lzz"
-sqlite3_uint64 Statement::next_id;
-#line 294 "./src/objects/statement.lzz"
-bool Statement::constructing_privileges;
 #line 5 "./src/objects/statement-iterator.lzz"
 v8::MaybeLocal <v8::Object> StatementIterator::New (v8::Isolate * isolate, v8::FunctionCallbackInfo <v8 :: Value> const & info)
 #line 5 "./src/objects/statement-iterator.lzz"
@@ -1192,8 +1175,6 @@ v8::Local <v8::Object> StatementIterator::DoneRecord (v8::Isolate * isolate)
                                                                       {
                 return NewRecord(isolate, isolate -> GetCurrentContext ( ) , v8::Undefined(isolate), true);
 }
-#line 141 "./src/objects/statement-iterator.lzz"
-v8::Persistent <v8::Function> StatementIterator::constructor;
 #line 142 "./src/objects/statement-iterator.lzz"
 v8::FunctionCallbackInfo <v8 :: Value> const * StatementIterator::caller_info;
 #line 5 "./src/objects/backup.lzz"
@@ -1334,12 +1315,6 @@ void Backup::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 backup->CloseHandles();
                 info.GetReturnValue().Set(info.This());
 }
-#line 139 "./src/objects/backup.lzz"
-v8::Persistent <v8::Function> Backup::constructor;
-#line 140 "./src/objects/backup.lzz"
-sqlite3_uint64 Backup::next_id;
-#line 141 "./src/objects/backup.lzz"
-bool Backup::constructing_privileges;
 #line 4 "./src/util/custom-function.lzz"
 CustomFunction::CustomFunction (v8::Isolate * _isolate, Database * _db, v8::Local <v8::Function> _fn, char const * _name, bool _safe_ints)
 #line 5 "./src/util/custom-function.lzz"
@@ -1761,9 +1736,9 @@ Binder::Result Binder::BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & 
 
                 return { count, bound_object };
 }
-#line 32 "./src/better_sqlite3.lzz"
+#line 33 "./src/better_sqlite3.lzz"
 void RegisterModule (v8::Local <v8::Object> exports, v8::Local <v8::Object> module)
-#line 32 "./src/better_sqlite3.lzz"
+#line 33 "./src/better_sqlite3.lzz"
                                                                                  {
         v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ;
         v8 :: HandleScope scope ( isolate ) ;

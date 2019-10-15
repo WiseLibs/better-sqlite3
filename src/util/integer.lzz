@@ -37,9 +37,15 @@ private:
 		int64_t value;
 	};
 
-	static v8::Persistent<v8::Function> constructor;
-	static v8::Persistent<v8::Function> isInstance;
-	static Integer::ConstructorController* controller;
+	STATIC_THREAD_LOCAL(v8::Persistent<v8::Function> constructor);
+	STATIC_THREAD_LOCAL(v8::Persistent<v8::Function> isInstance);
+	STATIC_THREAD_LOCAL(Integer::ConstructorController* controller);
 
 	int64_t value;
 };
+
+#src
+thread_local v8::Persistent<v8::Function> Integer::constructor;
+thread_local v8::Persistent<v8::Function> Integer::isInstance;
+thread_local Integer::ConstructorController* Integer::controller;
+#end

@@ -9,25 +9,25 @@ public:
 		return StringFromUtf8(isolate, CONCAT("UNKNOWN_SQLITE_ERROR_", std::to_string(code).c_str(), "").c_str(), -1);
 	}
 
-	static ConstantString database;
-	static ConstantString reader;
-	static ConstantString source;
-	static ConstantString memory;
-	static ConstantString readonly;
-	static ConstantString name;
-	static ConstantString next;
-	static ConstantString length;
-	static ConstantString done;
-	static ConstantString value;
-	static ConstantString changes;
-	static ConstantString lastInsertRowid;
-	static ConstantString code;
-	static ConstantString statement;
-	static ConstantString column;
-	static ConstantString table;
-	static ConstantString type;
-	static ConstantString totalPages;
-	static ConstantString remainingPages;
+	STATIC_THREAD_LOCAL(ConstantString database);
+	STATIC_THREAD_LOCAL(ConstantString reader);
+	STATIC_THREAD_LOCAL(ConstantString source);
+	STATIC_THREAD_LOCAL(ConstantString memory);
+	STATIC_THREAD_LOCAL(ConstantString readonly);
+	STATIC_THREAD_LOCAL(ConstantString name);
+	STATIC_THREAD_LOCAL(ConstantString next);
+	STATIC_THREAD_LOCAL(ConstantString length);
+	STATIC_THREAD_LOCAL(ConstantString done);
+	STATIC_THREAD_LOCAL(ConstantString value);
+	STATIC_THREAD_LOCAL(ConstantString changes);
+	STATIC_THREAD_LOCAL(ConstantString lastInsertRowid);
+	STATIC_THREAD_LOCAL(ConstantString code);
+	STATIC_THREAD_LOCAL(ConstantString statement);
+	STATIC_THREAD_LOCAL(ConstantString column);
+	STATIC_THREAD_LOCAL(ConstantString table);
+	STATIC_THREAD_LOCAL(ConstantString type);
+	STATIC_THREAD_LOCAL(ConstantString totalPages);
+	STATIC_THREAD_LOCAL(ConstantString remainingPages);
 
 private:
 	REGISTER(Init) {
@@ -156,4 +156,26 @@ private:
 
 #hdr
 typedef v8::Persistent<v8::String> ConstantString;
+#end
+
+#src
+thread_local ConstantString CS::database;
+thread_local ConstantString CS::reader;
+thread_local ConstantString CS::source;
+thread_local ConstantString CS::memory;
+thread_local ConstantString CS::readonly;
+thread_local ConstantString CS::name;
+thread_local ConstantString CS::next;
+thread_local ConstantString CS::length;
+thread_local ConstantString CS::done;
+thread_local ConstantString CS::value;
+thread_local ConstantString CS::changes;
+thread_local ConstantString CS::lastInsertRowid;
+thread_local ConstantString CS::code;
+thread_local ConstantString CS::statement;
+thread_local ConstantString CS::column;
+thread_local ConstantString CS::table;
+thread_local ConstantString CS::type;
+thread_local ConstantString CS::totalPages;
+thread_local ConstantString CS::remainingPages;
 #end

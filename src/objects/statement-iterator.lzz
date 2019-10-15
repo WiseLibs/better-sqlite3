@@ -138,7 +138,7 @@ private:
 		return NewRecord(isolate, OnlyContext, v8::Undefined(isolate), true);
 	}
 
-	static v8::Persistent<v8::Function> constructor;
+	STATIC_THREAD_LOCAL(v8::Persistent<v8::Function> constructor);
 	static const NODE_ARGUMENTS_TYPE* caller_info;
 
 	Statement* const stmt;
@@ -150,3 +150,7 @@ private:
 	bool alive;
 	bool logged;
 };
+
+#src
+thread_local v8::Persistent<v8::Function> StatementIterator::constructor;
+#end

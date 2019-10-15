@@ -10,9 +10,10 @@
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
+#include "thread_local.h"
 #end
 #src
-NODE_MODULE(better_sqlite3, RegisterModule);
+NODE_MODULE_CONTEXT_AWARE(better_sqlite3, RegisterModule);
 #end
 
 #insert "util/macros.lzz"

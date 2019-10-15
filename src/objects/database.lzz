@@ -362,8 +362,9 @@ private:
 		dbs.clear();
 	}
 
-	static std::set<Database*, Database::CompareDatabase> dbs;
-	static v8::Persistent<v8::Function> SqliteError;
+	STATIC_THREAD_LOCAL(std::set<Database*, Database::CompareDatabase> dbs);
+	STATIC_THREAD_LOCAL(v8::Persistent<v8::Function> SqliteError);
+
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 
@@ -379,3 +380,8 @@ private:
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;
 };
+
+#src
+thread_local std::set <Database*, Database::CompareDatabase> Database::dbs;
+thread_local v8::Persistent<v8::Function> Database::SqliteError;
+#end

@@ -289,9 +289,9 @@ private:
 		info.GetReturnValue().Set(columns);
 	}
 
-	static v8::Persistent<v8::Function> constructor;
-	static sqlite3_uint64 next_id;
-	static bool constructing_privileges;
+	STATIC_THREAD_LOCAL(v8::Persistent<v8::Function> constructor);
+	STATIC_THREAD_LOCAL(sqlite3_uint64 next_id);
+	STATIC_THREAD_LOCAL(bool constructing_privileges);
 
 	Database* const db;
 	sqlite3_stmt* const handle;
@@ -304,3 +304,9 @@ private:
 	char mode;
 	const bool returns_data;
 };
+
+#src
+thread_local v8::Persistent<v8::Function> Statement::constructor;
+thread_local sqlite3_uint64 Statement::next_id;
+thread_local bool Statement::constructing_privileges;
+#end
