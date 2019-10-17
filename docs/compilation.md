@@ -13,7 +13,7 @@ Your amalgamation directory should contain `sqlite3.c` and `sqlite3.h`. Any desi
 By default, this distribution currently uses SQLite3 **version 3.29.0** with the following [compilation options](https://www.sqlite.org/compile.html):
 
 ```
-SQLITE_THREADSAFE=0
+SQLITE_THREADSAFE=2
 SQLITE_DEFAULT_MEMSTATUS=0
 SQLITE_OMIT_DEPRECATED
 SQLITE_OMIT_GET_TABLE
