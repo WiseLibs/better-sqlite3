@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "bindings": "1.5.0",
-    "integer": "^2.1.0",
+    "integer": "danielbarela/integer#v2.1.1",
     "tar": "^4.4.10",
     "prebuild-install": "^5.3.2",
     "prebuild": "^9.1.1"
