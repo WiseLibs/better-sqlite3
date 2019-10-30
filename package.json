@@ -10,8 +10,11 @@
     "url": "git://github.com/JoshuaWise/better-sqlite3.git"
   },
   "dependencies": {
+    "bindings": "1.5.0",
     "integer": "^2.1.0",
-    "tar": "^4.4.10"
+    "tar": "^4.4.10",
+    "prebuild-install": "^5.3.2",
+    "prebuild": "^9.1.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -22,6 +25,7 @@
     "sqlite": "^3.0.3"
   },
   "scripts": {
+    "install": "prebuild-install || node-gyp rebuild",
     "download": "sh ./deps/download.sh",
     "lzz": "lzz -hx hpp -sx cpp -k BETTER_SQLITE3 -d -hl -sl -e ./src/better_sqlite3.lzz",
     "prepublishOnly": "npm run lzz",
@@ -29,7 +33,9 @@
     "rebuild": "npm run lzz && node-gyp rebuild",
     "rebuild-debug": "npm run lzz && node-gyp rebuild --debug",
     "test": "mocha --exit --slow=75 --timeout=5000",
-    "benchmark": "node benchmark"
+    "benchmark": "node benchmark",
+    "prebuild-electron": "prebuild -r electron -t 2.0.0 -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0",
+    "prebuild": "prebuild -r node -t 8.0.0 -t 10.0.0 -t 12.0.0"
   },
   "license": "MIT",
   "keywords": [

@@ -2,7 +2,16 @@
 const Database = require('../.');
 
 util.describeUnix('Database#loadExtension()', function () {
-	const filepath = require('path').join(__dirname, '../build/test_extension.node');
+	const releaseFilepath = require('path').join(__dirname, '..', 'build', 'Release', 'test_extension.node');
+	const debugFilepath = require('path').join(__dirname, '..', 'build', 'Debug', 'test_extension.node');
+	let filepath;
+	try {
+		const fs = require('fs');
+		fs.accessSync(releaseFilepath, fs.constants.F_OK);
+		filepath = releaseFilepath;
+	} catch (e) {
+		filepath = debugFilepath;
+	}
 	beforeEach(function () {
 		this.db = new Database(util.next());
 	});

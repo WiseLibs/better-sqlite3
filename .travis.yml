@@ -1,17 +1,34 @@
 language: node_js
 sudo: false
-node_js:
-- "8"
-- "10"
-- "12"
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.9
-    - g++-4.9
-before_install:
-- export CC="gcc-4.9" CXX="g++-4.9"
+node_js: 10
+matrix:
+  include:
+  - os: linux
+    env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+    addons:
+      apt:
+        sources:
+        - ubuntu-toolchain-r-test
+        packages:
+        - gcc-4.9
+        - g++-4.9
+  - os: osx
+    osx_image: xcode11
+    compiler: clang
+    env: MATRIX_EVAL="CC=gcc && CXX=g++"
 before_script:
 - npm run install-debug
+before_deploy:
+- npm install
+- npm run prebuild
+- npm run prebuild-electron
+deploy:
+  provider: releases
+  api_key:
+    secure: i1mMbOqJ2wfhoDQQJhxZj2KpOucUw/lO2kzp+nmA1eXv+aqtIkuGeZj+zk9CNTOEvWMBsrnWHM1yXJSrzxVRr/vcYW1srQWg/KB8V0I0MiFcLMi3EfSB5O4vyHyd73Ozjf3waGg22UFkPo5BsbbI9EI3akL5smxDheuLc64FOfszxsPrmXCZH/T7Oy33zqmr8b2N5lO5WhacHW3nEUGXShrUZF52MWjtw9hy4y9FzShIxatD0DfUFwOKKRL5G8Y0qgY3iVeDtNF0UBBWX15wRTBYvdFeJEAWcr7moiZnbGllg4LLyYzkkTAdbBoCk5jM1LNaR5++rUsRpfiMN18eNk8LIZssbhL4IiWTUIjc1U/ktnXFqBFlGpfAUxH6qbsAkQGwTvJvZo0m9FSM9vv6iqfNMY6DMpUhwrqBFQjTzIdPUz9DUP097YbByc8mXMbw8MqFHDzl1+7nkrlhr0sW3RFgXooa4yYPIPRsuvizAxJ7nHrbDisKXPTQNnWez9mYBqGJpjtYoTTQcnMehXfmAT1Iv/UvSJnHAHt3ncIcCuuA61M2MxW0CkDC8QpZ2OH3dT+l/LGdpAbMU04XCWi1sXWY0p7ioeQjejjKGI7/lbDrWbCVT6nqy/XqYZcGy9ES4dMVxht0bWTqfcBvmVvSdKnsYSzm3lfJrRCl3VqS0vw=
+  file: prebuilds/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: danielbarela/better-sqlite3
+    tags: true
