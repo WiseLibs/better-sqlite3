@@ -34,8 +34,8 @@
     "rebuild-debug": "npm run lzz && node-gyp rebuild --debug",
     "test": "mocha --exit --slow=75 --timeout=5000",
     "benchmark": "node benchmark",
-    "prebuild-electron": "prebuild -r electron -t 2.0.0 -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0",
-    "prebuild": "prebuild -r node -t 8.0.0 -t 10.0.0 -t 12.0.0"
+    "prebuild-electron": "prebuild -r electron -t 2.0.0 -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 --include-regex 'better_sqlite3.node$'",
+    "prebuild": "prebuild -r node -t 8.0.0 -t 10.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'"
   },
   "license": "MIT",
   "keywords": [
