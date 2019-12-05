@@ -1,7 +1,7 @@
 'use strict';
 const Database = require('../.');
 
-describe('Database#loadExtension()', function () {
+util.describeUnix('Database#loadExtension()', function () {
 	const filepath = require('path').join(__dirname, '../build/test_extension.node');
 	beforeEach(function () {
 		this.db = new Database(util.next());

@@ -1,6 +1,6 @@
 {
   "name": "better-sqlite3",
-  "version": "5.4.1",
+  "version": "5.4.3",
   "description": "The fastest and simplest library for SQLite3 in Node.js.",
   "homepage": "http://github.com/JoshuaWise/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
@@ -11,15 +11,15 @@
   },
   "dependencies": {
     "integer": "^2.1.0",
-    "tar": "^4.4.6"
+    "tar": "^4.4.10"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "cli-color": "^1.3.0",
-    "fs-extra": "^5.0.0",
-    "mocha": "^5.2.0",
+    "cli-color": "^1.4.0",
+    "fs-extra": "^8.1.0",
+    "mocha": "^6.2.0",
     "nodemark": "^0.3.0",
-    "sqlite": "^2.9.3"
+    "sqlite": "^3.0.3"
   },
   "scripts": {
     "download": "sh ./deps/download.sh",
@@ -28,7 +28,7 @@
     "install-debug": "node-gyp rebuild --debug",
     "rebuild": "npm run lzz && node-gyp rebuild",
     "rebuild-debug": "npm run lzz && node-gyp rebuild --debug",
-    "test": "$(npm bin)/mocha --exit --slow=75 --timeout=2000",
+    "test": "mocha --exit --slow=75 --timeout=5000",
     "benchmark": "node benchmark"
   },
   "license": "MIT",

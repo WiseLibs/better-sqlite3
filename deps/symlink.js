@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const dest = process.argv[2];
-const source = path.join(path.sep, process.argv[3]);
+const source = path.resolve(path.sep, process.argv[3]);
 
 /*
 	This creates symlinks inside the <$2> directory, linking to the SQLite3
