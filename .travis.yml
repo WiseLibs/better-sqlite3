@@ -4,7 +4,9 @@ node_js: 10
 matrix:
   include:
   - os: linux
-    env: MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+    env: 
+      - CXX="g++-4.9"
+      - CC=gcc-4.9
     addons:
       apt:
         sources:
@@ -15,7 +17,9 @@ matrix:
   - os: osx
     osx_image: xcode11
     compiler: clang
-    env: MATRIX_EVAL="CC=gcc && CXX=g++"
+    env: 
+      - CXX="g++-4.9"
+      - CC=gcc
 before_script:
 - npm run install-debug
 before_deploy:
