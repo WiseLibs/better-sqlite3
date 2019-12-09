@@ -3,11 +3,9 @@ sudo: false
 matrix:
   include:
     # linux builds
-    - os: linux
-      node_js:
-        - "8"
-        - "10"
-        - "12"
+    - name: "Linux - Node 8"
+      os: linux
+      node_js: "8"
       env: 
         - CXX="g++-4.9"
         - CC=gcc-4.9
@@ -18,11 +16,51 @@ matrix:
           packages:
           - gcc-4.9
           - g++-4.9
-    - os: osx
-      node_js:
-        - "8"
-        - "10"
-        - "12"
+    - name: "Linux - Node 10"
+      os: linux
+      node_js: "10"
+      env: 
+        - CXX="g++-4.9"
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - name: "Linux - Node 12"
+      os: linux
+      node_js: "12"
+      env: 
+        - CXX="g++-4.9"
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - name: "OS X - Node 8"
+      os: osx
+      node_js: "8"
+      osx_image: xcode11
+      compiler: clang
+      env: 
+        - CXX=g++
+        - CC=gcc
+    - name: "OS X - Node 10"
+      os: osx
+      node_js: "10"
+      osx_image: xcode11
+      compiler: clang
+      env: 
+        - CXX=g++
+        - CC=gcc
+    - name: "OS X - Node 12"
+      os: osx
+      node_js: "12"
       osx_image: xcode11
       compiler: clang
       env: 
