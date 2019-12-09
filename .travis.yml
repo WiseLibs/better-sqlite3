@@ -18,7 +18,7 @@ matrix:
     osx_image: xcode11
     compiler: clang
     env: 
-      - CXX="g++-4.9"
+      - CXX=g++
       - CC=gcc
 before_script:
 - npm run install-debug
