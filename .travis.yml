@@ -6,23 +6,23 @@ node_js:
   - "12"
 jobs:
   include:
-  - os: linux
-    env: 
-      - CXX="g++-4.9"
-      - CC=gcc-4.9
-    addons:
-      apt:
-        sources:
-        - ubuntu-toolchain-r-test
-        packages:
-        - gcc-4.9
-        - g++-4.9
-  - os: osx
-    osx_image: xcode11
-    compiler: clang
-    env: 
-      - CXX=g++
-      - CC=gcc
+    - os: linux
+      env: 
+        - CXX="g++-4.9"
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - os: osx
+      osx_image: xcode11
+      compiler: clang
+      env: 
+        - CXX=g++
+        - CC=gcc
 before_script:
 - npm run install-debug
 before_deploy:
