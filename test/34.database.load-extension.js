@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const Database = require('../.');
 
-util.describeUnix('Database#loadExtension()', function () {
+describe('Database#loadExtension()', function () {
 	let filepath;
 	before(function () {
 		const releaseFilepath = path.join(__dirname, '..', 'build', 'Release', 'test_extension.node');
