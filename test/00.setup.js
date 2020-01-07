@@ -12,7 +12,6 @@ global.expect = chai.expect;
 global.util = {
 	current: () => path.join(tempDir, `${dbId}.db`),
 	next: () => (++dbId, global.util.current()),
-  describeUnix: isWindows ? describe.skip : describe,
 	itUnix: isWindows ? it.skip : it,
 };
 

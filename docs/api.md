@@ -2,8 +2,8 @@
 
 # Classes
 
-- [`Database`](#class-database)
-- [`Statement`](#class-statement)
+- [class `Database`](#class-database)
+- [class `Statement`](#class-statement)
 
 # class *Database*
 
