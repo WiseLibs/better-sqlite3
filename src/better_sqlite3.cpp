@@ -457,7 +457,7 @@ void Database::Init (v8::Isolate * isolate, v8::Local <v8 :: Object> exports, v8
 
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-                SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../lib/sqlite-error")));
+                SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../../lib/sqlite-error")));
                 node::AtExit(Database::AtExit);
 }
 #line 132 "./src/objects/database.lzz"

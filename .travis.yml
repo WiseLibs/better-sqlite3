@@ -1,17 +1,84 @@
 language: node_js
 sudo: false
-node_js:
-- "8"
-- "10"
-- "12"
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-4.9
-    - g++-4.9
-before_install:
-- export CC="gcc-4.9" CXX="g++-4.9"
+matrix:
+  include:
+    - name: "Linux - Node 8"
+      os: linux
+      node_js: "8"
+      env:
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - name: "Linux - Node 10"
+      os: linux
+      node_js: "10"
+      env:
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - name: "Linux - Node 12"
+      os: linux
+      node_js: "12"
+      env:
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
+    - name: "OS X - Node 8"
+      os: osx
+      node_js: "8"
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - CXX=g++
+        - CC=gcc
+    - name: "OS X - Node 10"
+      os: osx
+      node_js: "10"
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - CXX=g++
+        - CC=gcc
+    - name: "OS X - Node 12"
+      os: osx
+      node_js: "12"
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - CXX=g++
+        - CC=gcc
 before_script:
-- npm run install-debug
+- npm run build-debug
+before_deploy:
+- npm run build-release
+- $(npm bin)/prebuild -r node -t 8.0.0 -t 10.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r electron -t 2.0.0 -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 --include-regex 'better_sqlite3.node$'
+deploy:
+  provider: releases
+  api_key:
+    secure: cNaoDCeoEEOM72fiOEMMOIga0gyBBTecHOszynyl8wm+bIwHQEx5kN9Bt3HpBYHL3mKw9D5a7c2q5lX7uPIAykdw8daBukTDjty1m+mIqji6ezA7JZTMB5jLSPbVazxHLcU+Wyq9MJeGv4qx9vPZrdA6b+ad8OG0ORVYFL8OX1AmQ64BMqN7nJduCr6ajEPPA4DmbAVTRHl/oswxtyjPseqVxV/Hw0UJKLyCSDPlkFRC2rOXvSXCU/MpluYCKhkB9w0GaY1vLvaBAsoNVq/uEW21YXs9WgN8kimBgvEdNQE+NLTynxi7lS/xcKKQoJhhPR7OFsdCkxSHmoWCIEaiz8E+Y45y1uW4mvCZ1lCHHp8iLUggjYXyim7rlyuu3DuX4A8HWVmI0BZnp3TyE/bQI2+PGd8ie0LaxrK5UPl0qTEEXnzxC5qO8uk6MkEqjbBHY7mvdHevEwCz67ACAKAYAMwla5SWIPPj9upFthi+GMupdkn8efedu/2D45Pl0lZZeC4NID7RGXKLpYB1XfF2sMbL2o5bxqzJjMUGAatK/4OS8oFaKVcP0ovx7GHKJ8KKJo0pdXpsyyOZpcU+uYzA9eqBSA82rvSBrdWqrfXsGhl6FLVSP4BuRj9KlQG82yPlUuyjJT6MZZSBAWicDHItmK8f/R7G84nkBY2QqUYwCWY=
+  file: prebuilds/*
+  file_glob: true
+  skip_cleanup: true
+  on:
+    repo: JoshuaWise/better-sqlite3
+    tags: true
+    node_js: "12"
