@@ -24,14 +24,5 @@
       'dependencies': ['deps/sqlite3.gyp:sqlite3'],
       'conditions': [['sqlite3 == ""', { 'sources': ['deps/test_extension.c'] }]],
     },
-    {
-      'target_name': 'place_resulting_binaries',
-      'type': 'none',
-      'dependencies': ['better_sqlite3', 'test_extension'],
-      'copies': [{
-        'files': ['<(PRODUCT_DIR)/better_sqlite3.node', '<(PRODUCT_DIR)/test_extension.node'],
-        'destination': 'build',
-      }],
-    },
   ],
 }
