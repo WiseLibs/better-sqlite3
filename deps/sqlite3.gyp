@@ -48,6 +48,9 @@
         '-std=c99',
         '-Wno-unused-function',
         '-Wno-sign-compare',
+        '-Wno-implicit-fallthrough',
+        '-Wno-cast-function-type',
+        '-Wno-type-limits',
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
@@ -56,6 +59,9 @@
         'WARNING_CFLAGS': [
           '-Wno-unused-function',
           '-Wno-sign-compare',
+          '-Wno-implicit-fallthrough',
+          '-Wno-cast-function-type',
+          '-Wno-type-limits',
         ],
       },
       'conditions': [['sqlite3 == ""', {

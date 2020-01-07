@@ -2,12 +2,11 @@ language: node_js
 sudo: false
 matrix:
   include:
-    # linux builds
     - name: "Linux - Node 8"
       os: linux
       node_js: "8"
-      env: 
-        - CXX="g++-4.9"
+      env:
+        - CXX=g++-4.9
         - CC=gcc-4.9
       addons:
         apt:
@@ -19,8 +18,8 @@ matrix:
     - name: "Linux - Node 10"
       os: linux
       node_js: "10"
-      env: 
-        - CXX="g++-4.9"
+      env:
+        - CXX=g++-4.9
         - CC=gcc-4.9
       addons:
         apt:
@@ -32,8 +31,8 @@ matrix:
     - name: "Linux - Node 12"
       os: linux
       node_js: "12"
-      env: 
-        - CXX="g++-4.9"
+      env:
+        - CXX=g++-4.9
         - CC=gcc-4.9
       addons:
         apt:
@@ -47,7 +46,7 @@ matrix:
       node_js: "8"
       osx_image: xcode11
       compiler: clang
-      env: 
+      env:
         - CXX=g++
         - CC=gcc
     - name: "OS X - Node 10"
@@ -55,7 +54,7 @@ matrix:
       node_js: "10"
       osx_image: xcode11
       compiler: clang
-      env: 
+      env:
         - CXX=g++
         - CC=gcc
     - name: "OS X - Node 12"
@@ -63,23 +62,23 @@ matrix:
       node_js: "12"
       osx_image: xcode11
       compiler: clang
-      env: 
+      env:
         - CXX=g++
         - CC=gcc
 before_script:
-- npm run install-debug
+- npm run build-debug
 before_deploy:
-- npm install
-- npm run prebuild
-- npm run prebuild-electron
+- npm run build-release
+- $(npm bin)/prebuild -r node -t 8.0.0 -t 10.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r electron -t 2.0.0 -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 --include-regex 'better_sqlite3.node$'
 deploy:
   provider: releases
   api_key:
-    secure: DU537mo7UzDlB0tgd/CX6VDwi2tE1KuBfEEO5+YBD9EfPNPbgs8NPOxdpBOhJIuuclHqouHF9JQ+L4plaQvRqNOoS2BT7fuftKfgzDamBchHgW9xi3TkF03YG5EFDgnb8NeAW2Ke5sABAS8dep3JL/AAeiQQ/SWDZAlhosW3OmGCDT8pCeV5nLQ/wwf0WMkkeEXCvJ6iA16SLf7FknNPdWU213noB2bHgLaku7Ozxt6256ntuBARABDZj6zgLPTCl7AOu+CjhIRCg/ogdyY6C8qWkBAQt97Rdz7wSbE7ub/AdOcdR2SynG6NeuPIxojT9Iy3jpYuULF9dJo+NwsPvBtTES7FS4LtNDglunQG98VT1A1rc+LbYBLxWELe9usQO3i1dDvf/KOUMOt5vLBpiffZq34rMnNsAlZepmyYLsp9Ui212jHZhcGPk8vFqX0BCyJUN6wzyp6KRGCRYInbKMJJoJyrYUk2AWoaxojdQf/Ha1Kb2xJfCep+Ny6nI9oyGFh8P937/6wjtLa8Drgrt15o5kkaUR5HluEBINgrYj/3VNgZkZWX1YG2eW3HiOylU/aBtrpKM7n4FYJfAiqAJbZ7FkK+Lk65sdLit0wrvt+8EO+GG8RUreXSf21iJmvjX/A106cGCpiC4AKG1drJjjxbCi/iTRid/+Aldq98k5A=
+    secure: cNaoDCeoEEOM72fiOEMMOIga0gyBBTecHOszynyl8wm+bIwHQEx5kN9Bt3HpBYHL3mKw9D5a7c2q5lX7uPIAykdw8daBukTDjty1m+mIqji6ezA7JZTMB5jLSPbVazxHLcU+Wyq9MJeGv4qx9vPZrdA6b+ad8OG0ORVYFL8OX1AmQ64BMqN7nJduCr6ajEPPA4DmbAVTRHl/oswxtyjPseqVxV/Hw0UJKLyCSDPlkFRC2rOXvSXCU/MpluYCKhkB9w0GaY1vLvaBAsoNVq/uEW21YXs9WgN8kimBgvEdNQE+NLTynxi7lS/xcKKQoJhhPR7OFsdCkxSHmoWCIEaiz8E+Y45y1uW4mvCZ1lCHHp8iLUggjYXyim7rlyuu3DuX4A8HWVmI0BZnp3TyE/bQI2+PGd8ie0LaxrK5UPl0qTEEXnzxC5qO8uk6MkEqjbBHY7mvdHevEwCz67ACAKAYAMwla5SWIPPj9upFthi+GMupdkn8efedu/2D45Pl0lZZeC4NID7RGXKLpYB1XfF2sMbL2o5bxqzJjMUGAatK/4OS8oFaKVcP0ovx7GHKJ8KKJo0pdXpsyyOZpcU+uYzA9eqBSA82rvSBrdWqrfXsGhl6FLVSP4BuRj9KlQG82yPlUuyjJT6MZZSBAWicDHItmK8f/R7G84nkBY2QqUYwCWY=
   file: prebuilds/*
   file_glob: true
   skip_cleanup: true
   on:
-    repo: danielbarela/better-sqlite3
+    repo: JoshuaWise/better-sqlite3
     tags: true
-    node_js: "10"
+    node_js: "12"
