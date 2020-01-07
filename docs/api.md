@@ -1,7 +1,5 @@
 # API
 
-# Classes
-
 - [class `Database`](#class-database)
 - [class `Statement`](#class-statement)
 
