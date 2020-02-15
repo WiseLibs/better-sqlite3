@@ -173,9 +173,9 @@ Registers a user-defined `function` so that it can be used by SQL statements.
 ```js
 db.function('add2', (a, b) => a + b);
 
-db.prepare('SELECT add2(?, ?)').get(12, 4); // => 16
-db.prepare('SELECT add2(?, ?)').get('foo', 'bar'); // => "foobar"
-db.prepare('SELECT add2(?, ?, ?)').get(12, 4, 18); // => Error: wrong number of arguments
+db.prepare('SELECT add2(?, ?)').pluck().get(12, 4); // => 16
+db.prepare('SELECT add2(?, ?)').pluck().get('foo', 'bar'); // => "foobar"
+db.prepare('SELECT add2(?, ?, ?)').pluck().get(12, 4, 18); // => Error: wrong number of arguments
 ```
 
 By default, user-defined functions have a strict number of arguments (determined by `function.length`). You can register multiple functions of the same name, each with a different number of arguments, causing SQLite3 to execute a different function depending on how many arguments were passed to it. If you register two functions with same name and the same number of arguments, the second registration will erase the first one.
@@ -187,8 +187,8 @@ If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_
 ```js
 db.function('void', { deterministic: true, varargs: true }, () => {});
 
-db.prepare("SELECT void()").get(); // => null
-db.prepare("SELECT void(?, ?)").get(55, 19); // => null
+db.prepare("SELECT void()").pluck().get(); // => null
+db.prepare("SELECT void(?, ?)").pluck().get(55, 19); // => null
 ```
 
 ### .aggregate(*name*, *options*) -> *this*
