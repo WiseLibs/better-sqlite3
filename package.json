@@ -11,17 +11,17 @@
   },
   "dependencies": {
     "bindings": "^1.5.0",
-    "integer": "^2.1.0",
-    "prebuild-install": "^5.3.2",
+    "integer": "^3.0.1",
+    "prebuild-install": "^5.3.3",
     "tar": "4.4.10"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "cli-color": "^1.4.0",
+    "cli-color": "^2.0.0",
     "fs-extra": "^8.1.0",
-    "mocha": "^6.2.0",
+    "mocha": "^7.0.1",
     "nodemark": "^0.3.0",
-    "prebuild": "^9.1.1",
+    "prebuild": "^10.0.0",
     "sqlite": "^3.0.3"
   },
   "scripts": {
