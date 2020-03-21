@@ -244,7 +244,7 @@ db.prepare(`
 `).all();
 ```
 
-### .loadExtension(*path*) -> *this*
+### .loadExtension(*path*, [*entry_point*]) -> *this*
 
 Loads a compiled [SQLite3 extension](https://sqlite.org/loadext.html) and applies it to the current database connection.
 

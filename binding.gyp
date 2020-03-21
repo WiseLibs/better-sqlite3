@@ -24,5 +24,10 @@
       'dependencies': ['deps/sqlite3.gyp:sqlite3'],
       'conditions': [['sqlite3 == ""', { 'sources': ['deps/test_extension.c'] }]],
     },
+    {
+      'target_name': 'test_extension_custom_entry_point',
+      'dependencies': ['deps/sqlite3.gyp:sqlite3'],
+      'conditions': [['sqlite3 == ""', { 'sources': ['deps/test_extension_custom_entry_point.c'] }]],
+    },
   ],
 }

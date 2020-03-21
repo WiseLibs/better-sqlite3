@@ -312,7 +312,16 @@ private:
 		REQUIRE_DATABASE_NO_ITERATORS(db);
 		v8::String::Utf8Value filename(EXTRACT_STRING(OnlyIsolate, filenameString));
 		char* error;
-		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
+		int status;
+		// Allow optional second argument which specifies the 'entry point'.
+		// see: https://www.sqlite.org/c3ref/load_extension.html
+		if (info.Length() > 1) {
+			REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> entryPointString);
+			v8::String::Utf8Value entry_point(EXTRACT_STRING(OnlyIsolate, entryPointString));
+			status = sqlite3_load_extension(db->db_handle, *filename, *entry_point, &error);
+		} else {
+			status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
+		}
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
 		else ThrowSqliteError(error, status);
 		sqlite3_free(error);
