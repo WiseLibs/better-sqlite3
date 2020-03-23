@@ -51,6 +51,7 @@ describe('new Database()', function () {
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.false;
 		expect(existsSync(':memory:')).to.be.false;
 	});
 	it('should allow named in-memory databases to be created', function () {
@@ -61,6 +62,7 @@ describe('new Database()', function () {
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.false;
 		expect(existsSync(util.current())).to.be.false;
 	});
 	it('should allow disk-bound databases to be created', function () {
@@ -71,6 +73,7 @@ describe('new Database()', function () {
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should not allow conflicting in-memory options', function () {
@@ -90,6 +93,7 @@ describe('new Database()', function () {
 		expect(db.readonly).to.be.true;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should not allow the "readonly" option for in-memory databases', function () {
@@ -110,6 +114,7 @@ describe('new Database()', function () {
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
 	});
 	util.itUnix('should accept the "timeout" option', function () {
@@ -144,6 +149,16 @@ describe('new Database()', function () {
 		expect(() => (this.db = new Database(filepath))).to.throw(TypeError);
 		expect(existsSync(filepath)).to.be.false;
 		expect(existsSync(util.current())).to.be.false;
+	});
+	it('should accept the "unsafe" option', function () {
+		const db = this.db = new Database(util.current(), { unsafe: true });
+		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.false;
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
+		expect(db.unsafe).to.be.true;
+		expect(existsSync(util.current())).to.be.true;
 	});
 	it('should have a proper prototype chain', function () {
 		const db = this.db = new Database(util.next());

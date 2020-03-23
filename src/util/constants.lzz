@@ -15,6 +15,7 @@ public:
 	static ConstantString memory;
 	static ConstantString readonly;
 	static ConstantString name;
+	static ConstantString unsafe;
 	static ConstantString next;
 	static ConstantString length;
 	static ConstantString done;
@@ -37,6 +38,7 @@ private:
 		AddString(isolate, CS::memory, "memory");
 		AddString(isolate, CS::readonly, "readonly");
 		AddString(isolate, CS::name, "name");
+		AddString(isolate, CS::unsafe, "unsafe");
 		AddString(isolate, CS::next, "next");
 		AddString(isolate, CS::length, "length");
 		AddString(isolate, CS::done, "done");

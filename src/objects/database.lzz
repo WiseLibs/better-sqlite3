@@ -55,6 +55,7 @@ public:
 		const bool safe_ints;
 		bool was_js_error;
 		unsigned short iterators;
+		bool unsafe_mode;
 	};
 
 	inline State* GetState() {
@@ -89,7 +90,7 @@ private:
 		}
 	};
 
-	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
+	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, bool _unsafe, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
 		busy(false),
@@ -98,6 +99,7 @@ private:
 		was_js_error(false),
 		has_logger(_logger->IsFunction()),
 		iterators(0),
+		unsafe_mode(_unsafe),
 		logger(isolate, _logger),
 		stmts(),
 		backups() {
@@ -137,7 +139,8 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
-		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
+		REQUIRE_ARGUMENT_BOOLEAN(seventh, bool unsafe);
+		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> logger);
 
 		UseIsolate;
 		sqlite3* db_handle;
@@ -164,11 +167,12 @@ private:
 		assert(status == SQLITE_OK);
 
 		UseContext;
-		Database* db = new Database(db_handle, isolate, logger);
+		Database* db = new Database(db_handle, isolate, unsafe, logger);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
 		SetFrozen(isolate, ctx, info.This(), CS::name, filenameGiven);
+		SetFrozen(isolate, ctx, info.This(), CS::unsafe, unsafe ? v8::True(isolate) : v8::False(isolate));
 
 		info.GetReturnValue().Set(info.This());
 	}
@@ -375,6 +379,7 @@ private:
 	bool was_js_error;
 	const bool has_logger;
 	unsigned short iterators;
+	bool unsafe_mode;
 	const CopyablePersistent<v8::Value> logger;
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;
