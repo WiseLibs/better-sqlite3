@@ -251,7 +251,7 @@ public:
 #line 57 "./src/objects/database.lzz"
     unsigned short int iterators;
 #line 58 "./src/objects/database.lzz"
-    bool unsafe_mode;
+    bool const unsafe_mode;
   };
 #line 61 "./src/objects/database.lzz"
   State * GetState ();
@@ -346,7 +346,7 @@ private:
 #line 381 "./src/objects/database.lzz"
   unsigned short int iterators;
 #line 382 "./src/objects/database.lzz"
-  bool unsafe_mode;
+  bool const unsafe_mode;
 #line 383 "./src/objects/database.lzz"
   CopyablePersistent <v8::Value> const logger;
 #line 384 "./src/objects/database.lzz"

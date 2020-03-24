@@ -55,7 +55,7 @@ public:
 		const bool safe_ints;
 		bool was_js_error;
 		unsigned short iterators;
-		bool unsafe_mode;
+		const bool unsafe_mode;
 	};
 
 	inline State* GetState() {
@@ -379,7 +379,7 @@ private:
 	bool was_js_error;
 	const bool has_logger;
 	unsigned short iterators;
-	bool unsafe_mode;
+	const bool unsafe_mode;
 	const CopyablePersistent<v8::Value> logger;
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;
