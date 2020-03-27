@@ -21,7 +21,7 @@
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	Database* db = stmt->db;                                                   \
 	REQUIRE_DATABASE_OPEN(db->GetState());                                     \
-	REQUIRE_DATABASE_NOT_BUSY(db->GetState());                                 \
+	PREFER_DATABASE_NOT_BUSY(db->GetState());                                  \
 	MUTATE_CHECK();                                                            \
 	const bool bound = stmt->bound;                                            \
 	if (!bound) {                                                              \

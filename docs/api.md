@@ -15,6 +15,7 @@
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath---this)
 - [Database#exec()](#execstring---this)
+- [Database#withUndefinedBehavior()](#withUndefinedBehaviorfunction---this)
 - [Database#close()](#close---this)
 - [Properties](#properties)
 
@@ -261,6 +262,18 @@ Executes the given SQL string. Unlike [prepared statements](#preparestring---sta
 ```js
 const migration = fs.readFileSync('migrate-schema.sql', 'utf8');
 db.exec(migration);
+```
+
+### .withUndefinedBehavior(*function*) -> *this*
+
+Immediately synchronously executes the given function. Inside the function operations with potentially undefined behavior (as defined by the SQLite documentation) are allowed. This means certain sanity checks that better-sqlite3 performs are disabled. For example doing writes inside an iterator or executing statements inside the implementation of a user-defined function.
+
+Only use `withUndefinedBehavior` if you absolutely know what you are doing. Use it as low as possible in your call chain to only cover the absolute minimum number of operations you need to do.
+
+```js
+db.withUndefinedBehavior(() => {
+  // TODO: docs
+});
 ```
 
 ### .close() -> *this*

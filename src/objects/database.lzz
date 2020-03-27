@@ -55,6 +55,7 @@ public:
 		const bool safe_ints;
 		bool was_js_error;
 		unsigned short iterators;
+		unsigned short undefinedBehaviorBlocks;
 	};
 
 	inline State* GetState() {
@@ -98,6 +99,7 @@ private:
 		was_js_error(false),
 		has_logger(_logger->IsFunction()),
 		iterators(0),
+		undefinedBehaviorBlocks(0),
 		logger(isolate, _logger),
 		stmts(),
 		backups() {
@@ -118,6 +120,7 @@ private:
 		NODE_SET_PROTOTYPE_METHOD(t, "function", JS_function);
 		NODE_SET_PROTOTYPE_METHOD(t, "aggregate", JS_aggregate);
 		NODE_SET_PROTOTYPE_METHOD(t, "loadExtension", JS_loadExtension);
+		NODE_SET_PROTOTYPE_METHOD(t, "withUndefinedBehavior", JS_withUndefinedBehavior);
 		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
 		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
@@ -183,8 +186,8 @@ private:
 		Database* db = Unwrap<Database>(info.This());
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
-		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NO_ITERATORS(db);
+		PREFER_DATABASE_NOT_BUSY(db);
+		PREFER_DATABASE_NO_ITERATORS(db);
 		db->busy = true;
 		UseIsolate;
 		if (db->Log(isolate, source)) {
@@ -318,6 +321,18 @@ private:
 		sqlite3_free(error);
 	}
 
+	NODE_METHOD(JS_withUndefinedBehavior) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> fn);
+		assert(db->undefinedBehaviorBlocks < USHRT_MAX);
+		db->undefinedBehaviorBlocks += 1;
+		UseIsolate;
+		v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, fn))
+					->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
+		assert(db->undefinedBehaviorBlocks > 0);
+		db->undefinedBehaviorBlocks -= 1;
+	}
+
 	NODE_METHOD(JS_close) {
 		Database* db = Unwrap<Database>(info.This());
 		if (db->open) {
@@ -375,6 +390,7 @@ private:
 	bool was_js_error;
 	const bool has_logger;
 	unsigned short iterators;
+	unsigned short undefinedBehaviorBlocks;
 	const CopyablePersistent<v8::Value> logger;
 	std::set<Statement*, Database::CompareStatement> stmts;
 	std::set<Backup*, Database::CompareBackup> backups;

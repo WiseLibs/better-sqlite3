@@ -37,24 +37,30 @@ describe('integrity checks', function () {
 		self.db.close();
 		fn();
 	};
+	const sameWithUndefinedBehavor = function(fn) {
+		return function() {
+			fn.call(this);
+			this.db.withUndefinedBehavior(() => fn.call(this));
+		}
+	};
 
 	describe('Database#prepare()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.db.prepare('SELECT 555')));
 			whileIterating(this, allowed(() => this.db.prepare('DELETE FROM entries')));
 			normally(allowed(() => this.db.prepare('SELECT 555')));
 			normally(allowed(() => this.db.prepare('DELETE FROM entries')));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.db.prepare('SELECT 555')));
 			whileBusy(this, blocked(() => this.db.prepare('DELETE FROM entries')));
 			normally(allowed(() => this.db.prepare('SELECT 555')));
 			normally(allowed(() => this.db.prepare('DELETE FROM entries')));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.db.prepare('SELECT 555')));
 			whileClosed(this, blocked(() => this.db.prepare('DELETE FROM entries')));
-		});
+		}));
 	});
 
 	describe('Database#exec()', function () {
@@ -63,45 +69,59 @@ describe('integrity checks', function () {
 			whileIterating(this, blocked(() => this.db.exec('DELETE FROM entries')));
 			normally(allowed(() => this.db.exec('SELECT 555')));
 			normally(allowed(() => this.db.exec('DELETE FROM entries')));
+
+			this.db.withUndefinedBehavior(() => {
+				whileIterating(this, allowed(() => this.db.exec('SELECT 555')));
+				whileIterating(this, allowed(() => this.db.exec('DELETE FROM entries')));
+				normally(allowed(() => this.db.exec('SELECT 555')));
+				normally(allowed(() => this.db.exec('DELETE FROM entries')));
+			});
 		});
 		specify('while busy (blocked)', function () {
 			whileBusy(this, blocked(() => this.db.exec('SELECT 555')));
 			whileBusy(this, blocked(() => this.db.exec('DELETE FROM entries')));
 			normally(allowed(() => this.db.exec('SELECT 555')));
 			normally(allowed(() => this.db.exec('DELETE FROM entries')));
+
+			this.db.withUndefinedBehavior(() => {
+				whileBusy(this, allowed(() => this.db.exec('SELECT 555')));
+				whileBusy(this, allowed(() => this.db.exec('DELETE FROM entries')));
+				normally(allowed(() => this.db.exec('SELECT 555')));
+				normally(allowed(() => this.db.exec('DELETE FROM entries')));
+			});
 		});
-		specify('while closed (blocked)', function () {
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.db.exec('SELECT 555')));
 			whileClosed(this, blocked(() => this.db.exec('DELETE FROM entries')));
-		});
+		}));
 	});
 
 	describe('Database#pragma()', function () {
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.db.pragma('cache_size')));
 			normally(allowed(() => this.db.pragma('cache_size')));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.db.pragma('cache_size')));
 			normally(allowed(() => this.db.pragma('cache_size')));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.db.pragma('cache_size')));
-		});
+		}));
 	});
 
 	describe('Database#checkpoint()', function () {
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.db.checkpoint()));
 			normally(allowed(() => this.db.checkpoint()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.db.checkpoint()));
 			normally(allowed(() => this.db.checkpoint()));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.db.checkpoint()));
-		});
+		}));
 	});
 
 	describe('Database#backup()', function () {
@@ -128,43 +148,43 @@ describe('integrity checks', function () {
 	});
 
 	describe('Database#function()', function () {
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileIterating(this, blocked(() => this.db.function(`fn_${++i}`, () => {})));
 			expect(i).to.equal(5);
 			normally(allowed(() => this.db.function(`fn_${++i}`, () => {})));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileBusy(this, blocked(() => this.db.function(`fn_${++i}`, () => {})));
 			expect(i).to.equal(5);
 			normally(allowed(() => this.db.function(`fn_${++i}`, () => {})));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileClosed(this, blocked(() => this.db.function(`fn_${++i}`, () => {})));
 			expect(i).to.equal(1);
-		});
+		}));
 	});
 
 	describe('Database#aggregate()', function () {
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileIterating(this, blocked(() => this.db.aggregate(`agg_${++i}`, { step: () => {} })));
 			expect(i).to.equal(5);
 			normally(allowed(() => this.db.aggregate(`agg_${++i}`, { step: () => {} })));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileBusy(this, blocked(() => this.db.aggregate(`agg_${++i}`, { step: () => {} })));
 			expect(i).to.equal(5);
 			normally(allowed(() => this.db.aggregate(`agg_${++i}`, { step: () => {} })));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			let i = 0;
 			whileClosed(this, blocked(() => this.db.aggregate(`agg_${++i}`, { step: () => {} })));
 			expect(i).to.equal(1);
-		});
+		}));
 	});
 
 	describe('Database#loadExtension()', function () {
@@ -181,73 +201,73 @@ describe('integrity checks', function () {
 			}
 		});
 
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.db.loadExtension(filepath)));
 			normally(allowed(() => this.db.loadExtension(filepath)));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.db.loadExtension(filepath)));
 			normally(allowed(() => this.db.loadExtension(filepath)));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.db.loadExtension(filepath)));
-		});
+		}));
 	});
 
 	describe('Database#close()', function () {
-		specify('while iterating (blocked)', function () {
+		specify('while iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.db.close()));
 			normally(allowed(() => this.db.close()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.db.close()));
 			normally(allowed(() => this.db.close()));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => this.db.close()));
-		});
+		}));
 	});
 
 	describe('Database#defaultSafeIntegers()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			let bool = true;
 			whileIterating(this, allowed(() => this.db.defaultSafeIntegers(bool = !bool)));
-		});
-		specify('while busy (allowed)', function () {
+		}));
+		specify('while busy (allowed)', sameWithUndefinedBehavor(function () {
 			let bool = true;
 			whileBusy(this, allowed(() => this.db.defaultSafeIntegers(bool = !bool)));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			let bool = true;
 			whileClosed(this, allowed(() => this.db.defaultSafeIntegers(bool = !bool)));
-		});
+		}));
 	});
 
 	describe('Database#open', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => expect(this.db.open).to.be.true));
-		});
-		specify('while busy (allowed)', function () {
+		}));
+		specify('while busy (allowed)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, allowed(() => expect(this.db.open).to.be.true));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => expect(this.db.open).to.be.false));
-		});
+		}));
 	});
 
 	describe('Database#inTransaction', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			this.db.exec('BEGIN');
 			whileIterating(this, allowed(() => expect(this.db.inTransaction).to.be.true));
-		});
-		specify('while busy (allowed)', function () {
+		}));
+		specify('while busy (allowed)', sameWithUndefinedBehavor(function () {
 			this.db.exec('BEGIN');
 			whileBusy(this, allowed(() => expect(this.db.inTransaction).to.be.true));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			this.db.exec('BEGIN');
 			whileClosed(this, allowed(() => expect(this.db.inTransaction).to.be.false));
-		});
+		}));
 	});
 
 	describe('Statement#run()', function () {
@@ -325,114 +345,114 @@ describe('integrity checks', function () {
 				stmt.__bound = true;
 			}
 		};
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => bind(this.reader)));
-		});
-		specify('while self-iterating (blocked)', function () {
+		}));
+		specify('while self-iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => bind(this.iterator)));
 			normally(allowed(() => bind(this.iterator)));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => bind(this.reader)));
 			normally(allowed(() => bind(this.reader)));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => bind(this.reader)));
-		});
+		}));
 	});
 
 	describe('Statement#pluck()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.reader.pluck()));
 			normally(allowed(() => this.reader.pluck()));
-		});
-		specify('while self-iterating (blocked)', function () {
+		}));
+		specify('while self-iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.iterator.pluck()));
 			normally(allowed(() => this.iterator.pluck()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.reader.pluck()));
 			normally(allowed(() => this.reader.pluck()));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => this.reader.pluck()));
-		});
+		}));
 	});
 
 	describe('Statement#expand()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.reader.expand()));
 			normally(allowed(() => this.reader.expand()));
-		});
-		specify('while self-iterating (blocked)', function () {
+		}));
+		specify('while self-iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.iterator.expand()));
 			normally(allowed(() => this.iterator.expand()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.reader.expand()));
 			normally(allowed(() => this.reader.expand()));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => this.reader.expand()));
-		});
+		}));
 	});
 
 	describe('Statement#raw()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.reader.raw()));
 			normally(allowed(() => this.reader.raw()));
-		});
-		specify('while self-iterating (blocked)', function () {
+		}));
+		specify('while self-iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.iterator.raw()));
 			normally(allowed(() => this.iterator.raw()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.reader.raw()));
 			normally(allowed(() => this.reader.raw()));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => this.reader.raw()));
-		});
+		}));
 	});
 
 	describe('Statement#safeIntegers()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.reader.safeIntegers()));
 			normally(allowed(() => this.reader.safeIntegers()));
-		});
-		specify('while self-iterating (blocked)', function () {
+		}));
+		specify('while self-iterating (blocked)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, blocked(() => this.iterator.safeIntegers()));
 			normally(allowed(() => this.iterator.safeIntegers()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.reader.safeIntegers()));
 			normally(allowed(() => this.reader.safeIntegers()));
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, allowed(() => this.reader.safeIntegers()));
-		});
+		}));
 	});
 
 	describe('Statement#columns()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.reader.columns()));
 			normally(allowed(() => this.reader.columns()));
-		});
-		specify('while self-iterating (allowed)', function () {
+		}));
+		specify('while self-iterating (allowed)', sameWithUndefinedBehavor(function () {
 			whileIterating(this, allowed(() => this.iterator.columns()));
 			normally(allowed(() => this.iterator.columns()));
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			whileBusy(this, blocked(() => this.reader.columns()));
 			normally(allowed(() => this.reader.columns()));
-		});
-		specify('while closed (blocked)', function () {
+		}));
+		specify('while closed (blocked)', sameWithUndefinedBehavor(function () {
 			whileClosed(this, blocked(() => this.reader.columns()));
-		});
+		}));
 	});
 
 	describe('StatementIterator#next()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			try {
 				whileIterating(this, allowed(() => iterator.next()));
@@ -440,8 +460,8 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while self-iterating (allowed)', function () {
+		}));
+		specify('while self-iterating (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.iterator.iterate();
 			try {
 				let count = 0;
@@ -453,8 +473,8 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			try {
 				whileBusy(this, blocked(() => iterator.next()));
@@ -462,16 +482,16 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			iterator.return();
 			whileClosed(this, allowed(() => iterator.next()));
-		});
+		}));
 	});
 
 	describe('StatementIterator#return()', function () {
-		specify('while iterating (allowed)', function () {
+		specify('while iterating (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			try {
 				whileIterating(this, allowed(() => iterator.return()));
@@ -479,8 +499,8 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while self-iterating (allowed)', function () {
+		}));
+		specify('while self-iterating (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.iterator.iterate();
 			try {
 				let count = 0;
@@ -492,8 +512,8 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while busy (blocked)', function () {
+		}));
+		specify('while busy (blocked)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			try {
 				whileBusy(this, blocked(() => iterator.return()));
@@ -501,11 +521,14 @@ describe('integrity checks', function () {
 			} finally {
 				iterator.return();
 			}
-		});
-		specify('while closed (allowed)', function () {
+		}));
+		specify('while closed (allowed)', sameWithUndefinedBehavor(function () {
 			const iterator = this.reader.iterate();
 			iterator.return();
 			whileClosed(this, allowed(() => iterator.return()));
-		});
+		}));
 	});
+
+	// TODO: nested withUndefinedBehavior blocks
+	// TODO: throwing inside withUndefinedBehavior blocks
 });
