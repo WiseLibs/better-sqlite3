@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 'use strict';
 const { execFileSync } = require('child_process');
 const clc = require('cli-color');
@@ -70,7 +69,7 @@ for (const trial of trials) {
 		const ctx = createContext(trial, driver);
 		process.stdout.write(`${driver} (running...)\n`);
 		try {
-			const result = execFileSync('./benchmark.js', [ctx], { stdio: 'pipe', encoding: 'utf8' });
+			const result = execFileSync('node', ['./benchmark.js', ctx], { stdio: 'pipe', encoding: 'utf8' });
 			console.log(erase() + `${driverName} x ${result}`);
 		} catch (err) {
 			console.log(erase() + clc.red(`${driverName} ERROR (probably out of memory)`));
