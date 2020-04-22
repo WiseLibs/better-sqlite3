@@ -63,88 +63,12 @@ If you have a performance problem, the most likely causes are inefficient querie
 
 For these situations, you should probably use a full-fledged RDBMS such as [PostgreSQL](https://www.postgresql.org/).
 
-## Worker threads
-
-For most applications, `better-sqlite3` is fast enough to use in the main thread without blocking for a noticeable amount of time. However, if you need to perform very slow queries, you have the option of using [worker threads](https://nodejs.org/api/worker_threads.html) to keep things running smoothly. Below is an example of using a thread pool to perform queries in parallel.
-
-```js
-const threads = require('worker_threads');
-
-if (threads.isMainThread) startMaster();
-else startWorker();
-
-function startMaster() {
-  const outbox = [];
-
-  // Export a function that queues pending work
-  exports.query = (sql, ...parameters) => {
-    return new Promise((resolve, reject) => {
-      outbox.push({
-        resolve,
-        reject,
-        message: { sql, parameters },
-      });
-    });
-  };
-
-  // Spawn a pool of workers that try to process pending work
-  require('os').cpus().forEach(function spawn() {
-    const worker = new threads.Worker(__filename);
-
-    let work = null;
-    let error = null;
-    let polling = null;
-
-    function poll() {
-      if (outbox.length) {
-        // If there's pending work, send it to the worker
-        work = outbox.shift();
-        worker.postMessage(work.message);
-      } else {
-        // If the outbox is empty, check again later
-        polling = setImmediate(poll);
-      }
-    }
-
-    worker
-      .on('online', poll)
-      .on('message', (result) => {
-        work.resolve(result);
-        work = null;
-        poll(); // Check if there's more work to do
-      })
-      .on('error', (err) => {
-        console.error(err);
-        error = err;
-      })
-      .on('exit', (code) => {
-        clearImmediate(polling);
-        if (work) {
-          work.reject(error || new Error('worker died'));
-        }
-        if (code !== 0) {
-          console.error(`worker exited with code ${code}`);
-          spawn(); // Worker died, so spawn a new one
-        }
-      });
-  });
-}
-
-function startWorker() {
-  const db = require('better-sqlite3')('foobar.db');
-
-  threads.parentPort.on('message', ({ sql, parameters }) => {
-    const result = db.prepare(sql).all(...parameters);
-    threads.parentPort.postMessage(result);
-  });
-}
-```
-
 # Documentation
 
 - [API documentation](./docs/api.md)
 - [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
 - [64-bit integer support](./docs/integer.md)
+- [Worker thread support](./docs/threads.md)
 - [SQLite3 compilation](./docs/compilation.md)
 
 # License
