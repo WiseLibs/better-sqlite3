@@ -32,11 +32,6 @@ describe('Database#backup()', function () {
 		await rejectsWith(TypeError, this.db.backup(''));
 		await rejectsWith(TypeError, this.db.backup(' \t\n '));
 	});
-	it('should not allow a URI file path', async function () {
-		await rejectsWith(TypeError, this.db.backup(`FILE:${util.next()}`));
-		await rejectsWith(TypeError, this.db.backup(`file:${util.next()}`));
-		await rejectsWith(TypeError, this.db.backup(`file:${util.next()}?mode=memory&cache=shared`));
-	});
 	it('should not allow a :memory: destination', async function () {
 		await rejectsWith(TypeError, this.db.backup(':memory:'));
 		expect(existsSync(':memory:')).to.be.false;

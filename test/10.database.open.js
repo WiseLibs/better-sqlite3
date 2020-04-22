@@ -21,13 +21,7 @@ describe('new Database()', function () {
 	it('should throw when boolean options are provided as non-booleans', function () {
 		expect(() => (this.db = new Database(util.next(), { readOnly: false }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.next(), { readonly: undefined }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.next(), { memory: undefined }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.next(), { fileMustExist: undefined }))).to.throw(TypeError);
-	});
-	it('should not allow URI file paths', function () {
-		expect(() => (this.db = new Database(`FILE:${util.next()}`))).to.throw(TypeError);
-		expect(() => (this.db = new Database(`file:${util.next()}`))).to.throw(TypeError);
-		expect(() => (this.db = new Database(`file:${util.next()}?mode=memory&cache=shared`))).to.throw(TypeError);
 	});
 	it('should allow anonymous temporary databases to be created', function () {
 		for (const args of [[''], [], [null], [undefined], ['', { timeout: 2000 }]]) {
@@ -53,16 +47,6 @@ describe('new Database()', function () {
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(':memory:')).to.be.false;
 	});
-	it('should allow named in-memory databases to be created', function () {
-		expect(existsSync(util.next())).to.be.false;
-		const db = this.db = new Database(util.current(), { memory: true });
-		expect(db.name).to.equal(util.current());
-		expect(db.memory).to.be.true;
-		expect(db.readonly).to.be.false;
-		expect(db.open).to.be.true;
-		expect(db.inTransaction).to.be.false;
-		expect(existsSync(util.current())).to.be.false;
-	});
 	it('should allow disk-bound databases to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
 		const db = this.db = Database(util.current());
@@ -72,12 +56,6 @@ describe('new Database()', function () {
 		expect(db.open).to.be.true;
 		expect(db.inTransaction).to.be.false;
 		expect(existsSync(util.current())).to.be.true;
-	});
-	it('should not allow conflicting in-memory options', function () {
-		expect(() => (this.db = new Database(':memory:', { memory: false }))).to.throw(TypeError);
-		expect(() => (this.db = new Database('', { memory: false }))).to.throw(TypeError);
-		(new Database(':memory:', { memory: true })).close();
-		(new Database('', { memory: true })).close();
 	});
 	it('should allow readonly database connections to be created', function () {
 		expect(existsSync(util.next())).to.be.false;
@@ -94,7 +72,6 @@ describe('new Database()', function () {
 	});
 	it('should not allow the "readonly" option for in-memory databases', function () {
 		expect(existsSync(util.next())).to.be.false;
-		expect(() => (this.db = new Database(util.current(), { memory: true, readonly: true }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(':memory:', { readonly: true }))).to.throw(TypeError);
 		expect(() => (this.db = new Database('', { readonly: true }))).to.throw(TypeError);
 		expect(existsSync(util.current())).to.be.false;

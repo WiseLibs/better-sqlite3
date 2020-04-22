@@ -19,11 +19,9 @@
 
 ### new Database(*path*, [*options*])
 
-Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away.
+Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away. You can create an [in-memory database](https://www.sqlite.org/inmemorydb.html) by passing `":memory:"` as the first argument.
 
 Various options are accepted:
-
-- `options.memory`: open an in-memory database, rather than a disk-bound one (default: `false`).
 
 - `options.readonly`: open the database connection in readonly mode (default: `false`).
 
