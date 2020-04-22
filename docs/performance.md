@@ -18,16 +18,16 @@ However, you trade those disadvantages for extremely fast performance in most we
 
 Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
 
-If you don't access the database from multiple processes simultaneously, you'll never encounter this issue.
+If you don't access the database from multiple processes or threads simultaneously, you'll never encounter this issue.
 
-If you do access the database from multiple processes simultaneously, just use the [`db.checkpoint()`](./api.md#checkpointdatabasename---this) method when the WAL file gets too big.
+If you do access the database from multiple processes or threads simultaneously, just use the [`wal_checkpoint(RESTART)`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint) pragma when the WAL file gets too big.
 
 ```js
 setInterval(fs.stat.bind(null, 'foobar.db-wal', (err, stat) => {
   if (err) {
     if (err.code !== 'ENOENT') throw err;
   } else if (stat.size > someUnacceptableSize) {
-    db.checkpoint();
+    db.pragma('wal_checkpoint(RESTART)');
   }
 }), 5000).unref();
 ```

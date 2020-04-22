@@ -6,7 +6,6 @@ public:
 		SetPrototypeMethod(isolate, data, t, "prepare", JS_prepare);
 		SetPrototypeMethod(isolate, data, t, "exec", JS_exec);
 		SetPrototypeMethod(isolate, data, t, "pragma", JS_pragma);
-		SetPrototypeMethod(isolate, data, t, "checkpoint", JS_checkpoint);
 		SetPrototypeMethod(isolate, data, t, "backup", JS_backup);
 		SetPrototypeMethod(isolate, data, t, "function", JS_function);
 		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
@@ -215,49 +214,6 @@ private:
 
 	NODE_METHOD(JS_pragma) {
 		REQUIRE_ARGUMENT_BOOLEAN(first, Unwrap<Database>(info.This())->pragma_mode);
-	}
-
-	NODE_METHOD(JS_checkpoint) {
-		Database* db = Unwrap<Database>(info.This());
-		REQUIRE_DATABASE_OPEN(db);
-		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NO_ITERATORS(db);
-		sqlite3* db_handle = db->db_handle;
-
-		if (info.Length()) {
-			REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> onlyDatabase);
-			v8::String::Utf8Value only_database(OnlyIsolate, onlyDatabase);
-			if (only_database.length() == 0) {
-				return ThrowTypeError("Invalid database name (empty string)");
-			}
-			if (sqlite3_wal_checkpoint_v2(db_handle, *only_database, SQLITE_CHECKPOINT_RESTART, NULL, NULL) != SQLITE_OK) {
-				return db->ThrowDatabaseError();
-			}
-			return info.GetReturnValue().Set(info.This());
-		}
-
-		sqlite3_stmt* stmt;
-		if (sqlite3_prepare_v2(db_handle, "PRAGMA database_list", -1, &stmt, NULL) != SQLITE_OK) {
-			return db->ThrowDatabaseError();
-		}
-		std::vector<std::string> database_names;
-		while (sqlite3_step(stmt) == SQLITE_ROW) {
-			database_names.emplace_back(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)), sqlite3_column_bytes(stmt, 1));
-		}
-		if (sqlite3_finalize(stmt) != SQLITE_OK) {
-			return db->ThrowDatabaseError();
-		}
-
-		bool threw_error = false;
-		for (std::string const &name : database_names) {
-			if (sqlite3_wal_checkpoint_v2(db_handle, name.c_str(), SQLITE_CHECKPOINT_RESTART, NULL, NULL) != SQLITE_OK) {
-				if (!threw_error) {
-					db->ThrowDatabaseError();
-					threw_error = true;
-				}
-			}
-		}
-		if (!threw_error) info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_backup) {

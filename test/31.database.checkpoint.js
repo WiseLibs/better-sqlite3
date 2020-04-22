@@ -2,7 +2,7 @@
 const fs = require('fs');
 const Database = require('../.');
 
-describe('Database#checkpoint()', function () {
+describe('Database#pragma(\'wal_checkpoint(RESTART)\')', function () {
 	let db1, db2;
 	before(function () {
 		db1 = new Database(util.next());
@@ -35,7 +35,7 @@ describe('Database#checkpoint()', function () {
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
 			db1.prepare(`ATTACH '${db2.name}' AS foobar`).run();
-			expect(db1.checkpoint()).to.deep.equal(db1);
+			db1.pragma('wal_checkpoint(RESTART)');
 			fillWall(10, (b, a) => expect(b).to.equal(a));
 		});
 	});
@@ -52,7 +52,7 @@ describe('Database#checkpoint()', function () {
 		});
 		specify('inserts after a checkpoint should NOT increase the size of the WAL file', function () {
 			db1.prepare(`ATTACH '${db2.name}' AS bazqux`).run();
-			expect(db1.checkpoint('bazqux')).to.equal(db1);
+			db1.pragma('bazqux.wal_checkpoint(RESTART)');
 			fillWall(10, (b, a, db) => {
 				if (db === db1) expect(b).to.be.above(a);
 				else expect(b).to.be.equal(a);

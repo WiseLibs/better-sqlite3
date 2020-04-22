@@ -28,7 +28,6 @@ describe('Database#close()', function () {
 		expect(() => this.db.prepare('CREATE TABLE cats (name TEXT)')).to.throw(TypeError);
 		expect(() => this.db.transaction(() => {})).to.throw(TypeError);
 		expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
-		expect(() => this.db.checkpoint()).to.throw(TypeError);
 		expect(() => this.db.function('foo', () => {})).to.throw(TypeError);
 		expect(() => this.db.aggregate('foo', { step: () => {} })).to.throw(TypeError);
 	});

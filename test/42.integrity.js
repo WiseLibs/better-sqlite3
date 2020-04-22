@@ -90,17 +90,17 @@ describe('integrity checks', function () {
 		});
 	});
 
-	describe('Database#checkpoint()', function () {
+	describe('Database#pragma(\'wal_checkpoint(RESTART)\')', function () {
 		specify('while iterating (blocked)', function () {
-			whileIterating(this, blocked(() => this.db.checkpoint()));
-			normally(allowed(() => this.db.checkpoint()));
+			whileIterating(this, blocked(() => this.db.pragma('wal_checkpoint(RESTART)')));
+			normally(allowed(() => this.db.pragma('wal_checkpoint(RESTART)')));
 		});
 		specify('while busy (blocked)', function () {
-			whileBusy(this, blocked(() => this.db.checkpoint()));
-			normally(allowed(() => this.db.checkpoint()));
+			whileBusy(this, blocked(() => this.db.pragma('wal_checkpoint(RESTART)')));
+			normally(allowed(() => this.db.pragma('wal_checkpoint(RESTART)')));
 		});
 		specify('while closed (blocked)', function () {
-			whileClosed(this, blocked(() => this.db.checkpoint()));
+			whileClosed(this, blocked(() => this.db.pragma('wal_checkpoint(RESTART)')));
 		});
 	});
 

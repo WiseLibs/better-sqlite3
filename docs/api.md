@@ -9,7 +9,6 @@
 - [Database#prepare()](#preparestring---statement) (see [`Statement`](#class-statement))
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
-- [Database#checkpoint()](#checkpointdatabasename---this)
 - [Database#backup()](#backupdestination-options---promise)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
@@ -116,20 +115,6 @@ console.log(db.pragma('cache_size', { simple: true })); // => 32000
 If execution of the PRAGMA fails, an `Error` is thrown.
 
 It's better to use this method instead of normal [prepared statements](#preparestring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite3 PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
-
-### .checkpoint([*databaseName*]) -> *this*
-
-Runs a [WAL mode checkpoint](https://www.sqlite.org/wal.html) on all attached databases (including the main database).
-
-Unlike [automatic checkpoints](https://www.sqlite.org/wal.html#automatic_checkpoint), this method executes a checkpoint in "RESTART" mode, which ensures a complete checkpoint operation even if other processes are using the database at the same time. You only need to use this method if you are accessing the database from multiple processes at the same time.
-
-```js
-setInterval(() => db.checkpoint(), 30000).unref();
-```
-
-If `databaseName` is provided, it should be the name of an attached database (or `"main"`). This causes only that database to be checkpointed.
-
-If the checkpoint fails, an `Error` is thrown.
 
 ### .backup(*destination*, [*options*]) -> *promise*
 
