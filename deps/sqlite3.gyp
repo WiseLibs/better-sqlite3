@@ -12,28 +12,30 @@
       'target_name': 'locate_sqlite3',
       'type': 'none',
       'hard_dependency': 1,
-      'conditions': [['sqlite3 == ""', {
-        'actions': [{
-          'action_name': 'extract_sqlite3',
-          'inputs': ['sqlite3.tar.gz'],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
-          ],
-          'action': ['node', 'extract.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3'],
+      'conditions': [
+        ['sqlite3 == ""', {
+          'actions': [{
+            'action_name': 'extract_sqlite3',
+            'inputs': ['sqlite3.tar.gz'],
+            'outputs': [
+              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
+              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
+              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
+            ],
+            'action': ['node', 'extract.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3'],
+          }],
+        }, {
+          'actions': [{
+            'action_name': 'symlink_sqlite3',
+            'inputs': [],
+            'outputs': [
+              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
+              '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
+            ],
+            'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)'],
+          }],
         }],
-      }, {
-        'actions': [{
-          'action_name': 'symlink_sqlite3',
-          'inputs': [],
-          'outputs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
-            '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
-          ],
-          'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)'],
-        }],
-      }]],
+      ],
     },
     {
       'target_name': 'sqlite3',
@@ -44,35 +46,22 @@
       'direct_dependent_settings': {
         'include_dirs': ['<(SHARED_INTERMEDIATE_DIR)/sqlite3/'],
       },
-      'cflags': [
-        '-std=c99',
-        '-Wno-unused-function',
-        '-Wno-sign-compare',
-        '-Wno-implicit-fallthrough',
-        '-Wno-cast-function-type',
-        '-Wno-type-limits',
-      ],
+      'cflags': ['-std=c99', '-w'],
       'xcode_settings': {
-        'OTHER_CFLAGS': [
-          '-std=c99',
-        ],
-        'WARNING_CFLAGS': [
-          '-Wno-unused-function',
-          '-Wno-sign-compare',
-          '-Wno-implicit-fallthrough',
-          '-Wno-cast-function-type',
-          '-Wno-type-limits',
-        ],
+        'OTHER_CFLAGS': ['-std=c99'],
+        'WARNING_CFLAGS': ['-w'],
       },
-      'conditions': [['sqlite3 == ""', {
-        'includes': ['defines.gypi'],
-      }, {
-        'defines': [
-          # These are currently required by better-sqlite3.
-          'SQLITE_USE_URI=1',
-          'SQLITE_ENABLE_COLUMN_METADATA',
-        ],
-      }]],
+      'conditions': [
+        ['sqlite3 == ""', {
+          'includes': ['defines.gypi'],
+        }, {
+          'defines': [
+            # These are currently required by better-sqlite3.
+            'SQLITE_USE_URI=1',
+            'SQLITE_ENABLE_COLUMN_METADATA',
+          ],
+        }]
+      ],
       'configurations': {
         'Debug': {
           'msvs_settings': { 'VCCLCompilerTool': { 'RuntimeLibrary': 1 } }, # static debug
