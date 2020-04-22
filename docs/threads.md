@@ -2,7 +2,7 @@
 
 For most applications, `better-sqlite3` is fast enough to use in the main thread without blocking for a noticeable amount of time. However, if you need to perform very slow queries, you have the option of using [worker threads](https://nodejs.org/api/worker_threads.html) to keep things running smoothly. Below is an example of using a thread pool to perform queries in the background.
 
-#### worker.js
+### worker.js
 
 The worker logic is very simple in our case. It accepts messages from the master thread, executes each message's SQL (with any given parameters), and sends back the query results.
 
@@ -16,7 +16,7 @@ parentPort.on('message', ({ sql, parameters }) => {
 });
 ```
 
-#### master.js
+### master.js
 
 The master thread is responsible for spawning workers, respawning threads that crash, and accepting query jobs.
 
