@@ -6,9 +6,9 @@
 {
   'conditions': [
     ['OS == "win"', {
-      'variables': { 'sqlite3%': '<!(echo %SQLITE_DIR%)' },
+      'variables': { 'sqlite3%': '<!(echo %SQLITE_SOURCE%)' },
     }, {
-      'variables': { 'sqlite3%': '<!(echo $SQLITE_DIR)' },
+      'variables': { 'sqlite3%': '<!(echo $SQLITE_SOURCE)' },
     }],
   ],
   'target_defaults': {
