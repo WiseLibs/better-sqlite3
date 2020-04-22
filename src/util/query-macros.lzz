@@ -59,7 +59,7 @@
 #define _FUNCTION_START(type)                                                  \
 	type* self = static_cast<type*>(sqlite3_user_data(invocation));            \
 	v8::Isolate* isolate = self->isolate;                                      \
-	NewHandleScope
+	v8::HandleScope scope(isolate)
 
 #define FUNCTION_START()                                                       \
 	_FUNCTION_START(CustomFunction)

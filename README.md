@@ -1,6 +1,5 @@
 # better-sqlite3 [![Build Status](https://travis-ci.org/JoshuaWise/better-sqlite3.svg?branch=master)](https://travis-ci.org/JoshuaWise/better-sqlite3) [![Build status](https://ci.appveyor.com/api/projects/status/ilk8hb8v95m54v6f/branch/master?svg=true)](https://ci.appveyor.com/project/JoshuaWise/better-sqlite3/branch/master)
 
-
 The fastest and simplest library for SQLite3 in Node.js.
 
 - Full transaction support
@@ -8,6 +7,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 - Easy-to-use synchronous API *(faster than an asynchronous API... yes, you read that correctly)*
 - Support for user-defined functions, aggregates, and extensions
 - 64-bit integers *(invisible until you need them)*
+- Worker thread support *(did someone say they needed async?)*
 
 ## Help this project stay strong! &#128170;
 
@@ -31,6 +31,8 @@ The fastest and simplest library for SQLite3 in Node.js.
 npm install --save better-sqlite3
 ```
 
+> You must be using Node.js v10 or above. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/) + Linux/OSX.
+
 > If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
 ## Usage
@@ -38,7 +40,7 @@ npm install --save better-sqlite3
 ```js
 const db = require('better-sqlite3')('foobar.db', options);
 
-const row = db.prepare('SELECT * FROM users WHERE id=?').get(userId);
+const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 console.log(row.firstName, row.lastName, row.email);
 ```
 
@@ -60,6 +62,83 @@ If you have a performance problem, the most likely causes are inefficient querie
 - If your database's size is near the terabyte range
 
 For these situations, you should probably use a full-fledged RDBMS such as [PostgreSQL](https://www.postgresql.org/).
+
+## Worker threads
+
+For most applications, `better-sqlite3` is fast enough to use in the main thread without blocking for a noticeable amount of time. However, if you need to perform very slow queries, you have the option of using [worker threads](https://nodejs.org/api/worker_threads.html) to keep things running smoothly. Below is an example of using a thread pool to perform queries in parallel.
+
+```js
+const threads = require('worker_threads');
+
+if (threads.isMainThread) startMaster();
+else startWorker();
+
+function startMaster() {
+  const outbox = [];
+
+  // Export a function that queues pending work
+  exports.query = (sql, ...parameters) => {
+    return new Promise((resolve, reject) => {
+      outbox.push({
+        resolve,
+        reject,
+        message: { sql, parameters },
+      });
+    });
+  };
+
+  // Spawn a pool of workers that try to process pending work
+  require('os').cpus().forEach(function spawn() {
+    const worker = new threads.Worker(__filename);
+
+    let work = null;
+    let error = null;
+    let polling = null;
+
+    function poll() {
+      if (outbox.length) {
+        // If there's pending work, send it to the worker
+        work = outbox.shift();
+        worker.postMessage(work.message);
+      } else {
+        // If the outbox is empty, check again later
+        polling = setImmediate(poll);
+      }
+    }
+
+    worker
+      .on('online', poll)
+      .on('message', (result) => {
+        work.resolve(result);
+        work = null;
+        poll(); // Check if there's more work to do
+      })
+      .on('error', (err) => {
+        console.error(err);
+        error = err;
+      })
+      .on('exit', (code) => {
+        clearImmediate(polling);
+        if (work) {
+          work.reject(error || new Error('worker died'));
+        }
+        if (code !== 0) {
+          console.error(`worker exited with code ${code}`);
+          spawn(); // Worker died, so spawn a new one
+        }
+      });
+  });
+}
+
+function startWorker() {
+  const db = require('better-sqlite3')('foobar.db');
+
+  threads.parentPort.on('message', ({ sql, parameters }) => {
+    const result = db.prepare(sql).all(...parameters);
+    threads.parentPort.postMessage(result);
+  });
+}
+```
 
 # Documentation
 

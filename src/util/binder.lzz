@@ -59,11 +59,11 @@ private:
 		if (status != SQLITE_OK) {
 			switch (status) {
 				case -1:
-					return Fail(ThrowTypeError, "SQLite3 can only bind numbers, strings, Buffers, and null");
+					return Fail(ThrowTypeError, "SQLite3 can only bind numbers, strings, bigints, buffers, and null");
+				case SQLITE_TOOBIG:
+					return Fail(ThrowRangeError, "The bound string, buffer, or bigint is too big");
 				case SQLITE_RANGE:
 					return Fail(ThrowRangeError, "Too many parameter values were provided");
-				case SQLITE_TOOBIG:
-					return Fail(ThrowRangeError, "The bound string or Buffer is too big");
 				case SQLITE_NOMEM:
 					return Fail(ThrowError, "Out of memory");
 				default:
@@ -117,7 +117,7 @@ private:
 				return i;
 			}
 			if (!has_property.FromJust()) {
-				v8::String::Utf8Value param_name(EXTRACT_STRING(isolate, key));
+				v8::String::Utf8Value param_name(isolate, key);
 				Fail(ThrowRangeError, CONCAT("Missing named parameter \"", *param_name, "\"").c_str());
 				return i;
 			}

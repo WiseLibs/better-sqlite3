@@ -1,18 +1,16 @@
-#define NODE_ARGUMENTS_TYPE v8::FunctionCallbackInfo<v8::Value>
-#define NODE_ARGUMENTS const NODE_ARGUMENTS_TYPE&
+#define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
+#define NODE_ARGUMENTS_POINTER const v8::FunctionCallbackInfo<v8::Value>*
 #define NODE_METHOD(name) static void name(NODE_ARGUMENTS info)
 #define NODE_GETTER(name) static void name(v8::Local<v8::String> _, const v8::PropertyCallbackInfo<v8::Value>& info)
-#define REGISTER(name) friend void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module); static void name(v8::Isolate* isolate, v8::Local<v8::Object> exports, v8::Local<v8::Object> module)
+#define INIT(name) static v8::Local<v8::Function> name(v8::Isolate* isolate, v8::Local<v8::External> data)
 
-#define NewHandleScope v8::HandleScope scope(isolate)
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
-#define UseIsolate v8::Isolate* isolate = info.GetIsolate()
-#define UseContext v8::Local<v8::Context> ctx = isolate->GetCurrentContext()
-#define UseIsolateAndContext UseIsolate; UseContext
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
-#define OnlyIsolateAndContext info.GetIsolate()->GetCurrentContext()
-
+#define OnlyAddon static_cast<Addon*>(v8::Local<v8::External>::Cast(info.Data())->Value())
+#define UseIsolate v8::Isolate* isolate = OnlyIsolate
+#define UseContext v8::Local<v8::Context> ctx = OnlyContext
+#define UseAddon Addon* addon = OnlyAddon
 #define Unwrap node::ObjectWrap::Unwrap
 
 inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* data, int length) {
@@ -21,15 +19,19 @@ inline v8::Local<v8::String> StringFromUtf8(v8::Isolate* isolate, const char* da
 inline v8::Local<v8::String> InternalizedFromUtf8(v8::Isolate* isolate, const char* data, int length) {
 	return v8::String::NewFromUtf8(isolate, data, v8::NewStringType::kInternalized, length).ToLocalChecked();
 }
-
 inline v8::Local<v8::Value> InternalizedFromUtf8OrNull(v8::Isolate* isolate, const char* data, int length) {
 	if (data == NULL) return v8::Null(isolate);
 	return InternalizedFromUtf8(isolate, data, length);
 }
+inline v8::Local<v8::String> InternalizedFromLatin1(v8::Isolate* isolate, const char* str) {
+	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
+}
 
-inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, ConstantString& key, v8::Local<v8::Value> value) {
-	static const v8::PropertyAttribute FROZEN_PROPERTY = static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly);
-	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, FROZEN_PROPERTY).FromJust();
+#hdr
+template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+#end
+inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, CopyablePersistent<v8::String>& key, v8::Local<v8::Value> value) {
+	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly)).FromJust();
 }
 
 void ThrowError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1))); }
@@ -81,15 +83,6 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define ninth() 8
 #define tenth() 9
 
-#hdr
-#if defined(V8_MAJOR_VERSION) && (V8_MAJOR_VERSION > 6 ||                      \
-	(V8_MAJOR_VERSION == 6 && defined(V8_MINOR_VERSION) && V8_MINOR_VERSION >= 2))
-#define EXTRACT_STRING(isolate, string) isolate, string
-#else
-#define EXTRACT_STRING(_unused, string) string
-#endif
-#end
-
 // Returns a std:string of the concatenation of 3 well-formed C-strings.
 std::string CONCAT(const char* a, const char* b, const char* c) {
 	std::string result(a);
@@ -116,39 +109,58 @@ template<class T> inline void FREE_ARRAY(T* array_pointer) {
 	::operator delete[](array_pointer);
 }
 
-v8::Local<v8::Value> Require(v8::Local<v8::Object> module, const char* path) {
-	EasyIsolate;
-	UseContext;
-	v8::Local<v8::Function> require = v8::Local<v8::Function>::Cast(module->Get(ctx, StringFromUtf8(isolate, "require", -1)).ToLocalChecked());
-	v8::Local<v8::Value> requireArg = StringFromUtf8(isolate, path, -1);
-	return require->Call(ctx, module, 1, &requireArg).ToLocalChecked();
+v8::Local<v8::FunctionTemplate> NewConstructorTemplate(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::FunctionCallback func,
+	const char* name
+) {
+	v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, func, data);
+	t->InstanceTemplate()->SetInternalFieldCount(1);
+	t->SetClassName(InternalizedFromLatin1(isolate, name));
+	return t;
 }
-
-inline void NODE_SET_PROTOTYPE_GETTER(v8::Local<v8::FunctionTemplate> recv, const char* name, v8::AccessorGetterCallback getter) {
-	EasyIsolate;
-	NewHandleScope;
+void SetPrototypeMethod(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	const char* name,
+	v8::FunctionCallback func
+) {
+	v8::HandleScope scope(isolate);
+	recv->PrototypeTemplate()->Set(
+		InternalizedFromLatin1(isolate, name),
+		v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
+	);
+}
+void SetPrototypeSymbolMethod(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	v8::Local<v8::Symbol> symbol,
+	v8::FunctionCallback func
+) {
+	v8::HandleScope scope(isolate);
+	recv->PrototypeTemplate()->Set(
+		symbol,
+		v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
+	);
+}
+void SetPrototypeGetter(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	const char* name,
+	v8::AccessorGetterCallback func
+) {
+	v8::HandleScope scope(isolate);
 	recv->InstanceTemplate()->SetAccessor(
-		StringFromUtf8(isolate, name, -1),
-		getter,
+		InternalizedFromLatin1(isolate, name),
+		func,
 		0,
-		v8::Local<v8::Value>(),
-		v8::AccessControl::ALL_CAN_READ,
+		data,
+		v8::AccessControl::DEFAULT,
 		v8::PropertyAttribute::None,
 		v8::AccessorSignature::New(isolate, recv)
 	);
 }
-
-inline void NODE_SET_PROTOTYPE_SYMBOL_METHOD(v8::Local<v8::FunctionTemplate> recv, v8::Local<v8::Symbol> symbol, v8::FunctionCallback callback) {
-	EasyIsolate;
-	NewHandleScope;
-	recv->PrototypeTemplate()->Set(symbol, v8::FunctionTemplate::New(
-		isolate,
-		callback,
-		v8::Local<v8::Value>(),
-		v8::Signature::New(isolate, recv)
-	));
-}
-
-#hdr
-template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#end

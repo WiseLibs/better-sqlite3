@@ -11,15 +11,14 @@
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 #end
-#src
-NODE_MODULE(better_sqlite3, RegisterModule);
-#end
 
 #insert "util/macros.lzz"
 #insert "util/query-macros.lzz"
 #insert "util/constants.lzz"
 #insert "util/bind-map.lzz"
-#insert "util/integer.lzz"
+struct Addon;
+class Statement;
+class Backup;
 #insert "objects/database.lzz"
 #insert "objects/statement.lzz"
 #insert "objects/statement-iterator.lzz"
@@ -29,13 +28,51 @@ NODE_MODULE(better_sqlite3, RegisterModule);
 #insert "util/data.lzz"
 #insert "util/binder.lzz"
 
-void RegisterModule(v8::Local<v8::Object> exports, v8::Local<v8::Object> module) {
-	EasyIsolate;
-	NewHandleScope;
-	CS::Init(isolate, exports, module);
-	Integer::Init(isolate, exports, module);
-	Database::Init(isolate, exports, module);
-	Statement::Init(isolate, exports, module);
-	StatementIterator::Init(isolate, exports, module);
-	Backup::Init(isolate, exports, module);
+struct Addon {
+	Addon(v8::Isolate* isolate) : privileged_info(NULL), next_id(0), cs(isolate) {}
+
+	CopyablePersistent<v8::Function> Statement;
+	CopyablePersistent<v8::Function> StatementIterator;
+	CopyablePersistent<v8::Function> Backup;
+	CopyablePersistent<v8::Function> SqliteError;
+	NODE_ARGUMENTS_POINTER privileged_info;
+	sqlite3_uint64 next_id;
+	CS cs;
+	std::set<Database*, Database::CompareDatabase> dbs;
+
+	NODE_METHOD(JS_setErrorConstructor) {
+		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> SqliteError);
+		OnlyAddon->SqliteError.Reset(OnlyIsolate, SqliteError);
+	}
+
+	static void Cleanup(void* ptr) {
+		Addon* addon = static_cast<Addon*>(ptr);
+		for (Database* db : addon->dbs) db->CloseHandles();
+		addon->dbs.clear();
+		delete addon;
+	}
+};
+
+#src
+NODE_MODULE_INIT(/* exports, context */) {
+	v8::Isolate* isolate = context->GetIsolate();
+	v8::HandleScope scope(isolate);
+
+	// Initialize addon instance.
+	Addon* addon = new Addon(isolate);
+	v8::Local<v8::External> data = v8::External::New(isolate, addon);
+	node::AddEnvironmentCleanupHook(isolate, Addon::Cleanup, addon);
+
+	// Create and export native-backed classes and functions.
+	exports->Set(context, InternalizedFromLatin1(isolate, "Database"), Database::Init(isolate, data)).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "Statement"), Statement::Init(isolate, data)).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "StatementIterator"), StatementIterator::Init(isolate, data)).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
+
+	// Store addon instance data.
+	addon->Statement.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked()));
+	addon->StatementIterator.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked()));
+	addon->Backup.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Backup")).ToLocalChecked()));
 }
+#end

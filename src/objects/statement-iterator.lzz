@@ -1,13 +1,12 @@
 class StatementIterator : public node::ObjectWrap {
 public:
 
-	// Provides public access to the constructor.
-	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, NODE_ARGUMENTS info) {
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
-		caller_info = &info;
-		v8::MaybeLocal<v8::Object> maybe_iter = c->NewInstance(OnlyContext, 0, NULL);
-		caller_info = NULL;
-		return maybe_iter;
+	INIT(Init) {
+		v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "StatementIterator");
+		SetPrototypeMethod(isolate, data, t, "next", JS_next);
+		SetPrototypeMethod(isolate, data, t, "return", JS_return);
+		SetPrototypeSymbolMethod(isolate, data, t, v8::Symbol::GetIterator(isolate), JS_symbolIterator);
+		return t->GetFunction(OnlyContext).ToLocalChecked();
 	}
 
 	// The ~Statement destructor currently covers any state this object creates.
@@ -36,32 +35,21 @@ private:
 		db_state->iterators += 1;
 	}
 
-	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
-		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "StatementIterator", -1));
-
-		NODE_SET_PROTOTYPE_METHOD(t, "next", JS_next);
-		NODE_SET_PROTOTYPE_METHOD(t, "return", JS_return);
-		NODE_SET_PROTOTYPE_SYMBOL_METHOD(t, v8::Symbol::GetIterator(isolate), JS_symbolIterator);
-
-		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
-		caller_info = NULL;
-	}
-
 	NODE_METHOD(JS_new) {
-		if (caller_info == NULL) return ThrowTypeError("Disabled constructor");
+		UseAddon;
+		if (!addon->privileged_info) return ThrowTypeError("Disabled constructor");
 		assert(info.IsConstructCall());
 
 		StatementIterator* iter;
 		{
-			NODE_ARGUMENTS info = *caller_info;
+			NODE_ARGUMENTS info = *addon->privileged_info;
 			STATEMENT_START_LOGIC(REQUIRE_STATEMENT_RETURNS_DATA, ADDS_ITERATOR);
 			iter = new StatementIterator(stmt, bound);
 		}
-		UseIsolateAndContext;
+		UseIsolate;
+		UseContext;
 		iter->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::statement, caller_info->This());
+		SetFrozen(isolate, ctx, info.This(), addon->cs.statement, addon->privileged_info->This());
 
 		info.GetReturnValue().Set(info.This());
 	}
@@ -70,14 +58,14 @@ private:
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Next(info);
-		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
+		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate, iter->db_state->addon));
 	}
 
 	NODE_METHOD(JS_return) {
 		StatementIterator* iter = Unwrap<StatementIterator>(info.This());
 		REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 		if (iter->alive) iter->Return(info);
-		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate));
+		else info.GetReturnValue().Set(DoneRecord(OnlyIsolate, iter->db_state->addon));
 	}
 
 	NODE_METHOD(JS_symbolIterator) {
@@ -98,10 +86,11 @@ private:
 		int status = sqlite3_step(handle);
 		db_state->busy = false;
 		if (status == SQLITE_ROW) {
-			UseIsolateAndContext;
-			info.GetReturnValue().Set(NewRecord(isolate, ctx,
-				Data::GetRowJS(isolate, ctx, handle, safe_ints, mode)
-			));
+			UseIsolate;
+			UseContext;
+			info.GetReturnValue().Set(
+				NewRecord(isolate, ctx, Data::GetRowJS(isolate, ctx, handle, safe_ints, mode), db_state->addon, false)
+			);
 		} else {
 			if (status == SQLITE_DONE) Return(info);
 			else Throw();
@@ -110,7 +99,7 @@ private:
 
 	void Return(NODE_ARGUMENTS info) {
 		Cleanup();
-		STATEMENT_RETURN_LOGIC(DoneRecord(OnlyIsolate));
+		STATEMENT_RETURN_LOGIC(DoneRecord(OnlyIsolate, db_state->addon));
 	}
 
 	void Throw() {
@@ -127,19 +116,16 @@ private:
 		sqlite3_reset(handle);
 	}
 
-	static v8::Local<v8::Object> NewRecord(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Value> value, bool done = false) {
+	static inline v8::Local<v8::Object> NewRecord(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Value> value, Addon* addon, bool done) {
 		v8::Local<v8::Object> record = v8::Object::New(isolate);
-		record->Set(ctx, CS::Get(isolate, CS::value), value).FromJust();
-		record->Set(ctx, CS::Get(isolate, CS::done), done ? v8::True(isolate) : v8::False(isolate)).FromJust();
+		record->Set(ctx, CS::Get(isolate, addon->cs.value), value).FromJust();
+		record->Set(ctx, CS::Get(isolate, addon->cs.done), v8::Boolean::New(isolate, done)).FromJust();
 		return record;
 	}
 
-	static v8::Local<v8::Object> DoneRecord(v8::Isolate* isolate) {
-		return NewRecord(isolate, OnlyContext, v8::Undefined(isolate), true);
+	static inline v8::Local<v8::Object> DoneRecord(v8::Isolate* isolate, Addon* addon) {
+		return NewRecord(isolate, OnlyContext, v8::Undefined(isolate), addon, true);
 	}
-
-	static v8::Persistent<v8::Function> constructor;
-	static const NODE_ARGUMENTS_TYPE* caller_info;
 
 	Statement* const stmt;
 	sqlite3_stmt* const handle;

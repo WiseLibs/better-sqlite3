@@ -26,8 +26,12 @@ public:
 		else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), self);
 	}
 
-	void ThrowResultValueError(sqlite3_context* invocation) {
-		ThrowTypeError(CONCAT("User-defined function ", name, "() returned an invalid value").c_str());
+	void ThrowResultValueError(sqlite3_context* invocation, bool isBigInt) {
+		if (isBigInt) {
+			ThrowRangeError(CONCAT("User-defined function ", name, "() returned a bigint that was too big").c_str());
+		} else {
+			ThrowTypeError(CONCAT("User-defined function ", name, "() returned an invalid value").c_str());
+		}
 		PropagateJSError(invocation);
 	}
 

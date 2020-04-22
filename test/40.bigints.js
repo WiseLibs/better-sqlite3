@@ -1,8 +1,7 @@
 'use strict';
 const Database = require('../.');
-const { Integer } = Database;
 
-describe('64-bit integers', function () {
+describe('BigInts', function () {
 	beforeEach(function () {
 		this.db = new Database(util.next());
 		this.db.prepare('CREATE TABLE entries (a INTEGER, b REAL, c TEXT)').run();
@@ -12,7 +11,7 @@ describe('64-bit integers', function () {
 	});
 
 	it('should bind to prepared statements', function () {
-		const int = Integer.fromBits(4243423, 234234234);
+		const int = BigInt('1006028374637854687');
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').bind(int, int, int).run();
 
@@ -26,11 +25,11 @@ describe('64-bit integers', function () {
 		}
 	});
 	it('should be allowed as a return value in user-defined functions', function () {
-		this.db.function('returnsInteger', a => Integer(a + a));
+		this.db.function('returnsInteger', a => BigInt(a + a));
 		expect(this.db.prepare('SELECT returnsInteger(?)').pluck().get(42)).to.equal(84);
 	});
 	it('should get returned by operations after setting .safeIntegers()', function () {
-		const int = Integer.fromBits(4243423, 234234234);
+		const int = BigInt('1006028374637854687');
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
 
@@ -54,18 +53,18 @@ describe('64-bit integers', function () {
 		let lastRowid = this.db.prepare('SELECT rowid FROM entries ORDER BY rowid DESC').pluck().get();
 		stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		expect(stmt.run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
-		expect(stmt.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
-		expect(stmt.run(int, int, int).lastInsertRowid).to.deep.equal(Integer(++lastRowid));
+		expect(stmt.safeIntegers().run(int, int, int).lastInsertRowid).to.deep.equal(BigInt(++lastRowid));
+		expect(stmt.run(int, int, int).lastInsertRowid).to.deep.equal(BigInt(++lastRowid));
 		expect(stmt.safeIntegers(false).run(int, int, int).lastInsertRowid).to.equal(++lastRowid);
 	});
 	it('should get passed to functions defined with the "safeIntegers" option', function () {
-		this.db.function('customfunc', { safeIntegers: true }, (a) => { return a.low; });
-		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(2)).to.equal(null);
-		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(Integer.fromBits(2, 2))).to.equal(2);
+		this.db.function('customfunc', { safeIntegers: true }, (a) => { return (typeof a) + a; });
+		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(2)).to.equal('number2');
+		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(BigInt(2))).to.equal('bigint2');
 	});
 	it('should respect the default setting on the database', function () {
 		let arg;
-		const int = Integer.fromBits(4243423, 234234234);
+		const int = BigInt('1006028374637854687');
 		const customFunctionArg = (name, options, dontDefine) => {
 			dontDefine || this.db.function(name, options, (a) => { arg = a; });
 			this.db.prepare(`SELECT ${name}(?)`).get(int);

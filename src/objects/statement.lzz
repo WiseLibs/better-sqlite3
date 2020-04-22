@@ -2,17 +2,22 @@ class Statement : public node::ObjectWrap {
 friend class StatementIterator;
 public:
 
-	// Provides public access to the constructor.
-	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> source) {
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
-		v8::Local<v8::Value> args[2] = { database, source };
-		constructing_privileges = true;
-		v8::MaybeLocal<v8::Object> maybe_statement = c->NewInstance(OnlyContext, 2, args);
-		constructing_privileges = false;
-		return maybe_statement;
+	INIT(Init) {
+		v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "Statement");
+		SetPrototypeMethod(isolate, data, t, "run", JS_run);
+		SetPrototypeMethod(isolate, data, t, "get", JS_get);
+		SetPrototypeMethod(isolate, data, t, "all", JS_all);
+		SetPrototypeMethod(isolate, data, t, "iterate", JS_iterate);
+		SetPrototypeMethod(isolate, data, t, "bind", JS_bind);
+		SetPrototypeMethod(isolate, data, t, "pluck", JS_pluck);
+		SetPrototypeMethod(isolate, data, t, "expand", JS_expand);
+		SetPrototypeMethod(isolate, data, t, "raw", JS_raw);
+		SetPrototypeMethod(isolate, data, t, "safeIntegers", JS_safeIntegers);
+		SetPrototypeMethod(isolate, data, t, "columns", JS_columns);
+		return t->GetFunction(OnlyContext).ToLocalChecked();
 	}
 
-	// Used by the Database::CompareStatement class.
+	// Used to support ordered containers.
 	static inline bool Compare(Statement const * const a, Statement const * const b) {
 		return a->extras->id < b->extras->id;
 	}
@@ -53,10 +58,10 @@ private:
 		const sqlite3_uint64 id;
 	};
 
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, bool _returns_data) : node::ObjectWrap(),
+	explicit Statement(Database* _db, sqlite3_stmt* _handle, sqlite3_uint64 _id, bool _returns_data) : node::ObjectWrap(),
 		db(_db),
 		handle(_handle),
-		extras(new Extras(next_id++)),
+		extras(new Extras(_id)),
 		alive(true),
 		locked(false),
 		bound(false),
@@ -71,43 +76,21 @@ private:
 		db->AddStatement(this);
 	}
 
-	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
-		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "Statement", -1));
-
-		NODE_SET_PROTOTYPE_METHOD(t, "run", JS_run);
-		NODE_SET_PROTOTYPE_METHOD(t, "get", JS_get);
-		NODE_SET_PROTOTYPE_METHOD(t, "all", JS_all);
-		NODE_SET_PROTOTYPE_METHOD(t, "iterate", JS_iterate);
-		NODE_SET_PROTOTYPE_METHOD(t, "bind", JS_bind);
-		NODE_SET_PROTOTYPE_METHOD(t, "pluck", JS_pluck);
-		NODE_SET_PROTOTYPE_METHOD(t, "expand", JS_expand);
-		NODE_SET_PROTOTYPE_METHOD(t, "raw", JS_raw);
-		NODE_SET_PROTOTYPE_METHOD(t, "safeIntegers", JS_safeIntegers);
-		NODE_SET_PROTOTYPE_METHOD(t, "columns", JS_columns);
-
-		UseContext;
-		exports->Set(ctx, StringFromUtf8(isolate, "Statement", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
-		next_id = 0;
-		constructing_privileges = false;
-	}
-
 	NODE_METHOD(JS_new) {
-		if (!constructing_privileges) {
+		UseAddon;
+		if (!addon->privileged_info) {
 			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
 		}
 		assert(info.IsConstructCall());
-		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
-		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> source);
+		v8::Local<v8::Object> database = addon->privileged_info->This();
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 		if (db->GetState()->pragma_mode) { REQUIRE_DATABASE_NO_ITERATORS(db->GetState()); }
 
 		UseIsolate;
-		v8::String::Value sql(EXTRACT_STRING(isolate, source));
+		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
+		v8::String::Value sql(isolate, source);
 		const uint16_t* tail;
 		sqlite3_stmt* handle;
 
@@ -127,11 +110,11 @@ private:
 		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
 
 		UseContext;
-		Statement* stmt = new Statement(db, handle, returns_data);
+		Statement* stmt = new Statement(db, handle, addon->next_id++, returns_data);
 		stmt->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::reader, v8::Boolean::New(isolate, returns_data));
-		SetFrozen(isolate, ctx, info.This(), CS::source, source);
-		SetFrozen(isolate, ctx, info.This(), CS::database, database);
+		SetFrozen(isolate, ctx, info.This(), addon->cs.reader, v8::Boolean::New(isolate, returns_data));
+		SetFrozen(isolate, ctx, info.This(), addon->cs.source, source);
+		SetFrozen(isolate, ctx, info.This(), addon->cs.database, database);
 
 		info.GetReturnValue().Set(info.This());
 	}
@@ -145,10 +128,15 @@ private:
 		if (sqlite3_reset(handle) == SQLITE_OK) {
 			int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
 			sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
+			Addon* addon = db->GetAddon();
 			UseContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, CS::Get(isolate, CS::changes), v8::Int32::New(isolate, changes)).FromJust();
-			result->Set(ctx, CS::Get(isolate, CS::lastInsertRowid), Integer::New(isolate, id, stmt->safe_ints)).FromJust();
+			result->Set(ctx, CS::Get(isolate, addon->cs.changes), v8::Int32::New(isolate, changes)).FromJust();
+			result->Set(ctx, CS::Get(isolate, addon->cs.lastInsertRowid),
+				stmt->safe_ints
+					? v8::Local<v8::Value>::Cast(v8::BigInt::New(isolate, id))
+					: v8::Local<v8::Value>::Cast(v8::Number::New(isolate, (double)id))
+			).FromJust();
 			STATEMENT_RETURN(result);
 		}
 		STATEMENT_THROW();
@@ -191,7 +179,12 @@ private:
 	}
 
 	NODE_METHOD(JS_iterate) {
-		v8::MaybeLocal<v8::Object> maybe_iter = StatementIterator::New(OnlyIsolate, info);
+		UseAddon;
+		UseIsolate;
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->StatementIterator);
+		addon->privileged_info = &info;
+		v8::MaybeLocal<v8::Object> maybe_iter = c->NewInstance(OnlyContext, 0, NULL);
+		addon->privileged_info = NULL;
 		if (!maybe_iter.IsEmpty()) info.GetReturnValue().Set(maybe_iter.ToLocalChecked());
 	}
 
@@ -253,16 +246,18 @@ private:
 		if (!stmt->returns_data) return ThrowTypeError("The columns() method is only for statements that return data");
 		REQUIRE_DATABASE_OPEN(stmt->db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
-		UseIsolateAndContext;
+		Addon* addon = stmt->db->GetAddon();
+		UseIsolate;
+		UseContext;
 
 		int column_count = sqlite3_column_count(stmt->handle);
 		v8::Local<v8::Array> columns = v8::Array::New(isolate);
 
-		v8::Local<v8::String> name = CS::Get(isolate, CS::name);
-		v8::Local<v8::String> columnName = CS::Get(isolate, CS::column);
-		v8::Local<v8::String> tableName = CS::Get(isolate, CS::table);
-		v8::Local<v8::String> databaseName = CS::Get(isolate, CS::database);
-		v8::Local<v8::String> typeName = CS::Get(isolate, CS::type);
+		v8::Local<v8::String> name = CS::Get(isolate, addon->cs.name);
+		v8::Local<v8::String> columnName = CS::Get(isolate, addon->cs.column);
+		v8::Local<v8::String> tableName = CS::Get(isolate, addon->cs.table);
+		v8::Local<v8::String> databaseName = CS::Get(isolate, addon->cs.database);
+		v8::Local<v8::String> typeName = CS::Get(isolate, addon->cs.type);
 
 		for (int i=0; i<column_count; ++i) {
 			v8::Local<v8::Object> column = v8::Object::New(isolate);
@@ -288,10 +283,6 @@ private:
 
 		info.GetReturnValue().Set(columns);
 	}
-
-	static v8::Persistent<v8::Function> constructor;
-	static sqlite3_uint64 next_id;
-	static bool constructing_privileges;
 
 	Database* const db;
 	sqlite3_stmt* const handle;

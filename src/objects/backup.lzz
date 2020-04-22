@@ -1,17 +1,14 @@
 class Backup : public node::ObjectWrap {
 public:
 
-	// Provides public access to the constructor.
-	static v8::MaybeLocal<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Object> database, v8::Local<v8::String> attachedName, v8::Local<v8::String> destFile, v8::Local<v8::Boolean> unlink) {
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, constructor);
-		v8::Local<v8::Value> args[4] = { database, attachedName, destFile, unlink };
-		constructing_privileges = true;
-		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 4, args);
-		constructing_privileges = false;
-		return maybe_backup;
+	INIT(Init) {
+		v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "Backup");
+		SetPrototypeMethod(isolate, data, t, "transfer", JS_transfer);
+		SetPrototypeMethod(isolate, data, t, "close", JS_close);
+		return t->GetFunction(OnlyContext).ToLocalChecked();
 	}
 
-	// Used by the Database::CompareBackup class.
+	// Used to support ordered containers.
 	static inline bool Compare(Backup const * const a, Backup const * const b) {
 		return a->id < b->id;
 	}
@@ -28,6 +25,7 @@ public:
 		}
 	}
 
+
 	~Backup() {
 		if (alive) db->RemoveBackup(this);
 		CloseHandles();
@@ -35,11 +33,11 @@ public:
 
 private:
 
-	explicit Backup(Database* _db, sqlite3* _dest_handle, sqlite3_backup* _backup_handle, bool _unlink) : node::ObjectWrap(),
+	explicit Backup(Database* _db, sqlite3* _dest_handle, sqlite3_backup* _backup_handle, sqlite3_uint64 _id, bool _unlink) : node::ObjectWrap(),
 		db(_db),
 		dest_handle(_dest_handle),
 		backup_handle(_backup_handle),
-		id(next_id++),
+		id(_id),
 		alive(true),
 		unlink(_unlink) {
 		assert(db != NULL);
@@ -48,40 +46,27 @@ private:
 		db->AddBackup(this);
 	}
 
-	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
-		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "Backup", -1));
-
-		NODE_SET_PROTOTYPE_METHOD(t, "transfer", JS_transfer);
-		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
-
-		UseContext;
-		exports->Set(ctx, StringFromUtf8(isolate, "Backup", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-		constructor.Reset(isolate, t->GetFunction(OnlyContext).ToLocalChecked());
-		next_id = 0;
-		constructing_privileges = false;
-	}
-
 	NODE_METHOD(JS_new) {
-		if (!constructing_privileges) return ThrowTypeError("Disabled constructor");
+		UseAddon;
+		if (!addon->privileged_info) return ThrowTypeError("Disabled constructor");
 		assert(info.IsConstructCall());
-		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
-		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> attachedName);
-		REQUIRE_ARGUMENT_STRING(third, v8::Local<v8::String> destFile);
-		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool unlink);
+		v8::Local<v8::Object> database = addon->privileged_info->This();
 		Database* db = Unwrap<Database>(database);
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
+		v8::Local<v8::String> attachedName = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
+		v8::Local<v8::String> destFile = v8::Local<v8::String>::Cast((*addon->privileged_info)[1]);
+		bool unlink = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[2])->Value();
+
 		UseIsolate;
 		sqlite3* dest_handle;
-		v8::String::Utf8Value dest_file(EXTRACT_STRING(isolate, destFile));
-		v8::String::Utf8Value attached_name(EXTRACT_STRING(isolate, attachedName));
+		v8::String::Utf8Value dest_file(isolate, destFile);
+		v8::String::Utf8Value attached_name(isolate, attachedName);
 		int mask = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
 		if (sqlite3_open_v2(*dest_file, &dest_handle, mask, NULL) != SQLITE_OK) {
-			Database::ThrowSqliteError(dest_handle);
+			Database::ThrowSqliteError(addon, dest_handle);
 			int status = sqlite3_close(dest_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
@@ -91,15 +76,15 @@ private:
 		sqlite3_limit(dest_handle, SQLITE_LIMIT_LENGTH, INT_MAX);
 		sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), *attached_name);
 		if (backup_handle == NULL) {
-			Database::ThrowSqliteError(dest_handle);
+			Database::ThrowSqliteError(addon, dest_handle);
 			int status = sqlite3_close(dest_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
 		}
 
-		Backup* backup = new Backup(db, dest_handle, backup_handle, unlink);
+		Backup* backup = new Backup(db, dest_handle, backup_handle, addon->next_id++, unlink);
 		backup->Wrap(info.This());
-		SetFrozen(isolate, OnlyContext, info.This(), CS::database, database);
+		SetFrozen(isolate, OnlyContext, info.This(), addon->cs.database, database);
 
 		info.GetReturnValue().Set(info.This());
 	}
@@ -114,17 +99,19 @@ private:
 		sqlite3_backup* backup_handle = backup->backup_handle;
 		int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
 
+		Addon* addon = backup->db->GetAddon();
 		if (status == SQLITE_OK || status == SQLITE_DONE || status == SQLITE_BUSY) {
 			int total_pages = sqlite3_backup_pagecount(backup_handle);
 			int remaining_pages = sqlite3_backup_remaining(backup_handle);
-			UseIsolateAndContext;
+			UseIsolate;
+			UseContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, CS::Get(isolate, CS::totalPages), v8::Int32::New(isolate, total_pages)).FromJust();
-			result->Set(ctx, CS::Get(isolate, CS::remainingPages), v8::Int32::New(isolate, remaining_pages)).FromJust();
+			result->Set(ctx, CS::Get(isolate, addon->cs.totalPages), v8::Int32::New(isolate, total_pages)).FromJust();
+			result->Set(ctx, CS::Get(isolate, addon->cs.remainingPages), v8::Int32::New(isolate, remaining_pages)).FromJust();
 			info.GetReturnValue().Set(result);
 			if (status == SQLITE_DONE) backup->unlink = false;
 		} else {
-			Database::ThrowSqliteError(sqlite3_errstr(status), status);
+			Database::ThrowSqliteError(addon, sqlite3_errstr(status), status);
 		}
 	}
 
@@ -135,10 +122,6 @@ private:
 		backup->CloseHandles();
 		info.GetReturnValue().Set(info.This());
 	}
-
-	static v8::Persistent<v8::Function> constructor;
-	static sqlite3_uint64 next_id;
-	static bool constructing_privileges;
 
 	Database* const db;
 	sqlite3* const dest_handle;

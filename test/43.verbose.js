@@ -1,6 +1,5 @@
 'use strict';
 const Database = require('../.');
-const { Integer } = Database;
 
 describe('verbose mode', function () {
 	afterEach(function () {
@@ -31,10 +30,10 @@ describe('verbose mode', function () {
 		const stmt = db.prepare('select ?');
 		db.exec('select 5');
 		db.prepare('create table data (x)').run();
-		stmt.get(Integer(10));
-		stmt.all(Integer(15));
-		stmt.iterate(Integer(20)).return();
-		for (const x of stmt.iterate(Integer(25))) {}
+		stmt.get(BigInt(10));
+		stmt.all(BigInt(15));
+		stmt.iterate(BigInt(20)).return();
+		for (const x of stmt.iterate(BigInt(25))) {}
 		db.pragma('cache_size');
 		db.prepare("insert into data values ('hi')").run();
 		db.prepare("insert into data values ('bye')").run();

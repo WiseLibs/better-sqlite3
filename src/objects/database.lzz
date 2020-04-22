@@ -1,25 +1,57 @@
-class Statement;
-class Backup;
 class Database : public node::ObjectWrap {
 public:
+
+	INIT(Init) {
+		v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "Database");
+		SetPrototypeMethod(isolate, data, t, "prepare", JS_prepare);
+		SetPrototypeMethod(isolate, data, t, "exec", JS_exec);
+		SetPrototypeMethod(isolate, data, t, "pragma", JS_pragma);
+		SetPrototypeMethod(isolate, data, t, "checkpoint", JS_checkpoint);
+		SetPrototypeMethod(isolate, data, t, "backup", JS_backup);
+		SetPrototypeMethod(isolate, data, t, "function", JS_function);
+		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
+		SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
+		SetPrototypeMethod(isolate, data, t, "close", JS_close);
+		SetPrototypeMethod(isolate, data, t, "defaultSafeIntegers", JS_defaultSafeIntegers);
+		SetPrototypeGetter(isolate, data, t, "open", JS_open);
+		SetPrototypeGetter(isolate, data, t, "inTransaction", JS_inTransaction);
+		return t->GetFunction(OnlyContext).ToLocalChecked();
+	}
+
+	// Used to support ordered containers.
+	class CompareDatabase { public:
+		bool operator() (Database const * const a, Database const * const b) const {
+			return a < b;
+		}
+	};
+	class CompareStatement { public:
+		bool operator() (Statement const * const a, Statement const * const b) const {
+			return Statement::Compare(a, b);
+		}
+	};
+	class CompareBackup { public:
+		bool operator() (Backup const * const a, Backup const * const b) const {
+			return Backup::Compare(a, b);
+		}
+	};
 
 	// Proper error handling logic for when an sqlite3 operation fails.
 	void ThrowDatabaseError() {
 		if (was_js_error) was_js_error = false;
-		else ThrowSqliteError(db_handle);
+		else ThrowSqliteError(addon, db_handle);
 	}
-	static void ThrowSqliteError(sqlite3* db_handle) {
+	static void ThrowSqliteError(Addon* addon, sqlite3* db_handle) {
 		assert(db_handle != NULL);
-		ThrowSqliteError(sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
+		ThrowSqliteError(addon, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
 	}
-	static void ThrowSqliteError(const char* message, int code) {
+	static void ThrowSqliteError(Addon* addon, const char* message, int code) {
 		assert(message != NULL);
 		assert((code & 0xff) != SQLITE_OK);
 		assert((code & 0xff) != SQLITE_ROW);
 		assert((code & 0xff) != SQLITE_DONE);
 		EasyIsolate;
-		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), CS::Code(isolate, code) };
-		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
+		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), addon->cs.Code(isolate, code) };
+		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, addon->SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
 	}
 
 	// Allows Statements to log their executed SQL.
@@ -55,41 +87,39 @@ public:
 		const bool safe_ints;
 		bool was_js_error;
 		unsigned short iterators;
+		Addon* const addon;
 	};
-
 	inline State* GetState() {
 		return reinterpret_cast<State*>(&open);
 	}
 	inline sqlite3* GetHandle() {
 		return db_handle;
 	}
+	inline Addon* GetAddon() {
+		return addon;
+	}
+
+	// Whenever this is used, addon->dbs.erase() must be invoked beforehand.
+	void CloseHandles() {
+		if (open) {
+			open = false;
+			for (Statement* stmt : stmts) stmt->CloseHandles();
+			for (Backup* backup : backups) backup->CloseHandles();
+			stmts.clear();
+			backups.clear();
+			int status = sqlite3_close(db_handle);
+			assert(status == SQLITE_OK); ((void)status);
+		}
+	}
 
 	~Database() {
-		if (open) dbs.erase(this);
+		if (open) addon->dbs.erase(this);
 		CloseHandles();
 	}
 
 private:
 
-	class CompareDatabase { public:
-		bool operator() (Database const * const a, Database const * const b) const {
-			return a < b;
-		}
-	};
-
-	class CompareStatement { public:
-		bool operator() (Statement const * const a, Statement const * const b) const {
-			return Statement::Compare(a, b);
-		}
-	};
-
-	class CompareBackup { public:
-		bool operator() (Backup const * const a, Backup const * const b) const {
-			return Backup::Compare(a, b);
-		}
-	};
-
-	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
+	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, Addon* _addon, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
 		db_handle(_db_handle),
 		open(true),
 		busy(false),
@@ -98,35 +128,12 @@ private:
 		was_js_error(false),
 		has_logger(_logger->IsFunction()),
 		iterators(0),
+		addon(_addon),
 		logger(isolate, _logger),
 		stmts(),
 		backups() {
 		assert(_db_handle != NULL);
-		dbs.insert(this);
-	}
-
-	REGISTER(Init) {
-		v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, JS_new);
-		t->InstanceTemplate()->SetInternalFieldCount(1);
-		t->SetClassName(StringFromUtf8(isolate, "Database", -1));
-
-		NODE_SET_PROTOTYPE_METHOD(t, "prepare", JS_prepare);
-		NODE_SET_PROTOTYPE_METHOD(t, "exec", JS_exec);
-		NODE_SET_PROTOTYPE_METHOD(t, "pragma", JS_pragma);
-		NODE_SET_PROTOTYPE_METHOD(t, "checkpoint", JS_checkpoint);
-		NODE_SET_PROTOTYPE_METHOD(t, "backup", JS_backup);
-		NODE_SET_PROTOTYPE_METHOD(t, "function", JS_function);
-		NODE_SET_PROTOTYPE_METHOD(t, "aggregate", JS_aggregate);
-		NODE_SET_PROTOTYPE_METHOD(t, "loadExtension", JS_loadExtension);
-		NODE_SET_PROTOTYPE_METHOD(t, "close", JS_close);
-		NODE_SET_PROTOTYPE_METHOD(t, "defaultSafeIntegers", JS_defaultSafeIntegers);
-		NODE_SET_PROTOTYPE_GETTER(t, "open", JS_open);
-		NODE_SET_PROTOTYPE_GETTER(t, "inTransaction", JS_inTransaction);
-
-		UseContext;
-		exports->Set(ctx, StringFromUtf8(isolate, "Database", -1), t->GetFunction(ctx).ToLocalChecked()).FromJust();
-		SqliteError.Reset(isolate, v8::Local<v8::Function>::Cast(Require(module, "../../lib/sqlite-error")));
-		node::AtExit(Database::AtExit);
+		addon->dbs.insert(this);
 	}
 
 	NODE_METHOD(JS_new) {
@@ -139,15 +146,16 @@ private:
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
 		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
 
+		UseAddon;
 		UseIsolate;
 		sqlite3* db_handle;
-		v8::String::Utf8Value utf8(EXTRACT_STRING(isolate, filename));
+		v8::String::Utf8Value utf8(isolate, filename);
 		int mask = readonly ? SQLITE_OPEN_READONLY
 			: must_exist ? SQLITE_OPEN_READWRITE
 			: (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
 		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
-			ThrowSqliteError(db_handle);
+			ThrowSqliteError(addon, db_handle);
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
@@ -164,18 +172,24 @@ private:
 		assert(status == SQLITE_OK);
 
 		UseContext;
-		Database* db = new Database(db_handle, isolate, logger);
+		Database* db = new Database(db_handle, isolate, addon, logger);
 		db->Wrap(info.This());
-		SetFrozen(isolate, ctx, info.This(), CS::memory, in_memory ? v8::True(isolate) : v8::False(isolate));
-		SetFrozen(isolate, ctx, info.This(), CS::readonly, readonly ? v8::True(isolate) : v8::False(isolate));
-		SetFrozen(isolate, ctx, info.This(), CS::name, filenameGiven);
+		SetFrozen(isolate, ctx, info.This(), addon->cs.memory, v8::Boolean::New(isolate, in_memory));
+		SetFrozen(isolate, ctx, info.This(), addon->cs.readonly, v8::Boolean::New(isolate, readonly));
+		SetFrozen(isolate, ctx, info.This(), addon->cs.name, filenameGiven);
 
 		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_prepare) {
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
-		v8::MaybeLocal<v8::Object> maybe_statement = Statement::New(OnlyIsolate, info.This(), source);
+		(void)source;
+		UseAddon;
+		UseIsolate;
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->Statement);
+		addon->privileged_info = &info;
+		v8::MaybeLocal<v8::Object> maybe_statement = c->NewInstance(OnlyContext, 0, NULL);
+		addon->privileged_info = NULL;
 		if (!maybe_statement.IsEmpty()) info.GetReturnValue().Set(maybe_statement.ToLocalChecked());
 	}
 
@@ -192,7 +206,7 @@ private:
 			db->ThrowDatabaseError();
 			return;
 		}
-		v8::String::Utf8Value sql(EXTRACT_STRING(isolate, source));
+		v8::String::Utf8Value sql(isolate, source);
 		int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
 		db->busy = false;
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
@@ -212,7 +226,7 @@ private:
 
 		if (info.Length()) {
 			REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> onlyDatabase);
-			v8::String::Utf8Value only_database(EXTRACT_STRING(OnlyIsolate, onlyDatabase));
+			v8::String::Utf8Value only_database(OnlyIsolate, onlyDatabase);
 			if (only_database.length() == 0) {
 				return ThrowTypeError("Invalid database name (empty string)");
 			}
@@ -250,8 +264,15 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> attachedName);
 		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> destFile);
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool unlink);
+		(void)attachedName;
+		(void)destFile;
+		(void)unlink;
+		UseAddon;
 		UseIsolate;
-		v8::MaybeLocal<v8::Object> maybe_backup = Backup::New(isolate, info.This(), attachedName, destFile, v8::Boolean::New(isolate, unlink));
+		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->Backup);
+		addon->privileged_info = &info;
+		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 0, NULL);
+		addon->privileged_info = NULL;
 		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
 	}
 
@@ -267,7 +288,7 @@ private:
 		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
-		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
+		v8::String::Utf8Value name(isolate, nameString);
 		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
@@ -292,7 +313,7 @@ private:
 		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
-		v8::String::Utf8Value name(EXTRACT_STRING(isolate, nameString));
+		v8::String::Utf8Value name(isolate, nameString);
 		auto xInverse = inverse->IsFunction() ? CustomAggregate::xInverse : NULL;
 		auto xValue = xInverse ? CustomAggregate::xValue : NULL;
 		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
@@ -310,11 +331,11 @@ private:
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
-		v8::String::Utf8Value filename(EXTRACT_STRING(OnlyIsolate, filenameString));
+		v8::String::Utf8Value filename(OnlyIsolate, filenameString);
 		char* error;
 		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
-		else ThrowSqliteError(error, status);
+		else ThrowSqliteError(db->addon, error, status);
 		sqlite3_free(error);
 	}
 
@@ -323,7 +344,7 @@ private:
 		if (db->open) {
 			REQUIRE_DATABASE_NOT_BUSY(db);
 			REQUIRE_DATABASE_NO_ITERATORS(db);
-			dbs.erase(db);
+			db->addon->dbs.erase(db);
 			db->CloseHandles();
 		}
 		info.GetReturnValue().Set(info.This());
@@ -345,25 +366,6 @@ private:
 		info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 	}
 
-	void CloseHandles() {
-		if (open) {
-			open = false;
-			for (Statement* stmt : stmts) stmt->CloseHandles();
-			for (Backup* backup : backups) backup->CloseHandles();
-			stmts.clear();
-			backups.clear();
-			int status = sqlite3_close(db_handle);
-			assert(status == SQLITE_OK); ((void)status);
-		}
-	}
-
-	static void AtExit(void* _) {
-		for (Database* db : dbs) db->CloseHandles();
-		dbs.clear();
-	}
-
-	static std::set<Database*, Database::CompareDatabase> dbs;
-	static v8::Persistent<v8::Function> SqliteError;
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
 	static const int MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 
@@ -375,7 +377,8 @@ private:
 	bool was_js_error;
 	const bool has_logger;
 	unsigned short iterators;
+	Addon* const addon;
 	const CopyablePersistent<v8::Value> logger;
-	std::set<Statement*, Database::CompareStatement> stmts;
-	std::set<Backup*, Database::CompareBackup> backups;
+	std::set<Statement*, CompareStatement> stmts;
+	std::set<Backup*, CompareBackup> backups;
 };

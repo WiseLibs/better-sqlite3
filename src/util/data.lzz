@@ -1,38 +1,51 @@
 #define JS_VALUE_TO_SQLITE(to, value, isolate, ...)                            \
 	if (value->IsNumber()) {                                                   \
-		return sqlite3_##to##_double(__VA_ARGS__,                              \
+		return sqlite3_##to##_double(                                          \
+			__VA_ARGS__,                                                       \
 			v8::Local<v8::Number>::Cast(value)->Value()                        \
 		);                                                                     \
+	} else if (value->IsBigInt()) {                                            \
+		bool lossless;                                                         \
+		int64_t v = v8::Local<v8::BigInt>::Cast(value)->Int64Value(&lossless); \
+		if (lossless) {                                                        \
+			return sqlite3_##to##_int64(__VA_ARGS__, v);                       \
+		}                                                                      \
 	} else if (value->IsString()) {                                            \
 		v8::String::Utf8Value utf8(                                            \
-			EXTRACT_STRING(isolate, v8::Local<v8::String>::Cast(value)));      \
-		return sqlite3_##to##_text(__VA_ARGS__,                                \
+			isolate,                                                           \
+			v8::Local<v8::String>::Cast(value)                                 \
+		);                                                                     \
+		return sqlite3_##to##_text(                                            \
+			__VA_ARGS__,                                                       \
 			*utf8,                                                             \
 			utf8.length(),                                                     \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
-	} else if (value->IsNull() || value->IsUndefined()) {                      \
-		return sqlite3_##to##_null(__VA_ARGS__);                               \
 	} else if (node::Buffer::HasInstance(value)) {                             \
-		return sqlite3_##to##_blob(__VA_ARGS__,                                \
+		return sqlite3_##to##_blob(                                            \
+			__VA_ARGS__,                                                       \
 			node::Buffer::Data(value),                                         \
 			node::Buffer::Length(value),                                       \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
-	} else if (Integer::HasInstance(isolate, value)) {                         \
-		return sqlite3_##to##_int64(__VA_ARGS__,                               \
-			Integer::GetValue(v8::Local<v8::Object>::Cast(value))              \
-		);                                                                     \
+	} else if (value->IsNull() || value->IsUndefined()) {                      \
+		return sqlite3_##to##_null(__VA_ARGS__);                               \
 	}
 
 #define SQLITE_VALUE_TO_JS(from, isolate, safe_ints, ...)                      \
 	switch (sqlite3_##from##_type(__VA_ARGS__)) {                              \
 	case SQLITE_INTEGER:                                                       \
-		return Integer::New(                                                   \
-			isolate, sqlite3_##from##_int64(__VA_ARGS__), safe_ints            \
-		);                                                                     \
+		if (safe_ints) {                                                       \
+			return v8::BigInt::New(                                            \
+				isolate,                                                       \
+				sqlite3_##from##_int64(__VA_ARGS__)                            \
+			);                                                                 \
+		}                                                                      \
 	case SQLITE_FLOAT:                                                         \
-		return v8::Number::New(isolate, sqlite3_##from##_double(__VA_ARGS__)); \
+		return v8::Number::New(                                                \
+			isolate,                                                           \
+			sqlite3_##from##_double(__VA_ARGS__)                               \
+		);                                                                     \
 	case SQLITE_TEXT:                                                          \
 		return StringFromUtf8(                                                 \
 			isolate,                                                           \
@@ -123,12 +136,12 @@ namespace Data {
 
 	int BindValueFromJS(v8::Isolate* isolate, sqlite3_stmt* handle, int index, v8::Local<v8::Value> value) {
 		JS_VALUE_TO_SQLITE(bind, value, isolate, handle, index);
-		return -1;
+		return value->IsBigInt() ? SQLITE_TOOBIG : -1;
 	}
 
 	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, CustomFunction* function) {
 		JS_VALUE_TO_SQLITE(result, value, isolate, invocation);
-		function->ThrowResultValueError(invocation);
+		function->ThrowResultValueError(invocation, value->IsBigInt());
 	}
 
 }
