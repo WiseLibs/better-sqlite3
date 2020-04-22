@@ -1,7 +1,6 @@
 os: Visual Studio 2015
 environment:
   matrix:
-    - nodejs_version: "8"
     - nodejs_version: "10"
     - nodejs_version: "12"
 
