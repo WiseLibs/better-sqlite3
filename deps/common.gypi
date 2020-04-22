@@ -4,13 +4,7 @@
 # ===
 
 {
-  'conditions': [
-    ['OS == "win"', {
-      'variables': { 'sqlite3%': '<!(echo %SQLITE_SOURCE%)' },
-    }, {
-      'variables': { 'sqlite3%': '<!(echo $SQLITE_SOURCE)' },
-    }],
-  ],
+  'variables': { 'sqlite3%': '' },
   'target_defaults': {
     'default_configuration': 'Release',
     'msvs_settings': {
