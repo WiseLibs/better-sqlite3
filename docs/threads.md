@@ -21,7 +21,7 @@ parentPort.on('message', ({ sql, parameters }) => {
 The master thread is responsible for spawning workers, respawning threads that crash, and accepting query jobs.
 
 ```js
-const threads = require('worker_threads');
+const { Worker } = require('worker_threads');
 const os = require('os');
 
 /*
@@ -44,7 +44,7 @@ exports.asyncQuery = (sql, ...parameters) => {
  */
 
 os.cpus().forEach(function spawn() {
-  const worker = new threads.Worker('./worker.js');
+  const worker = new Worker('./worker.js');
 
   let job = null; // Current item from the queue
   let error = null; // Error that caused the worker to crash
