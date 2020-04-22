@@ -584,20 +584,27 @@ void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & 
 #line 284 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
-                if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > filenameString = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
+                v8::Local<v8::String> entryPoint;
+                if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > filename = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
+                if (info.Length() > 1) { if ( info . Length ( ) <= ( 1 ) || ! info [ 1 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "second" " argument to be " "a string" ) ; entryPoint = v8 :: Local < v8 :: String > :: Cast ( info [ 1 ] ) ; }
                 if ( ! db -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
                 if ( db -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
-                v8::String::Utf8Value filename( info . GetIsolate ( ) , filenameString);
+                v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 char* error;
-                int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
+                int status = sqlite3_load_extension(
+                        db->db_handle,
+                        *v8::String::Utf8Value(isolate, filename),
+                        entryPoint.IsEmpty() ? NULL : *v8::String::Utf8Value(isolate, entryPoint),
+                        &error
+                );
                 if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
                 else ThrowSqliteError(db->addon, error, status);
                 sqlite3_free(error);
 }
-#line 298 "./src/objects/database.lzz"
+#line 305 "./src/objects/database.lzz"
 void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 298 "./src/objects/database.lzz"
+#line 305 "./src/objects/database.lzz"
                               {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (db->open) {
@@ -608,31 +615,31 @@ void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 }
                 info.GetReturnValue().Set(info.This());
 }
-#line 309 "./src/objects/database.lzz"
+#line 316 "./src/objects/database.lzz"
 void Database::JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 309 "./src/objects/database.lzz"
+#line 316 "./src/objects/database.lzz"
                                             {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (info.Length() == 0) db->safe_ints = true;
                 else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; db -> safe_ints = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
                 info.GetReturnValue().Set(info.This());
 }
-#line 316 "./src/objects/database.lzz"
+#line 323 "./src/objects/database.lzz"
 void Database::JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 316 "./src/objects/database.lzz"
+#line 323 "./src/objects/database.lzz"
                              {
                 info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Database>(info.This())->open);
 }
-#line 320 "./src/objects/database.lzz"
+#line 327 "./src/objects/database.lzz"
 void Database::JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 320 "./src/objects/database.lzz"
+#line 327 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 }
-#line 325 "./src/objects/database.lzz"
+#line 332 "./src/objects/database.lzz"
 int const Database::MAX_BUFFER_SIZE;
-#line 326 "./src/objects/database.lzz"
+#line 333 "./src/objects/database.lzz"
 int const Database::MAX_STRING_SIZE;
 #line 5 "./src/objects/statement.lzz"
 v8::Local <v8 :: Function> Statement::Init (v8::Isolate * isolate, v8::Local <v8 :: External> data)

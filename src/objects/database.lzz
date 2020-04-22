@@ -283,13 +283,20 @@ private:
 
 	NODE_METHOD(JS_loadExtension) {
 		Database* db = Unwrap<Database>(info.This());
-		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filenameString);
+		v8::Local<v8::String> entryPoint;
+		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> filename);
+		if (info.Length() > 1) { REQUIRE_ARGUMENT_STRING(second, entryPoint); }
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
-		v8::String::Utf8Value filename(OnlyIsolate, filenameString);
+		UseIsolate;
 		char* error;
-		int status = sqlite3_load_extension(db->db_handle, *filename, NULL, &error);
+		int status = sqlite3_load_extension(
+			db->db_handle,
+			*v8::String::Utf8Value(isolate, filename),
+			entryPoint.IsEmpty() ? NULL : *v8::String::Utf8Value(isolate, entryPoint),
+			&error
+		);
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
 		else ThrowSqliteError(db->addon, error, status);
 		sqlite3_free(error);
