@@ -54,19 +54,16 @@ public:
 	}
 
 	// Allows Statements to log their executed SQL.
-	bool Log(v8::Isolate* isolate, v8::Local<v8::Value> data) {
-		if (!has_logger) return false;
-		assert(was_js_error == false);
-		return was_js_error = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, logger))
-			->Call(OnlyContext, v8::Undefined(isolate), 1, &data)
-			.IsEmpty();
-	}
 	bool Log(v8::Isolate* isolate, sqlite3_stmt* handle) {
 		if (!has_logger) return false;
+		assert(was_js_error == false);
 		char* expanded = sqlite3_expanded_sql(handle);
-		bool failed = Log(isolate, StringFromUtf8(isolate, expanded ? expanded : sqlite3_sql(handle), -1));
+		v8::Local<v8::Value> arg = StringFromUtf8(isolate, expanded ? expanded : sqlite3_sql(handle), -1);
+		was_js_error = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, logger))
+			->Call(OnlyContext, v8::Undefined(isolate), 1, &arg)
+			.IsEmpty();
 		if (expanded) sqlite3_free(expanded);
-		return failed;
+		return was_js_error;
 	}
 
 	// Allow Statements to manage themselves when created and garbage collected.
@@ -199,14 +196,34 @@ private:
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
 		db->busy = true;
+
 		UseIsolate;
-		if (db->Log(isolate, source)) {
-			db->busy = false;
-			db->ThrowDatabaseError();
-			return;
+		v8::String::Utf8Value utf8(isolate, source);
+		const char* sql = *utf8;
+		if (!sql) sql = "";
+
+		int status = SQLITE_OK;
+		const bool has_logger = db->has_logger;
+		sqlite3* const db_handle = db->db_handle;
+		sqlite3_stmt* handle;
+		const char* tail;
+
+		while (status == SQLITE_OK && *sql) {
+			status = sqlite3_prepare_v2(db_handle, sql, -1, &handle, &tail);
+			sql = tail;
+			if (handle) {
+				if (has_logger && db->Log(isolate, handle)) {
+					sqlite3_finalize(handle);
+					status = -1;
+					break;
+				}
+				do status = sqlite3_step(handle);
+				while (status == SQLITE_ROW);
+				status = sqlite3_finalize(handle);
+				while (IS_SPACE(*sql)) ++sql;
+			}
 		}
-		v8::String::Utf8Value sql(isolate, source);
-		int status = sqlite3_exec(db->db_handle, *sql, NULL, NULL, NULL);
+
 		db->busy = false;
 		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
 		else db->ThrowDatabaseError();

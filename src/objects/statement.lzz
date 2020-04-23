@@ -84,9 +84,13 @@ private:
 		assert(info.IsConstructCall());
 		v8::Local<v8::Object> database = addon->privileged_info->This();
 		Database* db = Unwrap<Database>(database);
+		int flags = SQLITE_PREPARE_PERSISTENT;
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
-		if (db->GetState()->pragma_mode) { REQUIRE_DATABASE_NO_ITERATORS(db->GetState()); }
+		if (db->GetState()->pragma_mode) {
+			REQUIRE_DATABASE_NO_ITERATORS(db->GetState());
+			flags = 0;
+		}
 
 		UseIsolate;
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
@@ -94,15 +98,14 @@ private:
 		const uint16_t* tail;
 		sqlite3_stmt* handle;
 
-		if (sqlite3_prepare16_v3(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, SQLITE_PREPARE_PERSISTENT, &handle, reinterpret_cast<const void**>(&tail)) != SQLITE_OK) {
+		if (sqlite3_prepare16_v3(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, flags, &handle, reinterpret_cast<const void**>(&tail)) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
 		for (uint16_t const * const end = *sql + sql.length(); tail < end; ++tail) {
-			const uint16_t c = *tail;
-			if (c != '\n' && c != '\t' && c != ' ' && c != '\r') {
+			if (!IS_SPACE(*tail)) {
 				sqlite3_finalize(handle);
 				return ThrowRangeError("The supplied SQL string contains more than one statement");
 			}
