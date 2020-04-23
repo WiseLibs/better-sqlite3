@@ -34,7 +34,8 @@ describe('Database#prepare()', function () {
 	});
 	it('should throw an exception if more than one statement is provided', function () {
 		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)')).to.throw(RangeError);
-		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);;')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);/')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);-')).to.throw(RangeError);
 	});
 	it('should create a prepared Statement object', function () {
 		const stmt1 = this.db.prepare('CREATE TABLE people (name TEXT) ');

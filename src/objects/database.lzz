@@ -49,14 +49,19 @@ public:
 		assert((code & 0xff) != SQLITE_ROW);
 		assert((code & 0xff) != SQLITE_DONE);
 		EasyIsolate;
-		v8::Local<v8::Value> args[2] = { StringFromUtf8(isolate, message, -1), addon->cs.Code(isolate, code) };
-		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, addon->SqliteError)->NewInstance(OnlyContext, 2, args).ToLocalChecked());
+		v8::Local<v8::Value> args[2] = {
+			StringFromUtf8(isolate, message, -1),
+			addon->cs.Code(isolate, code)
+		};
+		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, addon->SqliteError)
+			->NewInstance(OnlyContext, 2, args)
+			.ToLocalChecked());
 	}
 
 	// Allows Statements to log their executed SQL.
 	bool Log(v8::Isolate* isolate, sqlite3_stmt* handle) {
-		if (!has_logger) return false;
 		assert(was_js_error == false);
+		if (!has_logger) return false;
 		char* expanded = sqlite3_expanded_sql(handle);
 		v8::Local<v8::Value> arg = StringFromUtf8(isolate, expanded ? expanded : sqlite3_sql(handle), -1);
 		was_js_error = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, logger))
@@ -82,6 +87,7 @@ public:
 		const bool pragma_mode;
 		const bool safe_ints;
 		bool was_js_error;
+		const bool has_logger;
 		unsigned short iterators;
 		Addon* const addon;
 	};
@@ -200,28 +206,27 @@ private:
 		UseIsolate;
 		v8::String::Utf8Value utf8(isolate, source);
 		const char* sql = *utf8;
-		if (!sql) sql = "";
+		const char* tail;
 
-		int status = SQLITE_OK;
+		int status;
 		const bool has_logger = db->has_logger;
 		sqlite3* const db_handle = db->db_handle;
 		sqlite3_stmt* handle;
-		const char* tail;
 
-		while (status == SQLITE_OK && *sql) {
+		for (;;) {
+			while (IS_SKIPPED(*sql)) ++sql;
 			status = sqlite3_prepare_v2(db_handle, sql, -1, &handle, &tail);
 			sql = tail;
-			if (handle) {
-				if (has_logger && db->Log(isolate, handle)) {
-					sqlite3_finalize(handle);
-					status = -1;
-					break;
-				}
-				do status = sqlite3_step(handle);
-				while (status == SQLITE_ROW);
-				status = sqlite3_finalize(handle);
-				while (IS_SPACE(*sql)) ++sql;
+			if (!handle) break;
+			if (has_logger && db->Log(isolate, handle)) {
+				sqlite3_finalize(handle);
+				status = -1;
+				break;
 			}
+			do status = sqlite3_step(handle);
+			while (status == SQLITE_ROW);
+			status = sqlite3_finalize(handle);
+			if (status != SQLITE_OK) break;
 		}
 
 		db->busy = false;

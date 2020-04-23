@@ -94,25 +94,39 @@ private:
 
 		UseIsolate;
 		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
-		v8::String::Value sql(isolate, source);
-		const uint16_t* tail;
+		v8::String::Utf8Value utf8(isolate, source);
 		sqlite3_stmt* handle;
+		const char* tail;
 
-		if (sqlite3_prepare16_v3(db->GetHandle(), *sql, sql.length() * sizeof(uint16_t) + 1, flags, &handle, reinterpret_cast<const void**>(&tail)) != SQLITE_OK) {
+		if (sqlite3_prepare_v3(db->GetHandle(), *utf8, utf8.length() + 1, flags, &handle, &tail) != SQLITE_OK) {
 			return db->ThrowDatabaseError();
 		}
 		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
-		for (uint16_t const * const end = *sql + sql.length(); tail < end; ++tail) {
-			if (!IS_SPACE(*tail)) {
+		for (char c; (c = *tail); ++tail) {
+			if (IS_SKIPPED(c)) continue;
+			if (c == '/' && tail[1] == '*') {
+				tail += 2;
+				for (char c; (c = *tail); ++tail) {
+					if (c == '*' && tail[1] == '/') {
+						tail += 1;
+						break;
+					}
+				}
+			} else if (c == '-' && tail[1] == '-') {
+				tail += 2;
+				for (char c; (c = *tail); ++tail) {
+					if (c == '\n') break;
+				}
+			} else {
 				sqlite3_finalize(handle);
 				return ThrowRangeError("The supplied SQL string contains more than one statement");
 			}
 		}
-		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
 
 		UseContext;
+		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || db->GetState()->pragma_mode;
 		Statement* stmt = new Statement(db, handle, addon->next_id++, returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), addon->cs.reader, v8::Boolean::New(isolate, returns_data));

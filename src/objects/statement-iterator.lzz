@@ -24,7 +24,7 @@ private:
 		safe_ints(_stmt->safe_ints),
 		mode(_stmt->mode),
 		alive(true),
-		logged(false) {
+		logged(!db_state->has_logger) {
 		assert(stmt != NULL);
 		assert(handle != NULL);
 		assert(stmt->bound == bound);

@@ -99,9 +99,9 @@ const char* COPY(const char* source) {
 	return dest;
 }
 
-// Determines whether the given character is a "space" by SQLite's definition.
-inline bool IS_SPACE(char c) {
-	return c == ' ' || (c >= '\t' && c <= '\r');
+// Determines whether to skip the given character at the start of an SQL string.
+inline bool IS_SKIPPED(char c) {
+	return c == ' ' || c == ';' || (c >= '\t' && c <= '\r');
 }
 
 // Allocates an empty array, without calling constructors/initializers.
