@@ -49,6 +49,21 @@ describe('Database#pragma()', function () {
 		this.db.pragma('journal_mode = wal');
 		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('wal');
 	});
+	// https://www.sqlite.org/pragma.html#pragma_journal_mode
+	it('should support all journal modes', function () {
+		this.db.pragma('journal_mode = delete');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('delete');
+		this.db.pragma('journal_mode = truncate');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('truncate');
+		this.db.pragma('journal_mode = persist');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('persist');
+		this.db.pragma('journal_mode = memory');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('memory');
+		this.db.pragma('journal_mode = wal');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('wal');
+		this.db.pragma('journal_mode = off');
+		expect(this.db.pragma('journal_mode', { simple: true })).to.equal('off');
+	});
 	it('should respect readonly connections', function () {
 		this.db.close();
 		this.db = new Database(util.current(), { readonly: true, fileMustExist: true });
