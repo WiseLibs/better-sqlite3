@@ -12,6 +12,7 @@ public:
 		SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
 		SetPrototypeMethod(isolate, data, t, "close", JS_close);
 		SetPrototypeMethod(isolate, data, t, "defaultSafeIntegers", JS_defaultSafeIntegers);
+		SetPrototypeMethod(isolate, data, t, "unsafeMode", JS_unsafeMode);
 		SetPrototypeGetter(isolate, data, t, "open", JS_open);
 		SetPrototypeGetter(isolate, data, t, "inTransaction", JS_inTransaction);
 		return t->GetFunction(OnlyContext).ToLocalChecked();
@@ -84,8 +85,8 @@ public:
 	struct State {
 		const bool open;
 		bool busy;
-		const bool unsafe_mode;
 		const bool safe_ints;
+		const bool unsafe_mode;
 		bool was_js_error;
 		const bool has_logger;
 		unsigned short iterators;
@@ -125,8 +126,8 @@ private:
 		db_handle(_db_handle),
 		open(true),
 		busy(false),
-		unsafe_mode(false),
 		safe_ints(false),
+		unsafe_mode(false),
 		was_js_error(false),
 		has_logger(_logger->IsFunction()),
 		iterators(0),
@@ -343,6 +344,14 @@ private:
 		info.GetReturnValue().Set(info.This());
 	}
 
+	NODE_METHOD(JS_unsafeMode) {
+		Database* db = Unwrap<Database>(info.This());
+		if (info.Length() == 0) db->unsafe_mode = true;
+		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->unsafe_mode); }
+		sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode));
+		info.GetReturnValue().Set(info.This());
+	}
+
 	NODE_GETTER(JS_open) {
 		info.GetReturnValue().Set(Unwrap<Database>(info.This())->open);
 	}
@@ -358,8 +367,8 @@ private:
 	sqlite3* const db_handle;
 	bool open;
 	bool busy;
-	bool unsafe_mode;
 	bool safe_ints;
+	bool unsafe_mode;
 	bool was_js_error;
 	const bool has_logger;
 	unsigned short iterators;
