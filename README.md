@@ -13,6 +13,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 
 `better-sqlite3` is used by thousands of developers and engineers on a daily basis. Long nights and weekends were spent keeping this project strong and dependable, with no ask for compensation or funding, until now. If your company uses `better-sqlite3`, ask your manager to consider supporting the project:
 
+- [Become a GitHub sponsor](https://github.com/sponsors/JoshuaWise)
 - [Become a backer on Patreon](https://www.patreon.com/joshuawise)
 - [Make a one-time donation on PayPal](https://www.paypal.me/joshuathomaswise)
 

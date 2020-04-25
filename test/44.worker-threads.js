@@ -6,12 +6,13 @@ if (parseInt(process.versions.node) >= 12) {
 	if (threads.isMainThread) {
 		describe('Worker Threads', function () {
 			afterEach(function () {
+				if (this.db) this.db.close();
 				return this.cleanup;
 			});
 			it('are properly supported', function () {
 				this.slow(1000);
 				return new Promise((resolve, reject) => {
-					const db = Database(util.next()).defaultSafeIntegers();
+					const db = this.db = Database(util.next()).defaultSafeIntegers();
 					expect(db.prepare('select 555').constructor.foo).to.be.undefined;
 					db.prepare('select 555').constructor.foo = 5;
 					expect(db.prepare('select 555').constructor.foo).to.equal(5);
