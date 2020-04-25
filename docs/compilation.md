@@ -6,7 +6,7 @@ If you want to use a customized version of [SQLite3](https://www.sqlite.org) wit
 npm install better-sqlite3 --build-from-source --sqlite3=/path/to/sqlite-amalgamation
 ```
 
-If you simply run `npm install` while `better-sqlite3` is listed as a dependency in your `package.json`, the required flags above will *not* be applied. Therefore, it's recommened that you remove `better-sqlite3` from your dependency list, and instead add a [`preinstall` script](https://docs.npmjs.com/misc/scripts) like the one shown below.
+However, if you simply run `npm install` while `better-sqlite3` is listed as a dependency in your `package.json`, the required flags above will *not* be applied. Therefore, it's recommened that you remove `better-sqlite3` from your dependency list, and instead add a [`preinstall` script](https://docs.npmjs.com/misc/scripts) like the one shown below.
 
 ```json
 {
