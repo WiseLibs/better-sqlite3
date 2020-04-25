@@ -56,8 +56,7 @@
           'includes': ['defines.gypi'],
         }, {
           'defines': [
-            # These are currently required by better-sqlite3.
-            'SQLITE_USE_URI=1',
+            # This is currently required by better-sqlite3.
             'SQLITE_ENABLE_COLUMN_METADATA',
           ],
         }]

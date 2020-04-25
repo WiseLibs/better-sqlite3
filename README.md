@@ -69,6 +69,7 @@ For these situations, you should probably use a full-fledged RDBMS such as [Post
 - [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
 - [64-bit integer support](./docs/integer.md)
 - [Worker thread support](./docs/threads.md)
+- [Unsafe mode (advanced)](./docs/unsafe.md)
 - [SQLite3 compilation](./docs/compilation.md)
 
 # License
