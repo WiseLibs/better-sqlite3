@@ -52,4 +52,4 @@ db.prepare('SELECT isInt(?)').pluck().get(10); // => "false"
 db.prepare('SELECT isInt(?)').pluck().get(10n); // => "true"
 ```
 
-It's worth noting that REAL (FLOAT) values returned from the database will always be represented as JavaScript numbers.
+It's worth noting that REAL (FLOAT) values returned from the database will always be represented as normal numbers.
