@@ -5,6 +5,9 @@ if (parseInt(process.versions.node) >= 12) {
 
 	if (threads.isMainThread) {
 		describe('Worker Threads', function () {
+			afterEach(function () {
+				return this.cleanup;
+			});
 			it('are properly supported', function () {
 				this.slow(1000);
 				return new Promise((resolve, reject) => {
@@ -27,13 +30,13 @@ if (parseInt(process.versions.node) >= 12) {
 								expect(data).to.deep.equal(checkedData);
 								expect(db.prepare('select 555').constructor.foo).to.equal(5);
 								resolve();
-								worker.terminate();
+								this.cleanup = worker.terminate();
 							} else {
 								throw new Error('unexpected message from worker');
 							}
 						} catch (err) {
 							reject(err);
-							worker.terminate();
+							this.cleanup = worker.terminate();
 						}
 					});
 				});
