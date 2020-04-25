@@ -201,7 +201,7 @@ private:
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
-		REQUIRE_DATABASE_NO_ITERATORS(db);
+		REQUIRE_DATABASE_NO_ITERATORS_UNLESS_UNSAFE(db);
 		db->busy = true;
 
 		UseIsolate;

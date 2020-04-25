@@ -64,36 +64,36 @@ void ThrowRangeError (char const * message)
 #line 39 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 87 "./src/util/macros.lzz"
+#line 91 "./src/util/macros.lzz"
 std::string CONCAT (char const * a, char const * b, char const * c)
-#line 87 "./src/util/macros.lzz"
+#line 91 "./src/util/macros.lzz"
                                                                 {
         std::string result(a);
         result += b;
         result += c;
         return result;
 }
-#line 95 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
 char const * COPY (char const * source)
-#line 95 "./src/util/macros.lzz"
+#line 99 "./src/util/macros.lzz"
                                      {
         size_t bytes = strlen(source) + 1;
         char* dest = new char[bytes];
         memcpy(dest, source, bytes);
         return dest;
 }
-#line 117 "./src/util/macros.lzz"
+#line 121 "./src/util/macros.lzz"
 v8::Local <v8::FunctionTemplate> NewConstructorTemplate (v8::Isolate * isolate, v8::Local <v8::External> data, v8::FunctionCallback func, char const * name)
-#line 122 "./src/util/macros.lzz"
+#line 126 "./src/util/macros.lzz"
   {
         v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, func, data);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(InternalizedFromLatin1(isolate, name));
         return t;
 }
-#line 128 "./src/util/macros.lzz"
+#line 132 "./src/util/macros.lzz"
 void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::FunctionCallback func)
-#line 134 "./src/util/macros.lzz"
+#line 138 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -101,9 +101,9 @@ void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
         );
 }
-#line 141 "./src/util/macros.lzz"
+#line 145 "./src/util/macros.lzz"
 void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback func)
-#line 147 "./src/util/macros.lzz"
+#line 151 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -111,9 +111,9 @@ void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> d
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
         );
 }
-#line 154 "./src/util/macros.lzz"
+#line 158 "./src/util/macros.lzz"
 void SetPrototypeGetter (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback func)
-#line 160 "./src/util/macros.lzz"
+#line 164 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->InstanceTemplate()->SetAccessor(
@@ -321,45 +321,46 @@ v8::Local <v8 :: Function> Database::Init (v8::Isolate * isolate, v8::Local <v8 
                 SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
                 SetPrototypeMethod(isolate, data, t, "close", JS_close);
                 SetPrototypeMethod(isolate, data, t, "defaultSafeIntegers", JS_defaultSafeIntegers);
+                SetPrototypeMethod(isolate, data, t, "unsafeMode", JS_unsafeMode);
                 SetPrototypeGetter(isolate, data, t, "open", JS_open);
                 SetPrototypeGetter(isolate, data, t, "inTransaction", JS_inTransaction);
                 return t->GetFunction( isolate -> GetCurrentContext ( ) ).ToLocalChecked();
 }
-#line 22 "./src/objects/database.lzz"
+#line 23 "./src/objects/database.lzz"
 bool Database::CompareDatabase::operator () (Database const * const a, Database const * const b) const
-#line 22 "./src/objects/database.lzz"
+#line 23 "./src/objects/database.lzz"
                                                                                            {
                         return a < b;
 }
-#line 27 "./src/objects/database.lzz"
+#line 28 "./src/objects/database.lzz"
 bool Database::CompareStatement::operator () (Statement const * const a, Statement const * const b) const
-#line 27 "./src/objects/database.lzz"
+#line 28 "./src/objects/database.lzz"
                                                                                              {
                         return Statement::Compare(a, b);
 }
-#line 32 "./src/objects/database.lzz"
+#line 33 "./src/objects/database.lzz"
 bool Database::CompareBackup::operator () (Backup const * const a, Backup const * const b) const
-#line 32 "./src/objects/database.lzz"
+#line 33 "./src/objects/database.lzz"
                                                                                        {
                         return Backup::Compare(a, b);
 }
-#line 38 "./src/objects/database.lzz"
+#line 39 "./src/objects/database.lzz"
 void Database::ThrowDatabaseError ()
-#line 38 "./src/objects/database.lzz"
+#line 39 "./src/objects/database.lzz"
                                   {
                 if (was_js_error) was_js_error = false;
                 else ThrowSqliteError(addon, db_handle);
 }
-#line 42 "./src/objects/database.lzz"
+#line 43 "./src/objects/database.lzz"
 void Database::ThrowSqliteError (Addon * addon, sqlite3 * db_handle)
-#line 42 "./src/objects/database.lzz"
+#line 43 "./src/objects/database.lzz"
                                                                        {
                 assert(db_handle != NULL);
                 ThrowSqliteError(addon, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
 }
-#line 46 "./src/objects/database.lzz"
+#line 47 "./src/objects/database.lzz"
 void Database::ThrowSqliteError (Addon * addon, char const * message, int code)
-#line 46 "./src/objects/database.lzz"
+#line 47 "./src/objects/database.lzz"
                                                                                   {
                 assert(message != NULL);
                 assert((code & 0xff) != SQLITE_OK);
@@ -374,9 +375,9 @@ void Database::ThrowSqliteError (Addon * addon, char const * message, int code)
                         ->NewInstance( isolate -> GetCurrentContext ( ) , 2, args)
                         .ToLocalChecked());
 }
-#line 62 "./src/objects/database.lzz"
+#line 63 "./src/objects/database.lzz"
 bool Database::Log (v8::Isolate * isolate, sqlite3_stmt * handle)
-#line 62 "./src/objects/database.lzz"
+#line 63 "./src/objects/database.lzz"
                                                              {
                 assert(was_js_error == false);
                 if (!has_logger) return false;
@@ -388,9 +389,9 @@ bool Database::Log (v8::Isolate * isolate, sqlite3_stmt * handle)
                 if (expanded) sqlite3_free(expanded);
                 return was_js_error;
 }
-#line 105 "./src/objects/database.lzz"
+#line 106 "./src/objects/database.lzz"
 void Database::CloseHandles ()
-#line 105 "./src/objects/database.lzz"
+#line 106 "./src/objects/database.lzz"
                             {
                 if (open) {
                         open = false;
@@ -402,25 +403,25 @@ void Database::CloseHandles ()
                         assert(status == SQLITE_OK); ((void)status);
                 }
 }
-#line 117 "./src/objects/database.lzz"
+#line 118 "./src/objects/database.lzz"
 Database::~ Database ()
-#line 117 "./src/objects/database.lzz"
+#line 118 "./src/objects/database.lzz"
                     {
                 if (open) addon->dbs.erase(this);
                 CloseHandles();
 }
-#line 124 "./src/objects/database.lzz"
+#line 125 "./src/objects/database.lzz"
 Database::Database (sqlite3 * _db_handle, v8::Isolate * isolate, Addon * _addon, v8::Local <v8::Value> _logger)
-#line 124 "./src/objects/database.lzz"
-  : node::ObjectWrap (), db_handle (_db_handle), open (true), busy (false), unsafe_mode (false), safe_ints (false), was_js_error (false), has_logger (_logger->IsFunction()), iterators (0), addon (_addon), logger (isolate, _logger), stmts (), backups ()
-#line 136 "./src/objects/database.lzz"
+#line 125 "./src/objects/database.lzz"
+  : node::ObjectWrap (), db_handle (_db_handle), open (true), busy (false), safe_ints (false), unsafe_mode (false), was_js_error (false), has_logger (_logger->IsFunction()), iterators (0), addon (_addon), logger (isolate, _logger), stmts (), backups ()
+#line 137 "./src/objects/database.lzz"
                           {
                 assert(_db_handle != NULL);
                 addon->dbs.insert(this);
 }
-#line 141 "./src/objects/database.lzz"
+#line 142 "./src/objects/database.lzz"
 void Database::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 141 "./src/objects/database.lzz"
+#line 142 "./src/objects/database.lzz"
                             {
                 assert(info.IsConstructCall());
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > filename = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
@@ -465,9 +466,9 @@ void Database::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 
                 info.GetReturnValue().Set(info.This());
 }
-#line 186 "./src/objects/database.lzz"
+#line 187 "./src/objects/database.lzz"
 void Database::JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 186 "./src/objects/database.lzz"
+#line 187 "./src/objects/database.lzz"
                                 {
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > source = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
                 (void)source;
@@ -479,15 +480,15 @@ void Database::JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 addon->privileged_info = NULL;
                 if (!maybe_statement.IsEmpty()) info.GetReturnValue().Set(maybe_statement.ToLocalChecked());
 }
-#line 198 "./src/objects/database.lzz"
+#line 199 "./src/objects/database.lzz"
 void Database::JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 198 "./src/objects/database.lzz"
+#line 199 "./src/objects/database.lzz"
                              {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > source = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
                 if ( ! db -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
-                if ( db -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
+                if ( ! db -> unsafe_mode ) { if ( db -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; } ( ( void ) 0 ) ;
                 db->busy = true;
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
@@ -520,16 +521,16 @@ void Database::JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
                 else db->ThrowDatabaseError();
 }
-#line 237 "./src/objects/database.lzz"
+#line 238 "./src/objects/database.lzz"
 void Database::JS_pragma (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 237 "./src/objects/database.lzz"
+#line 238 "./src/objects/database.lzz"
                                {
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; bool active = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ;
                 static_cast < Addon * > ( v8 :: Local < v8 :: External > :: Cast ( info . Data ( ) ) -> Value ( ) ) ->SetPragmaMode(active);
 }
-#line 242 "./src/objects/database.lzz"
+#line 243 "./src/objects/database.lzz"
 void Database::JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 242 "./src/objects/database.lzz"
+#line 243 "./src/objects/database.lzz"
                                {
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > attachedName = v8 :: Local < v8 :: String > :: Cast ( info [ 0 ] ) ;
                 if ( info . Length ( ) <= ( 1 ) || ! info [ 1 ] -> IsString ( ) ) return ThrowTypeError ( "Expected " "second" " argument to be " "a string" ) ; v8 :: Local < v8 :: String > destFile = v8 :: Local < v8 :: String > :: Cast ( info [ 1 ] ) ;
@@ -545,9 +546,9 @@ void Database::JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 addon->privileged_info = NULL;
                 if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
 }
-#line 258 "./src/objects/database.lzz"
+#line 259 "./src/objects/database.lzz"
 void Database::JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 258 "./src/objects/database.lzz"
+#line 259 "./src/objects/database.lzz"
                                  {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsFunction ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a function" ) ; v8 :: Local < v8 :: Function > fn = v8 :: Local < v8 :: Function > :: Cast ( info [ 0 ] ) ;
@@ -569,9 +570,9 @@ void Database::JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 }
                 info.GetReturnValue().Set(info.This());
 }
-#line 280 "./src/objects/database.lzz"
+#line 281 "./src/objects/database.lzz"
 void Database::JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 280 "./src/objects/database.lzz"
+#line 281 "./src/objects/database.lzz"
                                   {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if ( info . Length ( ) <= ( 0 ) ) return ThrowTypeError ( "Expected a " "first" " argument" ) ; v8 :: Local < v8 :: Value > start = info [ 0 ] ;
@@ -598,9 +599,9 @@ void Database::JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info
                 }
                 info.GetReturnValue().Set(info.This());
 }
-#line 307 "./src/objects/database.lzz"
+#line 308 "./src/objects/database.lzz"
 void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 307 "./src/objects/database.lzz"
+#line 308 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 v8::Local<v8::String> entryPoint;
@@ -621,9 +622,9 @@ void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & 
                 else ThrowSqliteError(db->addon, error, status);
                 sqlite3_free(error);
 }
-#line 328 "./src/objects/database.lzz"
+#line 329 "./src/objects/database.lzz"
 void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 328 "./src/objects/database.lzz"
+#line 329 "./src/objects/database.lzz"
                               {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (db->open) {
@@ -634,31 +635,41 @@ void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 }
                 info.GetReturnValue().Set(info.This());
 }
-#line 339 "./src/objects/database.lzz"
+#line 340 "./src/objects/database.lzz"
 void Database::JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 339 "./src/objects/database.lzz"
+#line 340 "./src/objects/database.lzz"
                                             {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (info.Length() == 0) db->safe_ints = true;
                 else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; db -> safe_ints = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
                 info.GetReturnValue().Set(info.This());
 }
-#line 346 "./src/objects/database.lzz"
+#line 347 "./src/objects/database.lzz"
+void Database::JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & info)
+#line 347 "./src/objects/database.lzz"
+                                   {
+                Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
+                if (info.Length() == 0) db->unsafe_mode = true;
+                else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; db -> unsafe_mode = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
+                sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode));
+                info.GetReturnValue().Set(info.This());
+}
+#line 355 "./src/objects/database.lzz"
 void Database::JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 346 "./src/objects/database.lzz"
+#line 355 "./src/objects/database.lzz"
                              {
                 info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Database>(info.This())->open);
 }
-#line 350 "./src/objects/database.lzz"
+#line 359 "./src/objects/database.lzz"
 void Database::JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 350 "./src/objects/database.lzz"
+#line 359 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 }
-#line 355 "./src/objects/database.lzz"
+#line 364 "./src/objects/database.lzz"
 int const Database::MAX_BUFFER_SIZE;
-#line 356 "./src/objects/database.lzz"
+#line 365 "./src/objects/database.lzz"
 int const Database::MAX_STRING_SIZE;
 #line 5 "./src/objects/statement.lzz"
 v8::Local <v8 :: Function> Statement::Init (v8::Isolate * isolate, v8::Local <v8 :: External> data)
@@ -741,7 +752,7 @@ void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
                 if (addon->PragmaMode()) {
-                        if ( db -> GetState ( ) -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
+                        if ( ! db -> GetState ( ) -> unsafe_mode ) { if ( db -> GetState ( ) -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; } ( ( void ) 0 ) ;
                         flags = 0;
                 }
 
@@ -792,7 +803,7 @@ void Statement::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 void Statement::JS_run (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 #line 139 "./src/objects/statement.lzz"
                             {
-                Statement * stmt = node :: ObjectWrap :: Unwrap < Statement > ( info . This ( ) ) ; if ( stmt -> returns_data ) return ThrowTypeError ( "This statement returns data. Use get(), all(), or iterate() instead" ) ; sqlite3_stmt * handle = stmt -> handle ; Database * db = stmt -> db ; if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ; if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; if ( db -> GetState ( ) -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; const bool bound = stmt -> bound ; if ( ! bound ) { Binder binder ( handle ) ; if ( ! binder . Bind ( info , info . Length ( ) , stmt ) ) { sqlite3_clear_bindings ( handle ) ; return ; } ( ( void ) 0 ) ; } else if ( info . Length ( ) > 0 ) { return ThrowTypeError ( "This statement already has bound parameters" ) ; } ( ( void ) 0 ) ; db -> GetState ( ) -> busy = true ; v8 :: Isolate * isolate = info . GetIsolate ( ) ; if ( db -> Log ( isolate , handle ) ) { db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ; } ( ( void ) 0 ) ;
+                Statement * stmt = node :: ObjectWrap :: Unwrap < Statement > ( info . This ( ) ) ; if ( stmt -> returns_data ) return ThrowTypeError ( "This statement returns data. Use get(), all(), or iterate() instead" ) ; sqlite3_stmt * handle = stmt -> handle ; Database * db = stmt -> db ; if ( ! db -> GetState ( ) -> open ) return ThrowTypeError ( "The database connection is not open" ) ; if ( db -> GetState ( ) -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; assert ( ! stmt -> locked ) ; if ( ! db -> GetState ( ) -> unsafe_mode ) { if ( db -> GetState ( ) -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ; } ( ( void ) 0 ) ; const bool bound = stmt -> bound ; if ( ! bound ) { Binder binder ( handle ) ; if ( ! binder . Bind ( info , info . Length ( ) , stmt ) ) { sqlite3_clear_bindings ( handle ) ; return ; } ( ( void ) 0 ) ; } else if ( info . Length ( ) > 0 ) { return ThrowTypeError ( "This statement already has bound parameters" ) ; } ( ( void ) 0 ) ; db -> GetState ( ) -> busy = true ; v8 :: Isolate * isolate = info . GetIsolate ( ) ; if ( db -> Log ( isolate , handle ) ) { db -> GetState ( ) -> busy = false ; db -> ThrowDatabaseError ( ) ; if ( ! bound ) { sqlite3_clear_bindings ( handle ) ; } return ; } ( ( void ) 0 ) ;
                 sqlite3* db_handle = db->GetHandle();
                 int total_changes_before = sqlite3_total_changes(db_handle);
 

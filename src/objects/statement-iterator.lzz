@@ -43,7 +43,7 @@ private:
 		StatementIterator* iter;
 		{
 			NODE_ARGUMENTS info = *addon->privileged_info;
-			STATEMENT_START_LOGIC(REQUIRE_STATEMENT_RETURNS_DATA, ADDS_ITERATOR);
+			STATEMENT_START_LOGIC(REQUIRE_STATEMENT_RETURNS_DATA, DOES_ADD_ITERATOR);
 			iter = new StatementIterator(stmt, bound);
 		}
 		UseIsolate;
