@@ -82,7 +82,7 @@ private:
 			return;
 		}
 
-		Backup* backup = new Backup(db, dest_handle, backup_handle, addon->next_id++, unlink);
+		Backup* backup = new Backup(db, dest_handle, backup_handle, addon->NextId(), unlink);
 		backup->Wrap(info.This());
 		SetFrozen(isolate, OnlyContext, info.This(), addon->cs.database, database);
 

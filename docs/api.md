@@ -82,6 +82,8 @@ insertMany.immediate(cats); // uses "BEGIN IMMEDIATE"
 insertMany.exclusive(cats); // uses "BEGIN EXCLUSIVE"
 ```
 
+Any arguments passed to the transaction function will be forwarded to the wrapped function, and any values returned from the wrapped function will be returned from the transaction function. The wrapped function will also have access to the same [`this`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this) binding as the transaction function.
+
 #### Caveats
 
 If you'd like to manage transactions manually, you're free to do so with regular [prepared statements](#preparestring---statement) (using `BEGIN`, `COMMIT`, etc.). However, manually managed transactions should not be mixed with transactions managed by this `.transaction()` method. In other words, using raw `COMMIT` or `ROLLBACK` statements inside a transaction function is not supported.
@@ -148,6 +150,8 @@ db.backup(`backup-${Date.now()}.db`, {
   }
 });
 ```
+
+If the backup is successful, the returned promise will contain an object that has the same properties as the one provided to the `progress` callback, and `.remainingPages` will necessarily be `0`.
 
 ### .function(*name*, [*options*], *function*) -> *this*
 

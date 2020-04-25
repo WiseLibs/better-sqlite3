@@ -29,14 +29,14 @@ class Backup;
 #insert "util/binder.lzz"
 
 struct Addon {
-	Addon(v8::Isolate* isolate) : privileged_info(NULL), next_id(0), cs(isolate) {}
+	Addon(v8::Isolate* isolate) : privileged_info(NULL), bit_field(0), cs(isolate) {}
 
 	CopyablePersistent<v8::Function> Statement;
 	CopyablePersistent<v8::Function> StatementIterator;
 	CopyablePersistent<v8::Function> Backup;
 	CopyablePersistent<v8::Function> SqliteError;
 	NODE_ARGUMENTS_POINTER privileged_info;
-	sqlite3_uint64 next_id;
+	sqlite3_uint64 bit_field;
 	CS cs;
 	std::set<Database*, Database::CompareDatabase> dbs;
 
@@ -50,6 +50,16 @@ struct Addon {
 		for (Database* db : addon->dbs) db->CloseHandles();
 		addon->dbs.clear();
 		delete addon;
+	}
+
+	inline sqlite3_uint64 NextId() {
+		return (bit_field++ << 1) >> 1;
+	}
+	inline bool PragmaMode() {
+		return bit_field >> 63 != 0;
+	}
+	inline void SetPragmaMode(bool active) {
+		bit_field = (bit_field << 1) >> 1 | static_cast<sqlite3_uint64>(active) << 63;
 	}
 };
 

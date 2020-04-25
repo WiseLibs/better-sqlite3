@@ -84,7 +84,7 @@ public:
 	struct State {
 		const bool open;
 		bool busy;
-		const bool pragma_mode;
+		const bool unsafe_mode;
 		const bool safe_ints;
 		bool was_js_error;
 		const bool has_logger;
@@ -125,7 +125,7 @@ private:
 		db_handle(_db_handle),
 		open(true),
 		busy(false),
-		pragma_mode(false),
+		unsafe_mode(false),
 		safe_ints(false),
 		was_js_error(false),
 		has_logger(_logger->IsFunction()),
@@ -235,7 +235,8 @@ private:
 	}
 
 	NODE_METHOD(JS_pragma) {
-		REQUIRE_ARGUMENT_BOOLEAN(first, Unwrap<Database>(info.This())->pragma_mode);
+		REQUIRE_ARGUMENT_BOOLEAN(first, bool active);
+		OnlyAddon->SetPragmaMode(active);
 	}
 
 	NODE_METHOD(JS_backup) {
@@ -357,7 +358,7 @@ private:
 	sqlite3* const db_handle;
 	bool open;
 	bool busy;
-	bool pragma_mode;
+	bool unsafe_mode;
 	bool safe_ints;
 	bool was_js_error;
 	const bool has_logger;
