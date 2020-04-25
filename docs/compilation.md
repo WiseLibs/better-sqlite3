@@ -10,9 +10,9 @@ However, if you simply run `npm install` while `better-sqlite3` is listed as a d
 
 ```json
 {
-	"scripts": {
-		"preinstall": "npm install better-sqlite3@'^7.0.0' --no-save --build-from-source --sqlite3=\"$(pwd)/sqlite-amalgamation\""
-	}
+  "scripts": {
+    "preinstall": "npm install better-sqlite3@'^7.0.0' --no-save --build-from-source --sqlite3=\"$(pwd)/sqlite-amalgamation\""
+  }
 }
 ```
 
