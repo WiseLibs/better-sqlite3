@@ -48,8 +48,8 @@ before_script:
 - npm run build-debug
 before_deploy:
 - npm run build-release
-- $(npm bin)/prebuild -r node -t 10.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
-- $(npm bin)/prebuild -r electron -t 3.0.0 -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 -t 8.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r node -t 10.20.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r electron -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 -t 8.0.0 --include-regex 'better_sqlite3.node$'
 deploy:
   provider: releases
   api_key:
