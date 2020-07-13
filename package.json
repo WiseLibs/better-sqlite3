@@ -1,13 +1,14 @@
 {
-  "name": "better-sqlite3",
-  "version": "7.1.0",
-  "description": "The fastest and simplest library for SQLite3 in Node.js.",
-  "homepage": "http://github.com/JoshuaWise/better-sqlite3",
+  "name": "moc-better-sqlite3",
+  "version": "7.0.4",
+  "description": "(better-sqlite3 fork with updated prebuilds): The fastest and simplest library for SQLite3 in Node.js.",
+  "homepage": "http://github.com/vazra/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
   "main": "lib/index.js",
+  "typings": "typings/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git://github.com/JoshuaWise/better-sqlite3.git"
+    "url": "git://github.com/vazra/better-sqlite3.git"
   },
   "dependencies": {
     "bindings": "^1.5.0",
@@ -33,7 +34,7 @@
     "benchmark": "node benchmark",
     "download": "sh ./deps/download.sh",
     "lzz": "lzz -hx hpp -sx cpp -k BETTER_SQLITE3 -d -hl -sl -e ./src/better_sqlite3.lzz",
-    "prepublishOnly": "npm run lzz"
+    "temp-prepublishOnly": "npm run lzz"
   },
   "license": "MIT",
   "keywords": [
