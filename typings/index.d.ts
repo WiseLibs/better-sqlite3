@@ -14,7 +14,7 @@ import Integer = require('integer');
 type VariableArgFunction = (...params: any[]) => any;
 type ArgumentTypes<F extends VariableArgFunction> = F extends (...args: infer A) => any ? A : never;
 
-declare namespace BetterSqlite3 {
+declare namespace MocBetterSqlite3 {
     interface Statement<BindParameters extends any[]> {
         database: Database;
         source: string;
@@ -131,12 +131,12 @@ declare namespace Database {
     type Integer = typeof Integer;
     type SqliteError = typeof SqliteError;
     type Statement<BindParameters extends any[] | {} = any[]> = BindParameters extends any[]
-        ? BetterSqlite3.Statement<BindParameters>
-        : BetterSqlite3.Statement<[BindParameters]>;
-    type ColumnDefinition = BetterSqlite3.ColumnDefinition;
-    type Transaction = BetterSqlite3.Transaction<VariableArgFunction>;
-    type Database = BetterSqlite3.Database;
+        ? MocBetterSqlite3.Statement<BindParameters>
+        : MocBetterSqlite3.Statement<[BindParameters]>;
+    type ColumnDefinition = MocBetterSqlite3.ColumnDefinition;
+    type Transaction = MocBetterSqlite3.Transaction<VariableArgFunction>;
+    type Database = MocBetterSqlite3.Database;
 }
 
-declare const Database: BetterSqlite3.DatabaseConstructor;
+declare const Database: MocBetterSqlite3.DatabaseConstructor;
 export = Database;
