@@ -58,5 +58,5 @@ jobs:
       - run: npm run build-release
       - name: create prebuild
         run: |
-          npx prebuild -r electron -t 9.0.0 --include-regex 'better_sqlite3.node$' --arch x86 -u ${{ secrets.GITHUB_TOKEN }}
+          npx prebuild -r electron -t 9.0.0 --include-regex 'better_sqlite3.node$' --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
         # npx prebuild -r electron -t 9.0.0 --include-regex 'better_sqlite3.node$' --arch x86 -u ${{ secrets.GITHUB_TOKEN }}
