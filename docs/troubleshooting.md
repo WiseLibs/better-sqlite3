@@ -11,21 +11,13 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 4. If you're using Windows, follow these steps. Do them **in this order**, and **don't skip steps**.
 
     1. Install the **latest** of node 10 or node 12.
-    2. Start an Admin PowerShell: Right-click the start icon, then pick `Windows PowerShell (Admin)`
-    3. Install *both* vs2015 and vs2017 libraries. Each line will take ~5-10 minutes.
-       ```sh
-       npm install --global --production --vs2015 --add-python-to-path windows-build-tools
-       npm install --global --production --add-python-to-path windows-build-tools node-gyp
-       ```
-    4. In your project, make sure you're not fighting with old build configurations. Delete **both**
-       * your `%USERPROFILE%/.node-gyp` and
-       * your project's `node_modules` directories.
-    5. Set up `%USERPROFILE%/.npmrc` correctly:
-       ```sh
-       msvs_version=2015
-       python=python2.7
-       ```
-       (where `%USERPROFILE%` is your home directory).
-    6. Run `npm install`
+    2. Install **latest** Visual Studio Community and Desktop Development with C++ extension.
+    3. Install **latest** Python.
+    4. Run following commands:
+    ```
+    npm config set msvs_version 2019
+    npm config set msbuild_path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+    ```
+    5. Run `npm install`
 
 If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
