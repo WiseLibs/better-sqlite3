@@ -1,7 +1,4 @@
-on:
-  push:
-    tags:
-      - 'v*'
+on: [push]
 
 name: Prebuild
 
