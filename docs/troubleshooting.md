@@ -10,7 +10,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 4. If you're using Windows, follow these steps. Do them **in this order**, and **don't skip steps**.
 
-    1. Install the **latest** of node 10 or node 12.
+    1. Install the **latest** of node 10, 12, or 14.
     2. Start an Admin PowerShell: Right-click the start icon, then pick `Windows PowerShell (Admin)`
     3. Install *both* vs2015 and vs2017 libraries. Each line will take ~5-10 minutes.
        ```sh

@@ -57,7 +57,6 @@ matrix:
       env:
         - CXX=g++
         - CC=gcc
-
     - name: "OS X - Node 14"
       os: osx
       node_js: "14"
