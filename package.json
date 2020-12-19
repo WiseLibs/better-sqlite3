@@ -12,7 +12,7 @@
   "dependencies": {
     "bindings": "^1.5.0",
     "prebuild-install": "^5.3.3",
-    "tar": "4.4.10"
+    "tar": "^6.0.5"
   },
   "devDependencies": {
     "chai": "^4.2.0",
