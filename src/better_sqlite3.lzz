@@ -19,6 +19,7 @@
 struct Addon;
 class Statement;
 class Backup;
+class Authorizerfunction;
 #insert "objects/database.lzz"
 #insert "objects/statement.lzz"
 #insert "objects/statement-iterator.lzz"
@@ -27,6 +28,7 @@ class Backup;
 #insert "util/custom-aggregate.lzz"
 #insert "util/data.lzz"
 #insert "util/binder.lzz"
+#insert "util/authorizer-function.lzz"
 
 struct Addon {
 	Addon(v8::Isolate* isolate) : privileged_info(NULL), bit_field(0), cs(isolate) {}
