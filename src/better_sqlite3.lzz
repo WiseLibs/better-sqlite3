@@ -29,6 +29,7 @@ class Authorizerfunction;
 #insert "util/data.lzz"
 #insert "util/binder.lzz"
 #insert "util/authorizer-function.lzz"
+#insert "util/codes.lzz"
 
 struct Addon {
 	Addon(v8::Isolate* isolate) : privileged_info(NULL), bit_field(0), cs(isolate) {}
@@ -81,6 +82,7 @@ NODE_MODULE_INIT(/* exports, context */) {
 	exports->Set(context, InternalizedFromLatin1(isolate, "StatementIterator"), StatementIterator::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "Codes"), Codes::New(isolate, context)).FromJust();
 
 	// Store addon instance data.
 	addon->Statement.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked()));
