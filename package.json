@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
+    "chai-spies": "^1.0.0",
     "cli-color": "^2.0.0",
     "fs-extra": "^8.1.0",
     "mocha": "^7.0.1",

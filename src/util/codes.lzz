@@ -1,0 +1,53 @@
+namespace Codes {
+
+    #define SQLITE_(name) codes->Set(context, InternalizedFromLatin1(isolate, "SQLITE_" #name), v8::Integer::New(isolate, SQLITE_##name)).FromJust();
+
+    v8::Local<v8::Object> New(v8::Isolate* isolate, v8::Local<v8::Context> context) {
+        v8::Local<v8::Object> codes = v8::Object::New(isolate);
+
+        SQLITE_(OK)
+        SQLITE_(DENY)
+        SQLITE_(IGNORE)
+
+        //- compile time authorization callback codes
+        // see: https://sqlite.org/c3ref/c_alter_table.html
+        SQLITE_(CREATE_INDEX)
+        SQLITE_(CREATE_TABLE)
+        SQLITE_(CREATE_TEMP_INDEX)
+        SQLITE_(CREATE_TEMP_TABLE)
+        SQLITE_(CREATE_TEMP_TRIGGER)
+        SQLITE_(CREATE_TEMP_VIEW)
+        SQLITE_(CREATE_TRIGGER)
+        SQLITE_(CREATE_VIEW)
+        SQLITE_(DELETE)
+        SQLITE_(DROP_INDEX)
+        SQLITE_(DROP_TABLE)
+        SQLITE_(DROP_TEMP_INDEX)
+        SQLITE_(DROP_TEMP_TABLE)
+        SQLITE_(DROP_TEMP_TRIGGER)
+        SQLITE_(DROP_TEMP_VIEW)
+        SQLITE_(DROP_TRIGGER)
+        SQLITE_(DROP_VIEW)
+        SQLITE_(INSERT)
+        SQLITE_(PRAGMA)
+        SQLITE_(READ)
+        SQLITE_(SELECT)
+        SQLITE_(TRANSACTION)
+        SQLITE_(UPDATE)
+        SQLITE_(ATTACH)
+        SQLITE_(DETACH)
+        SQLITE_(ALTER_TABLE)
+        SQLITE_(REINDEX)
+        SQLITE_(ANALYZE)
+        SQLITE_(CREATE_VTABLE)
+        SQLITE_(DROP_VTABLE)
+        SQLITE_(FUNCTION)
+        SQLITE_(SAVEPOINT)
+        SQLITE_(COPY)
+        SQLITE_(RECURSIVE)
+
+        // TODO: define other sqlite3 codes from https://www.sqlite.org/c3ref/constlist.html
+
+        return codes;
+    }
+}

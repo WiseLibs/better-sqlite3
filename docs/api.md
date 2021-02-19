@@ -11,6 +11,7 @@
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#backup()](#backupdestination-options---promise)
 - [Database#function()](#functionname-options-function---this)
+- [Database#setAuthorizer()](#setauthorizerfn---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath-entrypoint---this)
 - [Database#exec()](#execstring---this)
@@ -175,6 +176,27 @@ db.function('void', { deterministic: true, varargs: true }, () => {});
 db.prepare("SELECT void()").pluck().get(); // => null
 db.prepare("SELECT void(?, ?)").pluck().get(55, 19); // => null
 ```
+
+### .setAuthorizer(fn) -> *this*
+
+Register a [compile-time authorization callback](https://sqlite.org/c3ref/set_authorizer.html) function. 
+
+```js
+db.setAuthorizer(function(op, a0, a1, database, trigger){
+  // do something with the arg
+  // and return the decision as either SQLITE_OK, SQLITE_DENY or SQLITE_IGNORE
+  // not returning any value or throwing an error will cause the driver to return SQLITE_ERROR
+  return SQLITE_DENY;  // for fun :)
+});
+
+db.prepare("SELECT * FROM users")  // this will throw SqliteError: authorization error
+```
+
+The authorizer callback is invoked as SQL statements are being compiled by `sqlite3_prepare()` or its variants. The callback function receives as argument the [action code](https://sqlite.org/c3ref/c_alter_table.html)and the related parameters, along with the current _database_ and _trigger_ name.
+
+The callback function _must_ accept exactly 5 arguments. Any given database can only have a single authorizer function attached to it at any given point in time.
+
+To unset a previously registered authorizer invoke `setAuthorizer` with a `null` argument.
 
 ### .aggregate(*name*, *options*) -> *this*
 
