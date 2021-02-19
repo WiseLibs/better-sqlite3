@@ -44,10 +44,10 @@ exports.asyncQuery = (sql, ...parameters) => {
   Call poll() in every worker upon new asyncQuery request.
  */
 
-const workers = [];
+let workers = [];
 function callWorkers() {
-  workers.forEach((poll) => {
-    poll();
+  workers.forEach((worker) => {
+    worker.poll();
   })
 }
 
@@ -57,6 +57,7 @@ function callWorkers() {
 
 os.cpus().forEach(function spawn() {
   const worker = new Worker('./worker.js');
+  const threadId = worker.threadId;
 
   let job = null; // Current item from the queue
   let error = null; // Error that caused the worker to crash
@@ -81,6 +82,7 @@ os.cpus().forEach(function spawn() {
       error = err;
     })
     .on('exit', (code) => {
+      workers = workers.filter(w => w.threadId !== threadId);
       if (job) {
         job.reject(error || new Error('worker died'));
       }
@@ -90,6 +92,6 @@ os.cpus().forEach(function spawn() {
       }
     });
 
-  workers.push(poll);
+  workers.push({threadId, poll});
 });
 ```
