@@ -2,7 +2,7 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 69 "./src/better_sqlite3.lzz"
+#line 70 "./src/better_sqlite3.lzz"
 NODE_MODULE_INIT(/* exports, context */) {
 	v8::Isolate* isolate = context->GetIsolate();
 	v8::HandleScope scope(isolate);
@@ -18,6 +18,7 @@ NODE_MODULE_INIT(/* exports, context */) {
 	exports->Set(context, InternalizedFromLatin1(isolate, "StatementIterator"), StatementIterator::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
+	exports->Set(context, InternalizedFromLatin1(isolate, "Codes"), Codes::New(isolate, context)).FromJust();
 
 	// Store addon instance data.
 	addon->Statement.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked()));
@@ -1720,22 +1721,75 @@ int Authorizerfunction::xAuth (void * p, int op, char const * a0, char const * a
 
         return SQLITE_ERROR;
 }
-#line 34 "./src/better_sqlite3.lzz"
+#line 1 "./src/util/codes.lzz"
+namespace Codes
+{
+#line 5 "./src/util/codes.lzz"
+  v8::Local <v8::Object> New (v8::Isolate * isolate, v8::Local <v8::Context> context)
+#line 5 "./src/util/codes.lzz"
+                                                                                    {
+        v8::Local<v8::Object> codes = v8::Object::New(isolate);
+
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "OK" ) , v8 :: Integer :: New ( isolate , SQLITE_OK ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DENY" ) , v8 :: Integer :: New ( isolate , SQLITE_DENY ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "IGNORE" ) , v8 :: Integer :: New ( isolate , SQLITE_IGNORE ) ) . FromJust ( ) ;
+
+
+
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_INDEX" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_INDEX ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TEMP_INDEX" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TEMP_INDEX ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TEMP_TABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TEMP_TABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TEMP_TRIGGER" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TEMP_TRIGGER ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TEMP_VIEW" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TEMP_VIEW ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_TRIGGER" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_TRIGGER ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_VIEW" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_VIEW ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DELETE" ) , v8 :: Integer :: New ( isolate , SQLITE_DELETE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_INDEX" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_INDEX ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TEMP_INDEX" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TEMP_INDEX ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TEMP_TABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TEMP_TABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TEMP_TRIGGER" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TEMP_TRIGGER ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TEMP_VIEW" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TEMP_VIEW ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_TRIGGER" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_TRIGGER ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_VIEW" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_VIEW ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "INSERT" ) , v8 :: Integer :: New ( isolate , SQLITE_INSERT ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "PRAGMA" ) , v8 :: Integer :: New ( isolate , SQLITE_PRAGMA ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "READ" ) , v8 :: Integer :: New ( isolate , SQLITE_READ ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "SELECT" ) , v8 :: Integer :: New ( isolate , SQLITE_SELECT ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "TRANSACTION" ) , v8 :: Integer :: New ( isolate , SQLITE_TRANSACTION ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "UPDATE" ) , v8 :: Integer :: New ( isolate , SQLITE_UPDATE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "ATTACH" ) , v8 :: Integer :: New ( isolate , SQLITE_ATTACH ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DETACH" ) , v8 :: Integer :: New ( isolate , SQLITE_DETACH ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "ALTER_TABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_ALTER_TABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "REINDEX" ) , v8 :: Integer :: New ( isolate , SQLITE_REINDEX ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "ANALYZE" ) , v8 :: Integer :: New ( isolate , SQLITE_ANALYZE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "CREATE_VTABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_CREATE_VTABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "DROP_VTABLE" ) , v8 :: Integer :: New ( isolate , SQLITE_DROP_VTABLE ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "FUNCTION" ) , v8 :: Integer :: New ( isolate , SQLITE_FUNCTION ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "SAVEPOINT" ) , v8 :: Integer :: New ( isolate , SQLITE_SAVEPOINT ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "COPY" ) , v8 :: Integer :: New ( isolate , SQLITE_COPY ) ) . FromJust ( ) ;
+        codes -> Set ( context , InternalizedFromLatin1 ( isolate , "SQLITE_" "RECURSIVE" ) , v8 :: Integer :: New ( isolate , SQLITE_RECURSIVE ) ) . FromJust ( ) ;
+
+        return codes;
+  }
+}
+#line 35 "./src/better_sqlite3.lzz"
 Addon::Addon (v8::Isolate * isolate)
-#line 34 "./src/better_sqlite3.lzz"
+#line 35 "./src/better_sqlite3.lzz"
   : privileged_info (NULL), bit_field (0), cs (isolate)
-#line 34 "./src/better_sqlite3.lzz"
+#line 35 "./src/better_sqlite3.lzz"
                                                                                        {}
-#line 45 "./src/better_sqlite3.lzz"
+#line 46 "./src/better_sqlite3.lzz"
 void Addon::JS_setErrorConstructor (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 45 "./src/better_sqlite3.lzz"
+#line 46 "./src/better_sqlite3.lzz"
                                             {
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsFunction ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a function" ) ; v8 :: Local < v8 :: Function > SqliteError = v8 :: Local < v8 :: Function > :: Cast ( info [ 0 ] ) ;
                 static_cast < Addon * > ( v8 :: Local < v8 :: External > :: Cast ( info . Data ( ) ) -> Value ( ) ) ->SqliteError.Reset( info . GetIsolate ( ) , SqliteError);
 }
-#line 50 "./src/better_sqlite3.lzz"
+#line 51 "./src/better_sqlite3.lzz"
 void Addon::Cleanup (void * ptr)
-#line 50 "./src/better_sqlite3.lzz"
+#line 51 "./src/better_sqlite3.lzz"
                                        {
                 Addon* addon = static_cast<Addon*>(ptr);
                 for (Database* db : addon->dbs) db->CloseHandles();

@@ -666,36 +666,42 @@ protected:
 #line 31 "./src/util/authorizer-function.lzz"
   CopyablePersistent <v8::Function> const fn;
 };
-#line 33 "./src/better_sqlite3.lzz"
+#line 1 "./src/util/codes.lzz"
+namespace Codes
+{
+#line 5 "./src/util/codes.lzz"
+  v8::Local <v8::Object> New (v8::Isolate * isolate, v8::Local <v8::Context> context);
+}
+#line 34 "./src/better_sqlite3.lzz"
 struct Addon
 {
-#line 34 "./src/better_sqlite3.lzz"
+#line 35 "./src/better_sqlite3.lzz"
   Addon (v8::Isolate * isolate);
-#line 36 "./src/better_sqlite3.lzz"
-  CopyablePersistent <v8::Function> Statement;
 #line 37 "./src/better_sqlite3.lzz"
-  CopyablePersistent <v8::Function> StatementIterator;
+  CopyablePersistent <v8::Function> Statement;
 #line 38 "./src/better_sqlite3.lzz"
-  CopyablePersistent <v8::Function> Backup;
+  CopyablePersistent <v8::Function> StatementIterator;
 #line 39 "./src/better_sqlite3.lzz"
-  CopyablePersistent <v8::Function> SqliteError;
+  CopyablePersistent <v8::Function> Backup;
 #line 40 "./src/better_sqlite3.lzz"
-  v8::FunctionCallbackInfo <v8 :: Value> const * privileged_info;
+  CopyablePersistent <v8::Function> SqliteError;
 #line 41 "./src/better_sqlite3.lzz"
-  sqlite3_uint64 bit_field;
+  v8::FunctionCallbackInfo <v8 :: Value> const * privileged_info;
 #line 42 "./src/better_sqlite3.lzz"
-  CS cs;
+  sqlite3_uint64 bit_field;
 #line 43 "./src/better_sqlite3.lzz"
+  CS cs;
+#line 44 "./src/better_sqlite3.lzz"
   std::set <Database*, Database::CompareDatabase> dbs;
-#line 45 "./src/better_sqlite3.lzz"
+#line 46 "./src/better_sqlite3.lzz"
   static void JS_setErrorConstructor (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 50 "./src/better_sqlite3.lzz"
+#line 51 "./src/better_sqlite3.lzz"
   static void Cleanup (void * ptr);
-#line 57 "./src/better_sqlite3.lzz"
+#line 58 "./src/better_sqlite3.lzz"
   sqlite3_uint64 NextId ();
-#line 60 "./src/better_sqlite3.lzz"
+#line 61 "./src/better_sqlite3.lzz"
   bool PragmaMode ();
-#line 63 "./src/better_sqlite3.lzz"
+#line 64 "./src/better_sqlite3.lzz"
   void SetPragmaMode (bool active);
 };
 #line 16 "./src/util/macros.lzz"
@@ -891,21 +897,21 @@ LZZ_INLINE void CustomAggregate::xValueBase (sqlite3_context * invocation, bool 
                 Data::ResultValueFromJS(isolate, invocation, result, self);
                 if (is_final) DestroyAccumulator(invocation);
 }
-#line 57 "./src/better_sqlite3.lzz"
+#line 58 "./src/better_sqlite3.lzz"
 LZZ_INLINE sqlite3_uint64 Addon::NextId ()
-#line 57 "./src/better_sqlite3.lzz"
+#line 58 "./src/better_sqlite3.lzz"
                                        {
                 return (bit_field++ << 1) >> 1;
 }
-#line 60 "./src/better_sqlite3.lzz"
+#line 61 "./src/better_sqlite3.lzz"
 LZZ_INLINE bool Addon::PragmaMode ()
-#line 60 "./src/better_sqlite3.lzz"
+#line 61 "./src/better_sqlite3.lzz"
                                  {
                 return bit_field >> 63 != 0;
 }
-#line 63 "./src/better_sqlite3.lzz"
+#line 64 "./src/better_sqlite3.lzz"
 LZZ_INLINE void Addon::SetPragmaMode (bool active)
-#line 63 "./src/better_sqlite3.lzz"
+#line 64 "./src/better_sqlite3.lzz"
                                                {
                 bit_field = (bit_field << 1) >> 1 | static_cast<sqlite3_uint64>(active) << 63;
 }
