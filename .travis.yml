@@ -69,7 +69,7 @@ before_script:
 - npm run build-debug
 before_deploy:
 - npm run build-release
-- $(npm bin)/prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 15.0.0 --include-regex 'better_sqlite3.node$'
 - $(npm bin)/prebuild -r electron -t 9.0.0 -t 10.0.0 -t 11.0.0 --include-regex 'better_sqlite3.node$'
 deploy:
   provider: releases
