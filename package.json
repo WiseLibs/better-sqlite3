@@ -1,6 +1,6 @@
 {
   "name": "moc-better-sqlite3",
-  "version": "7.1.1",
+  "version": "7.1.2",
   "description": "(better-sqlite3 fork with updated prebuilds): The fastest and simplest library for SQLite3 in Node.js.",
   "homepage": "http://github.com/vazra/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
