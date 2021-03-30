@@ -6,7 +6,7 @@ on:
 name: Prebuild
 
 jobs:
-  prebuild-node:
+  prebuild-node-electron-64bit:
     name: Build and Upload for Node & Electron 64bit
     runs-on: ${{ matrix.os }}
     strategy:
