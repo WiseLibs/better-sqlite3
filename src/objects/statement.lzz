@@ -82,18 +82,21 @@ private:
 			return ThrowTypeError("Statements can only be constructed by the db.prepare() method");
 		}
 		assert(info.IsConstructCall());
-		v8::Local<v8::Object> database = addon->privileged_info->This();
-		Database* db = Unwrap<Database>(database);
-		int flags = SQLITE_PREPARE_PERSISTENT;
+		Database* db = Unwrap<Database>(addon->privileged_info->This());
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
-		if (addon->PragmaMode()) {
+
+		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
+		v8::Local<v8::Object> database = v8::Local<v8::Object>::Cast((*addon->privileged_info)[1]);
+		bool pragmaMode = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[2])->Value();
+		int flags = SQLITE_PREPARE_PERSISTENT;
+
+		if (pragmaMode) {
 			REQUIRE_DATABASE_NO_ITERATORS_UNLESS_UNSAFE(db->GetState());
 			flags = 0;
 		}
 
 		UseIsolate;
-		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
 		v8::String::Utf8Value utf8(isolate, source);
 		sqlite3_stmt* handle;
 		const char* tail;
@@ -126,7 +129,7 @@ private:
 		}
 
 		UseContext;
-		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || addon->PragmaMode();
+		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || pragmaMode;
 		Statement* stmt = new Statement(db, handle, addon->NextId(), returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), addon->cs.reader, v8::Boolean::New(isolate, returns_data));

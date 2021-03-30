@@ -13,7 +13,8 @@ module.exports = new Map([
 		return db;
 	}],
 	['node-sqlite3', async (filename, pragma) => {
-		const db = await require('sqlite').open(filename);
+		const driver = require('sqlite3').Database;
+		const db = await (require('sqlite').open)({ filename, driver });
 		for (const str of pragma) await db.run(`PRAGMA ${str}`);
 		return db;
 	}],

@@ -36,8 +36,20 @@ exports.asyncQuery = (sql, ...parameters) => {
       reject,
       message: { sql, parameters },
     });
+    drainQueue();
   });
 };
+
+/*
+  Instruct workers to drain the queue.
+ */
+
+let workers = [];
+function drainQueue() {
+  for (const worker of workers) {
+    worker.takeWork();
+  }
+}
 
 /*
   Spawn workers that try to drain the queue.
@@ -48,32 +60,31 @@ os.cpus().forEach(function spawn() {
 
   let job = null; // Current item from the queue
   let error = null; // Error that caused the worker to crash
-  let timer = null; // Timer used for polling
 
-  function poll() {
-    if (queue.length) {
+  function takeWork() {
+    if (!job && queue.length) {
       // If there's a job in the queue, send it to the worker
       job = queue.shift();
       worker.postMessage(job.message);
-    } else {
-      // Otherwise, check again later
-      timer = setImmediate(poll);
     }
   }
 
   worker
-    .on('online', poll)
+    .on('online', () => {
+      workers.push({ takeWork });
+      takeWork();
+    })
     .on('message', (result) => {
       job.resolve(result);
       job = null;
-      poll(); // Check if there's more work to do
+      takeWork(); // Check if there's more work to do
     })
     .on('error', (err) => {
       console.error(err);
       error = err;
     })
     .on('exit', (code) => {
-      clearImmediate(timer);
+      workers = workers.filter(w => w.takeWork !== takeWork);
       if (job) {
         job.reject(error || new Error('worker died'));
       }

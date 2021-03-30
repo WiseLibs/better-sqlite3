@@ -28,6 +28,19 @@ matrix:
           packages:
           - gcc-4.9
           - g++-4.9
+    - name: "Linux - Node 14"
+      os: linux
+      node_js: "14"
+      env:
+        - CXX=g++-4.9
+        - CC=gcc-4.9
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - gcc-4.9
+          - g++-4.9
     - name: "OS X - Node 10"
       os: osx
       node_js: "10"
@@ -44,12 +57,20 @@ matrix:
       env:
         - CXX=g++
         - CC=gcc
+    - name: "OS X - Node 14"
+      os: osx
+      node_js: "14"
+      osx_image: xcode11
+      compiler: clang
+      env:
+        - CXX=g++
+        - CC=gcc
 before_script:
 - npm run build-debug
 before_deploy:
 - npm run build-release
-- $(npm bin)/prebuild -r node -t 10.20.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
-- $(npm bin)/prebuild -r electron -t 4.0.0 -t 5.0.0 -t 6.0.0 -t 7.0.0 -t 8.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 --include-regex 'better_sqlite3.node$'
+- $(npm bin)/prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'
 deploy:
   provider: releases
   api_key:
@@ -60,4 +81,4 @@ deploy:
   on:
     repo: JoshuaWise/better-sqlite3
     tags: true
-    node_js: "12"
+    node_js: "14"

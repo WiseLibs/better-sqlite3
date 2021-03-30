@@ -50,14 +50,14 @@ private:
 		UseAddon;
 		if (!addon->privileged_info) return ThrowTypeError("Disabled constructor");
 		assert(info.IsConstructCall());
-		v8::Local<v8::Object> database = addon->privileged_info->This();
-		Database* db = Unwrap<Database>(database);
+		Database* db = Unwrap<Database>(addon->privileged_info->This());
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
-		v8::Local<v8::String> attachedName = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
-		v8::Local<v8::String> destFile = v8::Local<v8::String>::Cast((*addon->privileged_info)[1]);
-		bool unlink = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[2])->Value();
+		v8::Local<v8::Object> database = v8::Local<v8::Object>::Cast((*addon->privileged_info)[0]);
+		v8::Local<v8::String> attachedName = v8::Local<v8::String>::Cast((*addon->privileged_info)[1]);
+		v8::Local<v8::String> destFile = v8::Local<v8::String>::Cast((*addon->privileged_info)[2]);
+		bool unlink = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[3])->Value();
 
 		UseIsolate;
 		sqlite3* dest_handle;

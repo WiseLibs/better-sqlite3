@@ -5,7 +5,6 @@ public:
 		v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "Database");
 		SetPrototypeMethod(isolate, data, t, "prepare", JS_prepare);
 		SetPrototypeMethod(isolate, data, t, "exec", JS_exec);
-		SetPrototypeMethod(isolate, data, t, "pragma", JS_pragma);
 		SetPrototypeMethod(isolate, data, t, "backup", JS_backup);
 		SetPrototypeMethod(isolate, data, t, "function", JS_function);
 		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
@@ -186,7 +185,11 @@ private:
 
 	NODE_METHOD(JS_prepare) {
 		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> source);
+		REQUIRE_ARGUMENT_OBJECT(second, v8::Local<v8::Object> database);
+		REQUIRE_ARGUMENT_BOOLEAN(third, bool pragmaMode);
 		(void)source;
+		(void)database;
+		(void)pragmaMode;
 		UseAddon;
 		UseIsolate;
 		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->Statement);
@@ -231,19 +234,17 @@ private:
 		}
 
 		db->busy = false;
-		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
-		else db->ThrowDatabaseError();
-	}
-
-	NODE_METHOD(JS_pragma) {
-		REQUIRE_ARGUMENT_BOOLEAN(first, bool active);
-		OnlyAddon->SetPragmaMode(active);
+		if (status != SQLITE_OK) {
+			db->ThrowDatabaseError();
+		}
 	}
 
 	NODE_METHOD(JS_backup) {
-		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> attachedName);
-		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> destFile);
-		REQUIRE_ARGUMENT_BOOLEAN(third, bool unlink);
+		REQUIRE_ARGUMENT_OBJECT(first, v8::Local<v8::Object> database);
+		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> attachedName);
+		REQUIRE_ARGUMENT_STRING(third, v8::Local<v8::String> destFile);
+		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool unlink);
+		(void)database;
 		(void)attachedName;
 		(void)destFile;
 		(void)unlink;
@@ -273,9 +274,8 @@ private:
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
 		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, fn, *name, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {
-			return db->ThrowDatabaseError();
+			db->ThrowDatabaseError();
 		}
-		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_aggregate) {
@@ -300,9 +300,8 @@ private:
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
 		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
-			return db->ThrowDatabaseError();
+			db->ThrowDatabaseError();
 		}
-		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_loadExtension) {
@@ -321,8 +320,9 @@ private:
 			entryPoint.IsEmpty() ? NULL : *v8::String::Utf8Value(isolate, entryPoint),
 			&error
 		);
-		if (status == SQLITE_OK) info.GetReturnValue().Set(info.This());
-		else ThrowSqliteError(db->addon, error, status);
+		if (status != SQLITE_OK) {
+			ThrowSqliteError(db->addon, error, status);
+		}
 		sqlite3_free(error);
 	}
 
@@ -334,14 +334,12 @@ private:
 			db->addon->dbs.erase(db);
 			db->CloseHandles();
 		}
-		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_defaultSafeIntegers) {
 		Database* db = Unwrap<Database>(info.This());
 		if (info.Length() == 0) db->safe_ints = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
-		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_METHOD(JS_unsafeMode) {
@@ -349,7 +347,6 @@ private:
 		if (info.Length() == 0) db->unsafe_mode = true;
 		else { REQUIRE_ARGUMENT_BOOLEAN(first, db->unsafe_mode); }
 		sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
-		info.GetReturnValue().Set(info.This());
 	}
 
 	NODE_GETTER(JS_open) {
