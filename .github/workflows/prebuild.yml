@@ -6,15 +6,15 @@ on:
 name: Prebuild
 
 jobs:
-  prebuild-node:
-    name: Prebuild for Node
+  prebuild-node-electron-64bit:
+    name: Build and Upload for Node & Electron 64bit
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 14
         uses: actions/setup-node@v2
         with:
           node-version: 14
@@ -22,22 +22,23 @@ jobs:
       - run: npm run test
       - name: build release
         run: |
-          npx prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+          npx prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 15.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+          npx prebuild -r electron -t 7.0.0 -t 8.0.0 -t 9.0.0 -t 10.0.0 -t 11.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'  -u ${{ secrets.GITHUB_TOKEN }}
 
-  prebuild-electron:
-    name: Prebuild for Electron
+  prebuild-electron-32bit:
+    name: Build & Upload for Electron 32 bit
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [windows-latest]
 
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: 14
       - run: npm install
       - run: npm run test
       - name: create prebuild
         run: |
-          npx prebuild -r electron -t 7.0.0 -t 8.0.0 -t 9.0.0 -t 10.0.0 -t 11.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$'  -u ${{ secrets.GITHUB_TOKEN }}
+          npx prebuild -r electron -t 7.0.0 -t 8.0.0 -t 9.0.0 -t 10.0.0 -t 11.0.0 -t 12.0.0 --include-regex 'better_sqlite3.node$' --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
