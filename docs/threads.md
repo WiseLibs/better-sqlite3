@@ -36,19 +36,19 @@ exports.asyncQuery = (sql, ...parameters) => {
       reject,
       message: { sql, parameters },
     });
-    callWorkers();
+    drainQueue();
   });
 };
 
 /*
-  Call poll() in every worker upon new asyncQuery request.
+  Instruct workers to drain the queue.
  */
 
 let workers = [];
-function callWorkers() {
-  workers.forEach((worker) => {
-    worker.poll();
-  })
+function drainQueue() {
+  for (const worker of workers) {
+    worker.takeWork();
+  }
 }
 
 /*
@@ -57,12 +57,11 @@ function callWorkers() {
 
 os.cpus().forEach(function spawn() {
   const worker = new Worker('./worker.js');
-  const threadId = worker.threadId;
 
   let job = null; // Current item from the queue
   let error = null; // Error that caused the worker to crash
 
-  function poll() {
+  function takeWork() {
     if (!job && queue.length) {
       // If there's a job in the queue, send it to the worker
       job = queue.shift();
@@ -71,18 +70,21 @@ os.cpus().forEach(function spawn() {
   }
 
   worker
-    .on('online', poll)
+    .on('online', () => {
+      workers.push({ takeWork });
+      takeWork();
+    })
     .on('message', (result) => {
       job.resolve(result);
       job = null;
-      poll(); // Check if there's more work to do
+      takeWork(); // Check if there's more work to do
     })
     .on('error', (err) => {
       console.error(err);
       error = err;
     })
     .on('exit', (code) => {
-      workers = workers.filter(w => w.threadId !== threadId);
+      workers = workers.filter(w => w.takeWork !== takeWork);
       if (job) {
         job.reject(error || new Error('worker died'));
       }
@@ -91,7 +93,5 @@ os.cpus().forEach(function spawn() {
         spawn(); // Worker died, so spawn a new one
       }
     });
-
-  workers.push({threadId, poll});
 });
 ```
