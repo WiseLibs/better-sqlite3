@@ -255,6 +255,8 @@ private:
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 242 "./src/objects/database.lzz"
   static void JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+  static void JS_serialize (v8::FunctionCallbackInfo <v8 :: Value> const & info);
+  static void JS_deserialize (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 260 "./src/objects/database.lzz"
   static void JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 281 "./src/objects/database.lzz"

@@ -315,6 +315,8 @@ v8::Local <v8 :: Function> Database::Init (v8::Isolate * isolate, v8::Local <v8 
                 SetPrototypeMethod(isolate, data, t, "prepare", JS_prepare);
                 SetPrototypeMethod(isolate, data, t, "exec", JS_exec);
                 SetPrototypeMethod(isolate, data, t, "backup", JS_backup);
+                SetPrototypeMethod(isolate, data, t, "serialize", JS_serialize);
+                SetPrototypeMethod(isolate, data, t, "deserialize", JS_deserialize);
                 SetPrototypeMethod(isolate, data, t, "function", JS_function);
                 SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
                 SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
@@ -545,6 +547,35 @@ void Database::JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 addon->privileged_info = NULL;
                 if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
 }
+
+void Database::JS_serialize (v8::FunctionCallbackInfo <v8 :: Value> const & info)
+{
+    Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
+
+    sqlite3_int64 dlen = 0;
+    unsigned char* dptr = sqlite3_serialize(db->db_handle, NULL, &dlen, 0);
+
+    v8 :: Isolate * isolate = info . GetIsolate ( ) ;
+    v8::Local<v8::Object> result = node::Buffer::Copy(isolate, (const char*) dptr, dlen).ToLocalChecked();
+    sqlite3_free((void*) dptr);
+    info.GetReturnValue().Set(result);
+}
+
+void Database::JS_deserialize (v8::FunctionCallbackInfo <v8 :: Value> const & info)
+{
+    if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsObject ( ) || !node::Buffer::HasInstance(info[0])) return ThrowTypeError ( "Expected " "first" " argument to be " "a buffer" ) ; v8 :: Local < v8 :: Object > buffer = v8 :: Local < v8 :: Object > :: Cast ( info [ 0 ] ) ;
+
+    Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
+
+    unsigned char* dbuf = (unsigned char*) node::Buffer::Data(buffer);
+    sqlite3_int64 dlen = node::Buffer::Length(buffer);
+    int rc = sqlite3_deserialize(db->db_handle, NULL, dbuf, dlen, dlen, 0);
+
+    v8 :: Isolate * isolate = info . GetIsolate ( ) ;
+    v8::Local<v8::Boolean> result = v8::Boolean::New(isolate, rc == SQLITE_OK);
+    info.GetReturnValue().Set(result);
+}
+
 #line 260 "./src/objects/database.lzz"
 void Database::JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info)
 #line 260 "./src/objects/database.lzz"

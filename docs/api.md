@@ -10,6 +10,8 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#backup()](#backupdestination-options---promise)
+- [Database#serialize()](#serialize---buffer)
+- [Database#deserialize()](#deserializebuffer---boolean)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath-entrypoint---this)
@@ -150,6 +152,18 @@ db.backup(`backup-${Date.now()}.db`, {
   }
 });
 ```
+
+### .serialize() -> *buffer*
+
+Returns a buffer with the binary data for the whole database.
+
+Please see the SQLite documentation for [sqlite3_serialize](https://www.sqlite.org/c3ref/serialize.html) for more details.
+
+### .deserialize(buffer) -> *boolean*
+
+Accepts a buffer previously obtained with a call to `serialize()`, and sets the current state of the whole database according to that buffer.
+
+Please see the SQLite documentation for [sqlite3_deserialize](https://www.sqlite.org/c3ref/deserialize.html) for more details.
 
 ### .function(*name*, [*options*], *function*) -> *this*
 
