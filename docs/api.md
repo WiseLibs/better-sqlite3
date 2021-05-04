@@ -119,7 +119,7 @@ It's better to use this method instead of normal [prepared statements](#prepares
 
 ### .backup(*destination*, [*options*]) -> *promise*
 
-Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database by setting the `attached` option to the name of the desired attached database.
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database instead by setting the `attached` option to the name of the desired attached database.
 
 ```js
 db.backup(`backup-${Date.now()}.db`)
@@ -156,7 +156,7 @@ A backup file is just a regular SQLite3 database file. It can be opened by [`new
 
 ### .serialize([*options*]) -> *Buffer*
 
-Returns a [buffer](https://nodejs.org/api/buffer.html#buffer_class_buffer) containing the serialized contents of the database. The buffer can be written to disk to create a regular SQLite3 database file, or it can be opened directly as an in-memory database by passing it to [`new Database()`](#new-databasepath-options). You can optionally serialize an attached database by setting the `attached` option to the name of the desired attached database.
+Returns a [buffer](https://nodejs.org/api/buffer.html#buffer_class_buffer) containing the serialized contents of the database. The buffer can be written to disk to create a regular SQLite3 database file, or it can be opened directly as an in-memory database by passing it to [`new Database()`](#new-databasepath-options). You can optionally serialize an attached database instead by setting the `attached` option to the name of the desired attached database.
 
 ```js
 const buffer = db.serialize();
