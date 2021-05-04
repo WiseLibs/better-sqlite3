@@ -119,7 +119,7 @@ It's better to use this method instead of normal [prepared statements](#prepares
 
 ### .backup(*destination*, [*options*]) -> *promise*
 
-Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database instead by setting the `attached` option to the name of the desired attached database.
+Initiates a [backup](https://www.sqlite.org/backup.html) of the database, returning a [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) for when the backup is complete. If the backup fails, the promise will be rejected with an `Error`. You can optionally backup an attached database instead by setting the `attached` option to the name of the desired attached database. A backup file is just a regular SQLite3 database file. It can be opened by [`new Database()`](#new-databasepath-options) just like any SQLite3 database.
 
 ```js
 db.backup(`backup-${Date.now()}.db`)
@@ -151,8 +151,6 @@ db.backup(`backup-${Date.now()}.db`, {
   }
 });
 ```
-
-A backup file is just a regular SQLite3 database file. It can be opened by [`new Database()`](#new-databasepath-options) just like any SQLite3 database.
 
 ### .serialize([*options*]) -> *Buffer*
 
