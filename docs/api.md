@@ -152,7 +152,7 @@ db.backup(`backup-${Date.now()}.db`, {
 });
 ```
 
-A backup file is just a regular SQLite3 database file. It can be opened by [new Database()](#new-databasepath-options) just like any SQLite3 database.
+A backup file is just a regular SQLite3 database file. It can be opened by [`new Database()`](#new-databasepath-options) just like any SQLite3 database.
 
 ### .serialize([*options*]) -> *Buffer*
 
