@@ -19,10 +19,6 @@ describe('Statement#run()', function () {
 		this.db.close();
 	});
 
-	it('should throw an exception when used on a statement that returns data', function () {
-		const stmt = this.db.prepare('SELECT 555');
-		expect(() => stmt.run()).to.throw(TypeError);
-	});
 	it('should work with CREATE TABLE', function () {
 		const { info } = this.db.init();
 		expect(info.changes).to.equal(0);
@@ -30,6 +26,12 @@ describe('Statement#run()', function () {
 	});
 	it('should work with CREATE TABLE IF NOT EXISTS', function () {
 		const stmt = this.db.init().prepare('CREATE TABLE IF NOT EXISTS entries (a TEXT, b INTEGER, c REAL, d BLOB)');
+		const info = stmt.run();
+		expect(info.changes).to.equal(0);
+		expect(info.lastInsertRowid).to.equal(0);
+	});
+	it('should work with SELECT', function () {
+		const stmt = this.db.prepare('SELECT 555');
 		const info = stmt.run();
 		expect(info.changes).to.equal(0);
 		expect(info.lastInsertRowid).to.equal(0);

@@ -129,7 +129,7 @@ private:
 		}
 
 		UseContext;
-		bool returns_data = (sqlite3_stmt_readonly(handle) && sqlite3_column_count(handle) >= 1) || pragmaMode;
+		bool returns_data = sqlite3_column_count(handle) >= 1 || pragmaMode;
 		Statement* stmt = new Statement(db, handle, addon->NextId(), returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), addon->cs.reader, v8::Boolean::New(isolate, returns_data));
@@ -140,7 +140,7 @@ private:
 	}
 
 	NODE_METHOD(JS_run) {
-		STATEMENT_START(REQUIRE_STATEMENT_DOESNT_RETURN_DATA, DOES_MUTATE);
+		STATEMENT_START(ALLOW_ANY_STATEMENT, DOES_MUTATE);
 		sqlite3* db_handle = db->GetHandle();
 		int total_changes_before = sqlite3_total_changes(db_handle);
 

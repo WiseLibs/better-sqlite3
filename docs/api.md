@@ -288,8 +288,6 @@ An object representing a single SQL statement.
 
 ### .run([*...bindParameters*]) -> *object*
 
-**(only on statements that do not return data)*
-
 Executes the prepared statement. When execution completes it returns an `info` object describing any changes made. The `info` object has two properties:
 
 - `info.changes`: the total number of rows that were inserted, updated, or deleted by this operation. Changes made by [foreign key actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [trigger programs](https://www.sqlite.org/lang_createtrigger.html) do not count.
