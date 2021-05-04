@@ -6,6 +6,7 @@ public:
 		SetPrototypeMethod(isolate, data, t, "prepare", JS_prepare);
 		SetPrototypeMethod(isolate, data, t, "exec", JS_exec);
 		SetPrototypeMethod(isolate, data, t, "backup", JS_backup);
+		SetPrototypeMethod(isolate, data, t, "serialize", JS_serialize);
 		SetPrototypeMethod(isolate, data, t, "function", JS_function);
 		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
 		SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
@@ -147,6 +148,7 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
 		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
+		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> buffer);
 
 		UseAddon;
 		UseIsolate;
@@ -172,6 +174,12 @@ private:
 		assert(status == SQLITE_OK);
 		status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_DEFENSIVE, 1, NULL);
 		assert(status == SQLITE_OK);
+
+		if (node::Buffer::HasInstance(buffer) && !Deserialize(v8::Local<v8::Object>::Cast(buffer), addon, db_handle, readonly)) {
+			int status = sqlite3_close(db_handle);
+			assert(status == SQLITE_OK); ((void)status);
+			return;
+		}
 
 		UseContext;
 		Database* db = new Database(db_handle, isolate, addon, logger);
@@ -255,6 +263,25 @@ private:
 		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 0, NULL);
 		addon->privileged_info = NULL;
 		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
+	}
+
+	NODE_METHOD(JS_serialize) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_ARGUMENT_STRING(first, v8::Local<v8::String> attachedName);
+
+		UseIsolate;
+		v8::String::Utf8Value attached_name(isolate, attachedName);
+		sqlite3_int64 length = -1;
+		unsigned char* data = sqlite3_serialize(db->db_handle, *attached_name, &length, 0);
+
+		if (!data && length) {
+			ThrowError("Out of memory");
+			return;
+		}
+
+		info.GetReturnValue().Set(
+			node::Buffer::New(isolate, reinterpret_cast<char*>(data), length, FreeCallback, NULL).ToLocalChecked()
+		);
 	}
 
 	NODE_METHOD(JS_function) {
@@ -356,6 +383,35 @@ private:
 	NODE_GETTER(JS_inTransaction) {
 		Database* db = Unwrap<Database>(info.This());
 		info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
+	}
+
+	static bool Deserialize(v8::Local<v8::Object> buffer, Addon* addon, sqlite3* db_handle, bool readonly) {
+		size_t length = node::Buffer::Length(buffer);
+		unsigned char* data = (unsigned char*)sqlite3_malloc64(length);
+		unsigned int flags = SQLITE_DESERIALIZE_FREEONCLOSE | SQLITE_DESERIALIZE_RESIZEABLE;
+
+		if (readonly) {
+			flags |= SQLITE_DESERIALIZE_READONLY;
+		}
+		if (length) {
+			if (!data) {
+				ThrowError("Out of memory");
+				return false;
+			}
+			memcpy(data, node::Buffer::Data(buffer), length);
+		}
+
+		int status = sqlite3_deserialize(db_handle, "main", data, length, length, flags);
+		if (status != SQLITE_OK) {
+			ThrowSqliteError(addon, status == SQLITE_ERROR ? "unable to deserialize database" : sqlite3_errstr(status), status);
+			return false;
+		}
+
+		return true;
+	}
+
+	static void FreeCallback(char* data, void* _unused) {
+		sqlite3_free(data);
 	}
 
 	static const int MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);

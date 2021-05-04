@@ -10,6 +10,7 @@
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
 - [Database#backup()](#backupdestination-options---promise)
+- [Database#serialize()](#serializeoptions---buffer)
 - [Database#function()](#functionname-options-function---this)
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#loadExtension()](#loadextensionpath-entrypoint---this)
@@ -149,6 +150,18 @@ db.backup(`backup-${Date.now()}.db`, {
     return paused ? 0 : 200;
   }
 });
+```
+
+A backup file is just a regular SQLite3 database file. It can be opened by [new Database()](#new-databasepath-options) just like any SQLite3 database.
+
+### .serialize([*options*]) -> *Buffer*
+
+Returns a [buffer](https://nodejs.org/api/buffer.html#buffer_class_buffer) containing the serialized contents of the database. The buffer can be written to disk to create a regular SQLite3 database file, or it can be opened directly as an in-memory database by passing it to [`new Database()`](#new-databasepath-options). You can optionally serialize an attached database by setting the `attached` option to the name of the desired attached database.
+
+```js
+const buffer = db.serialize();
+db.close();
+db = new Database(buffer);
 ```
 
 ### .function(*name*, [*options*], *function*) -> *this*
@@ -502,3 +515,13 @@ Below is an example of mixing anonymous parameters with named parameters.
 const stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, { name: 'Henry' });
 ```
+
+Here is how SQLite3 types map to JavaScript types and vice-versa:
+
+|SQLite3|JavaScript|
+|---|---|
+|`NULL`|`null`|
+|`REAL`|`number`|
+|`INTEGER`|`number` [or `BigInt`](https://github.com/JoshuaWise/better-sqlite3/blob/master/docs/integer.md#the-bigint-primitive-type)|
+|`TEXT`|`string`|
+|`BLOB`|[`Buffer`](https://nodejs.org/api/buffer.html#buffer_class_buffer)|
