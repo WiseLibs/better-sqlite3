@@ -154,7 +154,9 @@ db.backup(`backup-${Date.now()}.db`, {
 
 ### .serialize([*options*]) -> *Buffer*
 
-Returns a [buffer](https://nodejs.org/api/buffer.html#buffer_class_buffer) containing the serialized contents of the database. The buffer can be written to disk to create a regular SQLite3 database file, or it can be opened directly as an in-memory database by passing it to [`new Database()`](#new-databasepath-options). You can optionally serialize an attached database instead by setting the `attached` option to the name of the desired attached database.
+Returns a [buffer](https://nodejs.org/api/buffer.html#buffer_class_buffer) containing the serialized contents of the database. You can optionally serialize an attached database instead by setting the `attached` option to the name of the desired attached database.
+
+The returned buffer can be written to disk to create a regular SQLite3 database file, or it can be opened directly as an in-memory database by passing it to [`new Database()`](#new-databasepath-options).
 
 ```js
 const buffer = db.serialize();
