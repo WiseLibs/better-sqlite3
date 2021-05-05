@@ -91,7 +91,7 @@ If you'd like to manage transactions manually, you're free to do so with regular
 
 Transaction functions do not work with async functions. Technically speaking, async functions always return after the first `await`, which means the transaction will already be committed before any async code executes. Also, because SQLite3 serializes all transactions, it's generally a very bad idea to keep a transaction open across event loop ticks anyways.
 
-It's important to know that SQLite3 may sometimes rollback a transaction without us asking it to. This can happen either because of an [`ON CONFLICT`](https://sqlite.org/lang_conflict.html) clause, the [`RAISE()`](https://www.sqlite.org/lang_createtrigger.html) trigger function, or certain errors such as `SQLITE_FULL` or `SQLITE_BUSY`. In other words, if you catch an SQLite3 error *within* a transaction, you must be aware that any futher SQL that you execute might not be within the same transaction. Usually, the best course of action for such cases is to simply re-throw the error, exiting the transaction function.
+It's important to know that SQLite3 may sometimes rollback a transaction without us asking it to. This can happen either because of an [`ON CONFLICT`](https://sqlite.org/lang_conflict.html) clause, the [`RAISE()`](https://www.sqlite.org/lang_createtrigger.html) trigger function, or certain errors such as `SQLITE_FULL` or `SQLITE_BUSY`. In other words, if you catch an SQLite3 error *within* a transaction, you must be aware that any further SQL that you execute might not be within the same transaction. Usually, the best course of action for such cases is to simply re-throw the error, exiting the transaction function.
 
 ```js
 try {
