@@ -40,6 +40,7 @@ describe('Database#aggregate()', function () {
 	it('should throw an exception if boolean options are provided as non-booleans', function () {
 		expect(() => this.db.aggregate('a', { step: () => {}, varargs: undefined })).to.throw(TypeError);
 		expect(() => this.db.aggregate('b', { step: () => {}, deterministic: undefined })).to.throw(TypeError);
+		expect(() => this.db.aggregate('b', { step: () => {}, directOnly: undefined })).to.throw(TypeError);
 		expect(() => this.db.aggregate('c', { step: () => {}, safeIntegers: undefined })).to.throw(TypeError);
 	});
 	it('should throw an exception if function options are provided as non-fns', function () {

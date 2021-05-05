@@ -318,6 +318,7 @@ private:
 		REQUIRE_ARGUMENT_INT32(sixth, int argc);
 		REQUIRE_ARGUMENT_INT32(seventh, int safe_ints);
 		REQUIRE_ARGUMENT_BOOLEAN(eighth, bool deterministic);
+		REQUIRE_ARGUMENT_BOOLEAN(ninth, bool direct_only);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
@@ -326,7 +327,9 @@ private:
 		v8::String::Utf8Value name(isolate, nameString);
 		auto xInverse = inverse->IsFunction() ? CustomAggregate::xInverse : NULL;
 		auto xValue = xInverse ? CustomAggregate::xValue : NULL;
-		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
+		int mask = SQLITE_UTF8;
+		if (deterministic) mask |= SQLITE_DETERMINISTIC;
+		if (direct_only) mask |= SQLITE_DIRECTONLY;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
 		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
