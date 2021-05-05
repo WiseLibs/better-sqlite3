@@ -180,9 +180,9 @@ By default, user-defined functions have a strict number of arguments (determined
 
 If `options.varargs` is `true`, the registered function can accept any number of arguments.
 
-If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm), you can set `options.deterministic` to `true`, which may improve performance under some circumstances.
-
 If `options.directOnly` is `true`, the registered function can only be invoked from top-level SQL, and cannot be used in [VIEWs](https://sqlite.org/lang_createview.html), [TRIGGERs](https://sqlite.org/lang_createtrigger.html), or schema structures such as [CHECK constraints](https://www.sqlite.org/lang_createtable.html#ckconst), [DEFAULT clauses](https://www.sqlite.org/lang_createtable.html#dfltval), etc.
+
+If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm), you can set `options.deterministic` to `true`, which may improve performance under some circumstances.
 
 ```js
 db.function('void', { deterministic: true, varargs: true }, () => {});
@@ -224,7 +224,7 @@ db.prepare('SELECT getAverage(dollars) FROM expenses').pluck().get(); // => 20.2
 
 As shown above, you can use arbitrary JavaScript objects as your aggregation context, as long as a valid SQLite3 value is returned by `result()` in the end. If `step()` doesn't return anything (`undefined`), the aggregate value will not be replaced (be careful of this when using functions that return `undefined` when `null` is desired).
 
-Just like regular [user-defined functions](#functionname-options-function---this), user-defined aggregates can accept multiple arguments. Furthermore, `options.varargs`, `options.deterministic`, and `options.directOnly` [are also](#functionname-options-function---this) accepted.
+Just like regular [user-defined functions](#functionname-options-function---this), user-defined aggregates can accept multiple arguments. Furthermore, `options.varargs`, `options.directOnly`, and `options.deterministic` [are also](#functionname-options-function---this) accepted.
 
 If you provide an `inverse()` function, the aggregate can be used as a [window function](https://www.sqlite.org/windowfunctions.html). Where `step()` is used to add a row to the current window, `inverse()` is used to remove a row from the current window. When using window functions, `result()` may be invoked multiple times.
 
