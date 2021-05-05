@@ -37,6 +37,8 @@ const Database = require('better-sqlite3');
 const db = new Database('foobar.db', { verbose: console.log });
 ```
 
+> In-memory databases can also be created by passing a buffer returned by [`.serialize()`](#serializeoptions---buffer), instead of passing a string as the first argument.
+
 ### .prepare(*string*) -> *Statement*
 
 Creates a new prepared [`Statement`](#class-statement) from the given SQL string.
