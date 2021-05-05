@@ -291,13 +291,16 @@ private:
 		REQUIRE_ARGUMENT_INT32(third, int argc);
 		REQUIRE_ARGUMENT_INT32(fourth, int safe_ints);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool deterministic);
+		REQUIRE_ARGUMENT_BOOLEAN(sixth, bool direct_only);
 		REQUIRE_DATABASE_OPEN(db);
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
 
 		UseIsolate;
 		v8::String::Utf8Value name(isolate, nameString);
-		int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
+		int mask = SQLITE_UTF8;
+		if (deterministic) mask |= SQLITE_DETERMINISTIC;
+		if (direct_only) mask |= SQLITE_DIRECTONLY;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
 		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, fn, *name, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {

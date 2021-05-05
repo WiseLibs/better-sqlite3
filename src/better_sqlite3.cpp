@@ -584,22 +584,25 @@ void Database::JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( info . Length ( ) <= ( 2 ) || ! info [ 2 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "third" " argument to be " "a 32-bit signed integer" ) ; int argc = v8 :: Local < v8 :: Int32 > :: Cast ( info [ 2 ] ) -> Value ( ) ;
                 if ( info . Length ( ) <= ( 3 ) || ! info [ 3 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "fourth" " argument to be " "a 32-bit signed integer" ) ; int safe_ints = v8 :: Local < v8 :: Int32 > :: Cast ( info [ 3 ] ) -> Value ( ) ;
                 if ( info . Length ( ) <= ( 4 ) || ! info [ 4 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "fifth" " argument to be " "a boolean" ) ; bool deterministic = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 4 ] ) -> Value ( ) ;
+                if ( info . Length ( ) <= ( 5 ) || ! info [ 5 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "sixth" " argument to be " "a boolean" ) ; bool direct_only = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 5 ] ) -> Value ( ) ;
                 if ( ! db -> open ) return ThrowTypeError ( "The database connection is not open" ) ;
                 if ( db -> busy ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
                 if ( db -> iterators ) return ThrowTypeError ( "This database connection is busy executing a query" ) ;
 
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 v8::String::Utf8Value name(isolate, nameString);
-                int mask = deterministic ? SQLITE_UTF8 | SQLITE_DETERMINISTIC : SQLITE_UTF8;
+                int mask = SQLITE_UTF8;
+                if (deterministic) mask |= SQLITE_DETERMINISTIC;
+                if (direct_only) mask |= SQLITE_DIRECTONLY;
                 safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
                 if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, fn, *name, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {
                         db->ThrowDatabaseError();
                 }
 }
-#line 308 "./src/objects/database.lzz"
+#line 311 "./src/objects/database.lzz"
 void Database::JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 308 "./src/objects/database.lzz"
+#line 311 "./src/objects/database.lzz"
                                   {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if ( info . Length ( ) <= ( 0 ) ) return ThrowTypeError ( "Expected a " "first" " argument" ) ; v8 :: Local < v8 :: Value > start = info [ 0 ] ;
@@ -625,9 +628,9 @@ void Database::JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info
                         db->ThrowDatabaseError();
                 }
 }
-#line 334 "./src/objects/database.lzz"
+#line 337 "./src/objects/database.lzz"
 void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 334 "./src/objects/database.lzz"
+#line 337 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 v8::Local<v8::String> entryPoint;
@@ -649,9 +652,9 @@ void Database::JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & 
                 }
                 sqlite3_free(error);
 }
-#line 356 "./src/objects/database.lzz"
+#line 359 "./src/objects/database.lzz"
 void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 356 "./src/objects/database.lzz"
+#line 359 "./src/objects/database.lzz"
                               {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (db->open) {
@@ -661,39 +664,39 @@ void Database::JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                         db->CloseHandles();
                 }
 }
-#line 366 "./src/objects/database.lzz"
+#line 369 "./src/objects/database.lzz"
 void Database::JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 366 "./src/objects/database.lzz"
+#line 369 "./src/objects/database.lzz"
                                             {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (info.Length() == 0) db->safe_ints = true;
                 else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; db -> safe_ints = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
 }
-#line 372 "./src/objects/database.lzz"
+#line 375 "./src/objects/database.lzz"
 void Database::JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 372 "./src/objects/database.lzz"
+#line 375 "./src/objects/database.lzz"
                                    {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 if (info.Length() == 0) db->unsafe_mode = true;
                 else { if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsBoolean ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a boolean" ) ; db -> unsafe_mode = v8 :: Local < v8 :: Boolean > :: Cast ( info [ 0 ] ) -> Value ( ) ; }
                 sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
 }
-#line 379 "./src/objects/database.lzz"
+#line 382 "./src/objects/database.lzz"
 void Database::JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 379 "./src/objects/database.lzz"
+#line 382 "./src/objects/database.lzz"
                              {
                 info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Database>(info.This())->open);
 }
-#line 383 "./src/objects/database.lzz"
+#line 386 "./src/objects/database.lzz"
 void Database::JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
-#line 383 "./src/objects/database.lzz"
+#line 386 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
                 info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 }
-#line 388 "./src/objects/database.lzz"
+#line 391 "./src/objects/database.lzz"
 bool Database::Deserialize (v8::Local <v8::Object> buffer, Addon * addon, sqlite3 * db_handle, bool readonly)
-#line 388 "./src/objects/database.lzz"
+#line 391 "./src/objects/database.lzz"
                                                                                                                {
                 size_t length = node::Buffer::Length(buffer);
                 unsigned char* data = (unsigned char*)sqlite3_malloc64(length);
@@ -718,15 +721,15 @@ bool Database::Deserialize (v8::Local <v8::Object> buffer, Addon * addon, sqlite
 
                 return true;
 }
-#line 413 "./src/objects/database.lzz"
+#line 416 "./src/objects/database.lzz"
 void Database::FreeCallback (char * data, void * _unused)
-#line 413 "./src/objects/database.lzz"
+#line 416 "./src/objects/database.lzz"
                                                             {
                 sqlite3_free(data);
 }
-#line 417 "./src/objects/database.lzz"
+#line 420 "./src/objects/database.lzz"
 int const Database::MAX_BUFFER_SIZE;
-#line 418 "./src/objects/database.lzz"
+#line 421 "./src/objects/database.lzz"
 int const Database::MAX_STRING_SIZE;
 #line 5 "./src/objects/statement.lzz"
 v8::Local <v8 :: Function> Statement::Init (v8::Isolate * isolate, v8::Local <v8 :: External> data)

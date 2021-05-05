@@ -182,6 +182,8 @@ If `options.varargs` is `true`, the registered function can accept any number of
 
 If your function is [deterministic](https://en.wikipedia.org/wiki/Deterministic_algorithm), you can set `options.deterministic` to `true`, which may improve performance under some circumstances.
 
+If `options.directOnly` is `true`, the registered function can only be invoked from top-level SQL, and cannot be used in [VIEWs](https://sqlite.org/lang_createview.html), [TRIGGERs](https://sqlite.org/lang_createtrigger.html), or schema structures such as [CHECK constraints](https://www.sqlite.org/lang_createtable.html#ckconst), [DEFAULT clauses](https://www.sqlite.org/lang_createtable.html#dfltval), etc.
+
 ```js
 db.function('void', { deterministic: true, varargs: true }, () => {});
 
