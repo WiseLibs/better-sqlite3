@@ -22,6 +22,8 @@
 
 Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away. You can create an [in-memory database](https://www.sqlite.org/inmemorydb.html) by passing `":memory:"` as the first argument.
 
+> In-memory databases can also be created by passing a buffer returned by [`.serialize()`](#serializeoptions---buffer), instead of passing a string as the first argument.
+
 Various options are accepted:
 
 - `options.readonly`: open the database connection in readonly mode (default: `false`).
@@ -36,8 +38,6 @@ Various options are accepted:
 const Database = require('better-sqlite3');
 const db = new Database('foobar.db', { verbose: console.log });
 ```
-
-> In-memory databases can also be created by passing a buffer returned by [`.serialize()`](#serializeoptions---buffer), instead of passing a string as the first argument.
 
 ### .prepare(*string*) -> *Statement*
 
