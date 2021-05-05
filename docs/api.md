@@ -478,7 +478,7 @@ console.log(cat.name); // => "Joey"
 
 **.reader -> _boolean_** - Whether the prepared statement returns data.
 
-**.readonly -> _boolean_** - Whether the prepared statement is readonly, meaning it does not mutate the database (note that SQL functions [might still change the database indirectly](https://www.sqlite.org/c3ref/stmt_readonly.html) as a side effect, even if the `.readonly` property is `true`).
+**.readonly -> _boolean_** - Whether the prepared statement is readonly, meaning it does not mutate the database (note that [SQL functions might still change the database indirectly](https://www.sqlite.org/c3ref/stmt_readonly.html) as a side effect, even if the `.readonly` property is `true`).
 
 # Binding Parameters
 
