@@ -518,7 +518,7 @@ const stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, { name: 'Henry' });
 ```
 
-Here is how `better-sqlite3` converts between SQLite3 values and JavaScript values:
+Here is how `better-sqlite3` converts values between SQLite3 and JavaScript:
 
 |SQLite3|JavaScript|
 |---|---|
