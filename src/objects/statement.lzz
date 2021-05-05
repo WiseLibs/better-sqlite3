@@ -133,6 +133,7 @@ private:
 		Statement* stmt = new Statement(db, handle, addon->NextId(), returns_data);
 		stmt->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), addon->cs.reader, v8::Boolean::New(isolate, returns_data));
+		SetFrozen(isolate, ctx, info.This(), addon->cs.readonly, v8::Boolean::New(isolate, sqlite3_stmt_readonly(handle) != 0));
 		SetFrozen(isolate, ctx, info.This(), addon->cs.source, source);
 		SetFrozen(isolate, ctx, info.This(), addon->cs.database, database);
 

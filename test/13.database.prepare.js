@@ -9,11 +9,12 @@ describe('Database#prepare()', function () {
 		this.db.close();
 	});
 
-	function assertStmt(stmt, source, db, reader) {
+	function assertStmt(stmt, source, db, reader, readonly) {
 		expect(stmt.source).to.equal(source);
 		expect(stmt.constructor.name).to.equal('Statement');
 		expect(stmt.database).to.equal(db);
 		expect(stmt.reader).to.equal(reader);
+		expect(stmt.readonly).to.equal(readonly);
 		expect(() => new stmt.constructor(source)).to.throw(TypeError);
 	}
 
@@ -40,13 +41,20 @@ describe('Database#prepare()', function () {
 	it('should create a prepared Statement object', function () {
 		const stmt1 = this.db.prepare('CREATE TABLE people (name TEXT) ');
 		const stmt2 = this.db.prepare('CREATE TABLE people (name TEXT); ');
-		assertStmt(stmt1, 'CREATE TABLE people (name TEXT) ', this.db, false);
-		assertStmt(stmt2, 'CREATE TABLE people (name TEXT); ', this.db, false);
+		assertStmt(stmt1, 'CREATE TABLE people (name TEXT) ', this.db, false, false);
+		assertStmt(stmt2, 'CREATE TABLE people (name TEXT); ', this.db, false, false);
 		expect(stmt1).to.not.equal(stmt2);
 		expect(stmt1).to.not.equal(this.db.prepare('CREATE TABLE people (name TEXT) '));
 	});
 	it('should create a prepared Statement object with just an expression', function () {
 		const stmt = this.db.prepare('SELECT 555');
-		assertStmt(stmt, 'SELECT 555', this.db, true);
+		assertStmt(stmt, 'SELECT 555', this.db, true, true);
+	});
+	it('should set the correct values for "reader" and "readonly"', function () {
+		this.db.exec('CREATE TABLE data (value)');
+		assertStmt(this.db.prepare('SELECT 555'), 'SELECT 555', this.db, true, true);
+		assertStmt(this.db.prepare('BEGIN'), 'BEGIN', this.db, false, true);
+		assertStmt(this.db.prepare('BEGIN EXCLUSIVE'), 'BEGIN EXCLUSIVE', this.db, false, false);
+		assertStmt(this.db.prepare('DELETE FROM data RETURNING *'), 'DELETE FROM data RETURNING *', this.db, true, false);
 	});
 });

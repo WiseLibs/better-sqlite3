@@ -478,6 +478,8 @@ console.log(cat.name); // => "Joey"
 
 **.reader -> _boolean_** - Whether the prepared statement returns data.
 
+**.readonly -> _boolean_** - Whether the prepared statement is readonly, meaning it does not mutate the database (note that [application-defined SQL functions](#functionname-options-function---this) [might still change the database indirectly](https://www.sqlite.org/c3ref/stmt_readonly.html) as a side effect, even if the `.readonly` property is `true`).
+
 # Binding Parameters
 
 This section refers to anywhere in the documentation that specifies the optional argument [*`...bindParameters`*].
@@ -516,7 +518,7 @@ const stmt = db.prepare('INSERT INTO people VALUES (@name, @name, ?)');
 stmt.run(45, { name: 'Henry' });
 ```
 
-Here is how SQLite3 types map to JavaScript types and vice-versa:
+Here is how `better-sqlite3` converts between SQLite3 values and JavaScript values:
 
 |SQLite3|JavaScript|
 |---|---|
