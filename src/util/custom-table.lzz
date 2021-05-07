@@ -1,0 +1,329 @@
+class CustomTable {
+public:
+
+	explicit CustomTable(Addon* _addon, v8::Isolate* _isolate, Database* _db, const char* _name, v8::Local<v8::Function> _factory)
+		: addon(_addon), isolate(_isolate), db(_db), name(COPY(_name)), factory(_isolate, _factory) {}
+	~CustomTable() { delete[] name; }
+
+	static void Destructor(void* self) {
+		delete static_cast<CustomTable*>(self);
+	}
+
+	static sqlite3_module MODULE = {
+		0,                            /* iVersion */
+		xCreate,                      /* xCreate */
+		xConnect,                     /* xConnect */
+		xBestIndex,                   /* xBestIndex */
+		xDisconnect,                  /* xDisconnect */
+		xDisconnect,                  /* xDestroy */
+		xOpen,                        /* xOpen */
+		xClose,                       /* xClose */
+		xFilter,                      /* xFilter */
+		xNext,                        /* xNext */
+		xEof,                         /* xEof */
+		xColumn,                      /* xColumn */
+		xRowid,                       /* xRowid */
+		NULL,                         /* xUpdate */
+		NULL,                         /* xBegin */
+		NULL,                         /* xSync */
+		NULL,                         /* xCommit */
+		NULL,                         /* xRollback */
+		NULL,                         /* xFindMethod */
+		NULL,                         /* xRename */
+		NULL,                         /* xSavepoint */
+		NULL,                         /* xRelease */
+		NULL,                         /* xRollbackTo */
+		NULL                          /* xShadowName */
+	};
+
+	static sqlite3_module EPONYMOUS_MODULE = {
+		0,                            /* iVersion */
+		NULL,                         /* xCreate */
+		xConnect,                     /* xConnect */
+		xBestIndex,                   /* xBestIndex */
+		xDisconnect,                  /* xDisconnect */
+		xDisconnect,                  /* xDestroy */
+		xOpen,                        /* xOpen */
+		xClose,                       /* xClose */
+		xFilter,                      /* xFilter */
+		xNext,                        /* xNext */
+		xEof,                         /* xEof */
+		xColumn,                      /* xColumn */
+		xRowid,                       /* xRowid */
+		NULL,                         /* xUpdate */
+		NULL,                         /* xBegin */
+		NULL,                         /* xSync */
+		NULL,                         /* xCommit */
+		NULL,                         /* xRollback */
+		NULL,                         /* xFindMethod */
+		NULL,                         /* xRename */
+		NULL,                         /* xSavepoint */
+		NULL,                         /* xRelease */
+		NULL,                         /* xRollbackTo */
+		NULL                          /* xShadowName */
+	};
+
+private:
+
+	class VTab { friend class CustomTable;
+		explicit VTab(CustomTable* _parent, int _parameter_count, bool _safe_ints, v8::Local<v8::Function> _generator, std::vector<std::string> _parameter_names) : parent(_parent), parameter_count(_parameter_count), safe_ints(_safe_ints), generator(_parent->isolate, _generator), parameter_names(_parameter_names) { ((void)base); }
+
+		sqlite3_vtab base;
+		CustomTable * const parent;
+		const int parameter_count;
+		const bool safe_ints;
+		const CopyablePersistent<v8::Function> generator;
+		std::vector<std::string> parameter_names;
+	};
+
+	class Cursor { friend class CustomTable;
+		sqlite3_vtab_cursor base;
+		CopyablePersistent<v8::Object> iterator;
+		CopyablePersistent<v8::Function> next;
+		CopyablePersistent<v8::Array> row;
+		bool done;
+		sqlite_int64 rowid;
+	};
+
+	class TempDataConverter : DataConverter { friend class CustomTable;
+		explicit TempDataConverter(CustomTable* _parent) : parent(_parent), status(SQLITE_OK) {}
+
+		void PropagateJSError(sqlite3_context* invocation) {
+			status = SQLITE_ERROR;
+			parent->PropagateJSError();
+		}
+
+		std::string GetDataErrorPrefix() {
+			return CONCAT("Virtual table module \"", parent->name, "\" yielded");
+		}
+
+		CustomTable * const parent;
+		int status;
+	};
+
+	static int xCreate(sqlite3* db_handle, void* _self, int argc, const char* const * argv, sqlite3_vtab** output, char** errOutput) {
+		return xConnect(db_handle, _self, argc, argv, output, errOutput);
+	}
+
+	static int xConnect(sqlite3* db_handle, void* _self, int argc, const char* const * argv, sqlite3_vtab** output, char** errOutput) {
+		CustomTable* self = static_cast<CustomTable*>(_self);
+		v8::Isolate* isolate = self->isolate;
+		v8::HandleScope scope(isolate);
+		UseContext;
+
+		v8::Local<v8::Value>* args = ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
+		for (int i=0; i<argc; ++i) {
+			args[i] = StringFromUtf8(isolate, argv[i], -1);
+		}
+
+		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, self->factory)->Call(ctx, v8::Undefined(isolate), argc, args);
+		delete[] args;
+
+		if (maybe_return_value.IsEmpty()) {
+			self->PropagateJSError();
+			return SQLITE_ERROR;
+		}
+
+		v8::Local<v8::Array> returnValue = v8::Local<v8::Array>::Cast(maybe_return_value.ToLocalChecked());
+		v8::Local<v8::String> sqlString = v8::Local<v8::String>::Cast(returnValue->Get(ctx, 0).ToLocalChecked());
+		v8::Local<v8::Function> generator = v8::Local<v8::Function>::Cast(returnValue->Get(ctx, 1).ToLocalChecked());
+		v8::Local<v8::Array> parameterNames = v8::Local<v8::Array>::Cast(returnValue->Get(ctx, 2).ToLocalChecked());
+		int safe_ints = v8::Local<v8::Int32>::Cast(returnValue->Get(ctx, 3).ToLocalChecked())->Value();
+		bool direct_only = v8::Local<v8::Boolean>::Cast(returnValue->Get(ctx, 4).ToLocalChecked())->Value();
+
+		v8::String::Utf8Value sql(isolate, sqlString);
+		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(self->db->GetState()->safe_ints);
+
+		std::vector<std::string> parameter_names;
+		int parameter_count = parameterNames->Length();
+		for (int i = 0; i < parameter_count; ++i) {
+			v8::Local<v8::String> parameterName = v8::Local<v8::String>::Cast(parameterNames->Get(ctx, i).ToLocalChecked());
+			v8::String::Utf8Value parameter_name(isolate, parameterName);
+			parameter_names.emplace_back(*parameter_name);
+		}
+
+		if (sqlite3_declare_vtab(db_handle, *sql) != SQLITE_OK) {
+			*errOutput = sqlite3_mprintf("failed to declare virtual table \"%s\"", argv[2]);
+			return SQLITE_ERROR;
+		}
+		if (direct_only && sqlite3_vtab_config(db_handle, SQLITE_VTAB_DIRECTONLY) != SQLITE_OK) {
+			*errOutput = sqlite3_mprintf("failed to configure virtual table \"%s\"", argv[2]);
+			return SQLITE_ERROR;
+		}
+
+		*output = reinterpret_cast<sqlite3_vtab*>(new VTab(self, parameter_count, safe_ints, generator, parameter_names));
+		return SQLITE_OK;
+	}
+
+	static int xDisconnect(sqlite3_vtab* vtab) {
+		delete reinterpret_cast<VTab*>(vtab);
+		return SQLITE_OK;
+	}
+
+	static int xOpen(sqlite3_vtab* vtab, sqlite3_vtab_cursor** output) {
+		*output = reinterpret_cast<sqlite3_vtab_cursor*>(new Cursor());
+		return SQLITE_OK;
+	}
+
+	static int xClose(sqlite3_vtab_cursor* cursor) {
+		delete reinterpret_cast<Cursor*>(cursor);
+		return SQLITE_OK;
+	}
+
+	static int xFilter(sqlite3_vtab_cursor* _cursor, int idxNum, const char* idxStr, int argc, sqlite3_value** argv) {
+		Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
+		VTab* vtab = reinterpret_cast<VTab*>(cursor->base.pVtab);
+		CustomTable* self = vtab->parent;
+		Addon* addon = self->addon;
+		v8::Isolate* isolate = self->isolate;
+		v8::HandleScope scope(isolate);
+		UseContext;
+
+		v8::Local<v8::Value> args_fast[4];
+		v8::Local<v8::Value>* args = NULL;
+		int parameter_count = vtab->parameter_count;
+		if (parameter_count != 0) {
+			args = parameter_count <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(parameter_count);
+			int argn = 0;
+			bool safe_ints = vtab->safe_ints;
+			for (int i = 0; i < parameter_count; ++i) {
+				if (idxNum & 1 << i) {
+					args[i] = Data::GetValueJS(isolate, argv[argn++], safe_ints);
+					if (args[i]->IsNull()) {
+						if (args != args_fast) delete[] args;
+						cursor->done = true;
+						return SQLITE_OK;
+					}
+				} else {
+					args[i] = v8::Undefined(isolate);
+				}
+			}
+		}
+
+		v8::MaybeLocal<v8::Value> maybe_iterator = v8::Local<v8::Function>::New(isolate, vtab->generator)->Call(ctx, v8::Undefined(isolate), parameter_count, args);
+		if (args != args_fast) delete[] args;
+
+		if (maybe_iterator.IsEmpty()) {
+			self->PropagateJSError();
+			return SQLITE_ERROR;
+		}
+
+		v8::Local<v8::Object> iterator = v8::Local<v8::Object>::Cast(maybe_iterator.ToLocalChecked());
+		v8::Local<v8::Function> next = v8::Local<v8::Function>::Cast(iterator->Get(ctx, CS::Get(isolate, addon->cs.next)).ToLocalChecked());
+
+		cursor->iterator.Reset(isolate, iterator);
+		cursor->next.Reset(isolate, next);
+
+		v8::MaybeLocal<v8::Value> maybe_record = next->Call(ctx, iterator, 0, NULL);
+		if (maybe_record.IsEmpty()) {
+			self->PropagateJSError();
+			return SQLITE_ERROR;
+		}
+
+		v8::Local<v8::Object> record = v8::Local<v8::Object>::Cast(maybe_record.ToLocalChecked());
+		bool done = v8::Local<v8::Boolean>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.done)).ToLocalChecked())->Value();
+		if (!done) {
+			cursor->row.Reset(isolate, v8::Local<v8::Array>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.value)).ToLocalChecked()));
+		}
+		cursor->done = done;
+		cursor->rowid = 1;
+
+		return SQLITE_OK;
+	}
+
+	static int xNext(sqlite3_vtab_cursor* _cursor) {
+		Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
+		CustomTable* self = reinterpret_cast<VTab*>(cursor->base.pVtab)->parent;
+		Addon* addon = self->addon;
+		v8::Isolate* isolate = self->isolate;
+		v8::HandleScope scope(isolate);
+		UseContext;
+
+		v8::Local<v8::Object> iterator = v8::Local<v8::Object>::New(isolate, cursor->iterator);
+		v8::Local<v8::Function> next = v8::Local<v8::Function>::New(isolate, cursor->next);
+
+		v8::MaybeLocal<v8::Value> maybe_record = next->Call(ctx, iterator, 0, NULL);
+		if (maybe_record.IsEmpty()) {
+			self->PropagateJSError();
+			return SQLITE_ERROR;
+		}
+
+		v8::Local<v8::Object> record = v8::Local<v8::Object>::Cast(maybe_record.ToLocalChecked());
+		bool done = v8::Local<v8::Boolean>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.done)).ToLocalChecked())->Value();
+		if (!done) {
+			cursor->row.Reset(isolate, v8::Local<v8::Array>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.value)).ToLocalChecked()));
+		}
+		cursor->done = done;
+		cursor->rowid += 1;
+
+		return SQLITE_OK;
+	}
+
+	static int xEof(sqlite3_vtab_cursor* cursor) {
+		return reinterpret_cast<Cursor*>(cursor)->done;
+	}
+
+	static int xColumn(sqlite3_vtab_cursor* _cursor, sqlite3_context* invocation, int column) {
+		Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
+		CustomTable* self = reinterpret_cast<VTab*>(cursor->base.pVtab)->parent;
+		TempDataConverter temp_data_converter(self);
+		v8::Isolate* isolate = self->isolate;
+		v8::HandleScope scope(isolate);
+
+		v8::Local<v8::Array> row = v8::Local<v8::Array>::New(isolate, cursor->row);
+		v8::MaybeLocal<v8::Value> maybe_column_value = row->Get(OnlyContext, column);
+		if (maybe_column_value.IsEmpty()) {
+			temp_data_converter.PropagateJSError(NULL);
+		} else {
+			Data::ResultValueFromJS(isolate, invocation, maybe_column_value.ToLocalChecked(), &temp_data_converter);
+		}
+		return temp_data_converter.status;
+	}
+
+	static int xRowid(sqlite3_vtab_cursor* cursor, sqlite_int64* output) {
+		*output = reinterpret_cast<Cursor*>(cursor)->rowid;
+		return SQLITE_OK;
+	}
+
+	static int xBestIndex(sqlite3_vtab* vtab, sqlite3_index_info* output) {
+		int parameter_count = reinterpret_cast<VTab*>(vtab)->parameter_count;
+		int argument_count = 0;
+
+		for (int i = 0, len = output->nConstraint; i < len; ++i) {
+			auto item = output->aConstraint[i];
+
+			// We only care about constraints on parameters, not regular columns.
+			if (item.iColumn >= 0 && item.iColumn < parameter_count) {
+				if (item.op != SQLITE_INDEX_CONSTRAINT_EQ) {
+					sqlite3_free(vtab->zErrMsg);
+					vtab->zErrMsg = sqlite3_mprintf(
+						"virtual table parameter \"%s\" can only be constrained by the '=' operator",
+						reinterpret_cast<VTab*>(vtab)->parameter_names.at(item.iColumn).c_str());
+					return SQLITE_ERROR;
+				}
+				if (!item.usable) {
+					return SQLITE_CONSTRAINT;
+				}
+				// Tell SQLite to pass arguments to xFilter.
+				output->aConstraintUsage[i].argvIndex = ++argument_count;
+				output->aConstraintUsage[i].omit = 1;
+				output->idxNum |= 1 << item.iColumn;
+			}
+		}
+
+		// Use a very high estimated cost so SQLite is not tempted to invoke the generator within a loop.
+		output->estimatedCost = output->estimatedRows = 1000000000 / (argument_count + 1);
+		return SQLITE_OK;
+	}
+
+	void PropagateJSError() {
+		assert(db->GetState()->was_js_error == false);
+		db->GetState()->was_js_error = true;
+	}
+
+	Addon* const addon;
+	v8::Isolate* const isolate;
+	Database* const db;
+	const char* const name;
+	const CopyablePersistent<v8::Function> factory;
+};

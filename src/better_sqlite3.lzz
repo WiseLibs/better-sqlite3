@@ -23,8 +23,10 @@ class Backup;
 #insert "objects/statement.lzz"
 #insert "objects/statement-iterator.lzz"
 #insert "objects/backup.lzz"
+#insert "util/data-converter.lzz"
 #insert "util/custom-function.lzz"
 #insert "util/custom-aggregate.lzz"
+#insert "util/custom-table.lzz"
 #insert "util/data.lzz"
 #insert "util/binder.lzz"
 

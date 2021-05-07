@@ -1,4 +1,4 @@
-class CustomFunction {
+class CustomFunction : protected DataConverter {
 public:
 
 	explicit CustomFunction(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Function> _fn, const char* _name, bool _safe_ints)
@@ -26,20 +26,15 @@ public:
 		else Data::ResultValueFromJS(isolate, invocation, maybe_return_value.ToLocalChecked(), self);
 	}
 
-	void ThrowResultValueError(sqlite3_context* invocation, bool isBigInt) {
-		if (isBigInt) {
-			ThrowRangeError(CONCAT("User-defined function ", name, "() returned a bigint that was too big").c_str());
-		} else {
-			ThrowTypeError(CONCAT("User-defined function ", name, "() returned an invalid value").c_str());
-		}
-		PropagateJSError(invocation);
-	}
-
 protected:
-	virtual void PropagateJSError(sqlite3_context* invocation) {
+	void PropagateJSError(sqlite3_context* invocation) {
 		assert(db->GetState()->was_js_error == false);
 		db->GetState()->was_js_error = true;
 		sqlite3_result_error(invocation, "", 0);
+	}
+
+	std::string GetDataErrorPrefix() {
+		return CONCAT("User-defined function ", name, "() returned");
 	}
 
 private:

@@ -9,6 +9,7 @@ public:
 		SetPrototypeMethod(isolate, data, t, "serialize", JS_serialize);
 		SetPrototypeMethod(isolate, data, t, "function", JS_function);
 		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
+		SetPrototypeMethod(isolate, data, t, "table", JS_table);
 		SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
 		SetPrototypeMethod(isolate, data, t, "close", JS_close);
 		SetPrototypeMethod(isolate, data, t, "defaultSafeIntegers", JS_defaultSafeIntegers);
@@ -338,6 +339,26 @@ private:
 		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
 			db->ThrowDatabaseError();
 		}
+	}
+
+	NODE_METHOD(JS_table) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> factory);
+		REQUIRE_ARGUMENT_STRING(second, v8::Local<v8::String> nameString);
+		REQUIRE_ARGUMENT_BOOLEAN(third, bool eponymous);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
+
+		UseIsolate;
+		v8::String::Utf8Value name(isolate, nameString);
+		sqlite3_module* module = eponymous ? &CustomTable::EPONYMOUS_MODULE : &CustomTable::MODULE;
+
+		db->busy = true;
+		if (sqlite3_create_module_v2(db->db_handle, *name, module, new CustomTable(OnlyAddon, isolate, db, *name, factory), CustomTable::Destructor) != SQLITE_OK) {
+			db->ThrowDatabaseError();
+		}
+		db->busy = false;
 	}
 
 	NODE_METHOD(JS_loadExtension) {
