@@ -1,5 +1,4 @@
-class Statement : public node::ObjectWrap {
-friend class StatementIterator;
+class Statement : public node::ObjectWrap { friend class StatementIterator;
 public:
 
 	INIT(Init) {
@@ -27,7 +26,7 @@ public:
 		if (has_bind_map) return &extras->bind_map;
 		BindMap* bind_map = &extras->bind_map;
 		int param_count = sqlite3_bind_parameter_count(handle);
-		for (int i=1; i<=param_count; ++i) {
+		for (int i = 1; i <= param_count; ++i) {
 			const char* name = sqlite3_bind_parameter_name(handle, i);
 			if (name != NULL) bind_map->Add(isolate, name + 1, i);
 		}
@@ -53,22 +52,28 @@ private:
 
 	// A class for holding values that are less often used.
 	class Extras { friend class Statement;
-		explicit Extras(sqlite3_uint64 _id) : bind_map(0), id(_id) {}
+		explicit Extras(sqlite3_uint64 id) : bind_map(0), id(id) {}
 		BindMap bind_map;
 		const sqlite3_uint64 id;
 	};
 
-	explicit Statement(Database* _db, sqlite3_stmt* _handle, sqlite3_uint64 _id, bool _returns_data) : node::ObjectWrap(),
-		db(_db),
-		handle(_handle),
-		extras(new Extras(_id)),
+	explicit Statement(
+		Database* db,
+		sqlite3_stmt* handle,
+		sqlite3_uint64 id,
+		bool returns_data
+	) :
+		node::ObjectWrap(),
+		db(db),
+		handle(handle),
+		extras(new Extras(id)),
 		alive(true),
 		locked(false),
 		bound(false),
 		has_bind_map(false),
-		safe_ints(_db->GetState()->safe_ints),
+		safe_ints(db->GetState()->safe_ints),
 		mode(Data::FLAT),
-		returns_data(_returns_data) {
+		returns_data(returns_data) {
 		assert(db != NULL);
 		assert(handle != NULL);
 		assert(db->GetState()->open);
@@ -86,9 +91,9 @@ private:
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
-		v8::Local<v8::String> source = v8::Local<v8::String>::Cast((*addon->privileged_info)[0]);
-		v8::Local<v8::Object> database = v8::Local<v8::Object>::Cast((*addon->privileged_info)[1]);
-		bool pragmaMode = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[2])->Value();
+		v8::Local<v8::String> source = (*addon->privileged_info)[0].As<v8::String>();
+		v8::Local<v8::Object> database = (*addon->privileged_info)[1].As<v8::Object>();
+		bool pragmaMode = (*addon->privileged_info)[2].As<v8::Boolean>()->Value();
 		int flags = SQLITE_PREPARE_PERSISTENT;
 
 		if (pragmaMode) {
@@ -152,11 +157,11 @@ private:
 			Addon* addon = db->GetAddon();
 			UseContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, CS::Get(isolate, addon->cs.changes), v8::Int32::New(isolate, changes)).FromJust();
-			result->Set(ctx, CS::Get(isolate, addon->cs.lastInsertRowid),
+			result->Set(ctx, addon->cs.changes.Get(isolate), v8::Int32::New(isolate, changes)).FromJust();
+			result->Set(ctx, addon->cs.lastInsertRowid.Get(isolate),
 				stmt->safe_ints
-					? v8::Local<v8::Value>::Cast(v8::BigInt::New(isolate, id))
-					: v8::Local<v8::Value>::Cast(v8::Number::New(isolate, (double)id))
+					? v8::BigInt::New(isolate, id).As<v8::Value>()
+					: v8::Number::New(isolate, (double)id).As<v8::Value>()
 			).FromJust();
 			STATEMENT_RETURN(result);
 		}
@@ -202,11 +207,11 @@ private:
 	NODE_METHOD(JS_iterate) {
 		UseAddon;
 		UseIsolate;
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->StatementIterator);
+		v8::Local<v8::Function> c = addon->StatementIterator.Get(isolate);
 		addon->privileged_info = &info;
-		v8::MaybeLocal<v8::Object> maybe_iter = c->NewInstance(OnlyContext, 0, NULL);
+		v8::MaybeLocal<v8::Object> maybeIterator = c->NewInstance(OnlyContext, 0, NULL);
 		addon->privileged_info = NULL;
-		if (!maybe_iter.IsEmpty()) info.GetReturnValue().Set(maybe_iter.ToLocalChecked());
+		if (!maybeIterator.IsEmpty()) info.GetReturnValue().Set(maybeIterator.ToLocalChecked());
 	}
 
 	NODE_METHOD(JS_bind) {
@@ -274,13 +279,13 @@ private:
 		int column_count = sqlite3_column_count(stmt->handle);
 		v8::Local<v8::Array> columns = v8::Array::New(isolate);
 
-		v8::Local<v8::String> name = CS::Get(isolate, addon->cs.name);
-		v8::Local<v8::String> columnName = CS::Get(isolate, addon->cs.column);
-		v8::Local<v8::String> tableName = CS::Get(isolate, addon->cs.table);
-		v8::Local<v8::String> databaseName = CS::Get(isolate, addon->cs.database);
-		v8::Local<v8::String> typeName = CS::Get(isolate, addon->cs.type);
+		v8::Local<v8::String> name = addon->cs.name.Get(isolate);
+		v8::Local<v8::String> columnName = addon->cs.column.Get(isolate);
+		v8::Local<v8::String> tableName = addon->cs.table.Get(isolate);
+		v8::Local<v8::String> databaseName = addon->cs.database.Get(isolate);
+		v8::Local<v8::String> typeName = addon->cs.type.Get(isolate);
 
-		for (int i=0; i<column_count; ++i) {
+		for (int i = 0; i < column_count; ++i) {
 			v8::Local<v8::Object> column = v8::Object::New(isolate);
 
 			column->Set(ctx, name,

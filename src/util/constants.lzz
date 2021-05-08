@@ -1,13 +1,10 @@
 class CS {
 public:
 
-	static inline v8::Local<v8::String> Get(v8::Isolate* isolate, CopyablePersistent<v8::String>& constant) {
-		return v8::Local<v8::String>::New(isolate, constant);
-	}
 	v8::Local<v8::String> Code(v8::Isolate* isolate, int code) {
 		auto element = codes.find(code);
-		if (element != codes.end()) return v8::Local<v8::String>::New(isolate, element->second);
-		return StringFromUtf8(isolate, CONCAT("UNKNOWN_SQLITE_ERROR_", std::to_string(code).c_str(), "").c_str(), -1);
+		if (element != codes.end()) return element->second.Get(isolate);
+		return StringFromUtf8(isolate, (std::string("UNKNOWN_SQLITE_ERROR_") + std::to_string(code)).c_str(), -1);
 	}
 
 	explicit CS(v8::Isolate* isolate) {
@@ -139,11 +136,15 @@ public:
 	CopyablePersistent<v8::String> remainingPages;
 
 private:
+
 	static void SetString(v8::Isolate* isolate, CopyablePersistent<v8::String>& constant, const char* str) {
 		constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 	}
+
 	void SetCode(v8::Isolate* isolate, int code, const char* str) {
-		codes.emplace(std::piecewise_construct, std::forward_as_tuple(code), std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
+		codes.emplace(std::piecewise_construct,
+			std::forward_as_tuple(code),
+			std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
 
 	std::unordered_map<int, CopyablePersistent<v8::String> > codes;
