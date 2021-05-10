@@ -249,7 +249,7 @@ db.prepare(`
 
 ### .table(*name*, *definition*) -> *this*
 
-Registers a [virtual table module](https://www.sqlite.org/vtab.html). Virtual tables can be queried just like real tables, except their results do not exist in the database file; instead, they are calculated on-the-fly by a JavaScript [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*).
+Registers a [virtual table](https://www.sqlite.org/vtab.html). Virtual tables can be queried just like real tables, except their results do not exist in the database file; instead, they are calculated on-the-fly by a [generator function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*) in JavaScript.
 
 ```js
 const fs = require('fs');
@@ -268,9 +268,9 @@ const files = db.prepare('SELECT * FROM filesystem_directory').all();
 // => [{ filename, data }, { filename, data }]
 ```
 
-To yield a row from a virtual table, you can either yield an object whose keys correspond to column names, or an array whose elements represent columns in the order that they were declared. Every virtual table **must** declare its columns via the `columns` option.
+To generate a row in a virtual table, you can either yield an object whose keys correspond to column names, or yield an array whose elements represent columns in the order that they were declared. Every virtual table **must** declare its columns via the `columns` option.
 
-The most common way to use virtual tables is to treat them like [table-valued functions](https://www.sqlite.org/vtab.html#tabfunc2). This way, you can pass parameters to the virtual table, making them much more flexible.
+Virtual tables can be used like [table-valued functions](https://www.sqlite.org/vtab.html#tabfunc2); you can pass parameters to them, unlike regular tables.
 
 ```js
 db.table('regex_matches', {
@@ -285,13 +285,13 @@ db.table('regex_matches', {
   },
 });
 
-const stmt = db.prepare("SELECT * FROM regex('\\$(\\d+'), ?)");
+const stmt = db.prepare("SELECT * FROM regex('\\$(\\d+)', ?)");
 
 stmt.all('Desks cost $500 and chairs cost $27');
 // => [{ match: '$500', capture: '500' }, { match: '$27', capture: '27' }]
 ```
 
-By default, the number of parameters accepted by the virtual table are inferred by `function.length`, and the parameters are automatically named `$1`, `$2`, etc. However, you can optionally provide an explicit list of parameters via the `parameters` option.
+By default, the number of parameters accepted by a virtual table is inferred by `function.length`, and the parameters are automatically named `$1`, `$2`, etc. However, you can optionally provide an explicit list of parameters via the `parameters` option.
 
 ```js
 db.table('regex_matches', {
@@ -305,7 +305,7 @@ db.table('regex_matches', {
 
 > In virtual tables, parameters are actually [*hidden columns*](https://www.sqlite.org/vtab.html#hidden_columns_in_virtual_tables), and they can be selected in the result set of a query, just like any other column. That's why it may sometimes be desirable to give them explicit names.
 
-When querying a virtual table, any omited parameters will be `undefined`. You can use this behavior to implement required parameters and default values.
+When querying a virtual table, any omitted parameters will be `undefined`. You can use this behavior to implement required parameters and default parameter values.
 
 ```js
 db.table('sequence', {
@@ -326,11 +326,7 @@ db.prepare('SELECT * FROM sequence(10)').pluck().all();
 // => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-So far, we've only talked about [eponymous-only virtual tables](https://www.sqlite.org/vtab.html#epovtab). These are virtual tables that automatically exist, without needing to run a `CREATE VIRTUAL TABLE` statement.
-
-However, sometimes you may want to create many similar virtual tables, each with a different configuration. For example, you can make a virtual table that reads CSV files, but each CSV file would need different column names, which you can't do with a single virtual table. For these use-cases, you can define a *non-eponymous* virtual table module. Think of it like a virtual table "class" that can be instantiated by running [`CREATE VIRTUAL TABLE`](https://sqlite.org/lang_createvtab.html) statements.
-
-To register a *non-eponymous* virtual table module, simply provide a factory function that *returns* virtual table definitions:
+Normally, when you register a virtual table, the virtual table *automatically exists* without needing to run a `CREATE VIRTUAL TABLE` statement. However, if you provide a factory function as the second argument (a function that *returns* virtual table definitions), then no virtual table will be created automatically. Instead, you can create multiple similar virtual tables by running [`CREATE VIRTUAL TABLE`](https://sqlite.org/lang_createvtab.html) statements, each with their own module arguments. Think of it like defining a virtual table "class" that can be instantiated by running `CREATE VIRTUAL TABLE` statements.
 
 ```js
 const fs = require('fs');
