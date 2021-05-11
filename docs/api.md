@@ -256,7 +256,7 @@ const fs = require('fs');
 
 db.table('filesystem_directory', {
   columns: ['filename', 'data'],
-  *rows() {
+  rows: function* () {
     for (const filename of fs.readdirSync(process.cwd())) {
       const data = fs.readFileSync(filename);
       yield { filename, data };
@@ -275,7 +275,7 @@ Virtual tables can be used like [table-valued functions](https://www.sqlite.org/
 ```js
 db.table('regex_matches', {
   columns: ['match', 'capture'],
-  *rows(pattern, text) {
+  rows: function* (pattern, text) {
     const regex = new RegExp(pattern, 'g');
     let match;
 
@@ -297,7 +297,7 @@ By default, the number of parameters accepted by a virtual table is inferred by 
 db.table('regex_matches', {
   columns: ['match', 'capture'],
   parameters: ['pattern', 'text'],
-  *rows(pattern, text) {
+  rows: function* (pattern, text) {
     ...
   },
 });
@@ -311,7 +311,7 @@ When querying a virtual table, any omitted parameters will be `undefined`. You c
 db.table('sequence', {
   columns: ['value'],
   parameters: ['length', 'start'],
-  *rows(length, start = 0) {
+  rows: function* (length, start = 0) {
     if (length === undefined) {
       throw new TypeError('missing required parameter "length"');
     }
@@ -327,6 +327,8 @@ db.prepare('SELECT * FROM sequence(10)').pluck().all();
 // => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
+> Note that when using syntax like `start = 0` for default parameter values (shown above), the function's `.length` property does not include the optional parameter, so you need to explicitly declare `parameters` in this case.
+
 Normally, when you register a virtual table, the virtual table *automatically exists* without needing to run a `CREATE VIRTUAL TABLE` statement. However, if you provide a factory function as the second argument (a function that *returns* virtual table definitions), then no virtual table will be created automatically. Instead, you can create multiple similar virtual tables by running [`CREATE VIRTUAL TABLE`](https://sqlite.org/lang_createvtab.html) statements, each with their own module arguments. Think of it like defining a virtual table "class" that can be instantiated by running `CREATE VIRTUAL TABLE` statements.
 
 ```js
@@ -336,7 +338,7 @@ db.table('csv', (filename) => {
   const firstLine = getFirstLineOfFile(filename);
   return {
     columns: firstLine.split(','),
-    *rows() {
+    rows: function* () {
       const contents = fs.readFileSync(filename, 'utf8');
       for (const line of contents.split('\n')) {
         yield line.split(',');
