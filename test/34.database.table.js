@@ -291,7 +291,7 @@ describe('Database#table()', function () {
 			columns: ['rowid'],
 			*rows() { yield* rows; },
 		});
-		expect(this.db.prepare('SELECT oid, * FROM b').all())
+		expect(this.db.prepare('SELECT oid AS oid, * FROM b').all())
 			.to.deep.equal([{ oid: 1, rowid: 5 }, { oid: 2, rowid: 10 }]);
 		expect(rows).to.deep.equal([{ rowid: 5 }, { rowid: 10 }]);
 	});
