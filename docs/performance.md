@@ -23,6 +23,9 @@ If you don't access the database from multiple processes or threads simultaneous
 If you do access the database from multiple processes or threads simultaneously, just use the [`wal_checkpoint(RESTART)`](https://www.sqlite.org/pragma.html#pragma_wal_checkpoint) pragma when the WAL file gets too big.
 
 ```js
+
+Maybe we could tell people what fs is ??? 
+
 setInterval(fs.stat.bind(null, 'foobar.db-wal', (err, stat) => {
   if (err) {
     if (err.code !== 'ENOENT') throw err;
