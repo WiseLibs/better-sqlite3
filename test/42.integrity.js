@@ -167,6 +167,26 @@ describe('integrity checks', function () {
 		});
 	});
 
+	describe('Database#table()', function () {
+		specify('while iterating (blocked)', function () {
+			let i = 0;
+			whileIterating(this, blocked(() => this.db.table(`tbl_${++i}`, { columns: ['x'], *rows() {} })));
+			expect(i).to.equal(5);
+			normally(allowed(() => this.db.table(`tbl_${++i}`, { columns: ['x'], *rows() {} })));
+		});
+		specify('while busy (blocked)', function () {
+			let i = 0;
+			whileBusy(this, blocked(() => this.db.table(`tbl_${++i}`, { columns: ['x'], *rows() {} })));
+			expect(i).to.equal(5);
+			normally(allowed(() => this.db.table(`tbl_${++i}`, { columns: ['x'], *rows() {} })));
+		});
+		specify('while closed (blocked)', function () {
+			let i = 0;
+			whileClosed(this, blocked(() => this.db.table(`tbl_${++i}`, { columns: ['x'], *rows() {} })));
+			expect(i).to.equal(1);
+		});
+	});
+
 	describe('Database#loadExtension()', function () {
 		let filepath;
 		before(function () {

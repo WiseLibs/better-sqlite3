@@ -66,7 +66,8 @@ db.aggregate('addInts', {
 db.table('sequence', {
   safeIntegers: true,
   columns: ['value'],
-  rows: function* (length, start = 0n) {
+  parameters: ['length', 'start'],
+  *rows(length, start = 0n) {
     const end = start + length;
     for (let n = start; n < end; ++n) {
       yield { value: n };

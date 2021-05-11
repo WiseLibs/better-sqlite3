@@ -256,7 +256,7 @@ const fs = require('fs');
 
 db.table('filesystem_directory', {
   columns: ['filename', 'data'],
-  rows: function* () {
+  *rows() {
     for (const filename of fs.readdirSync(process.cwd())) {
       const data = fs.readFileSync(filename);
       yield { filename, data };
@@ -275,7 +275,7 @@ Virtual tables can be used like [table-valued functions](https://www.sqlite.org/
 ```js
 db.table('regex_matches', {
   columns: ['match', 'capture'],
-  rows: function* (pattern, text) {
+  *rows(pattern, text) {
     const regex = new RegExp(pattern, 'g');
     let match;
 
@@ -297,7 +297,7 @@ By default, the number of parameters accepted by a virtual table is inferred by 
 db.table('regex_matches', {
   columns: ['match', 'capture'],
   parameters: ['pattern', 'text'],
-  rows: function* (pattern, text) {
+  *rows(pattern, text) {
     ...
   },
 });
@@ -310,7 +310,8 @@ When querying a virtual table, any omitted parameters will be `undefined`. You c
 ```js
 db.table('sequence', {
   columns: ['value'],
-  rows: function* (length, start = 0) {
+  parameters: ['length', 'start'],
+  *rows(length, start = 0) {
     if (length === undefined) {
       throw new TypeError('missing required parameter "length"');
     }
@@ -335,7 +336,7 @@ db.table('csv', (filename) => {
   const firstLine = getFirstLineOfFile(filename);
   return {
     columns: firstLine.split(','),
-    rows: function* () {
+    *rows() {
       const contents = fs.readFileSync(filename, 'utf8');
       for (const line of contents.split('\n')) {
         yield line.split(',');
