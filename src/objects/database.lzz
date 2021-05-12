@@ -55,7 +55,7 @@ public:
 			StringFromUtf8(isolate, message, -1),
 			addon->cs.Code(isolate, code)
 		};
-		isolate->ThrowException(v8::Local<v8::Function>::New(isolate, addon->SqliteError)
+		isolate->ThrowException(addon->SqliteError.Get(isolate)
 			->NewInstance(OnlyContext, 2, args)
 			.ToLocalChecked());
 	}
@@ -66,7 +66,7 @@ public:
 		if (!has_logger) return false;
 		char* expanded = sqlite3_expanded_sql(handle);
 		v8::Local<v8::Value> arg = StringFromUtf8(isolate, expanded ? expanded : sqlite3_sql(handle), -1);
-		was_js_error = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, logger))
+		was_js_error = logger.Get(isolate).As<v8::Function>()
 			->Call(OnlyContext, v8::Undefined(isolate), 1, &arg)
 			.IsEmpty();
 		if (expanded) sqlite3_free(expanded);
@@ -123,20 +123,26 @@ public:
 
 private:
 
-	explicit Database(sqlite3* _db_handle, v8::Isolate* isolate, Addon* _addon, v8::Local<v8::Value> _logger) : node::ObjectWrap(),
-		db_handle(_db_handle),
+	explicit Database(
+		v8::Isolate* isolate,
+		Addon* addon,
+		sqlite3* db_handle,
+		v8::Local<v8::Value> logger
+	) :
+		node::ObjectWrap(),
+		db_handle(db_handle),
 		open(true),
 		busy(false),
 		safe_ints(false),
 		unsafe_mode(false),
 		was_js_error(false),
-		has_logger(_logger->IsFunction()),
+		has_logger(logger->IsFunction()),
 		iterators(0),
-		addon(_addon),
-		logger(isolate, _logger),
+		addon(addon),
+		logger(isolate, logger),
 		stmts(),
 		backups() {
-		assert(_db_handle != NULL);
+		assert(db_handle != NULL);
 		addon->dbs.insert(this);
 	}
 
@@ -176,14 +182,14 @@ private:
 		status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_DEFENSIVE, 1, NULL);
 		assert(status == SQLITE_OK);
 
-		if (node::Buffer::HasInstance(buffer) && !Deserialize(v8::Local<v8::Object>::Cast(buffer), addon, db_handle, readonly)) {
+		if (node::Buffer::HasInstance(buffer) && !Deserialize(buffer.As<v8::Object>(), addon, db_handle, readonly)) {
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 			return;
 		}
 
 		UseContext;
-		Database* db = new Database(db_handle, isolate, addon, logger);
+		Database* db = new Database(isolate, addon, db_handle, logger);
 		db->Wrap(info.This());
 		SetFrozen(isolate, ctx, info.This(), addon->cs.memory, v8::Boolean::New(isolate, in_memory));
 		SetFrozen(isolate, ctx, info.This(), addon->cs.readonly, v8::Boolean::New(isolate, readonly));
@@ -201,11 +207,11 @@ private:
 		(void)pragmaMode;
 		UseAddon;
 		UseIsolate;
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->Statement);
+		v8::Local<v8::Function> c = addon->Statement.Get(isolate);
 		addon->privileged_info = &info;
-		v8::MaybeLocal<v8::Object> maybe_statement = c->NewInstance(OnlyContext, 0, NULL);
+		v8::MaybeLocal<v8::Object> maybeStatement = c->NewInstance(OnlyContext, 0, NULL);
 		addon->privileged_info = NULL;
-		if (!maybe_statement.IsEmpty()) info.GetReturnValue().Set(maybe_statement.ToLocalChecked());
+		if (!maybeStatement.IsEmpty()) info.GetReturnValue().Set(maybeStatement.ToLocalChecked());
 	}
 
 	NODE_METHOD(JS_exec) {
@@ -259,11 +265,11 @@ private:
 		(void)unlink;
 		UseAddon;
 		UseIsolate;
-		v8::Local<v8::Function> c = v8::Local<v8::Function>::New(isolate, addon->Backup);
+		v8::Local<v8::Function> c = addon->Backup.Get(isolate);
 		addon->privileged_info = &info;
-		v8::MaybeLocal<v8::Object> maybe_backup = c->NewInstance(OnlyContext, 0, NULL);
+		v8::MaybeLocal<v8::Object> maybeBackup = c->NewInstance(OnlyContext, 0, NULL);
 		addon->privileged_info = NULL;
-		if (!maybe_backup.IsEmpty()) info.GetReturnValue().Set(maybe_backup.ToLocalChecked());
+		if (!maybeBackup.IsEmpty()) info.GetReturnValue().Set(maybeBackup.ToLocalChecked());
 	}
 
 	NODE_METHOD(JS_serialize) {
@@ -284,7 +290,7 @@ private:
 		}
 
 		info.GetReturnValue().Set(
-			node::Buffer::New(isolate, reinterpret_cast<char*>(data), length, FreeCallback, NULL).ToLocalChecked()
+			node::Buffer::New(isolate, reinterpret_cast<char*>(data), length, FreeSerialization, NULL).ToLocalChecked()
 		);
 	}
 
@@ -307,7 +313,7 @@ private:
 		if (direct_only) mask |= SQLITE_DIRECTONLY;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
-		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, fn, *name, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {
+		if (sqlite3_create_function_v2(db->db_handle, *name, argc, mask, new CustomFunction(isolate, db, *name, fn, safe_ints), CustomFunction::xFunc, NULL, NULL, CustomFunction::xDestroy) != SQLITE_OK) {
 			db->ThrowDatabaseError();
 		}
 	}
@@ -336,7 +342,7 @@ private:
 		if (direct_only) mask |= SQLITE_DIRECTONLY;
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(db->safe_ints);
 
-		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, start, step, inverse, result, *name, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
+		if (sqlite3_create_window_function(db->db_handle, *name, argc, mask, new CustomAggregate(isolate, db, *name, start, step, inverse, result, safe_ints), CustomAggregate::xStep, CustomAggregate::xFinal, xValue, xInverse, CustomAggregate::xDestroy) != SQLITE_OK) {
 			db->ThrowDatabaseError();
 		}
 	}
@@ -355,7 +361,7 @@ private:
 		sqlite3_module* module = eponymous ? &CustomTable::EPONYMOUS_MODULE : &CustomTable::MODULE;
 
 		db->busy = true;
-		if (sqlite3_create_module_v2(db->db_handle, *name, module, new CustomTable(OnlyAddon, isolate, db, *name, factory), CustomTable::Destructor) != SQLITE_OK) {
+		if (sqlite3_create_module_v2(db->db_handle, *name, module, new CustomTable(isolate, db, *name, factory), CustomTable::Destructor) != SQLITE_OK) {
 			db->ThrowDatabaseError();
 		}
 		db->busy = false;
@@ -440,7 +446,7 @@ private:
 		return true;
 	}
 
-	static void FreeCallback(char* data, void* _unused) {
+	static void FreeSerialization(char* data, void* _) {
 		sqlite3_free(data);
 	}
 

@@ -2,19 +2,16 @@
 	if (value->IsNumber()) {                                                   \
 		return sqlite3_##to##_double(                                          \
 			__VA_ARGS__,                                                       \
-			v8::Local<v8::Number>::Cast(value)->Value()                        \
+			value.As<v8::Number>()->Value()                                    \
 		);                                                                     \
 	} else if (value->IsBigInt()) {                                            \
 		bool lossless;                                                         \
-		int64_t v = v8::Local<v8::BigInt>::Cast(value)->Int64Value(&lossless); \
+		int64_t v = value.As<v8::BigInt>()->Int64Value(&lossless);             \
 		if (lossless) {                                                        \
 			return sqlite3_##to##_int64(__VA_ARGS__, v);                       \
 		}                                                                      \
 	} else if (value->IsString()) {                                            \
-		v8::String::Utf8Value utf8(                                            \
-			isolate,                                                           \
-			v8::Local<v8::String>::Cast(value)                                 \
-		);                                                                     \
+		v8::String::Utf8Value utf8(isolate, value.As<v8::String>());           \
 		return sqlite3_##to##_text(                                            \
 			__VA_ARGS__,                                                       \
 			*utf8,                                                             \
@@ -82,7 +79,7 @@ namespace Data {
 	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
 		int column_count = sqlite3_column_count(handle);
-		for (int i=0; i<column_count; ++i) {
+		for (int i = 0; i < column_count; ++i) {
 			row->Set(ctx,
 				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
 				Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
@@ -93,13 +90,13 @@ namespace Data {
 	v8::Local<v8::Value> GetExpandedRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
 		int column_count = sqlite3_column_count(handle);
-		for (int i=0; i<column_count; ++i) {
+		for (int i = 0; i < column_count; ++i) {
 			const char* table_raw = sqlite3_column_table_name(handle, i);
 			v8::Local<v8::String> table = InternalizedFromUtf8(isolate, table_raw == NULL ? "$" : table_raw, -1);
 			v8::Local<v8::String> column = InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1);
 			v8::Local<v8::Value> value = Data::GetValueJS(isolate, handle, i, safe_ints);
 			if (row->HasOwnProperty(ctx, table).FromJust()) {
-				v8::Local<v8::Object>::Cast(row->Get(ctx, table).ToLocalChecked())->Set(ctx, column, value).FromJust();
+				row->Get(ctx, table).ToLocalChecked().As<v8::Object>()->Set(ctx, column, value).FromJust();
 			} else {
 				v8::Local<v8::Object> nested = v8::Object::New(isolate);
 				row->Set(ctx, table, nested).FromJust();
@@ -112,7 +109,7 @@ namespace Data {
 	v8::Local<v8::Value> GetRawRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
 		v8::Local<v8::Array> row = v8::Array::New(isolate);
 		int column_count = sqlite3_column_count(handle);
-		for (int i=0; i<column_count; ++i) {
+		for (int i = 0; i < column_count; ++i) {
 			row->Set(ctx, i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
 		}
 		return row;
@@ -129,7 +126,7 @@ namespace Data {
 
 	void GetArgumentsJS(v8::Isolate* isolate, v8::Local<v8::Value>* out, sqlite3_value** values, int argument_count, bool safe_ints) {
 		assert(argument_count > 0);
-		for (int i=0; i<argument_count; ++i) {
+		for (int i = 0; i < argument_count; ++i) {
 			out[i] = Data::GetValueJS(isolate, values[i], safe_ints);
 		}
 	}

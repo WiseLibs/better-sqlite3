@@ -1,9 +1,17 @@
 class CustomTable {
 public:
 
-	explicit CustomTable(Addon* _addon, v8::Isolate* _isolate, Database* _db, const char* _name, v8::Local<v8::Function> _factory)
-		: addon(_addon), isolate(_isolate), db(_db), name(COPY(_name)), factory(_isolate, _factory) {}
-	~CustomTable() { delete[] name; }
+	explicit CustomTable(
+		v8::Isolate* isolate,
+		Database* db,
+		const char* name,
+		v8::Local<v8::Function> factory
+	) :
+		addon(db->GetAddon()),
+		isolate(isolate),
+		db(db),
+		name(name),
+		factory(isolate, factory) {}
 
 	static void Destructor(void* self) {
 		delete static_cast<CustomTable*>(self);
@@ -94,7 +102,7 @@ private:
 		}
 
 		std::string GetDataErrorPrefix() {
-			return CONCAT("Virtual table module \"", parent->name, "\" yielded");
+			return std::string("Virtual table module \"") + parent->name + "\" yielded";
 		}
 
 		CustomTable * const parent;
@@ -112,24 +120,24 @@ private:
 		UseContext;
 
 		v8::Local<v8::Value>* args = ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
-		for (int i=0; i<argc; ++i) {
+		for (int i = 0; i < argc; ++i) {
 			args[i] = StringFromUtf8(isolate, argv[i], -1);
 		}
 
-		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, self->factory)->Call(ctx, v8::Undefined(isolate), argc, args);
+		v8::MaybeLocal<v8::Value> maybeReturnValue = self->factory.Get(isolate)->Call(ctx, v8::Undefined(isolate), argc, args);
 		delete[] args;
 
-		if (maybe_return_value.IsEmpty()) {
+		if (maybeReturnValue.IsEmpty()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
-		v8::Local<v8::Array> returnValue = v8::Local<v8::Array>::Cast(maybe_return_value.ToLocalChecked());
-		v8::Local<v8::String> sqlString = v8::Local<v8::String>::Cast(returnValue->Get(ctx, 0).ToLocalChecked());
-		v8::Local<v8::Function> generator = v8::Local<v8::Function>::Cast(returnValue->Get(ctx, 1).ToLocalChecked());
-		v8::Local<v8::Array> parameterNames = v8::Local<v8::Array>::Cast(returnValue->Get(ctx, 2).ToLocalChecked());
-		int safe_ints = v8::Local<v8::Int32>::Cast(returnValue->Get(ctx, 3).ToLocalChecked())->Value();
-		bool direct_only = v8::Local<v8::Boolean>::Cast(returnValue->Get(ctx, 4).ToLocalChecked())->Value();
+		v8::Local<v8::Array> returnValue = maybeReturnValue.ToLocalChecked().As<v8::Array>();
+		v8::Local<v8::String> sqlString = returnValue->Get(ctx, 0).ToLocalChecked().As<v8::String>();
+		v8::Local<v8::Function> generator = returnValue->Get(ctx, 1).ToLocalChecked().As<v8::Function>();
+		v8::Local<v8::Array> parameterNames = returnValue->Get(ctx, 2).ToLocalChecked().As<v8::Array>();
+		int safe_ints = returnValue->Get(ctx, 3).ToLocalChecked().As<v8::Int32>()->Value();
+		bool direct_only = returnValue->Get(ctx, 4).ToLocalChecked().As<v8::Boolean>()->Value();
 
 		v8::String::Utf8Value sql(isolate, sqlString);
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(self->db->GetState()->safe_ints);
@@ -137,7 +145,7 @@ private:
 		std::vector<std::string> parameter_names;
 		int parameter_count = parameterNames->Length();
 		for (int i = 0; i < parameter_count; ++i) {
-			v8::Local<v8::String> parameterName = v8::Local<v8::String>::Cast(parameterNames->Get(ctx, i).ToLocalChecked());
+			v8::Local<v8::String> parameterName = parameterNames->Get(ctx, i).ToLocalChecked().As<v8::String>();
 			v8::String::Utf8Value parameter_name(isolate, parameterName);
 			parameter_names.emplace_back(*parameter_name);
 		}
@@ -200,30 +208,30 @@ private:
 			}
 		}
 
-		v8::MaybeLocal<v8::Value> maybe_iterator = v8::Local<v8::Function>::New(isolate, vtab->generator)->Call(ctx, v8::Undefined(isolate), parameter_count, args);
+		v8::MaybeLocal<v8::Value> maybeIterator = vtab->generator.Get(isolate)->Call(ctx, v8::Undefined(isolate), parameter_count, args);
 		if (args != args_fast) delete[] args;
 
-		if (maybe_iterator.IsEmpty()) {
+		if (maybeIterator.IsEmpty()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
-		v8::Local<v8::Object> iterator = v8::Local<v8::Object>::Cast(maybe_iterator.ToLocalChecked());
-		v8::Local<v8::Function> next = v8::Local<v8::Function>::Cast(iterator->Get(ctx, CS::Get(isolate, addon->cs.next)).ToLocalChecked());
+		v8::Local<v8::Object> iterator = maybeIterator.ToLocalChecked().As<v8::Object>();
+		v8::Local<v8::Function> next = iterator->Get(ctx, addon->cs.next.Get(isolate)).ToLocalChecked().As<v8::Function>();
 
 		cursor->iterator.Reset(isolate, iterator);
 		cursor->next.Reset(isolate, next);
 
-		v8::MaybeLocal<v8::Value> maybe_record = next->Call(ctx, iterator, 0, NULL);
-		if (maybe_record.IsEmpty()) {
+		v8::MaybeLocal<v8::Value> maybeRecord = next->Call(ctx, iterator, 0, NULL);
+		if (maybeRecord.IsEmpty()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
-		v8::Local<v8::Object> record = v8::Local<v8::Object>::Cast(maybe_record.ToLocalChecked());
-		bool done = v8::Local<v8::Boolean>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.done)).ToLocalChecked())->Value();
+		v8::Local<v8::Object> record = maybeRecord.ToLocalChecked().As<v8::Object>();
+		bool done = record->Get(ctx, addon->cs.done.Get(isolate)).ToLocalChecked().As<v8::Boolean>()->Value();
 		if (!done) {
-			cursor->row.Reset(isolate, v8::Local<v8::Array>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.value)).ToLocalChecked()));
+			cursor->row.Reset(isolate, record->Get(ctx, addon->cs.value.Get(isolate)).ToLocalChecked().As<v8::Array>());
 		}
 		cursor->done = done;
 		cursor->rowid = 1;
@@ -239,19 +247,19 @@ private:
 		v8::HandleScope scope(isolate);
 		UseContext;
 
-		v8::Local<v8::Object> iterator = v8::Local<v8::Object>::New(isolate, cursor->iterator);
-		v8::Local<v8::Function> next = v8::Local<v8::Function>::New(isolate, cursor->next);
+		v8::Local<v8::Object> iterator = cursor->iterator.Get(isolate);
+		v8::Local<v8::Function> next = cursor->next.Get(isolate);
 
-		v8::MaybeLocal<v8::Value> maybe_record = next->Call(ctx, iterator, 0, NULL);
-		if (maybe_record.IsEmpty()) {
+		v8::MaybeLocal<v8::Value> maybeRecord = next->Call(ctx, iterator, 0, NULL);
+		if (maybeRecord.IsEmpty()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
-		v8::Local<v8::Object> record = v8::Local<v8::Object>::Cast(maybe_record.ToLocalChecked());
-		bool done = v8::Local<v8::Boolean>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.done)).ToLocalChecked())->Value();
+		v8::Local<v8::Object> record = maybeRecord.ToLocalChecked().As<v8::Object>();
+		bool done = record->Get(ctx, addon->cs.done.Get(isolate)).ToLocalChecked().As<v8::Boolean>()->Value();
 		if (!done) {
-			cursor->row.Reset(isolate, v8::Local<v8::Array>::Cast(record->Get(ctx, CS::Get(isolate, addon->cs.value)).ToLocalChecked()));
+			cursor->row.Reset(isolate, record->Get(ctx, addon->cs.value.Get(isolate)).ToLocalChecked().As<v8::Array>());
 		}
 		cursor->done = done;
 		cursor->rowid += 1;
@@ -270,12 +278,12 @@ private:
 		v8::Isolate* isolate = self->isolate;
 		v8::HandleScope scope(isolate);
 
-		v8::Local<v8::Array> row = v8::Local<v8::Array>::New(isolate, cursor->row);
-		v8::MaybeLocal<v8::Value> maybe_column_value = row->Get(OnlyContext, column);
-		if (maybe_column_value.IsEmpty()) {
+		v8::Local<v8::Array> row = cursor->row.Get(isolate);
+		v8::MaybeLocal<v8::Value> maybeColumnValue = row->Get(OnlyContext, column);
+		if (maybeColumnValue.IsEmpty()) {
 			temp_data_converter.PropagateJSError(NULL);
 		} else {
-			Data::ResultValueFromJS(isolate, invocation, maybe_column_value.ToLocalChecked(), &temp_data_converter);
+			Data::ResultValueFromJS(isolate, invocation, maybeColumnValue.ToLocalChecked(), &temp_data_converter);
 		}
 		return temp_data_converter.status;
 	}
@@ -324,6 +332,6 @@ private:
 	Addon* const addon;
 	v8::Isolate* const isolate;
 	Database* const db;
-	const char* const name;
+	const std::string name;
 	const CopyablePersistent<v8::Function> factory;
 };

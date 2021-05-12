@@ -31,17 +31,6 @@ class Backup;
 #insert "util/binder.lzz"
 
 struct Addon {
-	Addon(v8::Isolate* isolate) : privileged_info(NULL), next_id(0), cs(isolate) {}
-
-	CopyablePersistent<v8::Function> Statement;
-	CopyablePersistent<v8::Function> StatementIterator;
-	CopyablePersistent<v8::Function> Backup;
-	CopyablePersistent<v8::Function> SqliteError;
-	NODE_ARGUMENTS_POINTER privileged_info;
-	sqlite3_uint64 next_id;
-	CS cs;
-	std::set<Database*, Database::CompareDatabase> dbs;
-
 	NODE_METHOD(JS_setErrorConstructor) {
 		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> SqliteError);
 		OnlyAddon->SqliteError.Reset(OnlyIsolate, SqliteError);
@@ -54,9 +43,23 @@ struct Addon {
 		delete addon;
 	}
 
+	explicit Addon(v8::Isolate* isolate) :
+		privileged_info(NULL),
+		next_id(0),
+		cs(isolate) {}
+
 	inline sqlite3_uint64 NextId() {
 		return next_id++;
 	}
+
+	CopyablePersistent<v8::Function> Statement;
+	CopyablePersistent<v8::Function> StatementIterator;
+	CopyablePersistent<v8::Function> Backup;
+	CopyablePersistent<v8::Function> SqliteError;
+	NODE_ARGUMENTS_POINTER privileged_info;
+	sqlite3_uint64 next_id;
+	CS cs;
+	std::set<Database*, Database::CompareDatabase> dbs;
 };
 
 #src
@@ -77,8 +80,8 @@ NODE_MODULE_INIT(/* exports, context */) {
 	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
 
 	// Store addon instance data.
-	addon->Statement.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked()));
-	addon->StatementIterator.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked()));
-	addon->Backup.Reset(isolate, v8::Local<v8::Function>::Cast(exports->Get(context, InternalizedFromLatin1(isolate, "Backup")).ToLocalChecked()));
+	addon->Statement.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked().As<v8::Function>());
+	addon->StatementIterator.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked().As<v8::Function>());
+	addon->Backup.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Backup")).ToLocalChecked().As<v8::Function>());
 }
 #end

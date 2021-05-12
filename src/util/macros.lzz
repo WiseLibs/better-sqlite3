@@ -7,7 +7,7 @@
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
-#define OnlyAddon static_cast<Addon*>(v8::Local<v8::External>::Cast(info.Data())->Value())
+#define OnlyAddon static_cast<Addon*>(info.Data().As<v8::External>()->Value())
 #define UseIsolate v8::Isolate* isolate = OnlyIsolate
 #define UseContext v8::Local<v8::Context> ctx = OnlyContext
 #define UseAddon Addon* addon = OnlyAddon
@@ -31,7 +31,7 @@ inline v8::Local<v8::String> InternalizedFromLatin1(v8::Isolate* isolate, const 
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
 #end
 inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, CopyablePersistent<v8::String>& key, v8::Local<v8::Value> value) {
-	obj->DefineOwnProperty(ctx, CS::Get(isolate, key), value, static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly)).FromJust();
+	obj->DefineOwnProperty(ctx, key.Get(isolate), value, static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly)).FromJust();
 }
 
 void ThrowError(const char* message) { EasyIsolate; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1))); }
@@ -46,7 +46,7 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
 	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
 		return ThrowTypeError("Expected "#at" argument to be "#message);       \
-	var = v8::Local<v8::Type>::Cast(info[at()])__VA_ARGS__
+	var = (info[at()].As<v8::Type>())__VA_ARGS__
 
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \
 	_REQUIRE_ARGUMENT(at, var, Int32, a 32-bit signed integer, ->Value())
@@ -86,22 +86,6 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 #define eighth() 7
 #define ninth() 8
 #define tenth() 9
-
-// Returns a std:string of the concatenation of 3 well-formed C-strings.
-std::string CONCAT(const char* a, const char* b, const char* c) {
-	std::string result(a);
-	result += b;
-	result += c;
-	return result;
-}
-
-// Returns a copy of a well-formed C-string.
-const char* COPY(const char* source) {
-	size_t bytes = strlen(source) + 1;
-	char* dest = new char[bytes];
-	memcpy(dest, source, bytes);
-	return dest;
-}
 
 // Determines whether to skip the given character at the start of an SQL string.
 inline bool IS_SKIPPED(char c) {

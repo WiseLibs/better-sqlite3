@@ -11,6 +11,7 @@ public:
 	}
 
 protected:
+
 	virtual void PropagateJSError(sqlite3_context* invocation) = 0;
 	virtual std::string GetDataErrorPrefix() = 0;
 };
