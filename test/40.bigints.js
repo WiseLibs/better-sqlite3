@@ -62,12 +62,32 @@ describe('BigInts', function () {
 		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(2)).to.equal('number2');
 		expect(this.db.prepare('SELECT customfunc(?)').pluck().get(BigInt(2))).to.equal('bigint2');
 	});
+	it('should get passed to aggregates defined with the "safeIntegers" option', function () {
+		this.db.aggregate('customagg', { safeIntegers: true, step: (_, a) => { return (typeof a) + a; } });
+		expect(this.db.prepare('SELECT customagg(?)').pluck().get(2)).to.equal('number2');
+		expect(this.db.prepare('SELECT customagg(?)').pluck().get(BigInt(2))).to.equal('bigint2');
+	});
+	it('should get passed to virtual tables defined with the "safeIntegers" option', function () {
+		this.db.table('customvtab', { safeIntegers: true, columns: ['x'], *rows(a) { yield [(typeof a) + a]; } });
+		expect(this.db.prepare('SELECT * FROM customvtab(?)').pluck().get(2)).to.equal('number2');
+		expect(this.db.prepare('SELECT * FROM customvtab(?)').pluck().get(BigInt(2))).to.equal('bigint2');
+	});
 	it('should respect the default setting on the database', function () {
 		let arg;
 		const int = BigInt('1006028374637854687');
 		const customFunctionArg = (name, options, dontDefine) => {
 			dontDefine || this.db.function(name, options, (a) => { arg = a; });
 			this.db.prepare(`SELECT ${name}(?)`).get(int);
+			return arg;
+		};
+		const customAggregateArg = (name, options, dontDefine) => {
+			dontDefine || this.db.aggregate(name, { ...options, step: (_, a) => { arg = a; } });
+			this.db.prepare(`SELECT ${name}(?)`).get(int);
+			return arg;
+		};
+		const customTableArg = (name, options, dontDefine) => {
+			dontDefine || this.db.table(name, { ...options, columns: ['x'], *rows(a) { arg = a; } });
+			this.db.prepare(`SELECT * FROM ${name}(?)`).get(int);
 			return arg;
 		};
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)').run(int, int, int);
@@ -78,6 +98,10 @@ describe('BigInts', function () {
 		expect(stmt.safeIntegers(false).get()).to.equal(1006028374637854700);
 		expect(customFunctionArg('a1')).to.deep.equal(int);
 		expect(customFunctionArg('a2', { safeIntegers: false })).to.equal(1006028374637854700);
+		expect(customAggregateArg('a1')).to.deep.equal(int);
+		expect(customAggregateArg('a2', { safeIntegers: false })).to.equal(1006028374637854700);
+		expect(customTableArg('a1')).to.deep.equal(int);
+		expect(customTableArg('a2', { safeIntegers: false })).to.equal(1006028374637854700);
 
 		this.db.defaultSafeIntegers(false);
 
@@ -86,6 +110,10 @@ describe('BigInts', function () {
 		expect(stmt2.safeIntegers().get()).to.deep.equal(int);
 		expect(customFunctionArg('a3')).to.equal(1006028374637854700);
 		expect(customFunctionArg('a4', { safeIntegers: true })).to.deep.equal(int);
+		expect(customAggregateArg('a3')).to.equal(1006028374637854700);
+		expect(customAggregateArg('a4', { safeIntegers: true })).to.deep.equal(int);
+		expect(customTableArg('a3')).to.equal(1006028374637854700);
+		expect(customTableArg('a4', { safeIntegers: true })).to.deep.equal(int);
 
 		this.db.defaultSafeIntegers();
 
@@ -95,11 +123,23 @@ describe('BigInts', function () {
 		expect(customFunctionArg('a2', {}, true)).to.equal(1006028374637854700);
 		expect(customFunctionArg('a3', {}, true)).to.equal(1006028374637854700);
 		expect(customFunctionArg('a4', {}, true)).to.deep.equal(int);
+		expect(customAggregateArg('a1', {}, true)).to.deep.equal(int);
+		expect(customAggregateArg('a2', {}, true)).to.equal(1006028374637854700);
+		expect(customAggregateArg('a3', {}, true)).to.equal(1006028374637854700);
+		expect(customAggregateArg('a4', {}, true)).to.deep.equal(int);
+		expect(customTableArg('a1', {}, true)).to.deep.equal(int);
+		expect(customTableArg('a2', {}, true)).to.equal(1006028374637854700);
+		expect(customTableArg('a3', {}, true)).to.equal(1006028374637854700);
+		expect(customTableArg('a4', {}, true)).to.deep.equal(int);
 
 		const stmt3 = this.db.prepare('SELECT a FROM entries').pluck();
 		expect(stmt3.get()).to.deep.equal(int);
 		expect(stmt3.safeIntegers(false).get()).to.equal(1006028374637854700);
 		expect(customFunctionArg('a5')).to.deep.equal(int);
 		expect(customFunctionArg('a6', { safeIntegers: false })).to.equal(1006028374637854700);
+		expect(customAggregateArg('a5')).to.deep.equal(int);
+		expect(customAggregateArg('a6', { safeIntegers: false })).to.equal(1006028374637854700);
+		expect(customTableArg('a5')).to.deep.equal(int);
+		expect(customTableArg('a6', { safeIntegers: false })).to.equal(1006028374637854700);
 	});
 });

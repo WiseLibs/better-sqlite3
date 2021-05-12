@@ -30,6 +30,7 @@ describe('Database#close()', function () {
 		expect(() => this.db.pragma('cache_size')).to.throw(TypeError);
 		expect(() => this.db.function('foo', () => {})).to.throw(TypeError);
 		expect(() => this.db.aggregate('foo', { step: () => {} })).to.throw(TypeError);
+		expect(() => this.db.table('foo', () => {})).to.throw(TypeError);
 	});
 	it('should prevent any existing statements from running', function () {
 		this.db.prepare('CREATE TABLE people (name TEXT)').run();

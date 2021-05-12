@@ -139,9 +139,9 @@ namespace Data {
 		return value->IsBigInt() ? SQLITE_TOOBIG : -1;
 	}
 
-	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, CustomFunction* function) {
+	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, DataConverter* converter) {
 		JS_VALUE_TO_SQLITE(result, value, isolate, invocation);
-		function->ThrowResultValueError(invocation, value->IsBigInt());
+		converter->ThrowDataConversionError(invocation, value->IsBigInt());
 	}
 
 }
