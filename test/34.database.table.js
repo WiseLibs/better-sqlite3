@@ -141,6 +141,30 @@ describe('Database#table()', function () {
 		expect(() => this.db.prepare('SELECT * FROM vtab WHERE "$1" = ? AND "$2" = ? AND "$3" = ?'))
 			.to.throw(Database.SqliteError);
 	});
+	it('should accept a large number of parameters for the virtual table', function () {
+		const args = ['foo', 'bar', 1, -2, Buffer.from('hello'), 5, -10, 'baz', 99.9, -0.5];
+		this.db.table('vtab', {
+			columns: ['x'],
+			*rows(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) {
+				yield [p10];
+				yield [p9];
+				yield [p8];
+				yield [p7];
+				yield [p6];
+				yield [p5];
+				yield [p4];
+				yield [p3];
+				yield [p2];
+				yield [p1];
+			},
+		});
+		expect(this.db.prepare('SELECT * FROM vtab(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').pluck().all(args))
+			.to.deep.equal(args.slice().reverse());
+		expect(this.db.prepare('SELECT * FROM vtab(?, ?, ?, ?, ?, ?, ?, ?, ?)').pluck().all(args.slice(0, -1)))
+			.to.deep.equal([null].concat(args.slice(0, -1).reverse()));
+		expect(() => this.db.prepare('SELECT * FROM vtab(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'))
+			.to.throw(Database.SqliteError);
+	});
 	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;
 		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
@@ -217,6 +241,8 @@ describe('Database#table()', function () {
 		const rows = [
 			{ a: null, b: 123, c: 456.789, d: 'foo', e: Buffer.from('bar') },
 			{ a: null, b: 987, c: 654.321, d: 'oof', e: Buffer.from('rab') },
+			{ e: Buffer.from('hello'), d: 'world', c: 0.1, b: 10, a: null },
+			{ d: 'old friend', c: -0.1, e: Buffer.from('goodbye'), a: null, b: -10 },
 		];
 		this.db.table('vtab', {
 			columns: ['a', 'b', 'c', 'd', 'e'],

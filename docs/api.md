@@ -339,6 +339,7 @@ db.table('csv', (filename) => {
   return {
     columns: firstLine.split(','),
     rows: function* () {
+      // This is just an example. Real CSV files are more complicated to parse.
       const contents = fs.readFileSync(filename, 'utf8');
       for (const line of contents.split('\n')) {
         yield line.split(',');
