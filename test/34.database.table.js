@@ -192,7 +192,7 @@ describe('Database#table()', function () {
 	});
 	it.skip('should correctly handle arguments that are constrained to other arguments', function () {
 		// This test case fails due to a bug in SQLite (as of May 2021):
-		// https://sqlite.org/forum/forumpost?udc=1&name=830d37b928&t=c
+		// https://sqlite.org/forum/forumpost/830d37b928
 		const calls = [];
 		this.db.table('vtab', {
 			columns: ['x', 'y'],
