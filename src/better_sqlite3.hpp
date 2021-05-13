@@ -577,93 +577,103 @@ public:
   static sqlite3_module EPONYMOUS_MODULE;
 #line 74 "./src/util/custom-table.lzz"
 private:
-#line 76 "./src/util/custom-table.lzz"
+#line 77 "./src/util/custom-table.lzz"
   class VTab
   {
-#line 76 "./src/util/custom-table.lzz"
-    friend class CustomTable;
 #line 77 "./src/util/custom-table.lzz"
-    explicit VTab (CustomTable * _parent, int _parameter_count, bool _safe_ints, v8::Local <v8::Function> _generator, std::vector <std::string> _parameter_names);
-#line 79 "./src/util/custom-table.lzz"
+    friend class CustomTable;
+#line 78 "./src/util/custom-table.lzz"
+    explicit VTab (CustomTable * parent, v8::Local <v8::Function> generator, std::vector <std::string> parameter_names, bool safe_ints);
+#line 92 "./src/util/custom-table.lzz"
+    static CustomTable::VTab * Upcast (sqlite3_vtab * vtab);
+#line 96 "./src/util/custom-table.lzz"
+    sqlite3_vtab * Downcast ();
+#line 100 "./src/util/custom-table.lzz"
     sqlite3_vtab base;
-#line 80 "./src/util/custom-table.lzz"
+#line 101 "./src/util/custom-table.lzz"
     CustomTable * const parent;
-#line 81 "./src/util/custom-table.lzz"
+#line 102 "./src/util/custom-table.lzz"
     int const parameter_count;
-#line 82 "./src/util/custom-table.lzz"
+#line 103 "./src/util/custom-table.lzz"
     bool const safe_ints;
-#line 83 "./src/util/custom-table.lzz"
+#line 104 "./src/util/custom-table.lzz"
     CopyablePersistent <v8::Function> const generator;
-#line 84 "./src/util/custom-table.lzz"
-    std::vector <std::string> parameter_names;
+#line 105 "./src/util/custom-table.lzz"
+    std::vector <std::string> const parameter_names;
   };
-#line 87 "./src/util/custom-table.lzz"
+#line 109 "./src/util/custom-table.lzz"
   class Cursor
   {
-#line 87 "./src/util/custom-table.lzz"
+#line 109 "./src/util/custom-table.lzz"
     friend class CustomTable;
-#line 88 "./src/util/custom-table.lzz"
+#line 110 "./src/util/custom-table.lzz"
+    static CustomTable::Cursor * Upcast (sqlite3_vtab_cursor * cursor);
+#line 114 "./src/util/custom-table.lzz"
+    sqlite3_vtab_cursor * Downcast ();
+#line 118 "./src/util/custom-table.lzz"
+    CustomTable::VTab * GetVTab ();
+#line 122 "./src/util/custom-table.lzz"
     sqlite3_vtab_cursor base;
-#line 89 "./src/util/custom-table.lzz"
+#line 123 "./src/util/custom-table.lzz"
     CopyablePersistent <v8::Object> iterator;
-#line 90 "./src/util/custom-table.lzz"
+#line 124 "./src/util/custom-table.lzz"
     CopyablePersistent <v8::Function> next;
-#line 91 "./src/util/custom-table.lzz"
+#line 125 "./src/util/custom-table.lzz"
     CopyablePersistent <v8::Array> row;
-#line 92 "./src/util/custom-table.lzz"
+#line 126 "./src/util/custom-table.lzz"
     bool done;
-#line 93 "./src/util/custom-table.lzz"
+#line 127 "./src/util/custom-table.lzz"
     sqlite_int64 rowid;
   };
-#line 96 "./src/util/custom-table.lzz"
+#line 131 "./src/util/custom-table.lzz"
   class TempDataConverter : DataConverter
   {
-#line 96 "./src/util/custom-table.lzz"
+#line 131 "./src/util/custom-table.lzz"
     friend class CustomTable;
-#line 97 "./src/util/custom-table.lzz"
-    explicit TempDataConverter (CustomTable * _parent);
-#line 99 "./src/util/custom-table.lzz"
+#line 132 "./src/util/custom-table.lzz"
+    explicit TempDataConverter (CustomTable * parent);
+#line 136 "./src/util/custom-table.lzz"
     void PropagateJSError (sqlite3_context * invocation);
-#line 104 "./src/util/custom-table.lzz"
+#line 141 "./src/util/custom-table.lzz"
     std::string GetDataErrorPrefix ();
-#line 108 "./src/util/custom-table.lzz"
+#line 145 "./src/util/custom-table.lzz"
     CustomTable * const parent;
-#line 109 "./src/util/custom-table.lzz"
+#line 146 "./src/util/custom-table.lzz"
     int status;
   };
-#line 112 "./src/util/custom-table.lzz"
+#line 151 "./src/util/custom-table.lzz"
   static int xCreate (sqlite3 * db_handle, void * _self, int argc, char const * const * argv, sqlite3_vtab * * output, char * * errOutput);
-#line 116 "./src/util/custom-table.lzz"
+#line 156 "./src/util/custom-table.lzz"
   static int xConnect (sqlite3 * db_handle, void * _self, int argc, char const * const * argv, sqlite3_vtab * * output, char * * errOutput);
-#line 166 "./src/util/custom-table.lzz"
+#line 210 "./src/util/custom-table.lzz"
   static int xDisconnect (sqlite3_vtab * vtab);
-#line 171 "./src/util/custom-table.lzz"
+#line 215 "./src/util/custom-table.lzz"
   static int xOpen (sqlite3_vtab * vtab, sqlite3_vtab_cursor * * output);
-#line 176 "./src/util/custom-table.lzz"
+#line 220 "./src/util/custom-table.lzz"
   static int xClose (sqlite3_vtab_cursor * cursor);
-#line 181 "./src/util/custom-table.lzz"
+#line 228 "./src/util/custom-table.lzz"
   static int xFilter (sqlite3_vtab_cursor * _cursor, int idxNum, char const * idxStr, int argc, sqlite3_value * * argv);
-#line 242 "./src/util/custom-table.lzz"
+#line 284 "./src/util/custom-table.lzz"
   static int xNext (sqlite3_vtab_cursor * _cursor);
-#line 270 "./src/util/custom-table.lzz"
+#line 313 "./src/util/custom-table.lzz"
   static int xEof (sqlite3_vtab_cursor * cursor);
-#line 274 "./src/util/custom-table.lzz"
+#line 318 "./src/util/custom-table.lzz"
   static int xColumn (sqlite3_vtab_cursor * _cursor, sqlite3_context * invocation, int column);
-#line 291 "./src/util/custom-table.lzz"
-  static int xRowid (sqlite3_vtab_cursor * cursor, sqlite_int64 * output);
-#line 296 "./src/util/custom-table.lzz"
-  static int xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output);
-#line 327 "./src/util/custom-table.lzz"
-  void PropagateJSError ();
-#line 332 "./src/util/custom-table.lzz"
-  Addon * const addon;
-#line 333 "./src/util/custom-table.lzz"
-  v8::Isolate * const isolate;
-#line 334 "./src/util/custom-table.lzz"
-  Database * const db;
-#line 335 "./src/util/custom-table.lzz"
-  std::string const name;
 #line 336 "./src/util/custom-table.lzz"
+  static int xRowid (sqlite3_vtab_cursor * cursor, sqlite_int64 * output);
+#line 343 "./src/util/custom-table.lzz"
+  static int xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output);
+#line 378 "./src/util/custom-table.lzz"
+  void PropagateJSError ();
+#line 383 "./src/util/custom-table.lzz"
+  Addon * const addon;
+#line 384 "./src/util/custom-table.lzz"
+  v8::Isolate * const isolate;
+#line 385 "./src/util/custom-table.lzz"
+  Database * const db;
+#line 386 "./src/util/custom-table.lzz"
+  std::string const name;
+#line 387 "./src/util/custom-table.lzz"
   CopyablePersistent <v8::Function> const factory;
 };
 #line 64 "./src/util/data.lzz"
@@ -978,6 +988,36 @@ LZZ_INLINE void CustomAggregate::xValueBase (sqlite3_context * invocation, bool 
 
                 Data::ResultValueFromJS(isolate, invocation, result, self);
                 if (is_final) DestroyAccumulator(invocation);
+}
+#line 92 "./src/util/custom-table.lzz"
+LZZ_INLINE CustomTable::VTab * CustomTable::VTab::Upcast (sqlite3_vtab * vtab)
+#line 92 "./src/util/custom-table.lzz"
+                                                                            {
+                        return reinterpret_cast<VTab*>(vtab);
+}
+#line 96 "./src/util/custom-table.lzz"
+LZZ_INLINE sqlite3_vtab * CustomTable::VTab::Downcast ()
+#line 96 "./src/util/custom-table.lzz"
+                                                {
+                        return reinterpret_cast<sqlite3_vtab*>(this);
+}
+#line 110 "./src/util/custom-table.lzz"
+LZZ_INLINE CustomTable::Cursor * CustomTable::Cursor::Upcast (sqlite3_vtab_cursor * cursor)
+#line 110 "./src/util/custom-table.lzz"
+                                                                                       {
+                        return reinterpret_cast<Cursor*>(cursor);
+}
+#line 114 "./src/util/custom-table.lzz"
+LZZ_INLINE sqlite3_vtab_cursor * CustomTable::Cursor::Downcast ()
+#line 114 "./src/util/custom-table.lzz"
+                                                       {
+                        return reinterpret_cast<sqlite3_vtab_cursor*>(this);
+}
+#line 118 "./src/util/custom-table.lzz"
+LZZ_INLINE CustomTable::VTab * CustomTable::Cursor::GetVTab ()
+#line 118 "./src/util/custom-table.lzz"
+                                                    {
+                        return VTab::Upcast(base.pVtab);
 }
 #line 51 "./src/better_sqlite3.lzz"
 LZZ_INLINE sqlite3_uint64 Addon::NextId ()

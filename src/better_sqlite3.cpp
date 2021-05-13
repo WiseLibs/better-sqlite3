@@ -1500,41 +1500,42 @@ sqlite3_module CustomTable::EPONYMOUS_MODULE = {
                 NULL,
                 NULL
         };
-#line 77 "./src/util/custom-table.lzz"
-CustomTable::VTab::VTab (CustomTable * _parent, int _parameter_count, bool _safe_ints, v8::Local <v8::Function> _generator, std::vector <std::string> _parameter_names)
-#line 77 "./src/util/custom-table.lzz"
-  : parent (_parent), parameter_count (_parameter_count), safe_ints (_safe_ints), generator (_parent->isolate, _generator), parameter_names (_parameter_names)
-#line 77 "./src/util/custom-table.lzz"
-                                                                                                                                                                                                                                                                                                                                  { ((void)base);
+#line 78 "./src/util/custom-table.lzz"
+CustomTable::VTab::VTab (CustomTable * parent, v8::Local <v8::Function> generator, std::vector <std::string> parameter_names, bool safe_ints)
+#line 83 "./src/util/custom-table.lzz"
+  : parent (parent), parameter_count (parameter_names.size()), safe_ints (safe_ints), generator (parent->isolate, generator), parameter_names (parameter_names)
+#line 88 "./src/util/custom-table.lzz"
+                                                         {
+                        ((void)base);
 }
-#line 97 "./src/util/custom-table.lzz"
-CustomTable::TempDataConverter::TempDataConverter (CustomTable * _parent)
-#line 97 "./src/util/custom-table.lzz"
-  : parent (_parent), status (SQLITE_OK)
-#line 97 "./src/util/custom-table.lzz"
-                                                                                                      {}
-#line 99 "./src/util/custom-table.lzz"
+#line 132 "./src/util/custom-table.lzz"
+CustomTable::TempDataConverter::TempDataConverter (CustomTable * parent)
+#line 132 "./src/util/custom-table.lzz"
+  : parent (parent), status (SQLITE_OK)
+#line 134 "./src/util/custom-table.lzz"
+                                          {}
+#line 136 "./src/util/custom-table.lzz"
 void CustomTable::TempDataConverter::PropagateJSError (sqlite3_context * invocation)
-#line 99 "./src/util/custom-table.lzz"
+#line 136 "./src/util/custom-table.lzz"
                                                                    {
                         status = SQLITE_ERROR;
                         parent->PropagateJSError();
 }
-#line 104 "./src/util/custom-table.lzz"
+#line 141 "./src/util/custom-table.lzz"
 std::string CustomTable::TempDataConverter::GetDataErrorPrefix ()
-#line 104 "./src/util/custom-table.lzz"
+#line 141 "./src/util/custom-table.lzz"
                                                  {
                         return std::string("Virtual table module \"") + parent->name + "\" yielded";
 }
-#line 112 "./src/util/custom-table.lzz"
+#line 151 "./src/util/custom-table.lzz"
 int CustomTable::xCreate (sqlite3 * db_handle, void * _self, int argc, char const * const * argv, sqlite3_vtab * * output, char * * errOutput)
-#line 112 "./src/util/custom-table.lzz"
+#line 151 "./src/util/custom-table.lzz"
                                                                                                                                          {
                 return xConnect(db_handle, _self, argc, argv, output, errOutput);
 }
-#line 116 "./src/util/custom-table.lzz"
+#line 156 "./src/util/custom-table.lzz"
 int CustomTable::xConnect (sqlite3 * db_handle, void * _self, int argc, char const * const * argv, sqlite3_vtab * * output, char * * errOutput)
-#line 116 "./src/util/custom-table.lzz"
+#line 156 "./src/util/custom-table.lzz"
                                                                                                                                           {
                 CustomTable* self = static_cast<CustomTable*>(_self);
                 v8::Isolate* isolate = self->isolate;
@@ -1546,6 +1547,7 @@ int CustomTable::xConnect (sqlite3 * db_handle, void * _self, int argc, char con
                         args[i] = StringFromUtf8(isolate, argv[i], -1);
                 }
 
+
                 v8::MaybeLocal<v8::Value> maybeReturnValue = self->factory.Get(isolate)->Call(ctx, v8::Undefined(isolate), argc, args);
                 delete[] args;
 
@@ -1553,6 +1555,7 @@ int CustomTable::xConnect (sqlite3 * db_handle, void * _self, int argc, char con
                         self->PropagateJSError();
                         return SQLITE_ERROR;
                 }
+
 
                 v8::Local<v8::Array> returnValue = maybeReturnValue.ToLocalChecked().As<v8::Array>();
                 v8::Local<v8::String> sqlString = returnValue->Get(ctx, 0).ToLocalChecked().As<v8::String>();
@@ -1564,13 +1567,14 @@ int CustomTable::xConnect (sqlite3 * db_handle, void * _self, int argc, char con
                 v8::String::Utf8Value sql(isolate, sqlString);
                 safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(self->db->GetState()->safe_ints);
 
+
                 std::vector<std::string> parameter_names;
-                int parameter_count = parameterNames->Length();
-                for (int i = 0; i < parameter_count; ++i) {
+                for (int i = 0, len = parameterNames->Length(); i < len; ++i) {
                         v8::Local<v8::String> parameterName = parameterNames->Get(ctx, i).ToLocalChecked().As<v8::String>();
                         v8::String::Utf8Value parameter_name(isolate, parameterName);
                         parameter_names.emplace_back(*parameter_name);
                 }
+
 
                 if (sqlite3_declare_vtab(db_handle, *sql) != SQLITE_OK) {
                         *errOutput = sqlite3_mprintf("failed to declare virtual table \"%s\"", argv[2]);
@@ -1581,41 +1585,44 @@ int CustomTable::xConnect (sqlite3 * db_handle, void * _self, int argc, char con
                         return SQLITE_ERROR;
                 }
 
-                *output = reinterpret_cast<sqlite3_vtab*>(new VTab(self, parameter_count, safe_ints, generator, parameter_names));
+
+                *output = (new VTab(self, generator, parameter_names, safe_ints))->Downcast();
                 return SQLITE_OK;
 }
-#line 166 "./src/util/custom-table.lzz"
+#line 210 "./src/util/custom-table.lzz"
 int CustomTable::xDisconnect (sqlite3_vtab * vtab)
-#line 166 "./src/util/custom-table.lzz"
+#line 210 "./src/util/custom-table.lzz"
                                                    {
-                delete reinterpret_cast<VTab*>(vtab);
+                delete VTab::Upcast(vtab);
                 return SQLITE_OK;
 }
-#line 171 "./src/util/custom-table.lzz"
+#line 215 "./src/util/custom-table.lzz"
 int CustomTable::xOpen (sqlite3_vtab * vtab, sqlite3_vtab_cursor * * output)
-#line 171 "./src/util/custom-table.lzz"
+#line 215 "./src/util/custom-table.lzz"
                                                                            {
-                *output = reinterpret_cast<sqlite3_vtab_cursor*>(new Cursor());
+                *output = (new Cursor())->Downcast();
                 return SQLITE_OK;
 }
-#line 176 "./src/util/custom-table.lzz"
+#line 220 "./src/util/custom-table.lzz"
 int CustomTable::xClose (sqlite3_vtab_cursor * cursor)
-#line 176 "./src/util/custom-table.lzz"
+#line 220 "./src/util/custom-table.lzz"
                                                        {
-                delete reinterpret_cast<Cursor*>(cursor);
+                delete Cursor::Upcast(cursor);
                 return SQLITE_OK;
 }
-#line 181 "./src/util/custom-table.lzz"
+#line 228 "./src/util/custom-table.lzz"
 int CustomTable::xFilter (sqlite3_vtab_cursor * _cursor, int idxNum, char const * idxStr, int argc, sqlite3_value * * argv)
-#line 181 "./src/util/custom-table.lzz"
+#line 228 "./src/util/custom-table.lzz"
                                                                                                                          {
-                Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
-                VTab* vtab = reinterpret_cast<VTab*>(cursor->base.pVtab);
+                Cursor* cursor = Cursor::Upcast(_cursor);
+                VTab* vtab = cursor->GetVTab();
                 CustomTable* self = vtab->parent;
                 Addon* addon = self->addon;
                 v8::Isolate* isolate = self->isolate;
                 v8::HandleScope scope(isolate);
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
+
+
 
                 v8::Local<v8::Value> args_fast[4];
                 v8::Local<v8::Value>* args = NULL;
@@ -1627,6 +1634,8 @@ int CustomTable::xFilter (sqlite3_vtab_cursor * _cursor, int idxNum, char const 
                         for (int i = 0; i < parameter_count; ++i) {
                                 if (idxNum & 1 << i) {
                                         args[i] = Data::GetValueJS(isolate, argv[argn++], safe_ints);
+
+
                                         if (args[i]->IsNull()) {
                                                 if (args != args_fast) delete[] args;
                                                 cursor->done = true;
@@ -1638,6 +1647,7 @@ int CustomTable::xFilter (sqlite3_vtab_cursor * _cursor, int idxNum, char const 
                         }
                 }
 
+
                 v8::MaybeLocal<v8::Value> maybeIterator = vtab->generator.Get(isolate)->Call(ctx, v8::Undefined(isolate), parameter_count, args);
                 if (args != args_fast) delete[] args;
 
@@ -1646,34 +1656,22 @@ int CustomTable::xFilter (sqlite3_vtab_cursor * _cursor, int idxNum, char const 
                         return SQLITE_ERROR;
                 }
 
+
                 v8::Local<v8::Object> iterator = maybeIterator.ToLocalChecked().As<v8::Object>();
                 v8::Local<v8::Function> next = iterator->Get(ctx, addon->cs.next.Get(isolate)).ToLocalChecked().As<v8::Function>();
-
                 cursor->iterator.Reset(isolate, iterator);
                 cursor->next.Reset(isolate, next);
+                cursor->rowid = 0;
 
-                v8::MaybeLocal<v8::Value> maybeRecord = next->Call(ctx, iterator, 0, NULL);
-                if (maybeRecord.IsEmpty()) {
-                        self->PropagateJSError();
-                        return SQLITE_ERROR;
-                }
 
-                v8::Local<v8::Object> record = maybeRecord.ToLocalChecked().As<v8::Object>();
-                bool done = record->Get(ctx, addon->cs.done.Get(isolate)).ToLocalChecked().As<v8::Boolean>()->Value();
-                if (!done) {
-                        cursor->row.Reset(isolate, record->Get(ctx, addon->cs.value.Get(isolate)).ToLocalChecked().As<v8::Array>());
-                }
-                cursor->done = done;
-                cursor->rowid = 1;
-
-                return SQLITE_OK;
+                return xNext(cursor->Downcast());
 }
-#line 242 "./src/util/custom-table.lzz"
+#line 284 "./src/util/custom-table.lzz"
 int CustomTable::xNext (sqlite3_vtab_cursor * _cursor)
-#line 242 "./src/util/custom-table.lzz"
+#line 284 "./src/util/custom-table.lzz"
                                                        {
-                Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
-                CustomTable* self = reinterpret_cast<VTab*>(cursor->base.pVtab)->parent;
+                Cursor* cursor = Cursor::Upcast(_cursor);
+                CustomTable* self = cursor->GetVTab()->parent;
                 Addon* addon = self->addon;
                 v8::Isolate* isolate = self->isolate;
                 v8::HandleScope scope(isolate);
@@ -1698,18 +1696,18 @@ int CustomTable::xNext (sqlite3_vtab_cursor * _cursor)
 
                 return SQLITE_OK;
 }
-#line 270 "./src/util/custom-table.lzz"
+#line 313 "./src/util/custom-table.lzz"
 int CustomTable::xEof (sqlite3_vtab_cursor * cursor)
-#line 270 "./src/util/custom-table.lzz"
+#line 313 "./src/util/custom-table.lzz"
                                                      {
-                return reinterpret_cast<Cursor*>(cursor)->done;
+                return Cursor::Upcast(cursor)->done;
 }
-#line 274 "./src/util/custom-table.lzz"
+#line 318 "./src/util/custom-table.lzz"
 int CustomTable::xColumn (sqlite3_vtab_cursor * _cursor, sqlite3_context * invocation, int column)
-#line 274 "./src/util/custom-table.lzz"
+#line 318 "./src/util/custom-table.lzz"
                                                                                                   {
-                Cursor* cursor = reinterpret_cast<Cursor*>(_cursor);
-                CustomTable* self = reinterpret_cast<VTab*>(cursor->base.pVtab)->parent;
+                Cursor* cursor = Cursor::Upcast(_cursor);
+                CustomTable* self = cursor->GetVTab()->parent;
                 TempDataConverter temp_data_converter(self);
                 v8::Isolate* isolate = self->isolate;
                 v8::HandleScope scope(isolate);
@@ -1723,18 +1721,18 @@ int CustomTable::xColumn (sqlite3_vtab_cursor * _cursor, sqlite3_context * invoc
                 }
                 return temp_data_converter.status;
 }
-#line 291 "./src/util/custom-table.lzz"
+#line 336 "./src/util/custom-table.lzz"
 int CustomTable::xRowid (sqlite3_vtab_cursor * cursor, sqlite_int64 * output)
-#line 291 "./src/util/custom-table.lzz"
+#line 336 "./src/util/custom-table.lzz"
                                                                              {
-                *output = reinterpret_cast<Cursor*>(cursor)->rowid;
+                *output = Cursor::Upcast(cursor)->rowid;
                 return SQLITE_OK;
 }
-#line 296 "./src/util/custom-table.lzz"
+#line 343 "./src/util/custom-table.lzz"
 int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
-#line 296 "./src/util/custom-table.lzz"
+#line 343 "./src/util/custom-table.lzz"
                                                                               {
-                int parameter_count = reinterpret_cast<VTab*>(vtab)->parameter_count;
+                int parameter_count = VTab::Upcast(vtab)->parameter_count;
                 int argument_count = 0;
 
                 for (int i = 0, len = output->nConstraint; i < len; ++i) {
@@ -1746,10 +1744,13 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                                         sqlite3_free(vtab->zErrMsg);
                                         vtab->zErrMsg = sqlite3_mprintf(
                                                 "virtual table parameter \"%s\" can only be constrained by the '=' operator",
-                                                reinterpret_cast<VTab*>(vtab)->parameter_names.at(item.iColumn).c_str());
+                                                VTab::Upcast(vtab)->parameter_names.at(item.iColumn).c_str());
                                         return SQLITE_ERROR;
                                 }
                                 if (!item.usable) {
+
+
+
                                         return SQLITE_CONSTRAINT;
                                 }
 
@@ -1760,12 +1761,13 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                 }
 
 
+
                 output->estimatedCost = output->estimatedRows = 1000000000 / (argument_count + 1);
                 return SQLITE_OK;
 }
-#line 327 "./src/util/custom-table.lzz"
+#line 378 "./src/util/custom-table.lzz"
 void CustomTable::PropagateJSError ()
-#line 327 "./src/util/custom-table.lzz"
+#line 378 "./src/util/custom-table.lzz"
                                 {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
