@@ -165,6 +165,18 @@ describe('Database#table()', function () {
 		expect(() => this.db.prepare('SELECT * FROM vtab(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'))
 			.to.throw(Database.SqliteError);
 	});
+	it('should correctly handle arguments even when used out of order', function () {
+		this.db.table('vtab', {
+			columns: ['x', 'y'],
+			*rows(x, y) {
+				yield { x, y };
+			},
+		});
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$1" = ? AND "$2" = ?').get(10, 5))
+			.to.deep.equal({ x: 10, y: 5 });
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$1" = ?').get(5, 10))
+			.to.deep.equal({ x: 10, y: 5 });
+	});
 	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;
 		for (const x of this.db.prepare('SELECT 2').pluck().iterate()) {
@@ -287,6 +299,7 @@ describe('Database#table()', function () {
 			{ a: 1, b: 2, c: 3, d: 4, e: new Number(5) },
 			{ a: 1, b: 2, c: 3, d: 4, e: [5] },
 			{ a: 1, b: 2, c: 3, d: 4, e: new Date() },
+			{ a: 1, b: 2, c: 3, d: 4, f: 5 },
 		];
 		this.db.table('vtab', {
 			columns: ['a', 'b', 'c', 'd', 'e'],
@@ -301,6 +314,7 @@ describe('Database#table()', function () {
 		expect(() => this.db.prepare('SELECT * FROM vtab(?)').all(4)).to.throw(TypeError);
 		expect(() => this.db.prepare('SELECT * FROM vtab(?)').all(5)).to.throw(TypeError);
 		expect(() => this.db.prepare('SELECT * FROM vtab(?)').all(6)).to.throw(TypeError);
+		expect(() => this.db.prepare('SELECT * FROM vtab(?)').all(7)).to.throw(TypeError);
 	});
 	it('should automatically assign rowids without affecting yielded objects', function () {
 		let rows = [{ x: 5 }, { x: 10 }];
