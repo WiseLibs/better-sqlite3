@@ -663,17 +663,17 @@ private:
   static int xRowid (sqlite3_vtab_cursor * cursor, sqlite_int64 * output);
 #line 343 "./src/util/custom-table.lzz"
   static int xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output);
-#line 378 "./src/util/custom-table.lzz"
-  void PropagateJSError ();
-#line 383 "./src/util/custom-table.lzz"
-  Addon * const addon;
-#line 384 "./src/util/custom-table.lzz"
-  v8::Isolate * const isolate;
-#line 385 "./src/util/custom-table.lzz"
-  Database * const db;
-#line 386 "./src/util/custom-table.lzz"
-  std::string const name;
 #line 387 "./src/util/custom-table.lzz"
+  void PropagateJSError ();
+#line 392 "./src/util/custom-table.lzz"
+  Addon * const addon;
+#line 393 "./src/util/custom-table.lzz"
+  v8::Isolate * const isolate;
+#line 394 "./src/util/custom-table.lzz"
+  Database * const db;
+#line 395 "./src/util/custom-table.lzz"
+  std::string const name;
+#line 396 "./src/util/custom-table.lzz"
   CopyablePersistent <v8::Function> const factory;
 };
 #line 64 "./src/util/data.lzz"

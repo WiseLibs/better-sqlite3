@@ -166,16 +166,56 @@ describe('Database#table()', function () {
 			.to.throw(Database.SqliteError);
 	});
 	it('should correctly handle arguments even when used out of order', function () {
+		const calls = [];
 		this.db.table('vtab', {
 			columns: ['x', 'y'],
 			*rows(x, y) {
+				calls.push([...arguments]);
 				yield { x, y };
 			},
 		});
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$1" = ? AND "$2" = ?').get(10, 5))
 			.to.deep.equal({ x: 10, y: 5 });
+		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$1" = ?').get(5, 10))
 			.to.deep.equal({ x: 10, y: 5 });
+		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = ? AND "$1" = ?').get(5, 5, 10))
+			.to.deep.equal({ x: 10, y: 5 });
+		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = ? AND "$1" = ?').get(5, 9, 10))
+			.to.be.undefined;
+		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = ? AND "$1" = ?').get(9, 5, 10))
+			.to.be.undefined;
+		expect(calls.splice(0)).to.deep.equal([[10, 9]]);
+	});
+	it.skip('should correctly handle arguments that are constrained to other arguments', function () {
+		// This test case fails due to a bug in SQLite (as of May 2021):
+		// https://sqlite.org/forum/forumpost?udc=1&name=830d37b928&t=c
+		const calls = [];
+		this.db.table('vtab', {
+			columns: ['x', 'y'],
+			*rows(x, y) {
+				calls.push([...arguments]);
+				yield { x, y };
+			},
+		});
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$1" = ? AND "$2" = "$1"').get(10))
+			.to.deep.equal({ x: 10, y: 10 });
+		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = "$1" AND "$1" = ?').get(10))
+			.to.deep.equal({ x: 10, y: 10 });
+		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = "$1" AND "$1" = ?').get(10, 10))
+			.to.deep.equal({ x: 10, y: 10 });
+		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = "$1" AND "$1" = ?').get(5, 10))
+			.to.be.undefined;
+		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = "$1" AND "$2" = ? AND "$1" = ?').get(5, 10))
+			.to.be.undefined;
+		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
 	});
 	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;

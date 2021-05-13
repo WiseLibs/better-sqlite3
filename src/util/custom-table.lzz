@@ -343,6 +343,7 @@ private:
 	static int xBestIndex(sqlite3_vtab* vtab, sqlite3_index_info* output) {
 		int parameter_count = VTab::Upcast(vtab)->parameter_count;
 		int argument_count = 0;
+		std::vector<std::pair<int, int>> forwarded;
 
 		for (int i = 0, len = output->nConstraint; i < len; ++i) {
 			auto item = output->aConstraint[i];
@@ -362,10 +363,18 @@ private:
 					// could appear undefined in the generator function.
 					return SQLITE_CONSTRAINT;
 				}
-				// Tell SQLite to forward arguments to xFilter.
-				output->aConstraintUsage[i].argvIndex = ++argument_count;
-				output->aConstraintUsage[i].omit = 1;
-				output->idxNum |= 1 << item.iColumn;
+				forwarded.emplace_back(item.iColumn, i);
+			}
+		}
+
+		// Tell SQLite to forward arguments to xFilter.
+		std::sort(forwarded.begin(), forwarded.end());
+		for (std::pair<int, int> pair : forwarded) {
+			int bit = 1 << pair.first;
+			if (!(output->idxNum & bit)) {
+				output->idxNum |= bit;
+				output->aConstraintUsage[pair.second].argvIndex = ++argument_count;
+				output->aConstraintUsage[pair.second].omit = 1;
 			}
 		}
 

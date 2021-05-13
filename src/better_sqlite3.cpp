@@ -1734,6 +1734,7 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                                                                               {
                 int parameter_count = VTab::Upcast(vtab)->parameter_count;
                 int argument_count = 0;
+                std::vector<std::pair<int, int>> forwarded;
 
                 for (int i = 0, len = output->nConstraint; i < len; ++i) {
                         auto item = output->aConstraint[i];
@@ -1753,10 +1754,18 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
 
                                         return SQLITE_CONSTRAINT;
                                 }
+                                forwarded.emplace_back(item.iColumn, i);
+                        }
+                }
 
-                                output->aConstraintUsage[i].argvIndex = ++argument_count;
-                                output->aConstraintUsage[i].omit = 1;
-                                output->idxNum |= 1 << item.iColumn;
+
+                std::sort(forwarded.begin(), forwarded.end());
+                for (std::pair<int, int> pair : forwarded) {
+                        int bit = 1 << pair.first;
+                        if (!(output->idxNum & bit)) {
+                                output->idxNum |= bit;
+                                output->aConstraintUsage[pair.second].argvIndex = ++argument_count;
+                                output->aConstraintUsage[pair.second].omit = 1;
                         }
                 }
 
@@ -1765,9 +1774,9 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                 output->estimatedCost = output->estimatedRows = 1000000000 / (argument_count + 1);
                 return SQLITE_OK;
 }
-#line 378 "./src/util/custom-table.lzz"
+#line 387 "./src/util/custom-table.lzz"
 void CustomTable::PropagateJSError ()
-#line 378 "./src/util/custom-table.lzz"
+#line 387 "./src/util/custom-table.lzz"
                                 {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
