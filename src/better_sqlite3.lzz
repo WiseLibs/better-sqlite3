@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <algorithm>
 #include <sqlite3.h>
 #include <node.h>
 #include <node_object_wrap.h>

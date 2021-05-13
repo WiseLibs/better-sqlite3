@@ -2,7 +2,7 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 66 "./src/better_sqlite3.lzz"
+#line 67 "./src/better_sqlite3.lzz"
 NODE_MODULE_INIT(/* exports, context */) {
 	v8::Isolate* isolate = context->GetIsolate();
 	v8::HandleScope scope(isolate);
@@ -2087,26 +2087,26 @@ Binder::Result Binder::BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & 
 
                 return { count, bound_object };
 }
-#line 34 "./src/better_sqlite3.lzz"
+#line 35 "./src/better_sqlite3.lzz"
 void Addon::JS_setErrorConstructor (v8::FunctionCallbackInfo <v8 :: Value> const & info)
-#line 34 "./src/better_sqlite3.lzz"
+#line 35 "./src/better_sqlite3.lzz"
                                             {
                 if ( info . Length ( ) <= ( 0 ) || ! info [ 0 ] -> IsFunction ( ) ) return ThrowTypeError ( "Expected " "first" " argument to be " "a function" ) ; v8 :: Local < v8 :: Function > SqliteError = ( info [ 0 ] . As < v8 :: Function > ( ) ) ;
                 static_cast < Addon * > ( info . Data ( ) . As < v8 :: External > ( ) -> Value ( ) ) ->SqliteError.Reset( info . GetIsolate ( ) , SqliteError);
 }
-#line 39 "./src/better_sqlite3.lzz"
+#line 40 "./src/better_sqlite3.lzz"
 void Addon::Cleanup (void * ptr)
-#line 39 "./src/better_sqlite3.lzz"
+#line 40 "./src/better_sqlite3.lzz"
                                        {
                 Addon* addon = static_cast<Addon*>(ptr);
                 for (Database* db : addon->dbs) db->CloseHandles();
                 addon->dbs.clear();
                 delete addon;
 }
-#line 46 "./src/better_sqlite3.lzz"
+#line 47 "./src/better_sqlite3.lzz"
 Addon::Addon (v8::Isolate * isolate)
-#line 46 "./src/better_sqlite3.lzz"
+#line 47 "./src/better_sqlite3.lzz"
   : privileged_info (NULL), next_id (0), cs (isolate)
-#line 49 "./src/better_sqlite3.lzz"
+#line 50 "./src/better_sqlite3.lzz"
                             {}
 #undef LZZ_INLINE
