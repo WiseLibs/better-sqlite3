@@ -38,7 +38,7 @@ jobs:
   publish:
     if: ${{ github.event_name == 'release' }}
     name: Publishing to NPM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: test
     steps:
       - uses: actions/checkout@v2
