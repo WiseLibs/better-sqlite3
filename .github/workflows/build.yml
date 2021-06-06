@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-18.04
           - macos-latest
           - windows-latest
         node:
@@ -39,7 +39,7 @@ jobs:
   publish:
     if: ${{ github.event_name == 'release' }}
     name: Publishing to NPM
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: test
     steps:
       - uses: actions/checkout@v2
@@ -55,7 +55,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-18.04
           - macos-latest
           - windows-latest
     name: Prebuild on ${{ matrix.os }}
