@@ -4,7 +4,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 1. Make sure you're using nodejs v10.20.1 or later
 
-2. Make sure you have [`node-gyp`](https://github.com/nodejs/node-gyp#installation) globally installed, including all of [its dependencies](https://github.com/nodejs/node-gyp#on-unix). On Windows you may need to [configure some things manually](https://github.com/nodejs/node-gyp#on-windows). Use `npm ls node-gyp` to make sure none of your local packages installs an outdated version of `node-gyp` that is used over the global one.
+2. Make sure you have [`node-gyp`](https://github.com/nodejs/node-gyp#installation) globally installed, including all of [its dependencies](https://github.com/nodejs/node-gyp#on-unix). On Windows you may need to [configure some things manually](https://github.com/nodejs/node-gyp#on-windows). Use `npm ls node-gyp` to make sure none of your local packages installed an outdated version of `node-gyp` that is used over the global one.
 
 3. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
 
