@@ -21,7 +21,7 @@
 
 ### new Database(*path*, [*options*])
 
-Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away. You can create an [in-memory database](https://www.sqlite.org/inmemorydb.html) by passing `":memory:"` as the first argument. Passing an empty string will create a temporary database.
+Creates a new database connection. If the database file does not exist, it is created. This happens synchronously, which means you can start executing queries right away. You can create an [in-memory database](https://www.sqlite.org/inmemorydb.html) by passing `":memory:"` as the first argument. You can create a temporary database by passing an empty string (or by omitting all arguments).
 
 > In-memory databases can also be created by passing a buffer returned by [`.serialize()`](#serializeoptions---buffer), instead of passing a string as the first argument.
 
@@ -29,7 +29,7 @@ Various options are accepted:
 
 - `options.readonly`: open the database connection in readonly mode (default: `false`).
 
-- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option does not affect in-memory or readonly database connections (default: `false`).
+- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option is ignored for in-memory, temporary, or readonly database connections (default: `false`).
 
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
@@ -396,7 +396,7 @@ process.on('SIGTERM', () => process.exit(128 + 15));
 
 **.name -> _string_** - The string that was used to open the database connection.
 
-**.memory -> _boolean_** - Whether the database is an in-memory database.
+**.memory -> _boolean_** - Whether the database is an in-memory or temporary database.
 
 **.readonly -> _boolean_** - Whether the database connection was created in readonly mode.
 
