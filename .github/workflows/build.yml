@@ -71,7 +71,7 @@ jobs:
       - run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
       
   prebuild-alpine:
-    name: Prebuild on ${{ matrix.container }}
+    name: Prebuild on alpine
     runs-on: ubuntu-latest
     container: node:16-alpine
     needs: publish
