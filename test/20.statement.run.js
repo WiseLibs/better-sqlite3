@@ -167,4 +167,8 @@ describe('Statement#run()', function () {
 		}
 		expect(i).to.equal(11);
 	});
+	it('should insert an empty Buffer', function () {
+		this.db.prepare('CREATE TABLE buffers (a BLOB NOT NULL)').run();
+		this.db.prepare('INSERT INTO buffers VALUES (?)').run(Buffer.alloc(0));
+	});
 });
