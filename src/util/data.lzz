@@ -21,7 +21,7 @@
 	} else if (node::Buffer::HasInstance(value)) {                             \
 		return sqlite3_##to##_blob(                                            \
 			__VA_ARGS__,                                                       \
-			(node::Buffer::Length(value) == NULL ? "" : node::Buffer::Data(value)), \
+			(node::Buffer::Length(value) == 0 ? "" : node::Buffer::Data(value)), \
 			node::Buffer::Length(value),                                       \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
