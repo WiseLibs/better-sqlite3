@@ -107,9 +107,12 @@ describe('Statement#get()', function () {
 		).to.throw(RangeError);
 	});
 	it('should get an empty Buffer', function () {
+		let result = this.db.prepare('SELECT ?').pluck(true).get(Buffer.alloc(0));
+		expect(result).to.deep.equal(Buffer.alloc(0));
+
 		this.db.prepare('CREATE TABLE buffers (a BLOB NOT NULL)').run();
 		this.db.prepare("INSERT INTO buffers VALUES (x'')").run();
-		let result = this.db.prepare('SELECT a FROM buffers').pluck(true).get();
+		result = this.db.prepare('SELECT a FROM buffers').pluck(true).get();
 		expect(result).to.deep.equal(Buffer.alloc(0));
 	});
 });
