@@ -185,14 +185,12 @@ describe('Database#table()', function () {
 		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = ? AND "$1" = ?').get(5, 9, 10))
 			.to.be.undefined;
-		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(calls.splice(0)).to.deep.equal([]);
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = ? AND "$1" = ?').get(9, 5, 10))
 			.to.be.undefined;
-		expect(calls.splice(0)).to.deep.equal([[10, 9]]);
+		expect(calls.splice(0)).to.deep.equal([]);
 	});
-	it.skip('should correctly handle arguments that are constrained to other arguments', function () {
-		// This test case fails due to a bug in SQLite (as of May 2021):
-		// https://sqlite.org/forum/forumpost/830d37b928
+	it('should correctly handle arguments that are constrained to other arguments', function () {
 		const calls = [];
 		this.db.table('vtab', {
 			columns: ['x', 'y'],
@@ -212,10 +210,10 @@ describe('Database#table()', function () {
 		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = ? AND "$2" = "$1" AND "$1" = ?').get(5, 10))
 			.to.be.undefined;
-		expect(calls.splice(0)).to.deep.equal([[10, 5]]);
+		expect(calls.splice(0)).to.deep.equal([]);
 		expect(this.db.prepare('SELECT * FROM vtab WHERE "$2" = "$1" AND "$2" = ? AND "$1" = ?').get(5, 10))
 			.to.be.undefined;
-		expect(calls.splice(0)).to.deep.equal([[10, 10]]);
+		expect(calls.splice(0)).to.deep.equal([]);
 	});
 	it('should throw an exception if the database is busy', function () {
 		let ranOnce = false;
