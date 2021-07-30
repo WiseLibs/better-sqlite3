@@ -8,6 +8,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 - Support for user-defined functions, aggregates, virtual tables, and extensions
 - 64-bit integers *(invisible until you need them)*
 - Worker thread support *(for large/slow queries)*
+- Not a single [known bug](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aopen+is%3Aissue+label%3Abug) *(open issues are usually feature requests, questions, trouble with compilation or bugs in SQLIte itself)*
 
 ## Help this project stay strong! &#128170;
 
