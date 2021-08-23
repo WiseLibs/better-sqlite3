@@ -13,6 +13,14 @@
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS': ['-std=c++14', '-stdlib=libc++'],
       },
+      'conditions': [
+        ['OS=="linux"', {
+          'ldflags': [
+            '-Wl,-Bsymbolic',
+            '-Wl,--exclude-libs,ALL',
+          ],
+        }],
+      ],
     },
     {
       'target_name': 'test_extension',
