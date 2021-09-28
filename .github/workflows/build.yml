@@ -68,4 +68,4 @@ jobs:
           node-version: 16
       - run: npm install --ignore-scripts
       - run: npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
-      - run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+      - run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 -t 14.0.0 -t 15.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
