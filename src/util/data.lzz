@@ -19,9 +19,10 @@
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
 	} else if (node::Buffer::HasInstance(value)) {                             \
+		const char* data = node::Buffer::Data(value);                          \
 		return sqlite3_##to##_blob(                                            \
 			__VA_ARGS__,                                                       \
-			node::Buffer::Data(value),                                         \
+			data ? data : "",                                                  \
 			node::Buffer::Length(value),                                       \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \

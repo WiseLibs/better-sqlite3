@@ -92,4 +92,16 @@ describe('Statement#bind()', function () {
 		expect(() => stmt1.bind(arr)).to.throw(err);
 		expect(() => stmt2.bind(obj)).to.throw(err);
 	});
+	it('should properly bind empty buffers', function () {
+		this.db.prepare('INSERT INTO entries (c) VALUES (?)').bind(Buffer.alloc(0)).run();
+		const result = this.db.prepare('SELECT c FROM entries').pluck().get();
+		expect(result).to.be.an.instanceof(Buffer);
+		expect(result.length).to.equal(0);
+	});
+	it('should properly bind empty strings', function () {
+		this.db.prepare('INSERT INTO entries (a) VALUES (?)').bind('').run();
+		const result = this.db.prepare('SELECT a FROM entries').pluck().get();
+		expect(result).to.be.a('string');
+		expect(result.length).to.equal(0);
+	});
 });
