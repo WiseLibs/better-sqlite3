@@ -1,10 +1,9 @@
 class BindMap {
 public:
 
-	// This class represents a mapping between a parameter name and its
-	// associated parameter index in a prepared statement.
-	class Pair {
-		friend class BindMap;
+	// This nested class represents a single mapping between a parameter name
+	// and its associated parameter index in a prepared statement.
+	class Pair { friend class BindMap;
 		public:
 
 			inline int GetIndex() {
@@ -12,12 +11,13 @@ public:
 			}
 
 			inline v8::Local<v8::String> GetName(v8::Isolate* isolate) {
-				return v8::Local<v8::String>::New(isolate, name);
+				return name.Get(isolate);
 			}
 
 		private:
-			explicit Pair(v8::Isolate* isolate, const char* _name, int _index)
-				: name(isolate, InternalizedFromUtf8(isolate, _name, -1)), index(_index) {}
+
+			explicit Pair(v8::Isolate* isolate, const char* name, int index)
+				: name(isolate, InternalizedFromUtf8(isolate, name, -1)), index(index) {}
 
 			explicit Pair(v8::Isolate* isolate, Pair* pair)
 				: name(isolate, pair->name), index(pair->index) {}
@@ -38,8 +38,13 @@ public:
 		FREE_ARRAY<Pair>(pairs);
 	}
 
-	inline Pair* GetPairs() { return pairs; }
-	inline int GetSize() { return length; }
+	inline Pair* GetPairs() {
+		return pairs;
+	}
+
+	inline int GetSize() {
+		return length;
+	}
 
 	// Adds a pair to the bind map, expanding the capacity if necessary.
 	void Add(v8::Isolate* isolate, const char* name, int index) {
@@ -49,11 +54,12 @@ public:
 	}
 
 private:
+
 	void Grow(v8::Isolate* isolate) {
 		assert(capacity == length);
 		capacity = (capacity << 1) | 2;
 		Pair* new_pairs = ALLOC_ARRAY<Pair>(capacity);
-		for (int i=0; i<length; ++i) {
+		for (int i = 0; i < length; ++i) {
 			new (new_pairs + i) Pair(isolate, pairs + i);
 			pairs[i].~Pair();
 		}

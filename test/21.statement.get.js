@@ -32,6 +32,14 @@ describe('Statement#get()', function () {
 		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
 		expect(stmt.get()).to.deep.equal({ a: 'foo', b: 6, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null });
 	});
+	it('should work with RETURNING clause', function () {
+		let stmt = this.db.prepare("INSERT INTO entries (a, b) VALUES ('bar', 888), ('baz', 999) RETURNING *");
+		expect(stmt.reader).to.be.true;
+		expect(stmt.get()).to.deep.equal({ a: 'bar', b: 888, c: null, d: null, e: null });
+
+		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 900 ORDER BY rowid");
+		expect(stmt.get()).to.deep.equal({ a: 'baz', b: 999, c: null, d: null, e: null });
+	});
 	it('should obey the current pluck and expand settings', function () {
 		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
 		const expanded = { entries: { a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: null }, $: { c: 5.5 } };

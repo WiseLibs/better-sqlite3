@@ -53,9 +53,8 @@
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
 	if (!stmt->returns_data)                                                   \
 		return ThrowTypeError("This statement does not return data. Use run() instead")
-#define REQUIRE_STATEMENT_DOESNT_RETURN_DATA()                                 \
-	if (stmt->returns_data)                                                    \
-		return ThrowTypeError("This statement returns data. Use get(), all(), or iterate() instead")
+#define ALLOW_ANY_STATEMENT()                                                  \
+	((void)0)
 
 
 #define _FUNCTION_START(type)                                                  \

@@ -58,6 +58,20 @@ describe('Statement#iterate()', function () {
 		}
 		expect(count).to.equal(5);
 	});
+	it('should work with RETURNING clause', function () {
+		let stmt = this.db.prepare("INSERT INTO entries (a, b) VALUES ('bar', 888), ('baz', 999) RETURNING *");
+		expect(stmt.reader).to.be.true;
+		expect([...stmt.iterate()]).to.deep.equal([
+			{ a: 'bar', b: 888, c: null, d: null, e: null },
+			{ a: 'baz', b: 999, c: null, d: null, e: null },
+		]);
+
+		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 800 ORDER BY rowid");
+		expect([...stmt.iterate()]).to.deep.equal([
+			{ a: 'bar', b: 888, c: null, d: null, e: null },
+			{ a: 'baz', b: 999, c: null, d: null, e: null },
+		]);
+	});
 	it('should obey the current pluck and expand settings', function () {
 		const shouldHave = (desiredData) => {
 			let i = 0;

@@ -1,8 +1,22 @@
 class CustomAggregate : public CustomFunction {
 public:
 
-	explicit CustomAggregate(v8::Isolate* _isolate, Database* _db, v8::Local<v8::Value> _start, v8::Local<v8::Function> _step, v8::Local<v8::Value> _inverse, v8::Local<v8::Value> _result, const char* _name, bool _safe_ints)
-		: CustomFunction(_isolate, _db, _step, _name, _safe_ints), invoke_result(_result->IsFunction()), invoke_start(_start->IsFunction()), inverse(_isolate, _inverse->IsFunction() ? v8::Local<v8::Function>::Cast(_inverse) : v8::Local<v8::Function>()), result(_isolate, _result->IsFunction() ? v8::Local<v8::Function>::Cast(_result) : v8::Local<v8::Function>()), start(_isolate, _start) {}
+	explicit CustomAggregate(
+		v8::Isolate* isolate,
+		Database* db,
+		const char* name,
+		v8::Local<v8::Value> start,
+		v8::Local<v8::Function> step,
+		v8::Local<v8::Value> inverse,
+		v8::Local<v8::Value> result,
+		bool safe_ints
+	) :
+		CustomFunction(isolate, db, name, step, safe_ints),
+		invoke_result(result->IsFunction()),
+		invoke_start(start->IsFunction()),
+		inverse(isolate, inverse->IsFunction() ? inverse.As<v8::Function>() : v8::Local<v8::Function>()),
+		result(isolate, result->IsFunction() ? result.As<v8::Function>() : v8::Local<v8::Function>()),
+		start(isolate, start) {}
 
 	static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
 		xStepBase(invocation, argc, argv, &CustomAggregate::fn);
@@ -21,22 +35,23 @@ public:
 	}
 
 private:
+
 	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const CopyablePersistent<v8::Function> CustomAggregate::*ptrtm) {
 		AGGREGATE_START();
 
 		v8::Local<v8::Value> args_fast[5];
 		v8::Local<v8::Value>* args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc + 1);
-		args[0] = v8::Local<v8::Value>::New(isolate, acc->value);
+		args[0] = acc->value.Get(isolate);
 		if (argc != 0) Data::GetArgumentsJS(isolate, args + 1, argv, argc, self->safe_ints);
 
-		v8::MaybeLocal<v8::Value> maybe_return_value = v8::Local<v8::Function>::New(isolate, self->*ptrtm)->Call(OnlyContext, v8::Undefined(isolate), argc + 1, args);
+		v8::MaybeLocal<v8::Value> maybeReturnValue = (self->*ptrtm).Get(isolate)->Call(OnlyContext, v8::Undefined(isolate), argc + 1, args);
 		if (args != args_fast) delete[] args;
 
-		if (maybe_return_value.IsEmpty()) {
+		if (maybeReturnValue.IsEmpty()) {
 			self->PropagateJSError(invocation);
 		} else {
-			v8::Local<v8::Value> return_value = maybe_return_value.ToLocalChecked();
-			if (!return_value->IsUndefined()) acc->value.Reset(isolate, return_value);
+			v8::Local<v8::Value> returnValue = maybeReturnValue.ToLocalChecked();
+			if (!returnValue->IsUndefined()) acc->value.Reset(isolate, returnValue);
 		}
 	}
 
@@ -50,14 +65,14 @@ private:
 			return;
 		}
 
-		v8::Local<v8::Value> result = v8::Local<v8::Value>::New(isolate, acc->value);
+		v8::Local<v8::Value> result = acc->value.Get(isolate);
 		if (self->invoke_result) {
-			v8::MaybeLocal<v8::Value> maybe_result = v8::Local<v8::Function>::New(isolate, self->result)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
-			if (maybe_result.IsEmpty()) {
+			v8::MaybeLocal<v8::Value> maybeResult = self->result.Get(isolate)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
+			if (maybeResult.IsEmpty()) {
 				self->PropagateJSError(invocation);
 				return;
 			}
-			result = maybe_result.ToLocalChecked();
+			result = maybeResult.ToLocalChecked();
 		}
 
 		Data::ResultValueFromJS(isolate, invocation, result, self);
@@ -76,9 +91,9 @@ private:
 			assert(acc->value.IsEmpty());
 			acc->initialized = true;
 			if (invoke_start) {
-				v8::MaybeLocal<v8::Value> maybe_seed = v8::Local<v8::Function>::Cast(v8::Local<v8::Value>::New(isolate, start))->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
-				if (maybe_seed.IsEmpty()) PropagateJSError(invocation);
-				else acc->value.Reset(isolate, maybe_seed.ToLocalChecked());
+				v8::MaybeLocal<v8::Value> maybeSeed = start.Get(isolate).As<v8::Function>()->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
+				if (maybeSeed.IsEmpty()) PropagateJSError(invocation);
+				else acc->value.Reset(isolate, maybeSeed.ToLocalChecked());
 			} else {
 				assert(!start.IsEmpty());
 				acc->value.Reset(isolate, start);

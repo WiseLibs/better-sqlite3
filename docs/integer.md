@@ -52,4 +52,28 @@ db.prepare('SELECT isInt(?)').pluck().get(10); // => "false"
 db.prepare('SELECT isInt(?)').pluck().get(10n); // => "true"
 ```
 
+Likewise, [user-defined aggregates](./api.md#aggregatename-options---this) and [virtual tables](./api.md#tablename-definition---this) can also receive `BigInts` as arguments:
+
+```js
+db.aggregate('addInts', {
+  safeIntegers: true,
+  start: 0n,
+  step: (total, nextValue) => total + nextValue,
+});
+```
+
+```js
+db.table('sequence', {
+  safeIntegers: true,
+  columns: ['value'],
+  parameters: ['length', 'start'],
+  rows: function* (length, start = 0n) {
+    const end = start + length;
+    for (let n = start; n < end; ++n) {
+      yield { value: n };
+    }
+  },
+});
+```
+
 It's worth noting that REAL (FLOAT) values returned from the database will always be represented as normal numbers.

@@ -34,7 +34,7 @@ If you're using a SQLite3 encryption extension that is a drop-in replacement for
 
 # Bundled configuration
 
-By default, this distribution currently uses SQLite3 **version 3.35.2** with the following [compilation options](https://www.sqlite.org/compile.html):
+By default, this distribution currently uses SQLite3 **version 3.36.0** with the following [compilation options](https://www.sqlite.org/compile.html):
 
 ```
 SQLITE_DQS=0
@@ -51,6 +51,8 @@ SQLITE_TRACE_SIZE_LIMIT=32
 SQLITE_DEFAULT_CACHE_SIZE=-16000
 SQLITE_DEFAULT_FOREIGN_KEYS=1
 SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
+SQLITE_ENABLE_MATH_FUNCTIONS
+SQLITE_ENABLE_DESERIALIZE
 SQLITE_ENABLE_COLUMN_METADATA
 SQLITE_ENABLE_UPDATE_DELETE_LIMIT
 SQLITE_ENABLE_STAT4
@@ -63,4 +65,11 @@ SQLITE_ENABLE_RTREE
 SQLITE_ENABLE_GEOPOLY
 SQLITE_INTROSPECTION_PRAGMAS
 SQLITE_SOUNDEX
+HAVE_STDINT_H=1
+HAVE_INT8_T=1
+HAVE_INT16_T=1
+HAVE_INT32_T=1
+HAVE_UINT8_T=1
+HAVE_UINT16_T=1
+HAVE_UINT32_T=1
 ```

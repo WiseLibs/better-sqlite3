@@ -27,6 +27,7 @@ describe('Database#function()', function () {
 	it('should throw an exception if boolean options are provided as non-booleans', function () {
 		expect(() => this.db.function('a', { varargs: undefined }, () => {})).to.throw(TypeError);
 		expect(() => this.db.function('b', { deterministic: undefined }, () => {})).to.throw(TypeError);
+		expect(() => this.db.function('b', { directOnly: undefined }, () => {})).to.throw(TypeError);
 		expect(() => this.db.function('c', { safeIntegers: undefined }, () => {})).to.throw(TypeError);
 	});
 	it('should throw an exception if the provided name is empty', function () {

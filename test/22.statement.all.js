@@ -43,6 +43,20 @@ describe('Statement#all()', function () {
 			expect(index).to.equal(rows.length);
 		}
 	});
+	it('should work with RETURNING clause', function () {
+		let stmt = this.db.prepare("INSERT INTO entries (a, b) VALUES ('bar', 888), ('baz', 999) RETURNING *");
+		expect(stmt.reader).to.be.true;
+		expect(stmt.all()).to.deep.equal([
+			{ a: 'bar', b: 888, c: null, d: null, e: null },
+			{ a: 'baz', b: 999, c: null, d: null, e: null },
+		]);
+
+		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 800 ORDER BY rowid");
+		expect(stmt.all()).to.deep.equal([
+			{ a: 'bar', b: 888, c: null, d: null, e: null },
+			{ a: 'baz', b: 999, c: null, d: null, e: null },
+		]);
+	});
 	it('should obey the current pluck and expand settings', function () {
 		const stmt = this.db.prepare("SELECT *, 2 + 3.5 AS c FROM entries ORDER BY rowid");
 		const expanded = new Array(10).fill().map((_, i) => ({

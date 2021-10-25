@@ -25,7 +25,6 @@ public:
 		}
 	}
 
-
 	~Backup() {
 		if (alive) db->RemoveBackup(this);
 		CloseHandles();
@@ -33,13 +32,20 @@ public:
 
 private:
 
-	explicit Backup(Database* _db, sqlite3* _dest_handle, sqlite3_backup* _backup_handle, sqlite3_uint64 _id, bool _unlink) : node::ObjectWrap(),
-		db(_db),
-		dest_handle(_dest_handle),
-		backup_handle(_backup_handle),
-		id(_id),
+	explicit Backup(
+		Database* db,
+		sqlite3* dest_handle,
+		sqlite3_backup* backup_handle,
+		sqlite3_uint64 id,
+		bool unlink
+	) :
+		node::ObjectWrap(),
+		db(db),
+		dest_handle(dest_handle),
+		backup_handle(backup_handle),
+		id(id),
 		alive(true),
-		unlink(_unlink) {
+		unlink(unlink) {
 		assert(db != NULL);
 		assert(dest_handle != NULL);
 		assert(backup_handle != NULL);
@@ -54,10 +60,10 @@ private:
 		REQUIRE_DATABASE_OPEN(db->GetState());
 		REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
-		v8::Local<v8::Object> database = v8::Local<v8::Object>::Cast((*addon->privileged_info)[0]);
-		v8::Local<v8::String> attachedName = v8::Local<v8::String>::Cast((*addon->privileged_info)[1]);
-		v8::Local<v8::String> destFile = v8::Local<v8::String>::Cast((*addon->privileged_info)[2]);
-		bool unlink = v8::Local<v8::Boolean>::Cast((*addon->privileged_info)[3])->Value();
+		v8::Local<v8::Object> database = (*addon->privileged_info)[0].As<v8::Object>();
+		v8::Local<v8::String> attachedName = (*addon->privileged_info)[1].As<v8::String>();
+		v8::Local<v8::String> destFile = (*addon->privileged_info)[2].As<v8::String>();
+		bool unlink = (*addon->privileged_info)[3].As<v8::Boolean>()->Value();
 
 		UseIsolate;
 		sqlite3* dest_handle;
@@ -106,8 +112,8 @@ private:
 			UseIsolate;
 			UseContext;
 			v8::Local<v8::Object> result = v8::Object::New(isolate);
-			result->Set(ctx, CS::Get(isolate, addon->cs.totalPages), v8::Int32::New(isolate, total_pages)).FromJust();
-			result->Set(ctx, CS::Get(isolate, addon->cs.remainingPages), v8::Int32::New(isolate, remaining_pages)).FromJust();
+			result->Set(ctx, addon->cs.totalPages.Get(isolate), v8::Int32::New(isolate, total_pages)).FromJust();
+			result->Set(ctx, addon->cs.remainingPages.Get(isolate), v8::Int32::New(isolate, remaining_pages)).FromJust();
 			info.GetReturnValue().Set(result);
 			if (status == SQLITE_DONE) backup->unlink = false;
 		} else {
