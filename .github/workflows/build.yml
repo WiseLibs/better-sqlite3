@@ -82,3 +82,4 @@ jobs:
       - run: apk add build-base git python3 --update-cache
       - run: npm install --ignore-scripts
       - run: npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+      - run: npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' --arch aarch64 -u ${{ secrets.GITHUB_TOKEN }}
