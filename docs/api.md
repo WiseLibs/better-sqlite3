@@ -433,6 +433,59 @@ const info = stmt.run('Joey', 2);
 console.log(info.changes); // => 1
 ```
 
+If your table uses `INTEGER PRIMARY KEY AUTOINCREMENT` for its `id`, you'll have to include the id in the SQL query, but you'll have to pass `null` when running the prepared statement.
+
+Let's say that your table has the following schema:
+
+```sql
+CREATE TABLE cats
+(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    age INTEGER
+);
+```
+
+An `INSERT` query with **named** parameters might look like this:
+
+```js
+const stmt = db.prepare('INSERT INTO cats VALUES ($id, $name, $age)')
+
+// alternative syntax
+const stmt = db.prepare('INSERT INTO customer VALUES (@id, :name, $age)')
+```
+
+You can let SQLite autoincrement the table `id` by passing `null` as a named parameter:
+
+```js
+const params = {
+  id: null,
+  name: 'Romeo',
+  age: 3
+}
+
+const info = stmt.run(null, params)
+console.log('lastInsertRowId', info.lastInsertRowid)
+```
+
+An `INSERT` query written with a mix of **anonymous** parameters and **named** parameters might look like this:
+
+```js
+const stmt = db.prepare('INSERT INTO customer VALUES (?, $name, $age)')
+```
+
+You can let SQLite autoincrement the table `id` by passing `null` for the anonymous parameter:
+
+```js
+const params = {
+  name: 'Romeo',
+  age: 3
+}
+
+const info = stmt.run(null, params)
+console.log('lastInsertRowId', info.lastInsertRowid)
+```
+
 ### .get([*...bindParameters*]) -> *row*
 
 **(only on statements that return data)*
