@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "bindings": "^1.5.0",
-    "prebuild-install": "^6.1.4",
+    "prebuild-install": "^7.0.0",
     "tar": "^6.1.11"
   },
   "devDependencies": {
