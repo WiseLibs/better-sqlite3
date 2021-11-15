@@ -104,4 +104,11 @@ describe('Statement#bind()', function () {
 		expect(result).to.be.a('string');
 		expect(result.length).to.equal(0);
 	});
+	it('should accept numbered placeholders', function () {
+		const result = this.db.prepare('SELECT ?, ?, ?1, ?').bind(1, 2, 3).raw().get();
+		expect(result).to.deep.equal([1, 2, 1, 3]);
+
+		const result2 = this.db.prepare('SELECT ?3, ?2, ?1').bind('a', 'b', 'c').raw().get();
+		expect(result2).to.deep.equal(['c', 'b', 'a']);
+	});
 });

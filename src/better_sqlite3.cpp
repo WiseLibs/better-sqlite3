@@ -1961,7 +1961,8 @@ void Binder::Fail (void (* Throw) (char const *), char const * message)
 int Binder::NextAnonIndex ()
 #line 52 "./src/util/binder.lzz"
                             {
-                while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+                const char* name;
+                while ((name = sqlite3_bind_parameter_name(handle, ++anon_index)) != NULL && name[0] != '?') {}
                 return anon_index;
 }
 #line 58 "./src/util/binder.lzz"
