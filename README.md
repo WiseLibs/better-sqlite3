@@ -45,9 +45,9 @@ const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 console.log(row.firstName, row.lastName, row.email);
 ```
 
-Or in Typescript,
+Or in ES6 module notation,
 
-```typescript
+```js
 import bs3 from 'better-sqlite3';
 const db: bs3.Database = bs3('foobar.db', options);
 
