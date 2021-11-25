@@ -111,13 +111,13 @@ describe('Statement#bind()', function () {
 		const result2 = this.db.prepare('SELECT ?3, ?2, ?1').bind('a', 'b', 'c').raw().get();
 		expect(result2).to.deep.equal(['c', 'b', 'a']);
 
-        const result3 = this.db.prepare('SELECT ?2, ?1, ?, ?5').bind(1, 2, 3, 4, 5).raw().get();
+		const result3 = this.db.prepare('SELECT ?2, ?1, ?, ?5').bind(1, 2, 3, 4, 5).raw().get();
 		expect(result3).to.deep.equal([2, 1, 3, 5]);
 
-        const result4 = this.db.prepare('SELECT ?2, ?, ?5').bind([1, 2, 3, 4, 5]).raw().get();
+		const result4 = this.db.prepare('SELECT ?2, ?, ?5').bind([1, 2, 3, 4, 5]).raw().get();
 		expect(result4).to.deep.equal([2, 3, 5]);
 
-        const result5 = this.db.prepare('SELECT ?2, ?, ?5').bind([1, 2, 3], [4, 5]).raw().get();
+		const result5 = this.db.prepare('SELECT ?2, ?, ?5').bind([1, 2, 3], [4, 5]).raw().get();
 		expect(result5).to.deep.equal([2, 3, 5]);
 	});
 });
