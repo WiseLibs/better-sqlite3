@@ -32,9 +32,7 @@ The fastest and simplest library for SQLite3 in Node.js.
 npm install better-sqlite3
 ```
 
-> You must be using Node.js v10.20.1 or above. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/).
-
-> If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
+> You must be using Node.js v10.20.1 or above. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/). If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
 ## Usage
 
@@ -45,14 +43,11 @@ const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 console.log(row.firstName, row.lastName, row.email);
 ```
 
-Or in ES6 module notation,
+##### In ES6 module notation:
 
 ```js
-import bs3 from 'better-sqlite3';
-const db: bs3.Database = bs3('foobar.db', options);
-
-const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-console.log(row.firstName, row.lastName, row.email);
+import Database from 'better-sqlite3';
+const db = new Database('foobar.db', options);
 ```
 
 ## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
