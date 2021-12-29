@@ -91,7 +91,7 @@ jobs:
       - uses: docker/setup-qemu-action@v1
       - run: |
           docker run --rm --entrypoint /bin/sh --platform linux/arm64 node:16-alpine -c "apk add build-base git python3 --update-cache && \
-          git clone https://github.com/JoshuaWise/better-sqlite3 && \
-          cd better-sqlite3 && \
+          git clone ${{ github.event.repository.clone_url }} && \
+          cd ${{ github.event.repository.name }} && \
           npm install --ignore-scripts && \
           npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}"
