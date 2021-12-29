@@ -45,6 +45,16 @@ const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
 console.log(row.firstName, row.lastName, row.email);
 ```
 
+Or in ES6 module notation,
+
+```js
+import bs3 from 'better-sqlite3';
+const db: bs3.Database = bs3('foobar.db', options);
+
+const row = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+console.log(row.firstName, row.lastName, row.email);
+```
+
 ## Why should I use this instead of [node-sqlite3](https://github.com/mapbox/node-sqlite3)?
 
 - `node-sqlite3` uses asynchronous APIs for tasks that are either CPU-bound or serialized. That's not only bad design, but it wastes tons of resources. It also causes [mutex thrashing](https://en.wikipedia.org/wiki/Resource_contention) which has devastating effects on performance.
