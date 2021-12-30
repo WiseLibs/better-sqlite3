@@ -19,6 +19,16 @@ NODE_MODULE_INIT(/* exports, context */) {
 	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
 
+  v8::Local<v8::Object> constants = v8::Object::New(isolate);
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_FULLMUTEX"), v8::Integer::New(isolate, SQLITE_OPEN_FULLMUTEX)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_MEMORY"), v8::Integer::New(isolate, SQLITE_OPEN_MEMORY)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_NOFOLLOW"), v8::Integer::New(isolate, SQLITE_OPEN_NOFOLLOW)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_NOMUTEX"), v8::Integer::New(isolate, SQLITE_OPEN_NOMUTEX)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_PRIVATECACHE"), v8::Integer::New(isolate, SQLITE_OPEN_PRIVATECACHE)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_SHAREDCACHE"), v8::Integer::New(isolate, SQLITE_OPEN_SHAREDCACHE)).FromJust();
+  constants->Set(context, InternalizedFromLatin1(isolate, "OPEN_URI"), v8::Integer::New(isolate, SQLITE_OPEN_URI)).FromJust();
+  exports->Set(context, InternalizedFromLatin1(isolate, "Constants"), constants).FromJust();
+
 	// Store addon instance data.
 	addon->Statement.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked().As<v8::Function>());
 	addon->StatementIterator.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked().As<v8::Function>());
@@ -417,16 +427,18 @@ void Database::JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 if ( info . Length ( ) <= ( 5 ) || ! info [ 5 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "sixth" " argument to be " "a 32-bit signed integer" ) ; int timeout = ( info [ 5 ] . As < v8 :: Int32 > ( ) ) -> Value ( ) ;
                 if ( info . Length ( ) <= ( 6 ) ) return ThrowTypeError ( "Expected a " "seventh" " argument" ) ; v8 :: Local < v8 :: Value > logger = info [ 6 ] ;
                 if ( info . Length ( ) <= ( 7 ) ) return ThrowTypeError ( "Expected a " "eighth" " argument" ) ; v8 :: Local < v8 :: Value > buffer = info [ 7 ] ;
+                if ( info . Length ( ) <= ( 8 ) || ! info [ 8 ] -> IsInt32 ( ) ) return ThrowTypeError ( "Expected " "ninth" " argument to be " "a 32-bit signed integer" ) ; int extra_flags = ( info [ 8 ] . As < v8 :: Int32 > ( ) ) -> Value ( ) ;
 
                 Addon * addon = static_cast < Addon * > ( info . Data ( ) . As < v8 :: External > ( ) -> Value ( ) ) ;
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 sqlite3* db_handle;
                 v8::String::Utf8Value utf8(isolate, filename);
-                int mask = readonly ? SQLITE_OPEN_READONLY
+                int flags = readonly ? SQLITE_OPEN_READONLY
                         : must_exist ? SQLITE_OPEN_READWRITE
                         : (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+                flags |= extra_flags;
 
-                if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
+                if (sqlite3_open_v2(*utf8, &db_handle, flags, NULL) != SQLITE_OK) {
                         ThrowSqliteError(addon, db_handle);
                         int status = sqlite3_close(db_handle);
                         assert(status == SQLITE_OK); ((void)status);

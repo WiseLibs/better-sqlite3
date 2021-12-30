@@ -31,6 +31,13 @@ Various options are accepted:
 
 - `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option is ignored for in-memory, temporary, or readonly database connections (default: `false`).
 
+- `options.flags`: flags to use when opening the database connection (default: `0`). Supported flag constants are available as properties of the `Database.Constants` object with the `OPEN_` prefix.
+
+```js
+const Database = require('better-sqlite3');
+const db = new Database('file:foobar.db', { flags: Database.Constants.OPEN_URI });
+```
+
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
 - `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
