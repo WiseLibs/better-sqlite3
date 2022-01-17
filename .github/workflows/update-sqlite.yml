@@ -1,0 +1,47 @@
+name: update-sqlite
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: 'SQLite release year'
+        required: true
+      version:
+        description: 'SQLite version (encoded)'
+        required: true
+
+jobs:
+  download-and-update:
+    name: Download and update SQLite
+    runs-on: ubuntu-latest
+    env:
+      ENV_YEAR: ${{ github.event.inputs.year }}
+      ENV_VERSION: ${{ github.event.inputs.version }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - name: Create new update branch
+        run: git checkout -b sqlite-update-${{ env.ENV_VERSION }}
+      - name: Update download script
+        run: |
+          sed -Ei "s/YEAR=\"[0-9]+\"/YEAR=\"${{ env.ENV_YEAR }}\"/g" ./deps/download.sh
+          sed -Ei "s/VERSION=\"[0-9]+\"/VERSION=\"${{ env.ENV_VERSION }}\"/g" ./deps/download.sh
+          echo "ENV_TRUE_VERSION=$((10#${ENV_VERSION:0:1})).$((10#${ENV_VERSION:1:2})).$((10#${ENV_VERSION:3:2}))" >> $GITHUB_ENV
+      - name: Downlod, compile and package SQLite
+        run: npm run download
+      - name: Push update branch
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: 'Update SQLite to `${{ env.ENV_TRUE_VERSION }}`'
+          branch: sqlite-update-${{ env.ENV_VERSION }}
+      - name: Create new PR
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: sqlite-update-${{ env.ENV_VERSION }}
+          pr_title: 'Update SQLite to \`${{ env.ENV_TRUE_VERSION }}\`'
+          pr_body: 'This is an automated pull request, updating SQLite version to \`${{ env.ENV_TRUE_VERSION }}\`.'
