@@ -2077,6 +2077,9 @@ Binder::Result Binder::BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & 
                                         count += BindObject(isolate, obj, stmt);
                                         if (!success) break;
                                         continue;
+                                } else if (stmt->GetBindMap(isolate)->GetSize()) {
+                                        Fail(ThrowTypeError, "Named parameters can only be passed within plain objects");
+                                        break;
                                 }
                         }
 

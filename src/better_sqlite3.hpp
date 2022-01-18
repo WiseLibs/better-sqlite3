@@ -764,13 +764,13 @@ private:
   int BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Statement * stmt);
 #line 149 "./src/util/binder.lzz"
   Result BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * stmt);
-#line 186 "./src/util/binder.lzz"
-  sqlite3_stmt * handle;
-#line 187 "./src/util/binder.lzz"
-  int param_count;
-#line 188 "./src/util/binder.lzz"
-  int anon_index;
 #line 189 "./src/util/binder.lzz"
+  sqlite3_stmt * handle;
+#line 190 "./src/util/binder.lzz"
+  int param_count;
+#line 191 "./src/util/binder.lzz"
+  int anon_index;
+#line 192 "./src/util/binder.lzz"
   bool success;
 };
 #line 34 "./src/better_sqlite3.lzz"

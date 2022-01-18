@@ -172,6 +172,9 @@ private:
 					count += BindObject(isolate, obj, stmt);
 					if (!success) break;
 					continue;
+				} else if (stmt->GetBindMap(isolate)->GetSize()) {
+					Fail(ThrowTypeError, "Named parameters can only be passed within plain objects");
+					break;
 				}
 			}
 
