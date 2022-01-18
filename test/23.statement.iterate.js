@@ -32,6 +32,7 @@ describe('Statement#iterate()', function () {
 		let count = 0;
 		let stmt = this.db.prepare("SELECT * FROM entries ORDER BY rowid");
 		expect(stmt.reader).to.be.true;
+		expect(stmt.busy).to.be.false;
 
 		const iterator = stmt.iterate();
 		expect(iterator).to.not.be.null;
@@ -41,22 +42,29 @@ describe('Statement#iterate()', function () {
 		expect(iterator.throw).to.not.be.a('function');
 		expect(iterator[Symbol.iterator]).to.be.a('function');
 		expect(iterator[Symbol.iterator]()).to.equal(iterator);
+		expect(stmt.busy).to.be.true;
 
 		for (const data of iterator) {
 			row.b = ++count;
 			expect(data).to.deep.equal(row);
+			expect(stmt.busy).to.be.true;
 		}
 		expect(count).to.equal(10);
+		expect(stmt.busy).to.be.false;
 
 		count = 0;
 		stmt = this.db.prepare("SELECT * FROM entries WHERE b > 5 ORDER BY rowid");
+		expect(stmt.busy).to.be.false;
 		const iterator2 = stmt.iterate();
 		expect(iterator).to.not.equal(iterator2);
+		expect(stmt.busy).to.be.true;
 		for (const data of iterator2) {
 			row.b = ++count + 5;
 			expect(data).to.deep.equal(row);
+			expect(stmt.busy).to.be.true;
 		}
 		expect(count).to.equal(5);
+		expect(stmt.busy).to.be.false;
 	});
 	it('should work with RETURNING clause', function () {
 		let stmt = this.db.prepare("INSERT INTO entries (a, b) VALUES ('bar', 888), ('baz', 999) RETURNING *");

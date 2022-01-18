@@ -598,6 +598,8 @@ console.log(cat.name); // => "Joey"
 
 **.readonly -> _boolean_** - Whether the prepared statement is readonly, meaning it does not mutate the database (note that [SQL functions might still change the database indirectly](https://www.sqlite.org/c3ref/stmt_readonly.html) as a side effect, even if the `.readonly` property is `true`).
 
+**.busy -> _boolean_** - Whether the prepared statement is busy executing a query via the [`.iterate()`](#iteratebindparameters---iterator) method.
+
 # class *SqliteError*
 
 Whenever an error occurs within SQLite3, a `SqliteError` object will be thrown. `SqliteError` is a subclass of `Error`. Every `SqliteError` object has a `code` property, which is a string matching one of error codes defined [here](https://sqlite.org/rescode.html) (for example, `"SQLITE_CONSTRAINT"`).

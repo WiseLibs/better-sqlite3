@@ -13,6 +13,7 @@ public:
 		SetPrototypeMethod(isolate, data, t, "raw", JS_raw);
 		SetPrototypeMethod(isolate, data, t, "safeIntegers", JS_safeIntegers);
 		SetPrototypeMethod(isolate, data, t, "columns", JS_columns);
+		SetPrototypeGetter(isolate, data, t, "busy", JS_busy);
 		return t->GetFunction(OnlyContext).ToLocalChecked();
 	}
 
@@ -308,6 +309,11 @@ private:
 		}
 
 		info.GetReturnValue().Set(columns);
+	}
+
+	NODE_GETTER(JS_busy) {
+		Statement* stmt = Unwrap<Statement>(info.This());
+		info.GetReturnValue().Set(stmt->alive && stmt->locked);
 	}
 
 	Database* const db;
