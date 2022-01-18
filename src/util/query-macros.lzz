@@ -44,7 +44,7 @@
 
 #define DOES_NOT_MUTATE() REQUIRE_STATEMENT_NOT_LOCKED(stmt)
 #define DOES_MUTATE()                                                          \
-	assert(!stmt->locked);                                                     \
+	REQUIRE_STATEMENT_NOT_LOCKED(stmt);                                        \
 	REQUIRE_DATABASE_NO_ITERATORS_UNLESS_UNSAFE(db->GetState())
 #define DOES_ADD_ITERATOR()                                                    \
 	DOES_NOT_MUTATE();                                                         \
