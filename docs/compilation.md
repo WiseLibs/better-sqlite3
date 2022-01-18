@@ -16,7 +16,15 @@ However, if you simply run `npm install` while `better-sqlite3` is listed as a d
 }
 ```
 
-Your amalgamation directory must contain `sqlite3.c` and `sqlite3.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`.
+Your amalgamation directory must contain `sqlite3.c` and `sqlite3.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`:
+
+```c
+// These go at the top of the file
+#define SQLITE_ENABLE_FTS5 1
+#define SQLITE_DEFAULT_CACHE_SIZE 16000
+
+// ... the original content of the file remains below
+```
 
 ### Step by step example
 
