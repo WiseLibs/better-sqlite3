@@ -4,15 +4,20 @@
   "description": "The fastest and simplest library for SQLite3 in Node.js.",
   "homepage": "http://github.com/JoshuaWise/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
-  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/JoshuaWise/better-sqlite3.git"
   },
+  "main": "lib/index.js",
+  "files": [
+    "binding.gyp",
+    "src/*.[ch]pp",
+    "lib/**",
+    "deps/**"
+  ],
   "dependencies": {
     "bindings": "^1.5.0",
-    "prebuild-install": "^7.0.0",
-    "tar": "^6.1.11"
+    "prebuild-install": "^7.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.4",

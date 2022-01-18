@@ -7,19 +7,19 @@
 # 1. populate the shell environment with the defined compile-time options.
 # 2. download and extract the SQLite3 source code into a temporary directory.
 # 3. run "sh configure" and "make sqlite3.c" within the source directory.
-# 4. bundle the generated amalgamation into a tar.gz file (sqlite3.tar.gz).
-# 5. export the defined compile-time options to a gyp file (defines.gypi).
+# 4. copy the generated amalgamation into the output directory (./sqlite3).
+# 5. export the defined compile-time options to a gyp file (./defines.gypi).
 # 6. update the docs (../docs/compilation.md) with details of this distribution.
 #
 # When a user builds better-sqlite3, the following steps are taken:
 # 1. node-gyp loads the previously exported compile-time options (defines.gypi).
-# 2. the extract.js script unpacks the bundled amalgamation (sqlite3.tar.gz).
-# 3. node-gyp compiles the extracted sqlite3.c along with better_sqlite3.cpp.
-# 3. node-gyp links the two resulting binaries to generate better_sqlite3.node.
+# 2. the symlink.js script creates symlinks to the bundled amalgamation.
+# 3. node-gyp compiles the symlinked sqlite3.c along with better_sqlite3.cpp.
+# 4. node-gyp links the two resulting binaries to generate better_sqlite3.node.
 # ===
 
-YEAR="2021"
-VERSION="3370000"
+YEAR="2022"
+VERSION="3370200"
 
 DEFINES="
 SQLITE_DQS=0
@@ -64,8 +64,11 @@ HAVE_UINT32_T=1
 echo "setting up environment..."
 DEPS="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 TEMP="$DEPS/temp"
+OUTPUT="$DEPS/sqlite3"
 rm -rf "$TEMP"
+rm -rf "$OUTPUT"
 mkdir -p "$TEMP"
+mkdir -p "$OUTPUT"
 export CFLAGS=`echo $(echo "$DEFINES" | sed -e "/^\s*$/d" -e "s/^/-D/")`
 
 echo "downloading source..."
@@ -81,8 +84,8 @@ sh configure > /dev/null || exit 1
 echo "building amalgamation..."
 make sqlite3.c > /dev/null || exit 1
 
-echo "generating tarball..."
-tar czf "$DEPS/sqlite3.tar.gz" sqlite3.c sqlite3.h sqlite3ext.h || exit 1
+echo "copying amalgamation..."
+cp sqlite3.c sqlite3.h sqlite3ext.h "$OUTPUT/" || exit 1
 
 echo "updating gyp configs..."
 GYP="$DEPS/defines.gypi"
