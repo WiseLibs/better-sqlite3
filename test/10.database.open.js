@@ -119,7 +119,7 @@ describe('new Database()', function () {
 	it('should accept the "nativeBinding" option', function () {
 		this.slow(500);
 		const oldBinding = require('bindings')({ bindings: 'better_sqlite3.node', path: true });
-		const newBinding = path.join(__dirname, '..', 'temp', 'foo.node');
+		const newBinding = path.join(path.dirname(oldBinding), 'test.node');
 		expect(oldBinding).to.be.a('string');
 		fs.copyFileSync(oldBinding, newBinding);
 		const getBinding = db => db[Object.getOwnPropertySymbols(db)[0]].constructor;
