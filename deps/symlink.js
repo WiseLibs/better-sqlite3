@@ -4,14 +4,7 @@ const fs = require('fs');
 
 const dest = process.argv[2];
 const source = path.resolve(path.sep, process.argv[3] || path.join(__dirname, 'sqlite3'));
-const filenames = process.argv.slice(4);
-
-console.log(`CWD: ${JSON.stringify(process.cwd())}`);
-console.log(`ARGV: ${JSON.stringify(process.argv)}`);
-console.log(`DIRNAME: ${JSON.stringify(__dirname)}`);
-console.log(`DEST: ${JSON.stringify(dest)}`);
-console.log(`SOURCE: ${JSON.stringify(source)}`);
-console.log(`FILENAMES: ${JSON.stringify(filenames)}`);
+const filenames = process.argv.slice(4).map(str => path.basename(str));
 
 /*
 	This creates symlinks inside the <$2> directory, linking to files inside the
