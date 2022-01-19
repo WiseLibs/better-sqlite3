@@ -37,7 +37,7 @@ Various options are accepted:
 
 - `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
 
-- `options.nativeBinding`: if you're using a complicated build system that moves, transforms, or concatenates your JS files, `better-sqlite3` might have trouble locating its native C++ addon, `better_sqlite3.node`. If you get an error that looks like [this](https://github.com/JoshuaWise/better-sqlite3/issues/146#issue-337752663), you can solve it by using this option to provide the file path of `better_sqlite3.node` (relative to the current working directory).
+- `options.nativeBinding`: if you're using a complicated build system that moves, transforms, or concatenates your JS files, `better-sqlite3` might have trouble locating its native C++ addon, `better_sqlite3.node`. If you get an error that looks like [this](https://github.com/JoshuaWise/better-sqlite3/issues/534#issuecomment-757907190), you can solve it by using this option to provide the file path of `better_sqlite3.node` (relative to the current working directory).
 
 ```js
 const Database = require('better-sqlite3');
