@@ -6,6 +6,7 @@ const dest = process.argv[2];
 const source = path.resolve(path.sep, process.argv[3] || path.join(__dirname, 'sqlite3'));
 const filenames = process.argv.slice(4);
 
+console.log(`CWD: ${JSON.stringify(process.cwd())}`);
 console.log(`ARGV: ${JSON.stringify(process.argv)}`);
 console.log(`DIRNAME: ${JSON.stringify(__dirname)}`);
 console.log(`DEST: ${JSON.stringify(dest)}`);
