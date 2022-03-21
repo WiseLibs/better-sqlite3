@@ -16,7 +16,7 @@ const filenames = process.argv.slice(4).map(str => path.basename(str));
 for (const filename of filenames) {
 	fs.accessSync(path.join(source, filename));
 	// Fixes https://github.com/JoshuaWise/better-sqlite3/issues/751
-	if (process.platform === 'win64') {
+	if (process.platform === 'win32') {
 		fs.copyFileSync(path.join(source, filename), path.join(dest, filename));
 	} else {
 		fs.symlinkSync(path.join(source, filename), path.join(dest, filename), 'file');
