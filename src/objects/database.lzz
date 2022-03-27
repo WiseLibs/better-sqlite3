@@ -153,9 +153,10 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(third, bool in_memory);
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
-		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
-		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
-		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> buffer);
+		REQUIRE_ARGUMENT_BOOLEAN(sixth, bool uri_path);
+		REQUIRE_ARGUMENT_INT32(seventh, int timeout);
+		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> logger);
+		REQUIRE_ARGUMENT_ANY(ninth, v8::Local<v8::Value> buffer);
 
 		UseAddon;
 		UseIsolate;
@@ -164,6 +165,9 @@ private:
 		int mask = readonly ? SQLITE_OPEN_READONLY
 			: must_exist ? SQLITE_OPEN_READWRITE
 			: (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
+		if (uri_path) {
+			mask |= SQLITE_OPEN_URI;
+		}
 
 		if (sqlite3_open_v2(*utf8, &db_handle, mask, NULL) != SQLITE_OK) {
 			ThrowSqliteError(addon, db_handle);

@@ -33,6 +33,8 @@ Various options are accepted:
 
 - `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option is ignored for in-memory, temporary, or readonly database connections (default: `false`).
 
+- `options.uriPath`: The filename can be interpreted as an URI if this flag is set (passes `SQLITE_OPEN_URI` to the underlying `sqlite3_open_v2()`). See also: [`sqlite3_open_v2()` documentation](https://sqlite.org/c3ref/open.html)
+
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
 - `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
