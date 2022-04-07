@@ -34,8 +34,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: npm install --global node-gyp@latest
+        uses: microsoft/setup-msbuild@v1.1
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
@@ -71,8 +70,7 @@ jobs:
         with:
           node-version: 16
       - if: matrix.os == 'windows-latest'
-        shell: powershell
-        run: npm install --global node-gyp@latest
+        uses: microsoft/setup-msbuild@v1.1
       - run: npm install --ignore-scripts
       - run: npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
       - run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 -t 14.0.0 -t 15.0.0 -t 16.0.0 -t 17.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
