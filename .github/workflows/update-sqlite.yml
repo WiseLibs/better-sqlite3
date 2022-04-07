@@ -41,7 +41,7 @@ jobs:
       - name: Create new PR
         uses: repo-sync/pull-request@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT }}
           source_branch: sqlite-update-${{ env.ENV_VERSION }}
           pr_title: 'Update SQLite to \`${{ env.ENV_TRUE_VERSION }}\`'
           pr_body: 'This is an automated pull request, updating SQLite version to \`${{ env.ENV_TRUE_VERSION }}\`.'
