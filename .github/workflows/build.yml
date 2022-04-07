@@ -20,7 +20,7 @@ jobs:
         os:
           - ubuntu-18.04
           - macos-latest
-          - windows-latest
+          - windows-2019
         node:
           - 10
           - 12
@@ -33,10 +33,6 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
-      - if: matrix.os == 'windows-latest'
-        run: |
-          npm config set msvs_version 2022
-          npm config set msbuild_path "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
@@ -62,7 +58,7 @@ jobs:
         os:
           - ubuntu-18.04
           - macos-latest
-          - windows-latest
+          - windows-2019
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: publish
@@ -71,14 +67,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
-      - if: matrix.os == 'windows-latest'
-        run: |
-          npm config set msvs_version 2022
-          npm config set msbuild_path "C:\Program Files (x86)\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe"
       - run: npm install --ignore-scripts
       - run: npx --no-install prebuild -r node -t 10.20.0 -t 12.0.0 -t 14.0.0 -t 16.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
       - run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 -t 14.0.0 -t 15.0.0 -t 16.0.0 -t 17.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
-      - if: matrix.os == 'windows-latest'
+      - if: matrix.os == 'windows-2019'
         run: npx --no-install prebuild -r electron -t 10.0.0 -t 11.0.0 -t 12.0.0 -t 13.0.0 -t 14.0.0 -t 15.0.0 -t 16.0.0 -t 17.0.0 --include-regex 'better_sqlite3.node$' --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
