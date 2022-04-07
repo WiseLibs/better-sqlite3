@@ -14,7 +14,7 @@
       'conditions': [
         ['sqlite3 == ""', {
           'actions': [{
-            'action_name': 'symlink_builtin_sqlite3',
+            'action_name': 'copy_builtin_sqlite3',
             'inputs': [
               'sqlite3/sqlite3.c',
               'sqlite3/sqlite3.h',
@@ -25,11 +25,11 @@
               '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
               '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3ext.h',
             ],
-            'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '', 'sqlite3.c', 'sqlite3.h', 'sqlite3ext.h'],
+            'action': ['node', 'copy.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', ''],
           }],
         }, {
           'actions': [{
-            'action_name': 'symlink_custom_sqlite3',
+            'action_name': 'copy_custom_sqlite3',
             'inputs': [
               '<(sqlite3)/sqlite3.c',
               '<(sqlite3)/sqlite3.h',
@@ -38,7 +38,7 @@
               '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.c',
               '<(SHARED_INTERMEDIATE_DIR)/sqlite3/sqlite3.h',
             ],
-            'action': ['node', 'symlink.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)', 'sqlite3.c', 'sqlite3.h'],
+            'action': ['node', 'copy.js', '<(SHARED_INTERMEDIATE_DIR)/sqlite3', '<(sqlite3)'],
           }],
         }],
       ],

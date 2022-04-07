@@ -13,13 +13,13 @@
 #
 # When a user builds better-sqlite3, the following steps are taken:
 # 1. node-gyp loads the previously exported compile-time options (defines.gypi).
-# 2. the symlink.js script creates symlinks to the bundled amalgamation.
-# 3. node-gyp compiles the symlinked sqlite3.c along with better_sqlite3.cpp.
+# 2. the copy.js script copies the bundled amalgamation into the build folder.
+# 3. node-gyp compiles the copied sqlite3.c along with better_sqlite3.cpp.
 # 4. node-gyp links the two resulting binaries to generate better_sqlite3.node.
 # ===
 
 YEAR="2022"
-VERSION="3370200"
+VERSION="3380200"
 
 DEFINES="
 SQLITE_DQS=0
