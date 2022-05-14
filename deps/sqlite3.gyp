@@ -64,6 +64,9 @@
           'defines': [
             # This is currently required by better-sqlite3.
             'SQLITE_ENABLE_COLUMN_METADATA',
+            "OPENSSL_API_COMPAT=0x10100001L",
+"OPENSSL_CONFIGURED_API=0x30000000L"
+
           ],
         }]
       ],
