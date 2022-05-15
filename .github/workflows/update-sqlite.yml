@@ -31,7 +31,7 @@ jobs:
           sed -Ei "s/YEAR=\"[0-9]+\"/YEAR=\"${{ env.ENV_YEAR }}\"/g" ./deps/download.sh
           sed -Ei "s/VERSION=\"[0-9]+\"/VERSION=\"${{ env.ENV_VERSION }}\"/g" ./deps/download.sh
           echo "ENV_TRUE_VERSION=$((10#${ENV_VERSION:0:1})).$((10#${ENV_VERSION:1:2})).$((10#${ENV_VERSION:3:2}))" >> $GITHUB_ENV
-      - name: Downlod, compile and package SQLite
+      - name: Download, compile and package SQLite
         run: npm run download
       - name: Push update branch
         uses: stefanzweifel/git-auto-commit-action@v4
