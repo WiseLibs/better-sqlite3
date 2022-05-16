@@ -91,7 +91,7 @@ Depending on the nature of your contribution, it will be held to a different lev
 
 These changes are self-explanatory. They include:
 
-- Updating the bundled version of SQLite
+- Updating the bundled version of SQLite (using [this workflow](https://github.com/WiseLibs/better-sqlite3/actions/workflows/update-sqlite.yml))
 - Updating dependencies in `package.json`
 - Adding prebuild binaries for a new version of Node.js or Electron
 - Adding prebuild binaries for a new architecture or operating system
