@@ -74,8 +74,7 @@ All new features must be accompinied by [clear documentation](./api.md). All new
 	- Examples: `string`, `number`, `Buffer`, `Database`
 - References to other classes or methods must be linked and use monospace code formatting
 	- Examples: [`.get()`](./api.md#getbindparameters---row), [`new Database()`](./api.md#new-databasepath-options)
-- Function signatures are written as:
-	- .funcName(*requiredArg*, [*optionalArg*]) -> *returnValue*
+- Function signatures are written as: .funcName(*requiredArg*, [*optionalArg*]) -> *returnValue*
 	- Note that the arguments and return values are *italicized*
 - All code examples should be highlighted using `js` syntax, except for bash commands which don't need highlighting
 
