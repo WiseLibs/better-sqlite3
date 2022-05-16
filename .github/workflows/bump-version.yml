@@ -24,6 +24,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 16
+      - name: Configure user
+        run: |
+          git config --local user.name "${{ github.actor }}"
+          git config --local user.email "${{ github.actor }}@users.noreply.github.com"
       - name: Bump the version
         run: npm version ${{ github.event.inputs.type }}
       - name: Push commit
