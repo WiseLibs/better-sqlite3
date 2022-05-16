@@ -108,6 +108,8 @@ Depending on the type of documentation, trusted contributors might be able to me
 
 These are code changes with a very small blast radius, such as adding a new read-only property to an object, or augmenting a function with a new option that gets passed directly to SQLite. These changes are *probably* harmless, but require additional scrutiny because they must be thoroughly tested and documented. These changes must be completely backwards-compatible, unless they're part of a major version update.
 
+> It's considered a backwards-**incompatible** change for a prebuilt binary to be removed.
+
 #### 4) New features
 
 These are code changes with a substantial blast radius, such as implementing a new class or method. These changes must be completely backwards-compatible, unless they're part of a major version update.
