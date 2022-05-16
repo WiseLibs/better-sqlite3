@@ -76,7 +76,9 @@ For these situations, you should probably use a full-fledged RDBMS such as [Post
 - [64-bit integer support](./docs/integer.md)
 - [Worker thread support](./docs/threads.md)
 - [Unsafe mode (advanced)](./docs/unsafe.md)
-- [SQLite3 compilation](./docs/compilation.md)
+- [SQLite3 compilation (advanced)](./docs/compilation.md)
+- [Contribution rules](./docs/contribution.md)
+- [Code of conduct](./docs/conduct.md)
 
 # License
 
