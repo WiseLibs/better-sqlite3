@@ -132,3 +132,16 @@ When implementing a new feature, ask yourself:
 	- What if a JavaScript error is thrown within a callback, after I allocated a C++ object?
 
 People love `better-sqlite3` because of its robustness and reliability. Each and every feature of `better-sqlite3` accounts for every single scenario listed above. Additionally, all possible error scenarios are explicitly handled and tested. Any new feature of `better-sqlite3` must be held to the same standard. Currently, no new features are merged without approval from the original author.
+
+## Creating a release
+
+Trusted contributors have the privileges necessary to create a release. Here are the steps to create a release:
+
+1. Run [this workflow](https://github.com/WiseLibs/better-sqlite3/actions/workflows/bump-version.yml) from the `master` branch to create a new version tag
+	- Select `patch` for bug fixes and general maintenance
+	- Select `minor` for larger releases with new features
+	- Select `major` for releases with backwards-incompatible changes
+2. [Draft a new release](https://github.com/WiseLibs/better-sqlite3/releases/new), and select the version tag that you just created
+3. Leave the "Release title" blank, and click "Auto-generate release notes"
+4. Click "Publish release"
+5. Wait for the `build` job to complete ([here](https://github.com/WiseLibs/better-sqlite3/actions))
