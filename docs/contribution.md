@@ -24,17 +24,17 @@ Lastly, `better-sqlite3` is a JavaScript package, not a TypeScript package. Type
 
 ## Principles
 
-Code that is contributed to `better-sqlite3` must adhere to the following principles, prioritized from first to last:
+Code that gets contributed to `better-sqlite3` must adhere to the following principles, prioritized from first to last:
 
 #### 1) Correctness
 
-Code must behave as expected in all siutations. Often when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
+The code must behave as expected in all siutations. Often when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
 
 #### 2) Simplicity
 
-The API that users interact with to operate `better-sqlite3` must be as simple as possible. Rather than calling 3 functions in a specific order, it's simpler for users to call a single function. Rather than providing many similar functions for doing similar things (e.g., "convenience functions"), there should just be one function that is already convenient by design. Sane defaults should be applied when possible. A function's minimal call signature should be as small as possible, with progressively complex customization available when needed. Function names should only be as long as necessary to convey their purpose. For any new feature, it should be easy to showcase code examples that is are so simple that they are self-explanatory.
+`better-sqlite3`'s public API must be as simple as possible. Rather than calling 3 functions in a specific order, it's simpler for users to call a single function. Rather than providing many similar functions for doing similar things (e.g., "convenience functions"), there should just be one function that is already convenient by design. Sane defaults should be applied when possible. A function's minimal call signature should be as small as possible, with progressively complex customization available when needed. Function names should only be as long as necessary to convey their purpose. For any new feature, it should be easy to showcase code examples that is are so simple that they are self-explanatory.
 
-This principle only applies to the public API, not necessarily to internal functions.
+> This principle only applies to the public API, not necessarily to internal functions.
 
 #### 3) Readability
 
@@ -42,9 +42,9 @@ Code must be written in a way that is intuitive and understandable by other prog
 
 #### 4) Performance
 
-Code should be written such that it does not use unnecessary computing resources. If a task can be accomplished without copying a potentially large buffer, it should be. If a complex algorithm can generally be avoided with a simple check, it should be. Calls to the operating system or filesystem should be limited to only occur when absolutely necessary. The API that users interact with should naturally encourage good performance habits, such as re-using prepared statements.
+Code should be written such that it does not use unnecessary computing resources. If a task can be accomplished without copying a potentially large buffer, it should be. If a complex algorithm can generally be avoided with a simple check, it should be. Calls to the operating system or filesystem should be limited to only occur when absolutely necessary. The public API should naturally encourage good performance habits, such as re-using prepared statements.
 
-It's okay to sacrifice readability for performance if doing so has a clear, measureable benefit to users.
+> It's okay to sacrifice readability for performance if doing so has a clear, measureable benefit to users.
 
 ## How to contribute
 
@@ -64,9 +64,9 @@ All tests are written in JavaScript, and they test `better-sqlite3`'s public API
 
 #### Documentation
 
-All new feature must be accompinied by [clear documentation](./api.md). All new methods and classes must be included in the [Table of Contents](./api.md#api), and must include code examples. Documentation must follow the existing formatting:
+All new features must be accompinied by [clear documentation](./api.md). All new methods and classes must be included in the [Table of Contents](./api.md#api), and must include code examples. Documentation must follow the existing formatting:
 
-- Literal values use code formatting (monospace)
+- Literal values use (monospace) code formatting
 	- Examples: `"my string"`, `true`, `false`, `null`, `undefined`, `123`
 - Package names and code identifiers use code formatting
 	- Examples: `better-sqlite3`, `db.myMethod()`, `options.readOnly`, `this`
