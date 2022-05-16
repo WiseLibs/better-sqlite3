@@ -12,15 +12,11 @@ Anything that SQLite does not directly provide is considered out-of-scope for `b
 
 #### Native addons
 
-`better-sqlite3` is a combination of JavaScript and C++. The C++ part is necessary in order to communicate with the [underlying SQLite library](https://sqlite.org/index.html), which is written in C.
-
-Node.js supports [C++ addons](https://nodejs.org/api/addons.html) through a [build system](https://nodejs.org/api/addons.html#building) called [`node-gyp`](https://github.com/nodejs/node-gyp), which is automatically bundled with every installation of [npm](https://docs.npmjs.com/about-npm).
-
-On most systems, C++ addons will simply be compiled as part of the installation process when running `npm install`. However, [history has shown](https://github.com/nodejs/node-gyp/issues/629) that Windows users have struggled significantly when trying to build C++ addons for Node.js. This is an issue with Node.js as a whole, and not specific to `better-sqlite3`.
+`better-sqlite3` is a combination of JavaScript and C++. The C++ part is necessary in order to communicate with the [underlying SQLite library](https://sqlite.org/index.html), which is written in C. Node.js supports [C++ addons](https://nodejs.org/api/addons.html) through a build system called [`node-gyp`](https://github.com/nodejs/node-gyp), which is automatically bundled with every installation of [npm](https://docs.npmjs.com/about-npm). On most systems, C++ addons will simply be compiled as part of the installation process when running `npm install`. However, [history has shown](https://github.com/nodejs/node-gyp/issues/629) that Windows users have struggled significantly when trying to build C++ addons for Node.js. This is an issue with Node.js as a whole, and not specific to `better-sqlite3`.
 
 #### Electron
 
-`better-sqlite3` is a Node.js package, *not* an [Electron](https://www.electronjs.org/) package. Electron is considered a third-party platform that is not officially supported. However, many users do find great success in using `better-sqlite3` with Electron, and helpful contributors such as @mceachen have provided support to the Electron community.
+`better-sqlite3` is a Node.js package, *not* an [Electron](https://www.electronjs.org/) package. Electron is considered a third-party platform that is not officially supported. However, many users do find great success in using `better-sqlite3` with Electron, and helpful contributors such as [@mceachen](https://github.com/mceachen) have provided support to the Electron community.
 
 #### TypeScript
 
@@ -32,7 +28,7 @@ Code that is contributed to `better-sqlite3` must adhere to the following princi
 
 #### 1) Correctness
 
-Code must behave as expected in all siutations. Many times when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
+Code must behave as expected in all siutations. Often when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
 
 #### 2) Simplicity
 
