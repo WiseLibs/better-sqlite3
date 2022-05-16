@@ -1,0 +1,32 @@
+name: bump-version
+
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        type: choice
+        description: Type of version bump
+        required: true
+        options:
+          - patch
+          - minor
+          - major
+
+jobs:
+  bump:
+    name: Bump to a new version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 16
+      - name: Bump the version
+        run: npm version ${{ github.event.inputs.type }}
+      - name: Push commit
+        run: git push origin master:master
+      - name: Push tag
+        run: git push origin --tags
