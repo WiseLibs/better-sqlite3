@@ -122,7 +122,7 @@ When implementing a new feature, ask yourself:
 - What could go wrong if I use this feature on a prepared statement that has [bound parameters](./api.md#bindbindparameters---this)?
 - What could go wrong if I use this feature within a [worker thread](./threads.md#worker-threads)?
 - What could go wrong if I pass the wrong data type?
-- What could go wrong if I pass an unexpected value, such as `null`, `undefined`, `""`, `NaN`, a negative number, a non-integer number, etc.?
+- What could go wrong if I pass an unexpected value, such as `null`, `undefined`, `""`, `NaN`, a negative/non-integer number, etc.?
 - Should the user's [64-bit integer setting](integer.md#the-bigint-primitive-type) affect this feature?
 - If this feature accepts a callback function:
 	- What could go wrong if that callback function throws an exception?
