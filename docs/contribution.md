@@ -127,5 +127,8 @@ When implementing a new feature, ask yourself:
 - If this feature accepts a callback function:
 	- What could go wrong if that callback function throws an exception?
 	- What could go wrong if that callback function is triggered during one of the above scenarios?
+- Could this feature cause memory leaks?
+	- What if a C++ object gets garbage-collected from JavaScript while it has open handles?
+	- What if a JavaScript error is thrown within a callback, after I allocated this C++ object?
 
 People love `better-sqlite3` because of its robustness and reliability. Each and every feature of `better-sqlite3` accounts for every single scenario listed above. Additionally, all possible error scenarios are explicitly handled and tested. Any new feature of `better-sqlite3` must be held to the same standard. Currently, no new features are merged without approval from the original author.
