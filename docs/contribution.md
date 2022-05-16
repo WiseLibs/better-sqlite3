@@ -66,13 +66,13 @@ All tests are written in JavaScript, and they test `better-sqlite3`'s public API
 
 All new features must be accompinied by [clear documentation](./api.md). All new methods and classes must be included in the [Table of Contents](./api.md#api), and must include code examples. Documentation must follow the existing formatting:
 
-- Literal values use (monospace) code formatting
+- Literal values use monospace code formatting
 	- Examples: `"my string"`, `true`, `false`, `null`, `undefined`, `123`
-- Package names and code identifiers use code formatting
+- Package names and code identifiers use monospace code formatting
 	- Examples: `better-sqlite3`, `db.myMethod()`, `options.readOnly`, `this`
 - Primitive data types are lower-cased, while other data types are capatalized
 	- Examples: `string`, `number`, `Buffer`, `Database`
-- References to other classes or methods must be linked and use code formatting
+- References to other classes or methods must be linked and use monospace code formatting
 	- Examples: [`.get()`](./api.md#getbindparameters---row), [`new Database()`](./api.md#new-databasepath-options)
 - Function signatures are written as:
 	- .funcName(*requiredArg*, [*optionalArg*]) -> *returnValue*
