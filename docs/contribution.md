@@ -4,11 +4,11 @@
 
 `better-sqlite3` is a low-level Node.js package that provides bindings to [SQLite](https://sqlite.org/index.html). `better-sqlite3` is not an ORM, and does not lend itself to specific types of applications or frameworks.
 
-Anything that SQLite does not directly provide is considered out-of-scope for `better-sqlite3`. Anything that SQLite *does* directly provide *may* be considered in-scope for `better-sqlite3`, with the additional requirements that:
+Anything that SQLite does not directly provide is considered out-of-scope for `better-sqlite3`. Anything that SQLite *does* directly provide *may* be considered in-scope for `better-sqlite3`, with the additional requirements that it:
 
-- it can be implemented sensibly and safely (i.e., it cannot lead to [undefined behavior](https://en.wikipedia.org/wiki/Undefined_behavior))
-- it is used commonly enough to warrent the extra code complexity that it brings
-- it cannot be reasonably implemented by a user in JavaScript (e.g., by monkey-patching)
+- can be implemented sensibly and safely (i.e., it cannot lead to [undefined behavior](https://en.wikipedia.org/wiki/Undefined_behavior))
+- is used commonly enough to warrent the extra code complexity that it brings
+- cannot be reasonably implemented by a user in JavaScript (e.g., by monkey-patching)
 
 #### Native addons
 
