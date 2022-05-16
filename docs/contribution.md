@@ -77,7 +77,7 @@ All new features must be accompinied by [clear documentation](./api.md). All new
 - Function signatures are written as: .funcName(*requiredArg*, [*optionalArg*]) -> *returnValue*
 	- Note that the arguments and return values are *italicized*
 	- Note that optional arguments are surrounded by square brackets []
-- All code examples should be highlighted using `js` syntax, except for bash commands which don't need highlighting
+- All code blocks should be highlighted using `js` syntax, except for bash commands which don't need highlighting
 
 ## Categories of contribution
 
