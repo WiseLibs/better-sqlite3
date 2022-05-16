@@ -98,8 +98,9 @@ DOCS="$DEPS/../docs/compilation.md"
 MAJOR=`expr "${VERSION:0:1}" + 0`
 MINOR=`expr "${VERSION:1:2}" + 0`
 PATCH=`expr "${VERSION:3:2}" + 0`
-sed -Ei "" -e "s/version [0-9]+\.[0-9]+\.[0-9]+/version $MAJOR.$MINOR.$PATCH/g" "$DOCS"
-sed -i "" -e "/^SQLITE_/,\$d" "$DOCS"
+sed -Ei.bak -e "s/version [0-9]+\.[0-9]+\.[0-9]+/version $MAJOR.$MINOR.$PATCH/g" "$DOCS"
+sed -i.bak -e "/^SQLITE_/,\$d" "$DOCS"
+rm "$DOCS".bak
 printf "$DEFINES" | sed -e "/^\s*$/d" >> "$DOCS"
 printf "\`\`\`\n" >> "$DOCS"
 
