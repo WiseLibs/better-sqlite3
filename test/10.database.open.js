@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const url = require('url')
 const Database = require('../.');
 
 describe('new Database()', function () {
@@ -84,6 +85,17 @@ describe('new Database()', function () {
 		expect(fs.existsSync(util.current())).to.be.true;
 		const db = this.db = new Database(util.current(), { fileMustExist: true });
 		expect(db.name).to.equal(util.current());
+		expect(db.memory).to.be.false;
+		expect(db.readonly).to.be.false;
+		expect(db.open).to.be.true;
+		expect(db.inTransaction).to.be.false;
+		expect(fs.existsSync(util.current())).to.be.true;
+	});
+	it('should open databases with URI paths', function () {
+		expect(fs.existsSync(util.next())).to.be.false;
+		const uri = url.pathToFileURL(util.current()).toString();
+		const db = this.db = new Database(uri, { uriPath: true });
+		expect(db.name).to.equal(uri);
 		expect(db.memory).to.be.false;
 		expect(db.readonly).to.be.false;
 		expect(db.open).to.be.true;
