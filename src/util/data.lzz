@@ -1,5 +1,10 @@
 #define JS_VALUE_TO_SQLITE(to, value, isolate, ...)                            \
-	if (value->IsNumber()) {                                                   \
+	if (value->IsInt32()) {                                                    \
+		return sqlite3_##to##_int(                                             \
+			__VA_ARGS__,                                                       \
+			value.As<v8::Int32>()->Value()                                     \
+		);                                                                     \
+	} else if (value->IsNumber()) {                                            \
 		return sqlite3_##to##_double(                                          \
 			__VA_ARGS__,                                                       \
 			value.As<v8::Number>()->Value()                                    \
@@ -17,6 +22,11 @@
 			*utf8,                                                             \
 			utf8.length(),                                                     \
 			SQLITE_TRANSIENT                                                   \
+		);                                                                     \
+	} else if (value->IsBoolean()) {                                           \
+		return sqlite3_##to##_int(                                             \
+			__VA_ARGS__,                                                       \
+			value.As<v8::Boolean>()->Value()                                   \
 		);                                                                     \
 	} else if (node::Buffer::HasInstance(value)) {                             \
 		const char* data = node::Buffer::Data(value);                          \

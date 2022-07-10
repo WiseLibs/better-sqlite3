@@ -60,7 +60,7 @@ private:
 		if (status != SQLITE_OK) {
 			switch (status) {
 				case -1:
-					return Fail(ThrowTypeError, "SQLite3 can only bind numbers, strings, bigints, buffers, and null");
+					return Fail(ThrowTypeError, "SQLite3 can only bind booleans, numbers, strings, bigints, buffers, and null");
 				case SQLITE_TOOBIG:
 					return Fail(ThrowRangeError, "The bound string, buffer, or bigint is too big");
 				case SQLITE_RANGE:
