@@ -34,7 +34,7 @@ private:
 
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
-		v8::Local<v8::Context> ctx = obj->CreationContext();
+		v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
 		ctx->Enter();
 		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
 		ctx->Exit();

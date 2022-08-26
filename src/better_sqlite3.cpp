@@ -104,8 +104,7 @@ void SetPrototypeGetter (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 0,
                 data,
                 v8::AccessControl::DEFAULT,
-                v8::PropertyAttribute::None,
-                v8::AccessorSignature::New(isolate, recv)
+                v8::PropertyAttribute::None
         );
 }
 #line 4 "./src/util/constants.lzz"
@@ -1949,7 +1948,7 @@ bool Binder::IsPlainObject (v8::Isolate * isolate, v8::Local <v8::Object> obj)
 #line 35 "./src/util/binder.lzz"
                                                                                    {
                 v8::Local<v8::Value> proto = obj->GetPrototype();
-                v8::Local<v8::Context> ctx = obj->CreationContext();
+                v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
                 ctx->Enter();
                 v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
                 ctx->Exit();
