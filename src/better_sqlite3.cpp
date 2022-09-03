@@ -1748,6 +1748,13 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                         auto item = output->aConstraint[i];
 
 
+
+
+
+                        if (item.op == SQLITE_INDEX_CONSTRAINT_LIMIT || item.op == SQLITE_INDEX_CONSTRAINT_OFFSET) {
+                                continue;
+                        }
+
                         if (item.iColumn >= 0 && item.iColumn < parameter_count) {
                                 if (item.op != SQLITE_INDEX_CONSTRAINT_EQ) {
                                         sqlite3_free(vtab->zErrMsg);
@@ -1782,9 +1789,9 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                 output->estimatedCost = output->estimatedRows = 1000000000 / (argument_count + 1);
                 return SQLITE_OK;
 }
-#line 387 "./src/util/custom-table.lzz"
+#line 394 "./src/util/custom-table.lzz"
 void CustomTable::PropagateJSError ()
-#line 387 "./src/util/custom-table.lzz"
+#line 394 "./src/util/custom-table.lzz"
                                 {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
