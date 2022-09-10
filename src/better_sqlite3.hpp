@@ -18,6 +18,8 @@
 #include <node_buffer.h>
 #line 31 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+#line 36 "./src/util/binder.lzz"
+	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj);
 #define LZZ_INLINE inline
 #line 16 "./src/util/macros.lzz"
 v8::Local <v8::String> StringFromUtf8 (v8::Isolate * isolate, char const * data, int length);
@@ -752,27 +754,25 @@ private:
 #line 32 "./src/util/binder.lzz"
     bool bound_object;
   };
-#line 35 "./src/util/binder.lzz"
-  static bool IsPlainObject (v8::Isolate * isolate, v8::Local <v8::Object> obj);
-#line 44 "./src/util/binder.lzz"
+#line 54 "./src/util/binder.lzz"
   void Fail (void (* Throw) (char const *), char const * message);
-#line 52 "./src/util/binder.lzz"
+#line 62 "./src/util/binder.lzz"
   int NextAnonIndex ();
-#line 58 "./src/util/binder.lzz"
+#line 68 "./src/util/binder.lzz"
   void BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int index);
-#line 79 "./src/util/binder.lzz"
+#line 89 "./src/util/binder.lzz"
   int BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr);
-#line 105 "./src/util/binder.lzz"
+#line 115 "./src/util/binder.lzz"
   int BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Statement * stmt);
-#line 149 "./src/util/binder.lzz"
+#line 159 "./src/util/binder.lzz"
   Result BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * stmt);
-#line 189 "./src/util/binder.lzz"
+#line 199 "./src/util/binder.lzz"
   sqlite3_stmt * handle;
-#line 190 "./src/util/binder.lzz"
+#line 200 "./src/util/binder.lzz"
   int param_count;
-#line 191 "./src/util/binder.lzz"
+#line 201 "./src/util/binder.lzz"
   int anon_index;
-#line 192 "./src/util/binder.lzz"
+#line 202 "./src/util/binder.lzz"
   bool success;
 };
 #line 34 "./src/better_sqlite3.lzz"
