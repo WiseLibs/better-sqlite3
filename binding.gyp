@@ -9,9 +9,9 @@
       'target_name': 'better_sqlite3',
       'dependencies': ['deps/sqlite3.gyp:sqlite3'],
       'sources': ['src/better_sqlite3.cpp'],
-      'cflags': ['-std=c++14'],
+      'cflags_cc': ['-std=c++17'],
       'xcode_settings': {
-        'OTHER_CPLUSPLUSFLAGS': ['-std=c++14', '-stdlib=libc++'],
+        'OTHER_CPLUSPLUSFLAGS': ['-std=c++17', '-stdlib=libc++'],
       },
       'conditions': [
         ['OS=="linux"', {
