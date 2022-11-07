@@ -668,4 +668,28 @@ describe('Database#table()', function () {
 			throw new TypeError('Expected the statement to throw an exception');
 		});
 	});
+	it('should correctly handle limit and offset clause', function () {
+		let lastValue;
+		this.db.table('vtab', {
+			columns: ['x'],
+			*rows() {
+				lastValue = 1;
+				yield { x: lastValue };
+				lastValue = 2;
+				yield { x: lastValue };
+				lastValue = 3;
+				yield { x: lastValue };
+				lastValue = null;
+			},
+		});
+		expect(this.db.prepare('SELECT * FROM vtab LIMIT 1').all())
+			.to.deep.equal([{ x: 1 }]);
+		expect(lastValue).to.equal(1);
+		expect(this.db.prepare('SELECT * FROM vtab LIMIT 1 OFFSET 2').all())
+			.to.deep.equal([{ x: 3 }]);
+		expect(lastValue).to.equal(3);
+		expect(this.db.prepare('SELECT * FROM vtab LIMIT 100 OFFSET 1').all())
+			.to.deep.equal([{ x: 2 }, { x: 3 }]);
+		expect(lastValue).to.be.null;
+	});
 });
