@@ -13,6 +13,13 @@
       'xcode_settings': {
         'OTHER_CPLUSPLUSFLAGS': ['-std=c++17', '-stdlib=libc++'],
       },
+      'msvs_settings': {
+        'VCCLCompilerTool': {
+          'AdditionalOptions': [
+            '/std:c++17'
+          ]
+        }
+      },
       'conditions': [
         ['OS=="linux"', {
           'ldflags': [
