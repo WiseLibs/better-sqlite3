@@ -754,25 +754,25 @@ private:
 #line 32 "./src/util/binder.lzz"
     bool bound_object;
   };
-#line 54 "./src/util/binder.lzz"
+#line 55 "./src/util/binder.lzz"
   void Fail (void (* Throw) (char const *), char const * message);
-#line 62 "./src/util/binder.lzz"
+#line 63 "./src/util/binder.lzz"
   int NextAnonIndex ();
-#line 68 "./src/util/binder.lzz"
+#line 69 "./src/util/binder.lzz"
   void BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int index);
-#line 89 "./src/util/binder.lzz"
+#line 90 "./src/util/binder.lzz"
   int BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr);
-#line 115 "./src/util/binder.lzz"
+#line 116 "./src/util/binder.lzz"
   int BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Statement * stmt);
-#line 159 "./src/util/binder.lzz"
+#line 160 "./src/util/binder.lzz"
   Result BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * stmt);
-#line 199 "./src/util/binder.lzz"
-  sqlite3_stmt * handle;
 #line 200 "./src/util/binder.lzz"
-  int param_count;
+  sqlite3_stmt * handle;
 #line 201 "./src/util/binder.lzz"
-  int anon_index;
+  int param_count;
 #line 202 "./src/util/binder.lzz"
+  int anon_index;
+#line 203 "./src/util/binder.lzz"
   bool success;
 };
 #line 34 "./src/better_sqlite3.lzz"
