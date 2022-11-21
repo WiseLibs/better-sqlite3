@@ -32,15 +32,25 @@ private:
 		bool bound_object;
 	};
 
+#hdr
+	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj);
+#end
+#src
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
+
+		#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 93
 		v8::Local<v8::Context> ctx = obj->CreationContext();
+		#else
+		v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
+		#endif
+
 		ctx->Enter();
 		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
 		ctx->Exit();
 		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
 	}
-
+#end
 	void Fail(void (*Throw)(const char* _), const char* message) {
 		assert(success == true);
 		assert((Throw == NULL) == (message == NULL));
