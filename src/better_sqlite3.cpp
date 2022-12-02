@@ -2,6 +2,21 @@
 //
 
 #include "better_sqlite3.hpp"
+#line 39 "./src/util/binder.lzz"
+	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
+		v8::Local<v8::Value> proto = obj->GetPrototype();
+
+		#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 93
+		v8::Local<v8::Context> ctx = obj->CreationContext();
+		#else
+		v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
+		#endif
+
+		ctx->Enter();
+		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
+		ctx->Exit();
+		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
+	}
 #line 67 "./src/better_sqlite3.lzz"
 NODE_MODULE_INIT(/* exports, context */) {
 	v8::Isolate* isolate = context->GetIsolate();
@@ -104,8 +119,7 @@ void SetPrototypeGetter (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 0,
                 data,
                 v8::AccessControl::DEFAULT,
-                v8::PropertyAttribute::None,
-                v8::AccessorSignature::New(isolate, recv)
+                v8::PropertyAttribute::None
         );
 }
 #line 4 "./src/util/constants.lzz"
@@ -1748,6 +1762,13 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                         auto item = output->aConstraint[i];
 
 
+
+
+
+                        if (item.op == SQLITE_INDEX_CONSTRAINT_LIMIT || item.op == SQLITE_INDEX_CONSTRAINT_OFFSET) {
+                                continue;
+                        }
+
                         if (item.iColumn >= 0 && item.iColumn < parameter_count) {
                                 if (item.op != SQLITE_INDEX_CONSTRAINT_EQ) {
                                         sqlite3_free(vtab->zErrMsg);
@@ -1782,9 +1803,9 @@ int CustomTable::xBestIndex (sqlite3_vtab * vtab, sqlite3_index_info * output)
                 output->estimatedCost = output->estimatedRows = 1000000000 / (argument_count + 1);
                 return SQLITE_OK;
 }
-#line 387 "./src/util/custom-table.lzz"
+#line 394 "./src/util/custom-table.lzz"
 void CustomTable::PropagateJSError ()
-#line 387 "./src/util/custom-table.lzz"
+#line 394 "./src/util/custom-table.lzz"
                                 {
                 assert(db->GetState()->was_js_error == false);
                 db->GetState()->was_js_error = true;
@@ -1944,20 +1965,9 @@ bool Binder::Bind (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc
                 }
                 return success;
 }
-#line 35 "./src/util/binder.lzz"
-bool Binder::IsPlainObject (v8::Isolate * isolate, v8::Local <v8::Object> obj)
-#line 35 "./src/util/binder.lzz"
-                                                                                   {
-                v8::Local<v8::Value> proto = obj->GetPrototype();
-                v8::Local<v8::Context> ctx = obj->CreationContext();
-                ctx->Enter();
-                v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
-                ctx->Exit();
-                return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
-}
-#line 44 "./src/util/binder.lzz"
+#line 55 "./src/util/binder.lzz"
 void Binder::Fail (void (* Throw) (char const *), char const * message)
-#line 44 "./src/util/binder.lzz"
+#line 55 "./src/util/binder.lzz"
                                                                      {
                 assert(success == true);
                 assert((Throw == NULL) == (message == NULL));
@@ -1965,16 +1975,16 @@ void Binder::Fail (void (* Throw) (char const *), char const * message)
                 if (Throw) Throw(message);
                 success = false;
 }
-#line 52 "./src/util/binder.lzz"
+#line 63 "./src/util/binder.lzz"
 int Binder::NextAnonIndex ()
-#line 52 "./src/util/binder.lzz"
+#line 63 "./src/util/binder.lzz"
                             {
                 while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
                 return anon_index;
 }
-#line 58 "./src/util/binder.lzz"
+#line 69 "./src/util/binder.lzz"
 void Binder::BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int index)
-#line 58 "./src/util/binder.lzz"
+#line 69 "./src/util/binder.lzz"
                                                                                     {
                 int status = Data::BindValueFromJS(isolate, handle, index, value);
                 if (status != SQLITE_OK) {
@@ -1993,9 +2003,9 @@ void Binder::BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int 
                         assert(false);
                 }
 }
-#line 79 "./src/util/binder.lzz"
+#line 90 "./src/util/binder.lzz"
 int Binder::BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr)
-#line 79 "./src/util/binder.lzz"
+#line 90 "./src/util/binder.lzz"
                                                                       {
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 uint32_t length = arr->Length();
@@ -2017,9 +2027,9 @@ int Binder::BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr)
                 }
                 return len;
 }
-#line 105 "./src/util/binder.lzz"
+#line 116 "./src/util/binder.lzz"
 int Binder::BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Statement * stmt)
-#line 105 "./src/util/binder.lzz"
+#line 116 "./src/util/binder.lzz"
                                                                                          {
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 BindMap* bind_map = stmt->GetBindMap(isolate);
@@ -2056,9 +2066,9 @@ int Binder::BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, State
 
                 return len;
 }
-#line 149 "./src/util/binder.lzz"
+#line 160 "./src/util/binder.lzz"
 Binder::Result Binder::BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * stmt)
-#line 149 "./src/util/binder.lzz"
+#line 160 "./src/util/binder.lzz"
                                                                         {
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 int count = 0;

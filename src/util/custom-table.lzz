@@ -348,6 +348,13 @@ private:
 		for (int i = 0, len = output->nConstraint; i < len; ++i) {
 			auto item = output->aConstraint[i];
 
+			// The SQLITE_INDEX_CONSTRAINT_LIMIT and SQLITE_INDEX_CONSTRAINT_OFFSET
+			// operators have no left-hand operand, and so for those operators the
+			// corresponding item.iColumn is meaningless.
+			// We don't care those constraints.
+			if (item.op == SQLITE_INDEX_CONSTRAINT_LIMIT || item.op == SQLITE_INDEX_CONSTRAINT_OFFSET) {
+				continue;
+			}
 			// We only care about constraints on parameters, not regular columns.
 			if (item.iColumn >= 0 && item.iColumn < parameter_count) {
 				if (item.op != SQLITE_INDEX_CONSTRAINT_EQ) {

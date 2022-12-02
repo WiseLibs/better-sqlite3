@@ -153,7 +153,6 @@ void SetPrototypeGetter(
 		0,
 		data,
 		v8::AccessControl::DEFAULT,
-		v8::PropertyAttribute::None,
-		v8::AccessorSignature::New(isolate, recv)
+		v8::PropertyAttribute::None
 	);
 }

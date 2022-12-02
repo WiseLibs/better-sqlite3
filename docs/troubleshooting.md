@@ -4,7 +4,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 ## Install a recent Node.js
 
-1. Make sure you're using Node.js v14.19.2 or later. 
+1. Make sure you're using Node.js v14.21.1 or later.
 2. If you're on Windows, while installing, be sure to select "Automatically install the necessary tools" on the "Tools for Native Modules" page, and follow the remaining steps, including opening an admin PowerShell and installing visual studio and python. Everything _should_ just work.
 
 ## Install the `node-gyp` toolchain
@@ -22,9 +22,9 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 ## Windows
 
-If you still have issues on Windows and are on an older version of Node, try these steps: 
+If you still have issues on Windows and are on an older version of Node, try these steps:
 
-1. Install the **latest** of node 12, 14, or 16.
+1. Install the **latest** of node 14, 16, or 18.
 1. Install **latest** Visual Studio Community and Desktop Development with C++ extension.
 1. Install **latest** Python.
 1. Run following commands:
