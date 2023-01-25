@@ -19,11 +19,13 @@
 #insert "util/bind-map.lzz"
 struct Addon;
 class Statement;
+class TokenizerModule;
 class Backup;
 #insert "objects/database.lzz"
 #insert "objects/statement.lzz"
 #insert "objects/statement-iterator.lzz"
 #insert "objects/backup.lzz"
+#insert "objects/tokenizer.lzz"
 #insert "util/data-converter.lzz"
 #insert "util/custom-function.lzz"
 #insert "util/custom-aggregate.lzz"
