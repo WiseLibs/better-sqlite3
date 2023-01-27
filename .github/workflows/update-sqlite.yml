@@ -45,4 +45,4 @@ jobs:
           github_token: ${{ secrets.PAT }}
           source_branch: sqlite-update-${{ env.ENV_VERSION }}
           pr_title: Update SQLite to version ${{ env.ENV_TRUE_VERSION }}
-          pr_body: This is an automated pull request, updating SQLite to version \`${{ env.ENV_TRUE_VERSION }}\`.
+          pr_body: This is an automated pull request, updating SQLite to version `${{ env.ENV_TRUE_VERSION }}`.
