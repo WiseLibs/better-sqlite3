@@ -23,7 +23,7 @@
     "chai": "^4.3.6",
     "cli-color": "^2.0.2",
     "fs-extra": "^10.1.0",
-    "mocha": "^8.3.2",
+    "mocha": "^10.2.0",
     "node-gyp": "8.4.1",
     "nodemark": "^0.3.0",
     "prebuild": "^11.0.4",
