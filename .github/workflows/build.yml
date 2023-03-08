@@ -13,7 +13,6 @@ on:
   workflow_dispatch: {}
 
 jobs:
-
   test:
     strategy:
       matrix:
@@ -25,6 +24,7 @@ jobs:
           - 14
           - 16
           - 18
+          - 19
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:

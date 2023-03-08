@@ -24,7 +24,7 @@ If you have trouble installing `better-sqlite3`, follow this checklist:
 
 If you still have issues on Windows and are on an older version of Node, try these steps:
 
-1. Install the **latest** of node 14, 16, or 18.
+1. Install the **latest** of node 14, 16, 18, or 19.
 1. Install **latest** Visual Studio Community and Desktop Development with C++ extension.
 1. Install **latest** Python.
 1. Run following commands:
