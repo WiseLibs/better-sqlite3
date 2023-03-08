@@ -18,11 +18,11 @@ jobs:
       ENV_YEAR: ${{ github.event.inputs.year }}
       ENV_VERSION: ${{ github.event.inputs.version }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           token: ${{ secrets.PAT }}
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
       - name: Create new update branch
