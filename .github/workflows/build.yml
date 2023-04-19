@@ -71,12 +71,12 @@ jobs:
         with:
           node-version: 16
       - run: npm install --ignore-scripts
-      - run: ${{ NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
-      - run: ${{ ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'windows-2019'
-        run: ${{ ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+        run: ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'macos-latest'
-        run: ${{ ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+        run: ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
     name: Prebuild on alpine
@@ -87,7 +87,7 @@ jobs:
       - uses: actions/checkout@v3
       - run: apk add build-base git python3 --update-cache
       - run: npm install --ignore-scripts
-      - run: ${{ NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine-arm:
     strategy:
@@ -106,7 +106,7 @@ jobs:
           apk add build-base git python3 --update-cache && \
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          ${{ NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
 
   prebuild-linux-arm:
     strategy:
@@ -124,4 +124,4 @@ jobs:
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16 -c "\
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          ${{ NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
