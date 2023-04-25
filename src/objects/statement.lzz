@@ -113,8 +113,11 @@ private:
 		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
-		for (char c; (c = *tail); ++tail) {
-			if (IS_SKIPPED(c)) continue;
+		for (char c; (c = *tail); ) {
+			if (IS_SKIPPED(c)) {
+				++tail;
+				continue;
+			}
 			if (c == '/' && tail[1] == '*') {
 				tail += 2;
 				for (char c; (c = *tail); ++tail) {
