@@ -73,9 +73,13 @@ jobs:
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'windows-2019'
-        run: ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'macos-latest'
-        run: ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${{ env.NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
     name: Prebuild on alpine
