@@ -7,7 +7,7 @@
 Anything that SQLite does not directly provide is considered out-of-scope for `better-sqlite3`. Anything that SQLite *does* directly provide *may* be considered in-scope for `better-sqlite3`, with the additional requirements that it:
 
 - can be implemented sensibly and safely (i.e., it cannot lead to [undefined behavior](https://en.wikipedia.org/wiki/Undefined_behavior))
-- is used commonly enough to warrent the extra code complexity that it brings
+- is used commonly enough to warrant the extra code complexity that it brings
 - cannot be reasonably implemented by a user in JavaScript (e.g., by monkey-patching)
 
 #### Native addons
@@ -28,7 +28,7 @@ Code that gets contributed to `better-sqlite3` must adhere to the following prin
 
 #### 1) Correctness
 
-The code must behave as expected in all siutations. Often when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
+The code must behave as expected in all situations. Often when writing new features, only the nominal case is considered. However, many edge cases exist when you consider race conditions, uncommon states, and improper usage. All possibilities of improper usage must be detected, and an appropriate error must be thrown (never ignored). All possibilities of proper usage must be supported, and must behave as expected.
 
 #### 2) Simplicity
 
@@ -38,13 +38,13 @@ The code must behave as expected in all siutations. Often when writing new featu
 
 #### 3) Readability
 
-Code must be written in a way that is intuitive and understandable by other programmers, now and in the future. Some code is naturally complex, and thus should be explained with comments (only when necesary). Code should be written in a style that is similar to existing code.
+Code must be written in a way that is intuitive and understandable by other programmers, now and in the future. Some code is naturally complex, and thus should be explained with comments (only when necessary). Code should be written in a style that is similar to existing code.
 
 #### 4) Performance
 
 Code should be written such that it does not use unnecessary computing resources. If a task can be accomplished without copying a potentially large buffer, it should be. If a complex algorithm can generally be avoided with a simple check, it should be. Calls to the operating system or filesystem should be limited to only occur when absolutely necessary. The public API should naturally encourage good performance habits, such as re-using prepared statements.
 
-> It's okay to sacrifice readability for performance if doing so has a clear, measureable benefit to users.
+> It's okay to sacrifice readability for performance if doing so has a clear, measurable benefit to users.
 
 ## How to contribute
 
@@ -60,17 +60,17 @@ There is currently no linter or style guide associated with `better-sqlite3` (th
 
 #### Testing
 
-All tests are written in JavaScript, and they test `better-sqlite3`'s public API. All new features must be accompinied by a robust set of tests that scrutinize the new feature under all manner of circumstances and edge cases. It's not enough to simply test the "common case". If you write code that detects errors and throws exceptions, those error cases should be tested too, to ensure that all errors are being properly detected. If a new feature interacts with existing features, those interactions must be tested as well.
+All tests are written in JavaScript, and they test `better-sqlite3`'s public API. All new features must be accompanied by a robust set of tests that scrutinize the new feature under all manner of circumstances and edge cases. It's not enough to simply test the "common case". If you write code that detects errors and throws exceptions, those error cases should be tested too, to ensure that all errors are being properly detected. If a new feature interacts with existing features, those interactions must be tested as well.
 
 #### Documentation
 
-All new features must be accompinied by [clear documentation](./api.md). All new methods and classes must be included in the [Table of Contents](./api.md#api), and must include code examples. Documentation must follow the existing formatting:
+All new features must be accompanied by [clear documentation](./api.md). All new methods and classes must be included in the [Table of Contents](./api.md#api), and must include code examples. Documentation must follow the existing formatting:
 
 - Literal values use monospace code formatting
 	- Examples: `"my string"`, `true`, `false`, `null`, `undefined`, `123`
 - Package names and code identifiers use monospace code formatting
 	- Examples: `better-sqlite3`, `db.myMethod()`, `options.readOnly`, `this`
-- Primitive data types are lower-cased, while other data types are capatalized
+- Primitive data types are lower-cased, while other data types are capitalized
 	- Examples: `string`, `number`, `Buffer`, `Database`
 - References to other classes or methods must be linked and use monospace code formatting
 	- Examples: [`.get()`](./api.md#getbindparameters---row), [`new Database()`](./api.md#new-databasepath-options)
@@ -96,7 +96,7 @@ These kinds of updates happen on a regular basis, and require zero knowledge of 
 
 #### 2) Documentation
 
-Changes to documentation are usually helpful and harmless. However, they should be treated with a higher level of scrutiny because they affect how users learn about and use `better-sqlite3`. Importance is placed on the correctness and truthfuness of documentation. For example, documentation should not "go out of date" based on events outside of our control.
+Changes to documentation are usually helpful and harmless. However, they should be treated with a higher level of scrutiny because they affect how users learn about and use `better-sqlite3`. Importance is placed on the correctness and truthfulness of documentation. For example, documentation should not "go out of date" based on events outside of our control.
 
 Depending on the type of documentation, trusted contributors might be able to merge these changes without approval from the original author.
 
