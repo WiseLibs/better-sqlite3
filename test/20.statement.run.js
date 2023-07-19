@@ -115,6 +115,9 @@ describe('Statement#run()', function () {
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run('foo', 25, 25, Buffer.alloc(8).fill(0xdd));
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run(['foo', 25, 25, Buffer.alloc(8).fill(0xdd)]);
 		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?, ?)').run(['foo', 25], [25], Buffer.alloc(8).fill(0xdd));
+		this.db.prepare('INSERT INTO entries VALUES (?4, ?3, ?2, ?1)').run(Buffer.alloc(8).fill(0xdd), 25, 25, 'foo');
+		this.db.prepare('INSERT INTO entries VALUES (?, ?, ?2, ?)').run('foo', 25, Buffer.alloc(8).fill(0xdd));
+		this.db.prepare('INSERT INTO entries VALUES (?1, ?2, ?4, ?5)').run('foo', 25, null, 25, Buffer.alloc(8).fill(0xdd));
 		this.db.prepare('INSERT INTO entries VALUES (@a, @b, @c, @d)').run({ a: 'foo', b: 25, c: 25, d: Buffer.alloc(8).fill(0xdd) });
 		this.db.prepare('INSERT INTO entries VALUES ($a, $b, $c, $d)').run({ a: 'foo', b: 25, c: 25, d: Buffer.alloc(8).fill(0xdd) });
 		this.db.prepare('INSERT INTO entries VALUES (:a, :b, :c, :d)').run({ a: 'foo', b: 25, c: 25, d: Buffer.alloc(8).fill(0xdd) });
@@ -165,6 +168,6 @@ describe('Statement#run()', function () {
 		while (row = this.db.prepare(`SELECT * FROM entries WHERE rowid=${++i}`).get()) {
 			expect(row).to.deep.equal({ a: 'foo', b: 25, c: 25, d: Buffer.alloc(8).fill(0xdd) });
 		}
-		expect(i).to.equal(11);
+		expect(i).to.equal(14);
 	});
 });
