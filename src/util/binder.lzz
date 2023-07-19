@@ -60,8 +60,13 @@ private:
 		success = false;
 	}
 
+	bool IsAnonIndex(int index) {
+		const char* name = sqlite3_bind_parameter_name(handle, index);
+		return name == NULL || name[0] == '?';
+	}
+
 	int NextAnonIndex() {
-		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+		while (!IsAnonIndex(++anon_index)) {}
 		return anon_index;
 	}
 
