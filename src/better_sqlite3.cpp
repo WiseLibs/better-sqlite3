@@ -2,6 +2,17 @@
 //
 
 #include "better_sqlite3.hpp"
+#line 161 "./src/util/macros.lzz"
+#ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
+#	define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
+#else
+	static inline v8::MaybeLocal<v8::Object> BufferSandboxNew(v8::Isolate* isolate, char* data, size_t length, void (*finalizeCallback)(char*, void*), void* finalizeHint) {
+			v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, data, length); 
+			finalizeCallback(data, finalizeHint);
+			return buffer;
+	}
+#	define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) BufferSandboxNew(env, data, length, finalizeCallback, finalizeHint)
+#endif
 #line 39 "./src/util/binder.lzz"
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
 		v8::Local<v8::Value> proto = obj->GetPrototype();
@@ -573,7 +584,7 @@ void Database::JS_serialize (v8::FunctionCallbackInfo <v8 :: Value> const & info
                 }
 
                 info.GetReturnValue().Set(
-                        node::Buffer::New(isolate, reinterpret_cast<char*>(data), length, FreeSerialization, NULL).ToLocalChecked()
+                        SAFE_NEW_BUFFER(isolate, reinterpret_cast<char*>(data), length, FreeSerialization, NULL).ToLocalChecked()
                 );
 }
 #line 297 "./src/objects/database.lzz"
