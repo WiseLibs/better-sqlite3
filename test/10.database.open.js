@@ -92,30 +92,38 @@ describe('new Database()', function () {
 	});
 	util.itUnix('should accept the "timeout" option', function () {
 		this.slow(5000);
+		const MaxTimeout = 0x7fffffff
 		const testTimeout = (timeout) => {
 			const db = new Database(util.current(), { timeout });
 			try {
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
-				const end = Date.now();
+				const elapsedMs = Date.now() - start;
 				// macOS on GitHub Actions times out after 1500ms for a 1000ms timeout.
-				expect(end - start).to.be.gte(timeout).and.lt(timeout * 1.5);
+				expect(elapsedMs, JSON.stringify({ elapsedMs, timeout })).to.be.gte(timeout).and.lte(Math.max(500, timeout * 1.5));
 			} finally {
 				db.close();
 			}
 		};
-		const blocker = this.db = new Database(util.next(), { timeout: 0x7fffffff });
+		const blocker = this.db = new Database(util.next(), { timeout: MaxTimeout });
 		blocker.exec('BEGIN EXCLUSIVE');
 		testTimeout(0);
+		// timeouts between 0 and 1000 seem to be ignored by SQLite (!)
+		testTimeout(1000);
 		testTimeout(2000);
 		blocker.close();
-		expect(() => (this.db = new Database(util.current(), { timeout: undefined }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: null }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: NaN }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: '75' }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: -1 }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: 75.01 }))).to.throw(TypeError);
-		expect(() => (this.db = new Database(util.current(), { timeout: 0x80000000 }))).to.throw(RangeError);
+		for (const { timeout, err } of [
+			{ timeout: undefined, err: TypeError },
+			{ timeout: null, err: TypeError },
+			{ timeout: NaN, err: TypeError },
+			{ timeout: "75", err: TypeError },
+			{ timeout: -1, err: TypeError },
+			{ timeout: 75.01, err: TypeError },
+			{ timeout: MaxTimeout + 1, err: RangeError }]) {
+			const fn = () => (this.db = new Database(util.current(), { timeout }))
+			const msg = JSON.stringify({ timeout })
+			expect(fn, msg).to.throw(err);
+		}
 	});
 	it('should accept the "nativeBinding" option', function () {
 		this.slow(500);
