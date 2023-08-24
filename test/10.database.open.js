@@ -99,8 +99,8 @@ describe('new Database()', function () {
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const elapsedMs = Date.now() - start;
-				// macOS on GitHub Actions times out after 1500ms for a 1000ms timeout.
-				expect(elapsedMs, JSON.stringify({ elapsedMs, timeout })).to.be.gte(timeout).and.lte(Math.max(500, timeout * 1.5));
+				// slow macOS boxen on GitHub Actions can time out after 1650ms for a 1000ms timeout (!!)
+				expect(elapsedMs, JSON.stringify({ elapsedMs, timeout })).to.be.gte(timeout).and.lt(Math.max(500, timeout * 2));
 			} finally {
 				db.close();
 			}
