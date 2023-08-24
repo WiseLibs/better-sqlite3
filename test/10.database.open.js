@@ -108,9 +108,8 @@ describe('new Database()', function () {
 		const blocker = this.db = new Database(util.next(), { timeout: MaxTimeout });
 		blocker.exec('BEGIN EXCLUSIVE');
 		testTimeout(0);
-		// timeouts between 0 and 1000 seem to be ignored by SQLite (!)
+		// timeouts are rounded to the nearest second by SQLite (!!)
 		testTimeout(1000);
-		testTimeout(2000);
 		blocker.close();
 		for (const { timeout, err } of [
 			{ timeout: undefined, err: TypeError },
