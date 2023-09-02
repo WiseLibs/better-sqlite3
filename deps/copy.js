@@ -21,6 +21,13 @@ for (const { filename, optional } of files) {
 	if (optional && !fs.existsSync(path.join(source, filename))) {
 		continue;
 	}
+
 	fs.accessSync(path.join(source, filename));
+
+	// Ensure destination folder exists
+	const destFolder = path.dirname(path.join(dest, filename));
+	fs.mkdirSync(destFolder, { recursive: true });
+
+	// Copy file over
 	fs.copyFileSync(path.join(source, filename), path.join(dest, filename));
 }
