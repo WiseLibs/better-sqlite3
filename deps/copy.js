@@ -18,16 +18,14 @@ if (process.argv[3]) {
 }
 
 for (const { filename, optional } of files) {
-	if (optional && !fs.existsSync(path.join(source, filename))) {
+	const sourceFilepath = path.join(source, filename);
+	const destFilepath = path.join(dest, filename);
+
+	if (optional && !fs.existsSync(sourceFilepath)) {
 		continue;
 	}
 
-	fs.accessSync(path.join(source, filename));
-
-	// Ensure destination folder exists
-	const destFolder = path.dirname(path.join(dest, filename));
-	fs.mkdirSync(destFolder, { recursive: true });
-
-	// Copy file over
-	fs.copyFileSync(path.join(source, filename), path.join(dest, filename));
+	fs.accessSync(sourceFilepath);
+	fs.mkdirSync(path.dirname(destFilepath), { recursive: true });
+	fs.copyFileSync(sourceFilepath, destFilepath);
 }
