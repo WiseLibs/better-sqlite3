@@ -42,7 +42,7 @@ If you're using a SQLite3 encryption extension that is a drop-in replacement for
 
 # Bundled configuration
 
-By default, this distribution currently uses SQLite3 **version 3.42.0** with the following [compilation options](https://www.sqlite.org/compile.html):
+By default, this distribution currently uses SQLite3 **version 3.43.0** with the following [compilation options](https://www.sqlite.org/compile.html):
 
 ```
 HAVE_INT16_T=1
@@ -52,6 +52,7 @@ HAVE_STDINT_H=1
 HAVE_UINT16_T=1
 HAVE_UINT32_T=1
 HAVE_UINT8_T=1
+HAVE_USLEEP=1
 SQLITE_DEFAULT_CACHE_SIZE=-16000
 SQLITE_DEFAULT_FOREIGN_KEYS=1
 SQLITE_DEFAULT_MEMSTATUS=0
