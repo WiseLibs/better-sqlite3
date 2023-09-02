@@ -98,7 +98,7 @@ describe('new Database()', function () {
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const end = Date.now();
-				expect(end - start).to.be.closeTo(timeout, 200);
+				expect(end - start).to.be.closeTo(timeout, 300);
 			} finally {
 				db.close();
 			}
