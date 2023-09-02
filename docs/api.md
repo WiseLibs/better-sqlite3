@@ -604,7 +604,7 @@ console.log(cat.name); // => "Joey"
 
 # class *SqliteError*
 
-Whenever an error occurs within SQLite3, a `SqliteError` object will be thrown. `SqliteError` is a subclass of `Error`. Every `SqliteError` object has a `code` property, which is a string matching one of error codes defined [here](https://sqlite.org/rescode.html) (for example, `"SQLITE_CONSTRAINT"`).
+Whenever an error occurs within SQLite3, a `SqliteError` object will be thrown. `SqliteError` is a subclass of `Error`. Every `SqliteError` object has a `code` property, which is a string matching one of the "extended result codes" defined [here](https://sqlite.org/rescode.html) (for example, `"SQLITE_CONSTRAINT_UNIQUE"`).
 
 If you receive a `SqliteError`, it probably means you're using SQLite3 incorrectly. The error didn't originate in `better-sqlite3`, so it's probably not an issue with `better-sqlite3`. It's recommended that you learn about the meaning of the error [here](https://sqlite.org/rescode.html), and perhaps learn more about how to use SQLite3 by reading [their docs](https://sqlite.org/docs.html).
 
