@@ -91,7 +91,7 @@ describe('new Database()', function () {
 		expect(fs.existsSync(util.current())).to.be.true;
 	});
 	util.itUnix('should accept the "timeout" option', function () {
-		this.slow(4000);
+		this.slow(5000);
 		const testTimeout = (timeout) => {
 			const db = new Database(util.current(), { timeout });
 			try {
@@ -106,7 +106,7 @@ describe('new Database()', function () {
 		const blocker = this.db = new Database(util.next(), { timeout: 0x7fffffff });
 		blocker.exec('BEGIN EXCLUSIVE');
 		testTimeout(0);
-		testTimeout(1000);
+		testTimeout(400);
 		blocker.close();
 		expect(() => (this.db = new Database(util.current(), { timeout: undefined }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.current(), { timeout: null }))).to.throw(TypeError);
