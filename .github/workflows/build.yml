@@ -34,9 +34,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
-      - if: $${{ startsWith(matrix.os, 'windows') }}
+      - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
-      - if: $${{ ! startsWith(matrix.os, 'windows') }}
+      - if: ${{ ! startsWith(matrix.os, 'windows') }}
         run: python3 -m pip install setuptools
       - run: npm install --ignore-scripts
       - run: npm run build-debug
