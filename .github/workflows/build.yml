@@ -73,6 +73,10 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: pip.exe install setuptools
+      - if: ${{ ! startsWith(matrix.os, 'windows') }}
+        run: python3 -m pip install setuptools
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +96,7 @@ jobs:
     needs: publish
     steps:
       - uses: actions/checkout@v3
-      - run: apk add build-base git python3 --update-cache
+      - run: apk add build-base git python3 py3-setuptools --update-cache
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
 
@@ -110,7 +114,7 @@ jobs:
       - uses: docker/setup-qemu-action@v1
       - run: |
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16-alpine -c "\
-          apk add build-base git python3 --update-cache && \
+          apk add build-base git python3 py3-setuptools --update-cache && \
           cd /tmp/project && \
           npm install --ignore-scripts && \
           ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
