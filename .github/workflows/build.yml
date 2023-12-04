@@ -14,7 +14,7 @@ on:
 
 env:
   NODE_BUILD_CMD: npx --no-install prebuild -r node -t 18.0.0 -t 20.0.0 -t 21.0.0 --include-regex 'better_sqlite3.node$'
-  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 16.0.0 -t 17.0.0 -t 18.0.0 -t 19.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 -t 25.0.0 -t 26.0.0 -t 27.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 16.0.0 -t 17.0.0 -t 18.0.0 -t 19.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 -t 25.0.0 -t 26.0.0 -t 27.0.0 -t 28.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
