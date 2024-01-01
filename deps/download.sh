@@ -106,6 +106,9 @@ rm "$DOCS".bak
 printf "$DEFINES" | sed -e "/^\s*$/d" >> "$DOCS"
 printf "\`\`\`\n" >> "$DOCS"
 
+# Run the script to update test files
+$DEPS/download_update_tests.sh
+
 echo "cleaning up..."
 cd - > /dev/null || exit 1
 rm -rf "$TEMP"

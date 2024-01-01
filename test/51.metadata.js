@@ -1,5 +1,6 @@
 'use strict';
 const Database = require('../lib');
+const snapshotData = require('./51.metadata.json');
 
 describe('version', function () {
 	beforeEach(function () {
@@ -10,56 +11,6 @@ describe('version', function () {
 	});
 	// Added for issue: https://github.com/WiseLibs/better-sqlite3/issues/1021
 	it('can get metadata', function () {
-		expect(this.db.metadata).to.deep.equal({
-			SQLITE_ABORT: 4,
-			SQLITE_AUTH: 23,
-			SQLITE_BUSY: 5,
-			SQLITE_CANTOPEN: 14,
-			SQLITE_CONSTRAINT: 19,
-			SQLITE_CORRUPT: 11,
-			SQLITE_EMPTY: 16,
-			SQLITE_ERROR: 1,
-			SQLITE_FORMAT: 24,
-			SQLITE_FULL: 13,
-			SQLITE_INTERNAL: 2,
-			SQLITE_INTERRUPT: 9,
-			SQLITE_IOERR: 10,
-			SQLITE_LIMIT_ATTACHED: 7,
-			SQLITE_LIMIT_COLUMN: 2,
-			SQLITE_LIMIT_COMPOUND_SELECT: 4,
-			SQLITE_LIMIT_EXPR_DEPTH: 3,
-			SQLITE_LIMIT_FUNCTION_ARG: 6,
-			SQLITE_LIMIT_LENGTH: 0,
-			SQLITE_LIMIT_LIKE_PATTERN_LENGTH: 8,
-			SQLITE_LIMIT_SQL_LENGTH: 1,
-			SQLITE_LIMIT_TRIGGER_DEPTH: 10,
-			SQLITE_LIMIT_VARIABLE_NUMBER: 9,
-			SQLITE_LIMIT_VDBE_OP: 5,
-			SQLITE_LIMIT_WORKER_THREADS: 11,
-			SQLITE_LOCKED: 6,
-			SQLITE_MISMATCH: 20,
-			SQLITE_MISUSE: 21,
-			SQLITE_NOLFS: 22,
-			SQLITE_NOMEM: 7,
-			SQLITE_NOTADB: 26,
-			SQLITE_NOTFOUND: 12,
-			SQLITE_OK: 0,
-			SQLITE_OPEN_CREATE: 4,
-			SQLITE_OPEN_FULLMUTEX: 65536,
-			SQLITE_OPEN_PRIVATECACHE: 262144,
-			SQLITE_OPEN_READONLY: 1,
-			SQLITE_OPEN_READWRITE: 2,
-			SQLITE_OPEN_SHAREDCACHE: 131072,
-			SQLITE_OPEN_URI: 64,
-			SQLITE_PERM: 3,
-			SQLITE_PROTOCOL: 15,
-			SQLITE_RANGE: 25,
-			SQLITE_READONLY: 8,
-			SQLITE_SCHEMA: 17,
-			SQLITE_SOURCE_ID: "2023-11-24 11:41:44 ebead0e7230cd33bcec9f95d2183069565b9e709bf745c9b5db65cc0cbf92c0f",
-			SQLITE_TOOBIG: 18,
-			SQLITE_VERSION: "3.44.2",
-			SQLITE_VERSION_NUMBER: 3044002,
-		})
+		expect(this.db.metadata).to.deep.equal(snapshotData['it can get metadata']);
 	});
 });
