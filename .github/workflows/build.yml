@@ -42,6 +42,12 @@ jobs:
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
+      - name: Test SpatiaLite extension
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          sudo apt update
+          sudo apt install libsqlite3-mod-spatialite -y
+          node -e "require('./lib/index.js')(':memory:').loadExtension('mod_spatialite').exec('SELECT InitSpatialMetaData();')"
 
   publish:
     if: ${{ github.event_name == 'release' }}
