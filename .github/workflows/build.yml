@@ -64,6 +64,7 @@ jobs:
         os:
           - ubuntu-20.04
           - macos-latest
+          - macos-14
           - windows-2019
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -84,10 +85,6 @@ jobs:
         run: |
           ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
-      - if: matrix.os == 'macos-latest'
-        run: |
-          ${{ env.NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
-          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
     name: Prebuild on alpine
