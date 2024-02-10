@@ -84,7 +84,9 @@ jobs:
       - if: matrix.os == 'windows-2019'
         run: |
           ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          npx --no-install prebuild -r node -t 20.0.0 -t 21.0.0 --include-regex 'better_sqlite3.node$' --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
     name: Prebuild on alpine
