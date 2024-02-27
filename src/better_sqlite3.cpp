@@ -2,7 +2,35 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 161 "./src/util/macros.lzz"
+#line 153 "./src/util/macros.lzz"
+void SetPrototypeGetter(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	const char* name,
+	v8::AccessorGetterCallback func
+) {
+	v8::HandleScope scope(isolate);
+	
+	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
+	recv->InstanceTemplate()->SetAccessor(
+		InternalizedFromLatin1(isolate, name),
+		func,
+		0,
+		data,
+		v8::AccessControl::DEFAULT,
+		v8::PropertyAttribute::None
+	);
+	#else
+	recv->InstanceTemplate()->SetAccessor(
+		InternalizedFromLatin1(isolate, name),
+		func,
+		0,
+		data
+	);
+	#endif
+}
+#line 183 "./src/util/macros.lzz"
 #ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
 #define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
 #else
@@ -117,20 +145,6 @@ void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> d
         recv->PrototypeTemplate()->Set(
                 symbol,
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
-        );
-}
-#line 142 "./src/util/macros.lzz"
-void SetPrototypeGetter (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback func)
-#line 148 "./src/util/macros.lzz"
-  {
-        v8::HandleScope scope(isolate);
-        recv->InstanceTemplate()->SetAccessor(
-                InternalizedFromLatin1(isolate, name),
-                func,
-                0,
-                data,
-                v8::AccessControl::DEFAULT,
-                v8::PropertyAttribute::None
         );
 }
 #line 4 "./src/util/constants.lzz"

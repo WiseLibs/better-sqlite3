@@ -18,6 +18,14 @@
 #include <node_buffer.h>
 #line 31 "./src/util/macros.lzz"
 template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
+#line 144 "./src/util/macros.lzz"
+void SetPrototypeGetter(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	const char* name,
+	v8::AccessorGetterCallback func
+);
 #line 36 "./src/util/binder.lzz"
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj);
 #define LZZ_INLINE inline
@@ -53,8 +61,6 @@ v8::Local <v8::FunctionTemplate> NewConstructorTemplate (v8::Isolate * isolate, 
 void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::FunctionCallback func);
 #line 129 "./src/util/macros.lzz"
 void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback func);
-#line 142 "./src/util/macros.lzz"
-void SetPrototypeGetter (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::AccessorGetterCallback func);
 #line 1 "./src/util/constants.lzz"
 class CS
 {
