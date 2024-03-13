@@ -17,6 +17,7 @@
 - [Database#aggregate()](#aggregatename-options---this)
 - [Database#table()](#tablename-definition---this)
 - [Database#loadExtension()](#loadextensionpath-entrypoint---this)
+- [Database#createFTS5Tokenizer()](#createfts5tokenizername-factory---this)
 - [Database#exec()](#execstring---this)
 - [Database#close()](#close---this)
 - [Properties](#properties)
@@ -370,6 +371,51 @@ It's your responsibility to make sure the extensions you load are compiled/linke
 
 ```js
 db.loadExtension('./my-extensions/compress.so');
+```
+
+### .createFTS5Tokenizer(*name*, *factory*) -> *this*
+
+Creates a custom JavaScript-based tokenizer for the [FTS5](https://www.sqlite.org/fts5.html#tokenizers).
+
+One of the main use cases for such tokenizer would be to add support for CJK symbols and non-latin locales for FTS5. As an example, this could be done with `Intl.Segmenter` API:
+```js
+db.createFTS5Tokenizer('js_tokenizer', class Tokenizer {
+  constructor(params) {
+    // params will be ["param1", "param2"]
+  }
+
+  run(str) {
+    const result = [];
+    let off = 0;
+    for (const seg of segmenter.segment(str)) {
+      const len = Buffer.byteLength(seg.segment);
+      if (seg.isWordLike) {
+        // Remove diacritic symbols
+        const normalized = seg.segment.normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '');
+        result.push(
+          // Segment start byte offset
+          off,
+          // Segment end byte offset
+          off + len,
+          // Either normalized segment or a `null` (optimization)
+          normalized === seg.segment ? null : normalized,
+        );
+      }
+      off += len;
+    }
+    return result;
+  }
+});
+
+db.exec(`
+  CREATE VIRTUAL TABLE fts_table USING fts5(
+    body,
+    tokenize='js_tokenizer param1 param2'
+  );
+
+  INSERT INTO fts_table(body) VALUES ('hello world');
+`);
 ```
 
 ### .exec(*string*) -> *this*

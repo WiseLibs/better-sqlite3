@@ -1,0 +1,158 @@
+class Tokenizer {
+public:
+	Tokenizer(
+		v8::Isolate* isolate,
+		v8::Local<v8::Function> run_fn
+	): isolate(isolate),
+		run_fn(isolate, run_fn) {
+	}
+
+	~Tokenizer() {}
+
+	int Run(
+		void* pCtx,
+		const char *pText,
+		int nText,
+		int (*xToken)(
+			void* pCtx, int tflags, const char* pToken, int nToken,
+			int iStart, int iEnd)
+	) {
+		v8::HandleScope scope(isolate);
+		UseContext;
+
+		v8::Local<v8::Value> arg[] = {
+			StringFromUtf8(isolate, pText, nText)
+		};
+		v8::Local<v8::Value> result = run_fn.Get(isolate)->Call(
+			ctx,
+			v8::Undefined(isolate),
+			1,
+			arg).ToLocalChecked();
+		if (!result->IsArray()) {
+			ThrowTypeError("Expected array return value of tokenizer");
+			return SQLITE_MISUSE;
+		}
+		v8::Local<v8::Array> indices = result.As<v8::Array>();
+		int len = indices->Length();
+		if (len % 3 != 0) {
+			return SQLITE_MISUSE;
+		}
+		for (int i = 0; i < len; i += 3) {
+			int64_t segment_start =
+				indices->Get(ctx, i).ToLocalChecked()->IntegerValue(ctx).ToChecked();
+			int64_t segment_end =
+				indices->Get(ctx, i + 1).ToLocalChecked()->IntegerValue(ctx).ToChecked();
+			v8::Local<v8::Value> maybe_normalized =
+				indices->Get(ctx, i + 2).ToLocalChecked();
+			if (segment_start < 0 || static_cast<int64_t>(segment_start) > nText) {
+				return SQLITE_MISUSE;
+			}
+			if (segment_end < 0 || static_cast<int64_t>(segment_end) > nText) {
+				return SQLITE_MISUSE;
+			}
+			if (segment_start > segment_end) {
+				return SQLITE_MISUSE;
+			}
+
+			int rc;
+			if (maybe_normalized->IsString()) {
+				v8::String::Utf8Value normalized(
+					isolate, indices->Get(ctx, i + 2).ToLocalChecked());
+				rc = xToken(
+					pCtx, 0, *normalized, normalized.length(),
+					segment_start, segment_end);
+			} else {
+				// Optimization: if `maybe_normalized` is not provided - use original
+				// input string to avoid copying data.
+				rc = xToken(
+					pCtx, 0, &pText[segment_start], segment_end - segment_start,
+					segment_start, segment_end);
+			}
+
+			if (rc != SQLITE_OK) {
+				return rc;
+			}
+		}
+		return SQLITE_OK;
+	}
+
+private:
+	v8::Isolate* isolate;
+	const CopyablePersistent<v8::Function> run_fn;
+}
+
+class TokenizerModule {
+public:
+	TokenizerModule(
+		v8::Isolate* isolate,
+		v8::Local<v8::Function> create_instance_fn
+	): isolate(isolate), create_instance_fn(isolate, create_instance_fn) {
+	}
+
+	static void xDestroy(void* pCtx) {
+		TokenizerModule* m = static_cast<TokenizerModule*>(pCtx);
+		delete m;
+	}
+
+	inline fts5_tokenizer* get_api_object() {
+		return &api_object;
+	}
+
+private:
+	Tokenizer* CreateInstance(const char** azArg, int nArg) {
+		v8::HandleScope scope(isolate);
+		UseContext;
+
+		v8::Local<v8::Array> params = v8::Array::New(isolate, nArg);
+		for (int i = 0; i < nArg; i++) {
+			params->Set(ctx, i, StringFromUtf8(isolate, azArg[i], -1)).ToChecked();
+		}
+
+		v8::Local<v8::Value> arg[] = {
+			params,
+		};
+		v8::Local<v8::Function> run_fn = create_instance_fn.Get(isolate)->Call(
+			ctx,
+			v8::Undefined(isolate),
+			1,
+			arg).ToLocalChecked().As<v8::Function>();
+
+		return new Tokenizer(isolate, run_fn);
+	}
+
+	static int xCreate(
+		void* pCtx, const char** azArg, int nArg, Fts5Tokenizer** ppOut) {
+		TokenizerModule* m = static_cast<TokenizerModule*>(pCtx);
+		*ppOut = reinterpret_cast<Fts5Tokenizer*>(m->CreateInstance(azArg, nArg));
+		return SQLITE_OK;
+	}
+
+	static void xDelete(Fts5Tokenizer* tokenizer) {
+		Tokenizer* t = reinterpret_cast<Tokenizer*>(tokenizer);
+		delete t;
+	}
+
+	static int xTokenize(
+		Fts5Tokenizer* tokenizer,
+		void *pCtx,
+		int flags,
+		const char *pText,
+		int nText,
+		int (*xToken)(
+			void* pCtx, int tflags, const char* pToken, int nToken,
+			int iStart, int iEnd)
+	) {
+		Tokenizer* t = reinterpret_cast<Tokenizer*>(tokenizer);
+
+		return t->Run(pCtx, pText, nText, xToken);
+	}
+
+	static fts5_tokenizer api_object = {
+		.xCreate = &xCreate,
+		.xDelete = &xDelete,
+		.xTokenize = &xTokenize,
+	};
+
+	v8::Isolate* isolate;
+	const CopyablePersistent<v8::Function> create_instance_fn;
+};
