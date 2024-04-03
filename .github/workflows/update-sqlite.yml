@@ -18,11 +18,11 @@ jobs:
       ENV_YEAR: ${{ github.event.inputs.year }}
       ENV_VERSION: ${{ github.event.inputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           token: ${{ secrets.PAT }}
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 16
       - name: Create new update branch
@@ -35,7 +35,7 @@ jobs:
       - name: Download, compile and package SQLite
         run: npm run download
       - name: Push update branch
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Update SQLite to version ${{ env.ENV_TRUE_VERSION }}
           branch: sqlite-update-${{ env.ENV_VERSION }}

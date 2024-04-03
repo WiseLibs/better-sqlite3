@@ -116,7 +116,7 @@ jobs:
     needs: publish
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-qemu-action@v3
       - run: |
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16-alpine -c "\
           apk add build-base git python3 py3-setuptools --update-cache && \
@@ -135,7 +135,7 @@ jobs:
     needs: publish
     steps:
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v1
+      - uses: docker/setup-qemu-action@v3
       - run: |
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16 -c "\
           cd /tmp/project && \
