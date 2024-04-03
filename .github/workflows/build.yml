@@ -23,6 +23,7 @@ jobs:
         os:
           - ubuntu-20.04
           - macos-latest
+          - macos-14
           - windows-2019
         node:
           - 18
@@ -37,7 +38,9 @@ jobs:
           node-version: ${{ matrix.node }}
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
-      - if: ${{ ! startsWith(matrix.os, 'windows') }}
+      - if: ${{ ! startsWith(matrix.os, 'windows') && matrix.os != 'macos-14' }}
+        run: python3 -m pip install setuptools
+      - if: matrix.os == 'macos-14'
         run: python3 -m pip install --break-system-packages setuptools
       - run: npm install --ignore-scripts
       - run: npm run build-debug
@@ -82,7 +85,9 @@ jobs:
           node-version: 16
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
-      - if: ${{ ! startsWith(matrix.os, 'windows') }}
+      - if: ${{ ! startsWith(matrix.os, 'windows') && matrix.os != 'macos-14' }}
+        run: python3 -m pip install setuptools
+      - if: matrix.os == 'macos-14'
         run: python3 -m pip install --break-system-packages setuptools
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
