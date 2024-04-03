@@ -72,6 +72,8 @@ insertMany([
 
 Transaction functions can be called from inside other transaction functions. When doing so, the inner transaction becomes a [savepoint](https://www.sqlite.org/lang_savepoint.html).
 
+If an error is thrown inside of a nested transaction function, the nested transaction function will roll back to the state just before the savepoint and rethrow the error. If the error is not caught in the outer transaction function, this will cause the outer transaction function to roll back as well.
+
 ```js
 const newExpense = db.prepare('INSERT INTO expenses (note, dollars) VALUES (?, ?)');
 
