@@ -38,7 +38,7 @@ jobs:
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
       - if: ${{ ! startsWith(matrix.os, 'windows') }}
-        run: python3 -m pip install setuptools
+        run: python3 -m pip install setuptools --break-system-packages
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
@@ -83,7 +83,7 @@ jobs:
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
       - if: ${{ ! startsWith(matrix.os, 'windows') }}
-        run: python3 -m pip install setuptools
+        run: python3 -m pip install setuptools --break-system-packages
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
