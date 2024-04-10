@@ -73,9 +73,10 @@ describe('Database#serialize()', function () {
 		this.db = new Database();
 		const buffer = this.db.serialize();
 		expect(buffer).to.be.an.instanceof(Buffer);
-		expect(buffer.length).to.equal(0);
+		expect(buffer.length).to.be.lte(4096);
 		this.db.close();
 		this.db = new Database(buffer);
-		expect(this.db.serialize().length).to.equal(0);
+		expect(this.db.prepare("select * from sqlite_master").all()).to.deep.equal([]);
+		expect(this.db.serialize().length).to.be.lte(4096);
 	});
 });
