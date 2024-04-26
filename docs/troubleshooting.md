@@ -1,41 +1,43 @@
 # Troubleshooting installation
 
-If you have trouble installing `better-sqlite3`, follow this checklist:
+If `better-sqlite3` refuses to install, follow these guidelines:
+
+## Use the latest version of better-sqlite3
+
+- Check the [releases page](https://github.com/WiseLibs/better-sqlite3/releases) to make sure you're using the latest and greatest.
 
 ## Install a recent Node.js
 
-1. Make sure you're using Node.js v14.21.1 or later.
-2. If you're on Windows, while installing, be sure to select "Automatically install the necessary tools" on the "Tools for Native Modules" page, and follow the remaining steps, including opening an admin PowerShell and installing visual studio and python. Everything _should_ just work.
+- Make sure you're using a [supported version of Node.js](https://nodejs.org/en/about/previous-releases). `better-sqlite3` is only tested with currently-supported versions of Node.js.
 
-## Install the `node-gyp` toolchain
+## "Install the necessary tools" 
+   
+- If you're on Windows, during installation of Node.js, be sure to select "Automatically install the necessary tools" from the "Tools for Native Modules" page.
 
-1. Make sure you have [`node-gyp`](https://github.com/nodejs/node-gyp#installation) globally installed
-1. Make sure all [`node-gyp` dependencies are installed](https://github.com/nodejs/node-gyp#on-unix). On Windows you may need to [configure some things manually](https://github.com/nodejs/node-gyp#on-windows). Use `npm ls node-gyp` to make sure none of your local packages installed an outdated version of `node-gyp` that is used over the global one.
+- If you missed this when you installed Node.js, double-click `C:\Program Files\nodejs\install_tools.bat` from the File Explorer or run it in a terminal.
+
+This will open an administrative PowerShell terminal and installing Chocolatey, Visual Studio, and Python.
+
+This may take several minutes.
 
 ## No special characters in your project path
 
-1. Make sure there are no spaces in your project path: `node-gyp` may not escape spaces or special characters (like `%` or `$`) properly.
+- Make sure there are no spaces in your project path: `node-gyp` may not escape spaces or special characters (like `%` or `$`) properly.
 
 ## Electron
 
-1. If you're using [Electron](https://github.com/electron/electron), try running [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild)
+1. If you're using [Electron](https://github.com/electron/electron), use [`electron-rebuild`](https://www.npmjs.com/package/electron-rebuild).
+
+2. If you're using an app.asar bundle, be sure all native libraries are "unpacked". If you're using [electron-forge]([url](https://www.electronforge.io)), you should use the [auto-unpack-natives plugin](https://www.electronforge.io/config/plugins/auto-unpack-natives)
 
 ## Windows
 
-If you still have issues on Windows and are on an older version of Node, try these steps:
+If you still have issues, try these steps:
 
-1. Install the **latest** of node 14, 16, 18, or 19.
-1. Install **latest** Visual Studio Community and Desktop Development with C++ extension.
-1. Install **latest** Python.
-1. Run following commands:
-```
-npm config set msvs_version 2019
-npm config set msbuild_path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
-```
 1. Delete your `node_modules` subdirectory
 1. Delete your `$HOME/.node-gyp` directory
 1. Run `npm install`
 
-## If all else fails
+## Still stuck?
 
-If none of these solved your problem, try browsing [previous issues](https://github.com/JoshuaWise/better-sqlite3/issues?q=is%3Aissue) or open a [new issue](https://github.com/JoshuaWise/better-sqlite3/issues/new).
+Browse [previous installation issues](https://github.com/WiseLibs/better-sqlite3/issues?q=is%3Aissue).
