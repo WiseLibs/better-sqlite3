@@ -13,12 +13,14 @@ on:
   workflow_dispatch: {}
 
 env:
-  # See https://nodejs.org/en/about/previous-releases
-  # Node.js 16 EOL = 11 Sep 2023
-  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 18.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
+  # See https://github.com/nodejs/release#release-schedule
+  # Node.js v16 EOL = 2023-09-11. v21 EOL = 2024-06-01.
+  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 18.0.0 -t 20.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
+  # Merge with NODE_BUILD_CMD when Node.js v18 is EOL
+  NO_V18_NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
-  # The v25 EOL = 2023-dec-5. v26 EOL = 2024-feb-20. v27 EOL = 2024-apr-16. v28 EOL = 2024-jun-11. v29 EOL = 2024-aug-20.
-  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 25.0.0 -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 --include-regex 'better_sqlite3.node$'
+  # Electron v25 EOL = 2023-12-05. v26 EOL = 2024-02-20. v27 EOL = 2024-04-16. v28 EOL = 2024-06-11. v29 EOL = 2024-08-20.
+  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
@@ -32,7 +34,6 @@ jobs:
         node:
           - 18
           - 20
-          - 21
           - 22
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -74,6 +75,7 @@ jobs:
 
   prebuild:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-20.04
@@ -100,11 +102,13 @@ jobs:
       - if: matrix.os == 'windows-2019'
         run: |
           ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
-          npx --no-install prebuild -r node -t 20.0.0 -t 21.0.0 --include-regex 'better_sqlite3.node$' --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NO_V18_NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
+    strategy:
+      fail-fast: false
     name: Prebuild on alpine
     runs-on: ubuntu-latest
     container: node:18-alpine
@@ -117,6 +121,7 @@ jobs:
 
   prebuild-alpine-arm:
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - arm/v7
@@ -136,6 +141,7 @@ jobs:
 
   prebuild-linux-arm:
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - arm/v7
