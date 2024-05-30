@@ -98,7 +98,8 @@ describe('new Database()', function () {
 				const start = Date.now();
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const end = Date.now();
-				expect(end - start).to.be.within(timeout - 1, timeout * 3 + 100);
+				// GHA is slow: a 500ms timeout can take 1685ms to fail.
+				expect(end - start).to.be.within(timeout - 1, timeout * 3 + 250); 
 			} finally {
 				db.close();
 			}
