@@ -43,10 +43,10 @@ jobs:
           node-version: ${{ matrix.node }}
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
-      - if: ${{ ! startsWith(matrix.os, 'windows') && matrix.os != 'macos-14' }}
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install python-setuptools
+      - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
         run: python3 -m pip install setuptools
-      - if: matrix.os == 'macos-14'
-        run: python3 -m pip install --break-system-packages setuptools
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
@@ -90,10 +90,10 @@ jobs:
           node-version: 18
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
-      - if: ${{ ! startsWith(matrix.os, 'windows') && matrix.os != 'macos-14' }}
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install python-setuptools
+      - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
         run: python3 -m pip install setuptools
-      - if: matrix.os == 'macos-14'
-        run: python3 -m pip install --break-system-packages setuptools
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
