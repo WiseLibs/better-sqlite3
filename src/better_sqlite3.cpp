@@ -2,7 +2,7 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 153 "./src/util/macros.lzz"
+#line 150 "./src/util/macros.lzz"
 void SetPrototypeGetter(
 	v8::Isolate* isolate,
 	v8::Local<v8::External> data,
@@ -11,7 +11,7 @@ void SetPrototypeGetter(
 	v8::AccessorGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
-	
+
 	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
 	recv->InstanceTemplate()->SetAccessor(
 		InternalizedFromLatin1(isolate, name),
@@ -30,7 +30,7 @@ void SetPrototypeGetter(
 	);
 	#endif
 }
-#line 183 "./src/util/macros.lzz"
+#line 180 "./src/util/macros.lzz"
 #ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
 #define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
 #else
@@ -103,33 +103,33 @@ namespace Data
 #line 70 "./src/util/data.lzz"
   static char const RAW = 3;
 }
-#line 37 "./src/util/macros.lzz"
+#line 34 "./src/util/macros.lzz"
 void ThrowError (char const * message)
-#line 37 "./src/util/macros.lzz"
+#line 34 "./src/util/macros.lzz"
                                      { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
-#line 38 "./src/util/macros.lzz"
+#line 35 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message)
-#line 38 "./src/util/macros.lzz"
+#line 35 "./src/util/macros.lzz"
                                          { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 39 "./src/util/macros.lzz"
+#line 36 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message)
-#line 39 "./src/util/macros.lzz"
+#line 36 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 105 "./src/util/macros.lzz"
+#line 102 "./src/util/macros.lzz"
 v8::Local <v8::FunctionTemplate> NewConstructorTemplate (v8::Isolate * isolate, v8::Local <v8::External> data, v8::FunctionCallback func, char const * name)
-#line 110 "./src/util/macros.lzz"
+#line 107 "./src/util/macros.lzz"
   {
         v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, func, data);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(InternalizedFromLatin1(isolate, name));
         return t;
 }
-#line 116 "./src/util/macros.lzz"
+#line 113 "./src/util/macros.lzz"
 void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::FunctionCallback func)
-#line 122 "./src/util/macros.lzz"
+#line 119 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -137,9 +137,9 @@ void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
         );
 }
-#line 129 "./src/util/macros.lzz"
+#line 126 "./src/util/macros.lzz"
 void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback func)
-#line 135 "./src/util/macros.lzz"
+#line 132 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -267,9 +267,9 @@ CS::CS (v8::Isolate * isolate)
                 SetCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 }
 #line 140 "./src/util/constants.lzz"
-void CS::SetString (v8::Isolate * isolate, CopyablePersistent <v8::String> & constant, char const * str)
+void CS::SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str)
 #line 140 "./src/util/constants.lzz"
-                                                                                                               {
+                                                                                                       {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
 #line 144 "./src/util/constants.lzz"

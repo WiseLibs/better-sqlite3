@@ -101,7 +101,7 @@ private:
 		CustomTable * const parent;
 		const int parameter_count;
 		const bool safe_ints;
-		const CopyablePersistent<v8::Function> generator;
+		const v8::Global<v8::Function> generator;
 		const std::vector<std::string> parameter_names;
 	};
 
@@ -120,9 +120,9 @@ private:
 		}
 
 		sqlite3_vtab_cursor base;
-		CopyablePersistent<v8::Object> iterator;
-		CopyablePersistent<v8::Function> next;
-		CopyablePersistent<v8::Array> row;
+		v8::Global<v8::Object> iterator;
+		v8::Global<v8::Function> next;
+		v8::Global<v8::Array> row;
 		bool done;
 		sqlite_int64 rowid;
 	};
@@ -400,5 +400,5 @@ private:
 	v8::Isolate* const isolate;
 	Database* const db;
 	const std::string name;
-	const CopyablePersistent<v8::Function> factory;
+	const v8::Global<v8::Function> factory;
 };

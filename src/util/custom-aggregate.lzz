@@ -36,7 +36,7 @@ public:
 
 private:
 
-	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const CopyablePersistent<v8::Function> CustomAggregate::*ptrtm) {
+	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const v8::Global<v8::Function> CustomAggregate::*ptrtm) {
 		AGGREGATE_START();
 
 		v8::Local<v8::Value> args_fast[5];
@@ -80,7 +80,7 @@ private:
 	}
 
 	struct Accumulator { public:
-		CopyablePersistent<v8::Value> value;
+		v8::Global<v8::Value> value;
 		bool initialized;
 		bool is_window;
 	}
@@ -115,7 +115,7 @@ private:
 
 	const bool invoke_result;
 	const bool invoke_start;
-	const CopyablePersistent<v8::Function> inverse;
-	const CopyablePersistent<v8::Function> result;
-	const CopyablePersistent<v8::Value> start;
+	const v8::Global<v8::Function> inverse;
+	const v8::Global<v8::Function> result;
+	const v8::Global<v8::Value> start;
 };

@@ -54,6 +54,6 @@ private:
 	Database* const db;
 protected:
 	v8::Isolate* const isolate;
-	const CopyablePersistent<v8::Function> fn;
+	const v8::Global<v8::Function> fn;
 	const bool safe_ints;
 };
