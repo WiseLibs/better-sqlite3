@@ -27,10 +27,7 @@ inline v8::Local<v8::String> InternalizedFromLatin1(v8::Isolate* isolate, const 
 	return v8::String::NewFromOneByte(isolate, reinterpret_cast<const uint8_t*>(str), v8::NewStringType::kInternalized).ToLocalChecked();
 }
 
-#hdr
-template <class T> using CopyablePersistent = v8::Persistent<T, v8::CopyablePersistentTraits<T>>;
-#end
-inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, CopyablePersistent<v8::String>& key, v8::Local<v8::Value> value) {
+inline void SetFrozen(v8::Isolate* isolate, v8::Local<v8::Context> ctx, v8::Local<v8::Object> obj, v8::Global<v8::String>& key, v8::Local<v8::Value> value) {
 	obj->DefineOwnProperty(ctx, key.Get(isolate), value, static_cast<v8::PropertyAttribute>(v8::DontDelete | v8::ReadOnly)).FromJust();
 }
 
@@ -139,6 +136,17 @@ void SetPrototypeSymbolMethod(
 		v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
 	);
 }
+
+#hdr
+void SetPrototypeGetter(
+	v8::Isolate* isolate,
+	v8::Local<v8::External> data,
+	v8::Local<v8::FunctionTemplate> recv,
+	const char* name,
+	v8::AccessorGetterCallback func
+);
+#end
+#src
 void SetPrototypeGetter(
 	v8::Isolate* isolate,
 	v8::Local<v8::External> data,
@@ -147,6 +155,8 @@ void SetPrototypeGetter(
 	v8::AccessorGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
+
+	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
 	recv->InstanceTemplate()->SetAccessor(
 		InternalizedFromLatin1(isolate, name),
 		func,
@@ -155,4 +165,26 @@ void SetPrototypeGetter(
 		v8::AccessControl::DEFAULT,
 		v8::PropertyAttribute::None
 	);
+	#else
+	recv->InstanceTemplate()->SetAccessor(
+		InternalizedFromLatin1(isolate, name),
+		func,
+		0,
+		data
+	);
+	#endif
 }
+#end
+
+#src
+#ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
+#define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
+#else
+static inline v8::MaybeLocal<v8::Object> BufferSandboxNew(v8::Isolate* isolate, char* data, size_t length, void (*finalizeCallback)(char*, void*), void* finalizeHint) {
+	v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, data, length);
+	finalizeCallback(data, finalizeHint);
+	return buffer;
+}
+#define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) BufferSandboxNew(env, data, length, finalizeCallback, finalizeHint)
+#endif
+#end

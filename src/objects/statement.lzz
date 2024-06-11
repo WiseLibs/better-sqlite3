@@ -113,20 +113,27 @@ private:
 		if (handle == NULL) {
 			return ThrowRangeError("The supplied SQL string contains no statements");
 		}
-		for (char c; (c = *tail); ++tail) {
-			if (IS_SKIPPED(c)) continue;
+		// https://github.com/WiseLibs/better-sqlite3/issues/975#issuecomment-1520934678
+		for (char c; (c = *tail); ) {
+			if (IS_SKIPPED(c)) {
+				++tail;
+				continue;
+			}
 			if (c == '/' && tail[1] == '*') {
 				tail += 2;
 				for (char c; (c = *tail); ++tail) {
 					if (c == '*' && tail[1] == '/') {
-						tail += 1;
+						tail += 2;
 						break;
 					}
 				}
 			} else if (c == '-' && tail[1] == '-') {
 				tail += 2;
 				for (char c; (c = *tail); ++tail) {
-					if (c == '\n') break;
+					if (c == '\n') {
+						++tail;
+						break;
+					}
 				}
 			} else {
 				sqlite3_finalize(handle);

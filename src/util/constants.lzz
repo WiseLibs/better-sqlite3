@@ -116,28 +116,28 @@ public:
 		SetCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 	}
 
-	CopyablePersistent<v8::String> database;
-	CopyablePersistent<v8::String> reader;
-	CopyablePersistent<v8::String> source;
-	CopyablePersistent<v8::String> memory;
-	CopyablePersistent<v8::String> readonly;
-	CopyablePersistent<v8::String> name;
-	CopyablePersistent<v8::String> next;
-	CopyablePersistent<v8::String> length;
-	CopyablePersistent<v8::String> done;
-	CopyablePersistent<v8::String> value;
-	CopyablePersistent<v8::String> changes;
-	CopyablePersistent<v8::String> lastInsertRowid;
-	CopyablePersistent<v8::String> statement;
-	CopyablePersistent<v8::String> column;
-	CopyablePersistent<v8::String> table;
-	CopyablePersistent<v8::String> type;
-	CopyablePersistent<v8::String> totalPages;
-	CopyablePersistent<v8::String> remainingPages;
+	v8::Global<v8::String> database;
+	v8::Global<v8::String> reader;
+	v8::Global<v8::String> source;
+	v8::Global<v8::String> memory;
+	v8::Global<v8::String> readonly;
+	v8::Global<v8::String> name;
+	v8::Global<v8::String> next;
+	v8::Global<v8::String> length;
+	v8::Global<v8::String> done;
+	v8::Global<v8::String> value;
+	v8::Global<v8::String> changes;
+	v8::Global<v8::String> lastInsertRowid;
+	v8::Global<v8::String> statement;
+	v8::Global<v8::String> column;
+	v8::Global<v8::String> table;
+	v8::Global<v8::String> type;
+	v8::Global<v8::String> totalPages;
+	v8::Global<v8::String> remainingPages;
 
 private:
 
-	static void SetString(v8::Isolate* isolate, CopyablePersistent<v8::String>& constant, const char* str) {
+	static void SetString(v8::Isolate* isolate, v8::Global<v8::String>& constant, const char* str) {
 		constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 	}
 
@@ -147,5 +147,5 @@ private:
 			std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
 
-	std::unordered_map<int, CopyablePersistent<v8::String> > codes;
+	std::unordered_map<int, v8::Global<v8::String> > codes;
 };

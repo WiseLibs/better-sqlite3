@@ -290,7 +290,7 @@ private:
 		}
 
 		info.GetReturnValue().Set(
-			node::Buffer::New(isolate, reinterpret_cast<char*>(data), length, FreeSerialization, NULL).ToLocalChecked()
+			SAFE_NEW_BUFFER(isolate, reinterpret_cast<char*>(data), length, FreeSerialization, NULL).ToLocalChecked()
 		);
 	}
 
@@ -462,7 +462,7 @@ private:
 	const bool has_logger;
 	unsigned short iterators;
 	Addon* const addon;
-	const CopyablePersistent<v8::Value> logger;
+	const v8::Global<v8::Value> logger;
 	std::set<Statement*, CompareStatement> stmts;
 	std::set<Backup*, CompareBackup> backups;
 };

@@ -53,10 +53,10 @@ struct Addon {
 		return next_id++;
 	}
 
-	CopyablePersistent<v8::Function> Statement;
-	CopyablePersistent<v8::Function> StatementIterator;
-	CopyablePersistent<v8::Function> Backup;
-	CopyablePersistent<v8::Function> SqliteError;
+	v8::Global<v8::Function> Statement;
+	v8::Global<v8::Function> StatementIterator;
+	v8::Global<v8::Function> Backup;
+	v8::Global<v8::Function> SqliteError;
 	NODE_ARGUMENTS_POINTER privileged_info;
 	sqlite3_uint64 next_id;
 	CS cs;

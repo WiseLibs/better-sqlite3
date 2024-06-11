@@ -12,6 +12,16 @@ on:
       - released
   workflow_dispatch: {}
 
+env:
+  # See https://github.com/nodejs/release#release-schedule
+  # Node.js v16 EOL = 2023-09-11. v21 EOL = 2024-06-01.
+  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 18.0.0 -t 20.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
+  # Merge with NODE_BUILD_CMD when Node.js v18 is EOL
+  NO_V18_NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
+  # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
+  # Electron v25 EOL = 2023-12-05. v26 EOL = 2024-02-20. v27 EOL = 2024-04-16. v28 EOL = 2024-06-11. v29 EOL = 2024-08-20.
+  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 -t 31.0.0 --include-regex 'better_sqlite3.node$'
+
 jobs:
   test:
     strategy:
@@ -19,22 +29,34 @@ jobs:
         os:
           - ubuntu-20.04
           - macos-latest
+          - macos-14
           - windows-2019
         node:
-          - 14
-          - 16
           - 18
-          - 19
+          - 20
+          - 22
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: pip.exe install setuptools
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install python-setuptools
+      - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
+        run: python3 -m pip install setuptools
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
+      - name: Test SpatiaLite extension
+        if: ${{ startsWith(matrix.os, 'ubuntu') }}
+        run: |
+          sudo apt update
+          sudo apt install libsqlite3-mod-spatialite -y
+          node -e "require('./lib/index.js')(':memory:').loadExtension('mod_spatialite').exec('SELECT InitSpatialMetaData();')"
 
   publish:
     if: ${{ github.event_name == 'release' }}
@@ -42,10 +64,10 @@ jobs:
     runs-on: ubuntu-18.04
     needs: test
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
           registry-url: https://registry.npmjs.org
       - run: npm publish
         env:
@@ -53,40 +75,53 @@ jobs:
 
   prebuild:
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-18.04
           - macos-latest
+          - macos-14
           - windows-2019
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: publish
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 18
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: pip.exe install setuptools
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install python-setuptools
+      - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
+        run: python3 -m pip install setuptools
       - run: npm install --ignore-scripts
-      - run: npx --no-install prebuild -r node -t 14.0.0 -t 16.0.0 -t 18.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
-      - run: npx --no-install prebuild -r electron -t 16.0.0 -t 17.0.0 -t 18.0.0 -t 19.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'windows-2019'
-        run: npx --no-install prebuild -r electron -t 16.0.0 -t 17.0.0 -t 18.0.0 -t 19.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$' --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
-      - if: matrix.os == 'macos-latest'
-        run: npx --no-install prebuild -r electron -t 16.0.0 -t 17.0.0 -t 18.0.0 -t 19.0.0 -t 20.0.0 -t 21.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$' --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NO_V18_NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
+    strategy:
+      fail-fast: false
     name: Prebuild on alpine
     runs-on: ubuntu-latest
-    container: node:16-alpine
+    container: node:18-alpine
     needs: publish
     steps:
-      - uses: actions/checkout@v3
-      - run: apk add build-base git python3 --update-cache
+      - uses: actions/checkout@v4
+      - run: apk add build-base git python3 py3-setuptools --update-cache
       - run: npm install --ignore-scripts
-      - run: npx --no-install prebuild -r node -t 14.0.0 -t 16.0.0 -t 18.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine-arm:
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - arm/v7
@@ -95,17 +130,18 @@ jobs:
     runs-on: ubuntu-latest
     needs: publish
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v1
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
       - run: |
-          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16-alpine -c "\
-          apk add build-base git python3 --update-cache && \
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:18-alpine -c "\
+          apk add build-base git python3 py3-setuptools --update-cache && \
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          npx --no-install prebuild -r node -t 14.0.0 -t 16.0.0 -t 18.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
 
   prebuild-linux-arm:
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - arm/v7
@@ -114,10 +150,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: publish
     steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v1
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
       - run: |
-          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:16 -c "\
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:18 -c "\
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          npx --no-install prebuild -r node -t 14.0.0 -t 16.0.0 -t 18.0.0 --include-regex 'better_sqlite3.node$' -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"

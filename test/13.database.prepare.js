@@ -37,6 +37,12 @@ describe('Database#prepare()', function () {
 		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);CREATE TABLE animals (name TEXT)')).to.throw(RangeError);
 		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);/')).to.throw(RangeError);
 		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);-')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);--\n/')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);--\nSELECT 123')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);-- comment\nSELECT 123')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);/**/-')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);/**/SELECT 123')).to.throw(RangeError);
+		expect(() => this.db.prepare('CREATE TABLE people (name TEXT);/* comment */SELECT 123')).to.throw(RangeError);
 	});
 	it('should create a prepared Statement object', function () {
 		const stmt1 = this.db.prepare('CREATE TABLE people (name TEXT) ');
@@ -56,5 +62,13 @@ describe('Database#prepare()', function () {
 		assertStmt(this.db.prepare('BEGIN'), 'BEGIN', this.db, false, true);
 		assertStmt(this.db.prepare('BEGIN EXCLUSIVE'), 'BEGIN EXCLUSIVE', this.db, false, false);
 		assertStmt(this.db.prepare('DELETE FROM data RETURNING *'), 'DELETE FROM data RETURNING *', this.db, true, false);
+	});
+	it('should create a prepared Statement object ignoring trailing comments and whitespace', function () {
+		assertStmt(this.db.prepare('SELECT 555;     '), 'SELECT 555;     ', this.db, true, true);
+		assertStmt(this.db.prepare('SELECT 555;-- comment'), 'SELECT 555;-- comment', this.db, true, true);
+		assertStmt(this.db.prepare('SELECT 555;--abc\n--de\n--f'), 'SELECT 555;--abc\n--de\n--f', this.db, true, true);
+		assertStmt(this.db.prepare('SELECT 555;/* comment */'), 'SELECT 555;/* comment */', this.db, true, true);
+		assertStmt(this.db.prepare('SELECT 555;/* comment */-- comment'), 'SELECT 555;/* comment */-- comment', this.db, true, true);
+		assertStmt(this.db.prepare('SELECT 555;-- comment\n/* comment */'), 'SELECT 555;-- comment\n/* comment */', this.db, true, true);
 	});
 });

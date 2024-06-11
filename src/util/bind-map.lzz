@@ -22,7 +22,7 @@ public:
 			explicit Pair(v8::Isolate* isolate, Pair* pair)
 				: name(isolate, pair->name), index(pair->index) {}
 
-			const CopyablePersistent<v8::String> name;
+			const v8::Global<v8::String> name;
 			const int index;
 	};
 
