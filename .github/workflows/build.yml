@@ -28,7 +28,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-latest
+          - macos-13
           - macos-14
           - windows-2019
         node:
@@ -84,7 +84,7 @@ jobs:
       matrix:
         os:
           - ubuntu-20.04
-          - macos-latest
+          - macos-13
           - macos-14
           - windows-2019
     name: Prebuild on ${{ matrix.os }}
