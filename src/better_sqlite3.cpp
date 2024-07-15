@@ -2,13 +2,13 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 150 "./src/util/macros.lzz"
+#line 154 "./src/util/macros.lzz"
 void SetPrototypeGetter(
 	v8::Isolate* isolate,
 	v8::Local<v8::External> data,
 	v8::Local<v8::FunctionTemplate> recv,
 	const char* name,
-	v8::AccessorGetterCallback func
+	v8::AccessorNameGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
 
@@ -22,7 +22,7 @@ void SetPrototypeGetter(
 		v8::PropertyAttribute::None
 	);
 	#else
-	recv->InstanceTemplate()->SetAccessor(
+	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
@@ -30,7 +30,7 @@ void SetPrototypeGetter(
 	);
 	#endif
 }
-#line 180 "./src/util/macros.lzz"
+#line 184 "./src/util/macros.lzz"
 #ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
 #define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
 #else
@@ -103,33 +103,33 @@ namespace Data
 #line 70 "./src/util/data.lzz"
   static char const RAW = 3;
 }
-#line 34 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
 void ThrowError (char const * message)
-#line 34 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
                                      { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
-#line 35 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message)
-#line 35 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
                                          { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 36 "./src/util/macros.lzz"
+#line 40 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message)
-#line 36 "./src/util/macros.lzz"
+#line 40 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 102 "./src/util/macros.lzz"
+#line 106 "./src/util/macros.lzz"
 v8::Local <v8::FunctionTemplate> NewConstructorTemplate (v8::Isolate * isolate, v8::Local <v8::External> data, v8::FunctionCallback func, char const * name)
-#line 107 "./src/util/macros.lzz"
+#line 111 "./src/util/macros.lzz"
   {
         v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, func, data);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(InternalizedFromLatin1(isolate, name));
         return t;
 }
-#line 113 "./src/util/macros.lzz"
+#line 117 "./src/util/macros.lzz"
 void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::FunctionCallback func)
-#line 119 "./src/util/macros.lzz"
+#line 123 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -137,9 +137,9 @@ void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
         );
 }
-#line 126 "./src/util/macros.lzz"
+#line 130 "./src/util/macros.lzz"
 void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback func)
-#line 132 "./src/util/macros.lzz"
+#line 136 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -734,13 +734,13 @@ void Database::JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & inf
                 sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
 }
 #line 415 "./src/objects/database.lzz"
-void Database::JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Database::JS_open (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 415 "./src/objects/database.lzz"
                              {
                 info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Database>(info.This())->open);
 }
 #line 419 "./src/objects/database.lzz"
-void Database::JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Database::JS_inTransaction (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 419 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
@@ -1109,7 +1109,7 @@ void Statement::JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 info.GetReturnValue().Set(columns);
 }
 #line 321 "./src/objects/statement.lzz"
-void Statement::JS_busy (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Statement::JS_busy (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 321 "./src/objects/statement.lzz"
                              {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
