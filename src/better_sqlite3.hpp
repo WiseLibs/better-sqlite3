@@ -22,7 +22,7 @@ void SetPrototypeGetter(
 	v8::Local<v8::External> data,
 	v8::Local<v8::FunctionTemplate> recv,
 	const char* name,
-	v8::AccessorGetterCallback func
+	v8::AccessorNameGetterCallback func
 );
 #line 36 "./src/util/binder.lzz"
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj);
@@ -273,9 +273,9 @@ private:
 #line 408 "./src/objects/database.lzz"
   static void JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 415 "./src/objects/database.lzz"
-  static void JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
+  static void JS_open (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
 #line 419 "./src/objects/database.lzz"
-  static void JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
+  static void JS_inTransaction (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
 #line 424 "./src/objects/database.lzz"
   static bool Deserialize (v8::Local <v8::Object> buffer, Addon * addon, sqlite3 * db_handle, bool readonly);
 #line 449 "./src/objects/database.lzz"
@@ -365,7 +365,7 @@ private:
 #line 278 "./src/objects/statement.lzz"
   static void JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info);
 #line 321 "./src/objects/statement.lzz"
-  static void JS_busy (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
+  static void JS_busy (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
 #line 326 "./src/objects/statement.lzz"
   Database * const db;
 #line 327 "./src/objects/statement.lzz"

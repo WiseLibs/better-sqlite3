@@ -8,7 +8,7 @@ void SetPrototypeGetter(
 	v8::Local<v8::External> data,
 	v8::Local<v8::FunctionTemplate> recv,
 	const char* name,
-	v8::AccessorGetterCallback func
+	v8::AccessorNameGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
 
@@ -734,13 +734,13 @@ void Database::JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & inf
                 sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
 }
 #line 415 "./src/objects/database.lzz"
-void Database::JS_open (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Database::JS_open (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 415 "./src/objects/database.lzz"
                              {
                 info.GetReturnValue().Set( node :: ObjectWrap :: Unwrap <Database>(info.This())->open);
 }
 #line 419 "./src/objects/database.lzz"
-void Database::JS_inTransaction (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Database::JS_inTransaction (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 419 "./src/objects/database.lzz"
                                       {
                 Database* db = node :: ObjectWrap :: Unwrap <Database>(info.This());
@@ -1109,7 +1109,7 @@ void Statement::JS_columns (v8::FunctionCallbackInfo <v8 :: Value> const & info)
                 info.GetReturnValue().Set(columns);
 }
 #line 321 "./src/objects/statement.lzz"
-void Statement::JS_busy (v8::Local <v8 :: String> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
+void Statement::JS_busy (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info)
 #line 321 "./src/objects/statement.lzz"
                              {
                 Statement* stmt = node :: ObjectWrap :: Unwrap <Statement>(info.This());
