@@ -13,7 +13,7 @@ void SetPrototypeGetter(
 	v8::HandleScope scope(isolate);
 
 	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
-	recv->InstanceTemplate()->SetAccessor(
+	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
@@ -22,7 +22,7 @@ void SetPrototypeGetter(
 		v8::PropertyAttribute::None
 	);
 	#else
-	recv->InstanceTemplate()->SetAccessor(
+	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
