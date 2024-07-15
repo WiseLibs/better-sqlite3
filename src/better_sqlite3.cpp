@@ -2,7 +2,7 @@
 //
 
 #include "better_sqlite3.hpp"
-#line 150 "./src/util/macros.lzz"
+#line 154 "./src/util/macros.lzz"
 void SetPrototypeGetter(
 	v8::Isolate* isolate,
 	v8::Local<v8::External> data,
@@ -13,7 +13,7 @@ void SetPrototypeGetter(
 	v8::HandleScope scope(isolate);
 
 	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
-	recv->InstanceTemplate()->SetNativeDataProperty(
+	recv->InstanceTemplate()->SetAccessor(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
@@ -30,7 +30,7 @@ void SetPrototypeGetter(
 	);
 	#endif
 }
-#line 180 "./src/util/macros.lzz"
+#line 184 "./src/util/macros.lzz"
 #ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
 #define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
 #else
@@ -103,33 +103,33 @@ namespace Data
 #line 70 "./src/util/data.lzz"
   static char const RAW = 3;
 }
-#line 34 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
 void ThrowError (char const * message)
-#line 34 "./src/util/macros.lzz"
+#line 38 "./src/util/macros.lzz"
                                      { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
-#line 35 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
 void ThrowTypeError (char const * message)
-#line 35 "./src/util/macros.lzz"
+#line 39 "./src/util/macros.lzz"
                                          { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 36 "./src/util/macros.lzz"
+#line 40 "./src/util/macros.lzz"
 void ThrowRangeError (char const * message)
-#line 36 "./src/util/macros.lzz"
+#line 40 "./src/util/macros.lzz"
                                           { v8 :: Isolate * isolate = v8 :: Isolate :: GetCurrent ( ) ; isolate->ThrowException(v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }
-#line 102 "./src/util/macros.lzz"
+#line 106 "./src/util/macros.lzz"
 v8::Local <v8::FunctionTemplate> NewConstructorTemplate (v8::Isolate * isolate, v8::Local <v8::External> data, v8::FunctionCallback func, char const * name)
-#line 107 "./src/util/macros.lzz"
+#line 111 "./src/util/macros.lzz"
   {
         v8::Local<v8::FunctionTemplate> t = v8::FunctionTemplate::New(isolate, func, data);
         t->InstanceTemplate()->SetInternalFieldCount(1);
         t->SetClassName(InternalizedFromLatin1(isolate, name));
         return t;
 }
-#line 113 "./src/util/macros.lzz"
+#line 117 "./src/util/macros.lzz"
 void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, char const * name, v8::FunctionCallback func)
-#line 119 "./src/util/macros.lzz"
+#line 123 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
@@ -137,9 +137,9 @@ void SetPrototypeMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v
                 v8::FunctionTemplate::New(isolate, func, data, v8::Signature::New(isolate, recv))
         );
 }
-#line 126 "./src/util/macros.lzz"
+#line 130 "./src/util/macros.lzz"
 void SetPrototypeSymbolMethod (v8::Isolate * isolate, v8::Local <v8::External> data, v8::Local <v8::FunctionTemplate> recv, v8::Local <v8::Symbol> symbol, v8::FunctionCallback func)
-#line 132 "./src/util/macros.lzz"
+#line 136 "./src/util/macros.lzz"
   {
         v8::HandleScope scope(isolate);
         recv->PrototypeTemplate()->Set(
