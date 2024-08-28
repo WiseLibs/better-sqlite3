@@ -68,49 +68,51 @@ public:
   v8::Local <v8::String> Code (v8::Isolate * isolate, int code);
 #line 10 "./src/util/constants.lzz"
   explicit CS (v8::Isolate * isolate);
-#line 119 "./src/util/constants.lzz"
-  v8::Global <v8::String> database;
 #line 120 "./src/util/constants.lzz"
-  v8::Global <v8::String> reader;
+  v8::Global <v8::String> database;
 #line 121 "./src/util/constants.lzz"
-  v8::Global <v8::String> source;
+  v8::Global <v8::String> reader;
 #line 122 "./src/util/constants.lzz"
-  v8::Global <v8::String> memory;
+  v8::Global <v8::String> source;
 #line 123 "./src/util/constants.lzz"
-  v8::Global <v8::String> readonly;
+  v8::Global <v8::String> memory;
 #line 124 "./src/util/constants.lzz"
-  v8::Global <v8::String> name;
+  v8::Global <v8::String> readonly;
 #line 125 "./src/util/constants.lzz"
-  v8::Global <v8::String> next;
+  v8::Global <v8::String> name;
 #line 126 "./src/util/constants.lzz"
-  v8::Global <v8::String> length;
+  v8::Global <v8::String> next;
 #line 127 "./src/util/constants.lzz"
-  v8::Global <v8::String> done;
+  v8::Global <v8::String> length;
 #line 128 "./src/util/constants.lzz"
-  v8::Global <v8::String> value;
+  v8::Global <v8::String> done;
 #line 129 "./src/util/constants.lzz"
-  v8::Global <v8::String> changes;
+  v8::Global <v8::String> value;
 #line 130 "./src/util/constants.lzz"
-  v8::Global <v8::String> lastInsertRowid;
+  v8::Global <v8::String> changes;
 #line 131 "./src/util/constants.lzz"
-  v8::Global <v8::String> statement;
+  v8::Global <v8::String> lastInsertRowid;
 #line 132 "./src/util/constants.lzz"
-  v8::Global <v8::String> column;
+  v8::Global <v8::String> statement;
 #line 133 "./src/util/constants.lzz"
-  v8::Global <v8::String> table;
+  v8::Global <v8::String> column;
 #line 134 "./src/util/constants.lzz"
-  v8::Global <v8::String> type;
+  v8::Global <v8::String> table;
 #line 135 "./src/util/constants.lzz"
-  v8::Global <v8::String> totalPages;
+  v8::Global <v8::String> type;
 #line 136 "./src/util/constants.lzz"
+  v8::Global <v8::String> totalPages;
+#line 137 "./src/util/constants.lzz"
   v8::Global <v8::String> remainingPages;
 #line 138 "./src/util/constants.lzz"
-private:
+  v8::Global <v8::String> defaultTransactionBehavior;
 #line 140 "./src/util/constants.lzz"
+private:
+#line 142 "./src/util/constants.lzz"
   static void SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str);
-#line 144 "./src/util/constants.lzz"
+#line 146 "./src/util/constants.lzz"
   void SetCode (v8::Isolate * isolate, int code, char const * str);
-#line 150 "./src/util/constants.lzz"
+#line 152 "./src/util/constants.lzz"
   std::unordered_map <int, v8::Global<v8::String> > codes;
 };
 #line 1 "./src/util/bind-map.lzz"
@@ -250,63 +252,63 @@ private:
   explicit Database (v8::Isolate * isolate, Addon * addon, sqlite3 * db_handle, v8::Local <v8::Value> logger);
 #line 149 "./src/objects/database.lzz"
   static void JS_new (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 201 "./src/objects/database.lzz"
+#line 203 "./src/objects/database.lzz"
   static void JS_prepare (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 217 "./src/objects/database.lzz"
+#line 219 "./src/objects/database.lzz"
   static void JS_exec (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 257 "./src/objects/database.lzz"
+#line 259 "./src/objects/database.lzz"
   static void JS_backup (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 275 "./src/objects/database.lzz"
+#line 277 "./src/objects/database.lzz"
   static void JS_serialize (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 297 "./src/objects/database.lzz"
+#line 299 "./src/objects/database.lzz"
   static void JS_function (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 321 "./src/objects/database.lzz"
+#line 323 "./src/objects/database.lzz"
   static void JS_aggregate (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 350 "./src/objects/database.lzz"
+#line 352 "./src/objects/database.lzz"
   static void JS_table (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 370 "./src/objects/database.lzz"
+#line 372 "./src/objects/database.lzz"
   static void JS_loadExtension (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 392 "./src/objects/database.lzz"
+#line 394 "./src/objects/database.lzz"
   static void JS_close (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 402 "./src/objects/database.lzz"
+#line 404 "./src/objects/database.lzz"
   static void JS_defaultSafeIntegers (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 408 "./src/objects/database.lzz"
+#line 410 "./src/objects/database.lzz"
   static void JS_unsafeMode (v8::FunctionCallbackInfo <v8 :: Value> const & info);
-#line 415 "./src/objects/database.lzz"
+#line 417 "./src/objects/database.lzz"
   static void JS_open (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 419 "./src/objects/database.lzz"
+#line 421 "./src/objects/database.lzz"
   static void JS_inTransaction (v8::Local <v8 :: Name> _, v8::PropertyCallbackInfo <v8 :: Value> const & info);
-#line 424 "./src/objects/database.lzz"
+#line 426 "./src/objects/database.lzz"
   static bool Deserialize (v8::Local <v8::Object> buffer, Addon * addon, sqlite3 * db_handle, bool readonly);
-#line 449 "./src/objects/database.lzz"
+#line 451 "./src/objects/database.lzz"
   static void FreeSerialization (char * data, void * _);
-#line 453 "./src/objects/database.lzz"
+#line 455 "./src/objects/database.lzz"
   static int const MAX_BUFFER_SIZE = node::Buffer::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(node::Buffer::kMaxLength);
-#line 454 "./src/objects/database.lzz"
-  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 #line 456 "./src/objects/database.lzz"
-  sqlite3 * const db_handle;
-#line 457 "./src/objects/database.lzz"
-  bool open;
+  static int const MAX_STRING_SIZE = v8::String::kMaxLength > INT_MAX ? INT_MAX : static_cast<int>(v8::String::kMaxLength);
 #line 458 "./src/objects/database.lzz"
-  bool busy;
+  sqlite3 * const db_handle;
 #line 459 "./src/objects/database.lzz"
-  bool safe_ints;
+  bool open;
 #line 460 "./src/objects/database.lzz"
-  bool unsafe_mode;
+  bool busy;
 #line 461 "./src/objects/database.lzz"
-  bool was_js_error;
+  bool safe_ints;
 #line 462 "./src/objects/database.lzz"
-  bool const has_logger;
+  bool unsafe_mode;
 #line 463 "./src/objects/database.lzz"
-  unsigned short int iterators;
+  bool was_js_error;
 #line 464 "./src/objects/database.lzz"
-  Addon * const addon;
+  bool const has_logger;
 #line 465 "./src/objects/database.lzz"
-  v8::Global <v8::Value> const logger;
+  unsigned short int iterators;
 #line 466 "./src/objects/database.lzz"
-  std::set <Statement*, CompareStatement> stmts;
+  Addon * const addon;
 #line 467 "./src/objects/database.lzz"
+  v8::Global <v8::Value> const logger;
+#line 468 "./src/objects/database.lzz"
+  std::set <Statement*, CompareStatement> stmts;
+#line 469 "./src/objects/database.lzz"
   std::set <Backup*, CompareBackup> backups;
 };
 #line 1 "./src/objects/statement.lzz"

@@ -154,8 +154,9 @@ private:
 		REQUIRE_ARGUMENT_BOOLEAN(fourth, bool readonly);
 		REQUIRE_ARGUMENT_BOOLEAN(fifth, bool must_exist);
 		REQUIRE_ARGUMENT_INT32(sixth, int timeout);
-		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> logger);
-		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> buffer);
+		REQUIRE_ARGUMENT_ANY(seventh, v8::Local<v8::Value> default_transaction_behavior);
+		REQUIRE_ARGUMENT_ANY(eighth, v8::Local<v8::Value> logger);
+		REQUIRE_ARGUMENT_ANY(ninth, v8::Local<v8::Value> buffer);
 
 		UseAddon;
 		UseIsolate;
@@ -194,6 +195,7 @@ private:
 		SetFrozen(isolate, ctx, info.This(), addon->cs.memory, v8::Boolean::New(isolate, in_memory));
 		SetFrozen(isolate, ctx, info.This(), addon->cs.readonly, v8::Boolean::New(isolate, readonly));
 		SetFrozen(isolate, ctx, info.This(), addon->cs.name, filenameGiven);
+		SetFrozen(isolate, ctx, info.This(), addon->cs.defaultTransactionBehavior, default_transaction_behavior);
 
 		info.GetReturnValue().Set(info.This());
 	}

@@ -35,6 +35,8 @@ Various options are accepted:
 
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 
+- `options.defaultTransactionBehaviour`: Set the default transaction behavior when calling [Database#transaction()](#transactionfunction---function). Can be set as `null` (SQLite Default), `'deferred'`, `'immediate'` or `'exclusive'` (default: `null`).
+
 - `options.verbose`: provide a function that gets called with every SQL string executed by the database connection (default: `null`).
 
 - `options.nativeBinding`: if you're using a complicated build system that moves, transforms, or concatenates your JS files, `better-sqlite3` might have trouble locating its native C++ addon (`better_sqlite3.node`). If you get an error that looks like [this](https://github.com/JoshuaWise/better-sqlite3/issues/534#issuecomment-757907190), you can solve it by using this option to provide the file path of `better_sqlite3.node` (relative to the current working directory).
@@ -86,7 +88,8 @@ const adopt = db.transaction((cats) => {
 Transactions also come with `deferred`, `immediate`, and `exclusive` versions.
 
 ```js
-insertMany(cats); // uses "BEGIN"
+insertMany(cats) // uses the default set by options.defaultTransactionBehavior
+insertMany.default(cats); // uses "BEGIN"
 insertMany.deferred(cats); // uses "BEGIN DEFERRED"
 insertMany.immediate(cats); // uses "BEGIN IMMEDIATE"
 insertMany.exclusive(cats); // uses "BEGIN EXCLUSIVE"
