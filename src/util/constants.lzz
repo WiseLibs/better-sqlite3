@@ -26,6 +26,7 @@ public:
 		SetString(isolate, type, "type");
 		SetString(isolate, totalPages, "totalPages");
 		SetString(isolate, remainingPages, "remainingPages");
+		SetString(isolate, defaultTransactionBehavior, "defaultTransactionBehavior");
 
 		SetCode(isolate, SQLITE_OK, "SQLITE_OK");
 		SetCode(isolate, SQLITE_ERROR, "SQLITE_ERROR");
@@ -134,6 +135,7 @@ public:
 	v8::Global<v8::String> type;
 	v8::Global<v8::String> totalPages;
 	v8::Global<v8::String> remainingPages;
+	v8::Global<v8::String> defaultTransactionBehavior;
 
 private:
 
