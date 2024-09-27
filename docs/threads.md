@@ -55,7 +55,7 @@ function drainQueue() {
   Spawn workers that try to drain the queue.
  */
 
-os.cpus().forEach(function spawn() {
+new Array(os.availableParallelism()).fill(null).forEach(function spawn() {
   const worker = new Worker('./worker.js');
 
   let job = null; // Current item from the queue
