@@ -20,7 +20,7 @@ env:
   NO_V18_NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 --include-regex 'better_sqlite3.node$'
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
   # Electron v25 EOL = 2023-12-05. v26 EOL = 2024-02-20. v27 EOL = 2024-04-16. v28 EOL = 2024-06-11. v29 EOL = 2024-08-20.
-  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
@@ -67,7 +67,7 @@ jobs:
     if: ${{ github.event_name == 'release' }}
     name: Publishing to NPM
     runs-on: ubuntu-20.04
-    needs: 
+    needs:
       - prebuild
       - prebuild-alpine
       - prebuild-alpine-arm
