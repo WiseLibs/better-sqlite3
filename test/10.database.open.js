@@ -184,4 +184,21 @@ describe('new Database()', function () {
 		expect(MyDatabase.prototype).to.equal(Object.getPrototypeOf(db));
 		expect(db.foo()).to.equal(999);
 	});
+	it('should accept the "defaultTransactionBehavior" option', function () {
+		const fn = () => { }
+
+		for (const behavior of ['deferred', 'immediate', 'exclusive']) {
+			this.db = new Database(util.next(), { defaultTransactionBehavior: behavior });
+			expect(this.db.defaultTransactionBehavior).to.equal(behavior);
+			const trx = this.db.transaction(fn)
+			expect(trx).to.equal(trx[behavior])
+			this.db.close();
+		}
+
+		expect(() => (this.db = new Database(util.current(), { defaultTransactionBehavior: NaN }))).to.throw(TypeError);
+		expect(() => (this.db = new Database(util.current(), { defaultTransactionBehavior: -1 }))).to.throw(TypeError);
+		expect(() => (this.db = new Database(util.current(), { defaultTransactionBehavior: 75 }))).to.throw(TypeError);
+		expect(() => (this.db = new Database(util.current(), { defaultTransactionBehavior: 75.01 }))).to.throw(TypeError);
+		expect(() => (this.db = new Database(util.current(), { defaultTransactionBehavior: '75' }))).to.throw(Error);
+	})
 });
