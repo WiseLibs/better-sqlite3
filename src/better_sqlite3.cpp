@@ -265,16 +265,17 @@ CS::CS (v8::Isolate * isolate)
                 SetCode(isolate, SQLITE_WARNING_AUTOINDEX, "SQLITE_WARNING_AUTOINDEX");
                 SetCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
                 SetCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
+                SetCode(isolate, SQLITE_ERROR_MISSING_COLLSEQ, "SQLITE_ERROR_MISSING_COLLSEQ");
 }
-#line 140 "./src/util/constants.lzz"
+#line 141 "./src/util/constants.lzz"
 void CS::SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str)
-#line 140 "./src/util/constants.lzz"
+#line 141 "./src/util/constants.lzz"
                                                                                                        {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
-#line 144 "./src/util/constants.lzz"
+#line 145 "./src/util/constants.lzz"
 void CS::SetCode (v8::Isolate * isolate, int code, char const * str)
-#line 144 "./src/util/constants.lzz"
+#line 145 "./src/util/constants.lzz"
                                                                       {
                 codes.emplace(std::piecewise_construct,
                         std::forward_as_tuple(code),

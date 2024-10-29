@@ -68,49 +68,49 @@ public:
   v8::Local <v8::String> Code (v8::Isolate * isolate, int code);
 #line 10 "./src/util/constants.lzz"
   explicit CS (v8::Isolate * isolate);
-#line 119 "./src/util/constants.lzz"
-  v8::Global <v8::String> database;
 #line 120 "./src/util/constants.lzz"
-  v8::Global <v8::String> reader;
+  v8::Global <v8::String> database;
 #line 121 "./src/util/constants.lzz"
-  v8::Global <v8::String> source;
+  v8::Global <v8::String> reader;
 #line 122 "./src/util/constants.lzz"
-  v8::Global <v8::String> memory;
+  v8::Global <v8::String> source;
 #line 123 "./src/util/constants.lzz"
-  v8::Global <v8::String> readonly;
+  v8::Global <v8::String> memory;
 #line 124 "./src/util/constants.lzz"
-  v8::Global <v8::String> name;
+  v8::Global <v8::String> readonly;
 #line 125 "./src/util/constants.lzz"
-  v8::Global <v8::String> next;
+  v8::Global <v8::String> name;
 #line 126 "./src/util/constants.lzz"
-  v8::Global <v8::String> length;
+  v8::Global <v8::String> next;
 #line 127 "./src/util/constants.lzz"
-  v8::Global <v8::String> done;
+  v8::Global <v8::String> length;
 #line 128 "./src/util/constants.lzz"
-  v8::Global <v8::String> value;
+  v8::Global <v8::String> done;
 #line 129 "./src/util/constants.lzz"
-  v8::Global <v8::String> changes;
+  v8::Global <v8::String> value;
 #line 130 "./src/util/constants.lzz"
-  v8::Global <v8::String> lastInsertRowid;
+  v8::Global <v8::String> changes;
 #line 131 "./src/util/constants.lzz"
-  v8::Global <v8::String> statement;
+  v8::Global <v8::String> lastInsertRowid;
 #line 132 "./src/util/constants.lzz"
-  v8::Global <v8::String> column;
+  v8::Global <v8::String> statement;
 #line 133 "./src/util/constants.lzz"
-  v8::Global <v8::String> table;
+  v8::Global <v8::String> column;
 #line 134 "./src/util/constants.lzz"
-  v8::Global <v8::String> type;
+  v8::Global <v8::String> table;
 #line 135 "./src/util/constants.lzz"
-  v8::Global <v8::String> totalPages;
+  v8::Global <v8::String> type;
 #line 136 "./src/util/constants.lzz"
+  v8::Global <v8::String> totalPages;
+#line 137 "./src/util/constants.lzz"
   v8::Global <v8::String> remainingPages;
-#line 138 "./src/util/constants.lzz"
+#line 139 "./src/util/constants.lzz"
 private:
-#line 140 "./src/util/constants.lzz"
+#line 141 "./src/util/constants.lzz"
   static void SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str);
-#line 144 "./src/util/constants.lzz"
+#line 145 "./src/util/constants.lzz"
   void SetCode (v8::Isolate * isolate, int code, char const * str);
-#line 150 "./src/util/constants.lzz"
+#line 151 "./src/util/constants.lzz"
   std::unordered_map <int, v8::Global<v8::String> > codes;
 };
 #line 1 "./src/util/bind-map.lzz"
