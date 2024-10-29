@@ -68,49 +68,49 @@ public:
   v8::Local <v8::String> Code (v8::Isolate * isolate, int code);
 #line 10 "./src/util/constants.lzz"
   explicit CS (v8::Isolate * isolate);
-#line 120 "./src/util/constants.lzz"
+#line 140 "./src/util/constants.lzz"
   v8::Global <v8::String> database;
-#line 121 "./src/util/constants.lzz"
-  v8::Global <v8::String> reader;
-#line 122 "./src/util/constants.lzz"
-  v8::Global <v8::String> source;
-#line 123 "./src/util/constants.lzz"
-  v8::Global <v8::String> memory;
-#line 124 "./src/util/constants.lzz"
-  v8::Global <v8::String> readonly;
-#line 125 "./src/util/constants.lzz"
-  v8::Global <v8::String> name;
-#line 126 "./src/util/constants.lzz"
-  v8::Global <v8::String> next;
-#line 127 "./src/util/constants.lzz"
-  v8::Global <v8::String> length;
-#line 128 "./src/util/constants.lzz"
-  v8::Global <v8::String> done;
-#line 129 "./src/util/constants.lzz"
-  v8::Global <v8::String> value;
-#line 130 "./src/util/constants.lzz"
-  v8::Global <v8::String> changes;
-#line 131 "./src/util/constants.lzz"
-  v8::Global <v8::String> lastInsertRowid;
-#line 132 "./src/util/constants.lzz"
-  v8::Global <v8::String> statement;
-#line 133 "./src/util/constants.lzz"
-  v8::Global <v8::String> column;
-#line 134 "./src/util/constants.lzz"
-  v8::Global <v8::String> table;
-#line 135 "./src/util/constants.lzz"
-  v8::Global <v8::String> type;
-#line 136 "./src/util/constants.lzz"
-  v8::Global <v8::String> totalPages;
-#line 137 "./src/util/constants.lzz"
-  v8::Global <v8::String> remainingPages;
-#line 139 "./src/util/constants.lzz"
-private:
 #line 141 "./src/util/constants.lzz"
-  static void SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str);
+  v8::Global <v8::String> reader;
+#line 142 "./src/util/constants.lzz"
+  v8::Global <v8::String> source;
+#line 143 "./src/util/constants.lzz"
+  v8::Global <v8::String> memory;
+#line 144 "./src/util/constants.lzz"
+  v8::Global <v8::String> readonly;
 #line 145 "./src/util/constants.lzz"
-  void SetCode (v8::Isolate * isolate, int code, char const * str);
+  v8::Global <v8::String> name;
+#line 146 "./src/util/constants.lzz"
+  v8::Global <v8::String> next;
+#line 147 "./src/util/constants.lzz"
+  v8::Global <v8::String> length;
+#line 148 "./src/util/constants.lzz"
+  v8::Global <v8::String> done;
+#line 149 "./src/util/constants.lzz"
+  v8::Global <v8::String> value;
+#line 150 "./src/util/constants.lzz"
+  v8::Global <v8::String> changes;
 #line 151 "./src/util/constants.lzz"
+  v8::Global <v8::String> lastInsertRowid;
+#line 152 "./src/util/constants.lzz"
+  v8::Global <v8::String> statement;
+#line 153 "./src/util/constants.lzz"
+  v8::Global <v8::String> column;
+#line 154 "./src/util/constants.lzz"
+  v8::Global <v8::String> table;
+#line 155 "./src/util/constants.lzz"
+  v8::Global <v8::String> type;
+#line 156 "./src/util/constants.lzz"
+  v8::Global <v8::String> totalPages;
+#line 157 "./src/util/constants.lzz"
+  v8::Global <v8::String> remainingPages;
+#line 159 "./src/util/constants.lzz"
+private:
+#line 161 "./src/util/constants.lzz"
+  static void SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str);
+#line 165 "./src/util/constants.lzz"
+  void SetCode (v8::Isolate * isolate, int code, char const * str);
+#line 171 "./src/util/constants.lzz"
   std::unordered_map <int, v8::Global<v8::String> > codes;
 };
 #line 1 "./src/util/bind-map.lzz"

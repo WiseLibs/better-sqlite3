@@ -209,6 +209,10 @@ CS::CS (v8::Isolate * isolate)
                 SetCode(isolate, SQLITE_WARNING, "SQLITE_WARNING");
                 SetCode(isolate, SQLITE_ROW, "SQLITE_ROW");
                 SetCode(isolate, SQLITE_DONE, "SQLITE_DONE");
+
+                SetCode(isolate, SQLITE_ERROR_MISSING_COLLSEQ, "SQLITE_ERROR_MISSING_COLLSEQ");
+                SetCode(isolate, SQLITE_ERROR_RETRY, "SQLITE_ERROR_RETRY");
+                SetCode(isolate, SQLITE_ERROR_SNAPSHOT, "SQLITE_ERROR_SNAPSHOT");
                 SetCode(isolate, SQLITE_IOERR_READ, "SQLITE_IOERR_READ");
                 SetCode(isolate, SQLITE_IOERR_SHORT_READ, "SQLITE_IOERR_SHORT_READ");
                 SetCode(isolate, SQLITE_IOERR_WRITE, "SQLITE_IOERR_WRITE");
@@ -237,18 +241,31 @@ CS::CS (v8::Isolate * isolate)
                 SetCode(isolate, SQLITE_IOERR_CONVPATH, "SQLITE_IOERR_CONVPATH");
                 SetCode(isolate, SQLITE_IOERR_VNODE, "SQLITE_IOERR_VNODE");
                 SetCode(isolate, SQLITE_IOERR_AUTH, "SQLITE_IOERR_AUTH");
+                SetCode(isolate, SQLITE_IOERR_BEGIN_ATOMIC, "SQLITE_IOERR_BEGIN_ATOMIC");
+                SetCode(isolate, SQLITE_IOERR_COMMIT_ATOMIC, "SQLITE_IOERR_COMMIT_ATOMIC");
+                SetCode(isolate, SQLITE_IOERR_ROLLBACK_ATOMIC, "SQLITE_IOERR_ROLLBACK_ATOMIC");
+                SetCode(isolate, SQLITE_IOERR_DATA, "SQLITE_IOERR_DATA");
+                SetCode(isolate, SQLITE_IOERR_CORRUPTFS, "SQLITE_IOERR_CORRUPTFS");
+                SetCode(isolate, SQLITE_IOERR_IN_PAGE, "SQLITE_IOERR_IN_PAGE");
                 SetCode(isolate, SQLITE_LOCKED_SHAREDCACHE, "SQLITE_LOCKED_SHAREDCACHE");
+                SetCode(isolate, SQLITE_LOCKED_VTAB, "SQLITE_LOCKED_VTAB");
                 SetCode(isolate, SQLITE_BUSY_RECOVERY, "SQLITE_BUSY_RECOVERY");
                 SetCode(isolate, SQLITE_BUSY_SNAPSHOT, "SQLITE_BUSY_SNAPSHOT");
                 SetCode(isolate, SQLITE_CANTOPEN_NOTEMPDIR, "SQLITE_CANTOPEN_NOTEMPDIR");
                 SetCode(isolate, SQLITE_CANTOPEN_ISDIR, "SQLITE_CANTOPEN_ISDIR");
                 SetCode(isolate, SQLITE_CANTOPEN_FULLPATH, "SQLITE_CANTOPEN_FULLPATH");
                 SetCode(isolate, SQLITE_CANTOPEN_CONVPATH, "SQLITE_CANTOPEN_CONVPATH");
+                SetCode(isolate, SQLITE_CANTOPEN_DIRTYWAL, "SQLITE_CANTOPEN_DIRTYWAL");
+                SetCode(isolate, SQLITE_CANTOPEN_SYMLINK, "SQLITE_CANTOPEN_SYMLINK");
                 SetCode(isolate, SQLITE_CORRUPT_VTAB, "SQLITE_CORRUPT_VTAB");
+                SetCode(isolate, SQLITE_CORRUPT_SEQUENCE, "SQLITE_CORRUPT_SEQUENCE");
+                SetCode(isolate, SQLITE_CORRUPT_INDEX, "SQLITE_CORRUPT_INDEX");
                 SetCode(isolate, SQLITE_READONLY_RECOVERY, "SQLITE_READONLY_RECOVERY");
                 SetCode(isolate, SQLITE_READONLY_CANTLOCK, "SQLITE_READONLY_CANTLOCK");
                 SetCode(isolate, SQLITE_READONLY_ROLLBACK, "SQLITE_READONLY_ROLLBACK");
                 SetCode(isolate, SQLITE_READONLY_DBMOVED, "SQLITE_READONLY_DBMOVED");
+                SetCode(isolate, SQLITE_READONLY_CANTINIT, "SQLITE_READONLY_CANTINIT");
+                SetCode(isolate, SQLITE_READONLY_DIRECTORY, "SQLITE_READONLY_DIRECTORY");
                 SetCode(isolate, SQLITE_ABORT_ROLLBACK, "SQLITE_ABORT_ROLLBACK");
                 SetCode(isolate, SQLITE_CONSTRAINT_CHECK, "SQLITE_CONSTRAINT_CHECK");
                 SetCode(isolate, SQLITE_CONSTRAINT_COMMITHOOK, "SQLITE_CONSTRAINT_COMMITHOOK");
@@ -260,22 +277,25 @@ CS::CS (v8::Isolate * isolate)
                 SetCode(isolate, SQLITE_CONSTRAINT_UNIQUE, "SQLITE_CONSTRAINT_UNIQUE");
                 SetCode(isolate, SQLITE_CONSTRAINT_VTAB, "SQLITE_CONSTRAINT_VTAB");
                 SetCode(isolate, SQLITE_CONSTRAINT_ROWID, "SQLITE_CONSTRAINT_ROWID");
+                SetCode(isolate, SQLITE_CONSTRAINT_PINNED, "SQLITE_CONSTRAINT_PINNED");
+                SetCode(isolate, SQLITE_CONSTRAINT_DATATYPE, "SQLITE_CONSTRAINT_DATATYPE");
                 SetCode(isolate, SQLITE_NOTICE_RECOVER_WAL, "SQLITE_NOTICE_RECOVER_WAL");
                 SetCode(isolate, SQLITE_NOTICE_RECOVER_ROLLBACK, "SQLITE_NOTICE_RECOVER_ROLLBACK");
+                SetCode(isolate, SQLITE_NOTICE_RBU, "SQLITE_NOTICE_RBU");
                 SetCode(isolate, SQLITE_WARNING_AUTOINDEX, "SQLITE_WARNING_AUTOINDEX");
                 SetCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
                 SetCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
-                SetCode(isolate, SQLITE_ERROR_MISSING_COLLSEQ, "SQLITE_ERROR_MISSING_COLLSEQ");
+                SetCode(isolate, SQLITE_OK_SYMLINK, "SQLITE_OK_SYMLINK");
 }
-#line 141 "./src/util/constants.lzz"
+#line 161 "./src/util/constants.lzz"
 void CS::SetString (v8::Isolate * isolate, v8::Global <v8::String> & constant, char const * str)
-#line 141 "./src/util/constants.lzz"
+#line 161 "./src/util/constants.lzz"
                                                                                                        {
                 constant.Reset(isolate, InternalizedFromLatin1(isolate, str));
 }
-#line 145 "./src/util/constants.lzz"
+#line 165 "./src/util/constants.lzz"
 void CS::SetCode (v8::Isolate * isolate, int code, char const * str)
-#line 145 "./src/util/constants.lzz"
+#line 165 "./src/util/constants.lzz"
                                                                       {
                 codes.emplace(std::piecewise_construct,
                         std::forward_as_tuple(code),
