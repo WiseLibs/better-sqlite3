@@ -1,7 +1,6 @@
-'use strict';
-const fs = require('fs');
-const path = require('path');
-const Database = require('../.');
+import fs from 'fs';
+import path from 'path';
+import Database from '../lib/index.js';
 
 describe('integrity checks', function () {
 	beforeEach(function () {
@@ -190,8 +189,8 @@ describe('integrity checks', function () {
 	describe('Database#loadExtension()', function () {
 		let filepath;
 		before(function () {
-			const releaseFilepath = path.join(__dirname, '..', 'build', 'Release', 'test_extension.node');
-			const debugFilepath = path.join(__dirname, '..', 'build', 'Debug', 'test_extension.node');
+			const releaseFilepath = path.join('build', 'Release', 'test_extension.node');
+			const debugFilepath = path.join('build', 'Debug', 'test_extension.node');
 			try {
 				fs.accessSync(releaseFilepath);
 				filepath = releaseFilepath;

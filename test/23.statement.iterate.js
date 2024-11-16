@@ -1,5 +1,4 @@
-'use strict';
-const Database = require('../.');
+import Database from '../lib/index.js';
 
 describe('Statement#iterate()', function () {
 	beforeEach(function () {
@@ -192,7 +191,7 @@ describe('Statement#iterate()', function () {
 
 		shouldHave(SQL1, row, ['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]);
 		shouldHave(SQL1, row, [['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]]);
-		shouldHave(SQL1, row, [['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), [,]]);
+		shouldHave(SQL1, row, [['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), Array(1)]);
 		shouldHave(SQL2, row, [{ a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: undefined }]);
 
 		for (const data of this.db.prepare(SQL2).iterate({ a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xaa), e: undefined })) {

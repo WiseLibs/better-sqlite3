@@ -1,5 +1,4 @@
-'use strict';
-const Database = require('../.');
+import Database from '../lib/database.js';
 
 describe('Statement#run()', function () {
 	beforeEach(function () {

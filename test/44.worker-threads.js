@@ -1,8 +1,8 @@
-'use strict';
-if (parseInt(process.versions.node) >= 12) {
-	const threads = require('worker_threads');
-	const Database = require('../.');
+import Database from '../lib/index.js';
+import threads from 'worker_threads';
+import { fileURLToPath } from 'url';
 
+if (parseInt(process.versions.node) >= 12) {
 	if (threads.isMainThread) {
 		describe('Worker Threads', function () {
 			afterEach(function () {
@@ -16,7 +16,7 @@ if (parseInt(process.versions.node) >= 12) {
 					expect(db.prepare('select 555').constructor.foo).to.be.undefined;
 					db.prepare('select 555').constructor.foo = 5;
 					expect(db.prepare('select 555').constructor.foo).to.equal(5);
-					const worker = new threads.Worker(__filename);
+					const worker = new threads.Worker(fileURLToPath(import.meta.url));
 					worker.on('exit', code => reject(new Error(`worker exited with code ${code}`)));
 					worker.on('error', reject);
 					worker.on('message', ({ msg, info, data }) => {
@@ -44,7 +44,7 @@ if (parseInt(process.versions.node) >= 12) {
 			});
 		});
 	} else {
-		const { expect } = require('chai');
+		const { expect } = await import('chai');
 		threads.parentPort.on('message', ({ msg, filename }) => {
 			if (msg === 'hello') {
 				const db = Database(filename).defaultSafeIntegers();

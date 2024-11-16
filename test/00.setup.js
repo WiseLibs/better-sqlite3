@@ -1,11 +1,10 @@
-'use strict';
-const fs = require('fs-extra');
-const path = require('path');
-const os = require('os');
-const chai = require('chai');
+import fs from 'fs-extra';
+import path from 'path';
+import os from 'os';
+import * as chai from 'chai';
 
 const isWindows = os.platform().startsWith('win');
-const tempDir = path.join(__dirname, '..', 'temp');
+const tempDir = path.join('temp');
 let dbId = 0;
 
 global.expect = chai.expect;

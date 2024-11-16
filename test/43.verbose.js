@@ -1,5 +1,4 @@
-'use strict';
-const Database = require('../.');
+import Database from '../lib/index.js';
 
 describe('verbose mode', function () {
 	afterEach(function () {

@@ -1,0 +1,5 @@
+[*.js]
+tab_width = 4
+indent_size = tab
+indent_style = tab
+ij_javascript_enforce_trailing_comma = unset

@@ -1,6 +1,5 @@
-'use strict';
-const { expect } = require('chai');
-const { SqliteError } = require('../.');
+import { expect } from 'chai';
+import { SqliteError } from '../lib/index.js';
 
 describe('SqliteError', function () {
 	it('should be a subclass of Error', function () {

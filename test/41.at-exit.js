@@ -1,13 +1,11 @@
-'use strict';
-const { existsSync, writeFileSync } = require('fs');
-const { fork } = require('child_process');
+import { existsSync, writeFileSync } from 'fs';
+import { fork } from 'child_process';
 
 describe('node::AtExit()', function () {
 	this.slow(500);
 
 	const source = (filename1, filename2) => `
-		'use strict';
-		const Database = require('../.');
+				const Database = await import('../lib/index.js').then(m => m.default);
 		const db1 = new Database('${filename1.replace(/(?=\W)/g, '\\')}');
 		const db2 = new Database('${filename2.replace(/(?=\W)/g, '\\')}');
 		for (const db of [db1, db2]) {

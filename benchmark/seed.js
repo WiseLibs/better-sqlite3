@@ -1,6 +1,6 @@
-'use strict';
-const fs = require('fs-extra');
-const path = require('path');
+import path from 'path';
+import fs from 'fs-extra';
+import Database from '../lib/database.js';
 
 const tables = new Map([
 	['small', {
@@ -25,13 +25,13 @@ const tables = new Map([
 	process exits.
  */
 
-module.exports = () => {
-	const tempDir = path.join(__dirname, '..', 'temp');
+export default () => {
+	const tempDir = path.join('..', 'temp');
 	process.on('exit', () => fs.removeSync(tempDir));
 	fs.removeSync(tempDir);
 	fs.ensureDirSync(tempDir);
 
-	const db = require('../.')(path.join(tempDir, 'benchmark.db'));
+	const db = Database(path.join(tempDir, 'benchmark.db'));
 	db.pragma('journal_mode = OFF');
 	db.pragma('synchronous = OFF');
 

@@ -1,7 +1,7 @@
-'use strict';
-const fs = require('fs');
-const path = require('path');
-const Database = require('../.');
+import fs from 'fs';
+import path from 'path';
+import Database from '../lib/index.js';
+import bindings from 'bindings';
 
 describe('new Database()', function () {
 	afterEach(function () {
@@ -99,7 +99,7 @@ describe('new Database()', function () {
 				expect(() => db.exec('BEGIN EXCLUSIVE')).to.throw(Database.SqliteError).with.property('code', 'SQLITE_BUSY');
 				const end = Date.now();
 				// GHA is slow: a 500ms timeout can take 1685ms to fail.
-				expect(end - start).to.be.within(timeout - 1, timeout * 3 + 250); 
+				expect(end - start).to.be.within(timeout - 1, timeout * 3 + 250);
 			} finally {
 				db.close();
 			}
@@ -117,9 +117,9 @@ describe('new Database()', function () {
 		expect(() => (this.db = new Database(util.current(), { timeout: 75.01 }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.current(), { timeout: 0x80000000 }))).to.throw(RangeError);
 	});
-	it('should accept the "nativeBinding" option', function () {
+	it('should accept the "nativeBinding" option', async function () {
 		this.slow(500);
-		const oldBinding = require('bindings')({ bindings: 'better_sqlite3.node', path: true });
+		const oldBinding = bindings({ bindings: 'better_sqlite3.node', path: true });
 		const newBinding = path.join(path.dirname(oldBinding), 'test.node');
 		expect(oldBinding).to.be.a('string');
 		fs.copyFileSync(oldBinding, newBinding);
@@ -172,6 +172,7 @@ describe('new Database()', function () {
 				return 999;
 			}
 		}
+
 		const db = this.db = new MyDatabase(util.next());
 		expect(db).to.be.an.instanceof(Database);
 		expect(db).to.be.an.instanceof(MyDatabase);

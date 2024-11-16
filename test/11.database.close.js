@@ -1,6 +1,5 @@
-'use strict';
-const { existsSync } = require('fs');
-const Database = require('../.');
+import { existsSync } from 'fs';
+import Database from '../lib/index.js';
 
 describe('Database#close()', function () {
 	beforeEach(function () {

@@ -1,5 +1,4 @@
-'use strict';
-const Database = require('../.');
+import Database from '../lib/index.js';
 
 describe('Statement#all()', function () {
 	beforeEach(function () {
@@ -65,7 +64,7 @@ describe('Statement#all()', function () {
 		}));
 		const rows = expanded.map(x => Object.assign({}, x.entries, x.$));
 		const plucked = expanded.map(x => x.entries.a);
-		const raw = expanded.map(x => Object.values(x.entries).concat(x.$.c))
+		const raw = expanded.map(x => Object.values(x.entries).concat(x.$.c));
 		expect(stmt.all()).to.deep.equal(rows);
 		expect(stmt.pluck(true).all()).to.deep.equal(plucked);
 		expect(stmt.all()).to.deep.equal(plucked);
@@ -105,7 +104,7 @@ describe('Statement#all()', function () {
 		result = this.db.prepare(SQL1).all(['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]);
 		expect(result).to.deep.equal(rows);
 
-		result = this.db.prepare(SQL1).all(['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), [,]);
+		result = this.db.prepare(SQL1).all(['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), Array(1));
 		expect(result).to.deep.equal(rows);
 
 		result = this.db.prepare(SQL2).all({ a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: undefined });

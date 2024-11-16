@@ -1,6 +1,4 @@
-'use strict';
-
-exports.default = [
+const trialsData = [
 	{ type: 'select', table: 'small', columns: ['nul', 'integer', 'real', 'text'],
 		description: 'reading rows individually' },
 	{ type: 'select-all', table: 'small', columns: ['nul', 'integer', 'real', 'text'],
@@ -13,7 +11,9 @@ exports.default = [
 		description: 'inserting 100 rows in a single transaction' },
 ];
 
-exports.searchable = [
+export default trialsData;
+
+export const searchable = [
 	{ type: 'select', table: 'small', columns: ['nul'] },
 	{ type: 'select', table: 'small', columns: ['integer'] },
 	{ type: 'select', table: 'small', columns: ['real'] },
@@ -58,7 +58,7 @@ exports.searchable = [
 	else defaultPragma.push('cache_size = -16000');
 	if (yes.test(process.env.NO_WAL)) defaultPragma.push('journal_mode = DELETE', 'synchronous = FULL');
 	else defaultPragma.push('journal_mode = WAL', 'synchronous = NORMAL');
-	for (const trial of [].concat(...Object.values(exports))) {
+	for (const trial of [].concat(...Object.values(trialsData))) {
 		trial.customPragma = trial.pragma || [];
 		trial.pragma = defaultPragma.concat(trial.customPragma);
 	}

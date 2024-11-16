@@ -1,5 +1,5 @@
-'use strict';
-const Database = require('../.');
+
+import Database from '../lib/index.js';
 
 describe('Statement#bind()', function () {
 	beforeEach(function () {
@@ -13,7 +13,7 @@ describe('Statement#bind()', function () {
 	it('should permanently bind the given parameters', function () {
 		const stmt = this.db.prepare('INSERT INTO entries VALUES (?, ?, ?)');
 		const buffer = Buffer.alloc(4).fill(0xdd);
-		stmt.bind('foobar', 25, buffer)
+		stmt.bind('foobar', 25, buffer);
 		stmt.run();
 		buffer.fill(0xaa);
 		stmt.run();

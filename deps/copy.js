@@ -1,9 +1,9 @@
-'use strict';
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 const dest = process.argv[2];
-const source = path.resolve(path.sep, process.argv[3] || path.join(__dirname, 'sqlite3'));
+const source = path.resolve(path.sep, process.argv[3] || path.join(path.dirname(fileURLToPath(import.meta.url)), 'sqlite3'));
 const files = [
 	{ filename: 'sqlite3.c', optional: false },
 	{ filename: 'sqlite3.h', optional: false },

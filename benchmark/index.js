@@ -1,13 +1,19 @@
-'use strict';
-const { execFileSync } = require('child_process');
-const clc = require('cli-color');
+import clc from 'cli-color';
+import path from 'path';
+import { execFileSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import drivers from './drivers.js';
+import seed from './seed.js';
+import { default as trialsData, searchable } from './trials.js';
+import types from './types/index.js';
+
 
 const getTrials = (searchTerms) => {
 	// Without any command-line arguments, we do a general-purpose benchmark.
-	if (!searchTerms.length) return require('./trials').default;
+	if (!searchTerms.length) return trialsData;
 
 	// With command-line arguments, the user can run specific groups of trials.
-	return require('./trials').searchable.filter(filterBySearchTerms(searchTerms));
+	return searchable.filter(filterBySearchTerms(searchTerms));
 };
 
 const filterBySearchTerms = (searchTerms) => (trial) => {
@@ -23,8 +29,8 @@ const filterBySearchTerms = (searchTerms) => (trial) => {
 };
 
 const sortTrials = (a, b) => {
-	const aRo = require(`./types/${a.type}`).readonly;
-	const bRo = require(`./types/${b.type}`).readonly;
+	const aRo = types[a.type].readonly;
+	const bRo = types[b.type].readonly;
 	if (typeof aRo !== 'boolean') throw new TypeError(`Missing readonly export in benchmark type ${a.type}`);
 	if (typeof bRo !== 'boolean') throw new TypeError(`Missing readonly export in benchmark type ${b.type}`);
 	return bRo - aRo;
@@ -47,7 +53,7 @@ const erase = () => {
 };
 
 // Determine which trials should be executed.
-process.chdir(__dirname);
+process.chdir(path.dirname(fileURLToPath(import.meta.url)));
 const trials = getTrials(process.argv.slice(2)).sort(sortTrials);
 if (!trials.length) {
 	console.log(clc.yellow('No matching benchmarks found!'));
@@ -56,11 +62,10 @@ if (!trials.length) {
 
 // Create the temporary database needed to run the benchmark trials.
 console.log('Generating tables...');
-const tables = require('./seed')();
+const tables = seed();
 process.stdout.write(erase());
 
 // Execute each trial for each available driver.
-const drivers = require('./drivers');
 const nameLength = [...drivers.keys()].reduce((m, d) => Math.max(m, d.length), 0);
 for (const trial of trials) {
 	displayTrialName(trial);

@@ -1,5 +1,4 @@
-'use strict';
-const Database = require('../.');
+import Database from '../lib/index.js';
 
 describe('Statement#get()', function () {
 	beforeEach(function () {
@@ -85,7 +84,7 @@ describe('Statement#get()', function () {
 		result = this.db.prepare(SQL1).get(['foo', 1, 3.14, Buffer.alloc(4).fill(0xdd), null]);
 		expect(result).to.deep.equal(row);
 
-		result = this.db.prepare(SQL1).get(['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), [,]);
+		result = this.db.prepare(SQL1).get(['foo', 1], [3.14], Buffer.alloc(4).fill(0xdd), Array(1));
 		expect(result).to.deep.equal(row);
 
 		result = this.db.prepare(SQL2).get({ a: 'foo', b: 1, c: 3.14, d: Buffer.alloc(4).fill(0xdd), e: undefined });

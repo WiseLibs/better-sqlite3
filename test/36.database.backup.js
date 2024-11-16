@@ -1,6 +1,5 @@
-'use strict';
-const { existsSync, writeFileSync, readFileSync } = require('fs');
-const Database = require('../.');
+import Database from '../lib/index.js';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 
 describe('Database#backup()', function () {
 	beforeEach(function () {

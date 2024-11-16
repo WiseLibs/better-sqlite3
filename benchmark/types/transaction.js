@@ -1,7 +1,8 @@
-'use strict';
-exports.readonly = false; // Inserting 100 rows in a single transaction
+import drivers from '../drivers.js';
 
-exports['better-sqlite3'] = (db, { table, columns }) => {
+const readonly = false; // Inserting 100 rows in a single transaction
+
+const betterSqlite3 = (db, { table, columns }) => {
 	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);
 	const row = db.prepare(`SELECT * FROM ${table} LIMIT 1`).get();
 	const trx = db.transaction((row) => {
@@ -10,12 +11,12 @@ exports['better-sqlite3'] = (db, { table, columns }) => {
 	return () => trx(row);
 };
 
-exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
+const nodeSqlite3 = async (db, { table, columns, driver, pragma }) => {
 	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
 	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT * FROM ${table} LIMIT 1`))
 		.filter(([k]) => columns.includes(k))
 		.map(([k, v]) => ({ ['@' + k]: v })));
-	const open = require('../drivers').get(driver);
+	const open = drivers.get(driver);
 	/*
 		The only way to create an isolated transaction with node-sqlite3 in a
 		random-access environment (i.e., a web server) is to open a new database
@@ -37,4 +38,10 @@ exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
 			await db.close();
 		}
 	});
+};
+
+export default {
+	readonly,
+	['better-sqlite3']: betterSqlite3,
+	['node-sqlite3']: nodeSqlite3,
 };
