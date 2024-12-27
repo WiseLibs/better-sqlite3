@@ -175,4 +175,5 @@ jobs:
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:18-bullseye -c "\
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }} && \
+          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}"
