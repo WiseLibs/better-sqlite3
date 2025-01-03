@@ -176,4 +176,4 @@ jobs:
           cd /tmp/project && \
           npm install --ignore-scripts && \
           ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }} && \
-          ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}"
+          if [ '${{ matrix.arch }}' = 'arm64' ]; then ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}; fi"
