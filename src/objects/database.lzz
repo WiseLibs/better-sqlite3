@@ -11,6 +11,9 @@ public:
 		SetPrototypeMethod(isolate, data, t, "aggregate", JS_aggregate);
 		SetPrototypeMethod(isolate, data, t, "table", JS_table);
 		SetPrototypeMethod(isolate, data, t, "loadExtension", JS_loadExtension);
+		SetPrototypeMethod(isolate, data, t, "updateHook", JS_updateHook);
+		SetPrototypeMethod(isolate, data, t, "commitHook", JS_commitHook);
+		SetPrototypeMethod(isolate, data, t, "rollbackHook", JS_rollbackHook);
 		SetPrototypeMethod(isolate, data, t, "close", JS_close);
 		SetPrototypeMethod(isolate, data, t, "defaultSafeIntegers", JS_defaultSafeIntegers);
 		SetPrototypeMethod(isolate, data, t, "unsafeMode", JS_unsafeMode);
@@ -107,10 +110,25 @@ public:
 	void CloseHandles() {
 		if (open) {
 			open = false;
+
 			for (Statement* stmt : stmts) stmt->CloseHandles();
 			for (Backup* backup : backups) backup->CloseHandles();
 			stmts.clear();
 			backups.clear();
+
+			UpdateHook* oldUpdateHook = static_cast<UpdateHook *>(sqlite3_update_hook(db_handle, NULL, NULL));
+			if (oldUpdateHook) {
+				delete oldUpdateHook;
+			}
+			CommitHook* oldCommitHook = static_cast<CommitHook *>(sqlite3_commit_hook(db_handle, NULL, NULL));
+			if (oldCommitHook) {
+				delete oldCommitHook;
+			}
+			RollbackHook* oldRollbackHook = static_cast<RollbackHook *>(sqlite3_rollback_hook(db_handle, NULL, NULL));
+			if (oldRollbackHook) {
+				delete oldRollbackHook;
+			}
+
 			int status = sqlite3_close(db_handle);
 			assert(status == SQLITE_OK); ((void)status);
 		}
@@ -122,6 +140,126 @@ public:
 	}
 
 private:
+	class UpdateHook {
+	public:
+
+		explicit UpdateHook(
+			Addon * addon,
+			v8::Isolate * isolate,
+			Database * db,
+			v8::Local<v8::Function> fn
+		) :
+			addon(addon),
+			isolate(isolate),
+			db(db),
+			fn(isolate, fn) {}
+
+		static void invoke(void * data, int op, char const * dbName, char const * tableName, sqlite3_int64 rowid) {
+			UpdateHook * self = static_cast<UpdateHook *>(data);
+
+			v8::Isolate * isolate = self->isolate;
+			v8::Isolate::Scope isolateScope(isolate);
+			v8::HandleScope handleScope(isolate);
+
+			v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+			v8::Local<v8::Value> opArg = self->addon->cs.Op(isolate, op);
+			v8::Local<v8::Value> dbNameArg = v8::String::NewFromUtf8(isolate, dbName, v8::NewStringType::kNormal).ToLocalChecked(); 
+			v8::Local<v8::Value> tableNameArg = v8::String::NewFromUtf8(isolate, tableName, v8::NewStringType::kNormal).ToLocalChecked(); 
+			v8::Local<v8::Value> rowidArg = v8::BigInt::New(isolate, rowid);
+
+			const int argc = 4;
+			v8::Local<v8::Value> argv[argc] = { opArg, dbNameArg, tableNameArg, rowidArg };
+
+			v8::MaybeLocal<v8::Value> maybeReturnValue = self->fn.Get(isolate)->Call(context, v8::Undefined(isolate), argc, argv);
+			if (maybeReturnValue.IsEmpty()) {
+				self->db->GetState()->was_js_error = true;
+			}
+		}
+
+	private:
+		Addon * const addon;
+		v8::Isolate * const isolate;
+		Database * const db;
+		v8::Global<v8::Function> fn;
+	};
+
+	class CommitHook {
+	public:
+
+		explicit CommitHook(
+			v8::Isolate * isolate,
+			Database * db,
+			v8::Local<v8::Function> fn
+		) :
+			isolate(isolate),
+			db(db),
+			fn(isolate, fn) {}
+
+		static int invoke(void * data) {
+			CommitHook * self = static_cast<CommitHook *>(data);
+
+			v8::Isolate * isolate = self->isolate;
+			v8::Isolate::Scope isolateScope(isolate);
+			v8::HandleScope handleScope(isolate);
+
+			v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+			const int argc = 0;
+			v8::Local<v8::Value> argv[argc] = {};
+
+			v8::MaybeLocal<v8::Value> maybeReturnValue = self->fn.Get(isolate)->Call(context, v8::Undefined(isolate), argc, argv);
+			v8::Local<v8::Value> returnValue;
+			if (maybeReturnValue.ToLocal(&returnValue)) {
+				return returnValue->BooleanValue(isolate) ? 0 : 1;
+			} else {
+				self->db->GetState()->was_js_error = true;
+				return 1;
+			}
+		}
+
+	private:
+		v8::Isolate * const isolate;
+		Database * const db;
+		v8::Global<v8::Function> fn;
+	};
+
+	class RollbackHook {
+	public:
+
+		explicit RollbackHook(
+			v8::Isolate * isolate,
+			Database * db,
+			v8::Local<v8::Function> fn
+		) :
+			isolate(isolate),
+			db(db),
+			fn(isolate, fn) {}
+
+		static void invoke(void * data) {
+			RollbackHook * self = static_cast<RollbackHook *>(data);
+
+			v8::Isolate * isolate = self->isolate;
+			v8::Isolate::Scope isolateScope(isolate);
+			v8::HandleScope handleScope(isolate);
+
+			v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+			const int argc = 0;
+			v8::Local<v8::Value> argv[argc] = {};
+
+			v8::TryCatch try_catch(isolate);
+			v8::MaybeLocal<v8::Value> maybeReturnValue = self->fn.Get(isolate)->Call(context, v8::Undefined(isolate), argc, argv);
+			if (maybeReturnValue.IsEmpty()) {
+				self->db->GetState()->was_js_error = true;
+			}
+		}
+
+	private:
+		v8::Isolate * const isolate;
+		Database * const db;
+		v8::Global<v8::Function> fn;
+	};
 
 	explicit Database(
 		v8::Isolate* isolate,
@@ -387,6 +525,70 @@ private:
 			ThrowSqliteError(db->addon, error, status);
 		}
 		sqlite3_free(error);
+	}
+
+	NODE_METHOD(JS_updateHook) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_OPTIONAL_ARGUMENT_FUNCTION(first, v8::MaybeLocal<v8::Function> fn);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
+
+		UseAddon;
+		UseIsolate;
+
+		UpdateHook* oldUpdateHook = static_cast<UpdateHook *>(
+			sqlite3_update_hook(
+				db->db_handle,
+				fn.IsEmpty() ? NULL : UpdateHook::invoke,
+				fn.IsEmpty() ? NULL : new UpdateHook(addon, isolate, db, fn.ToLocalChecked())
+			)
+		);
+		if (oldUpdateHook) {
+			delete oldUpdateHook;
+		}
+	}
+
+	NODE_METHOD(JS_commitHook) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_OPTIONAL_ARGUMENT_FUNCTION(first, v8::MaybeLocal<v8::Function> fn);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
+
+		UseIsolate;
+
+		CommitHook* oldCommitHook = static_cast<CommitHook *>(
+			sqlite3_commit_hook(
+				db->db_handle,
+				fn.IsEmpty() ? NULL : CommitHook::invoke,
+				fn.IsEmpty() ? NULL : new CommitHook(isolate, db, fn.ToLocalChecked())
+			)
+		);
+		if (oldCommitHook) {
+			delete oldCommitHook;
+		}
+	}
+
+	NODE_METHOD(JS_rollbackHook) {
+		Database* db = Unwrap<Database>(info.This());
+		REQUIRE_OPTIONAL_ARGUMENT_FUNCTION(first, v8::MaybeLocal<v8::Function> fn);
+		REQUIRE_DATABASE_OPEN(db);
+		REQUIRE_DATABASE_NOT_BUSY(db);
+		REQUIRE_DATABASE_NO_ITERATORS(db);
+
+		UseIsolate;
+
+		RollbackHook* oldRollbackHook = static_cast<RollbackHook *>(
+			sqlite3_rollback_hook(
+				db->db_handle,
+				fn.IsEmpty() ? NULL : RollbackHook::invoke,
+				fn.IsEmpty() ? NULL : new RollbackHook(isolate, db, fn.ToLocalChecked())
+			)
+		);
+		if (oldRollbackHook) {
+			delete oldRollbackHook;
+		}
 	}
 
 	NODE_METHOD(JS_close) {
