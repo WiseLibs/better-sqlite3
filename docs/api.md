@@ -421,7 +421,7 @@ An object representing a single SQL statement.
 - [Statement#bind()](#bindbindparameters---this)
 - [Properties](#properties-1)
 
-> NOTE: Statements are [finalized](https://www.sqlite.org/c3ref/finalize.html) when garbage collected so there is not explicit API for it. Statements are also finalized when the associated database is closed.
+> NOTE: Statements are [finalized](https://www.sqlite.org/c3ref/finalize.html) when garbage collected so there is no explicit API for it. Statements are also finalized when the associated database is closed.
 
 ### .run([*...bindParameters*]) -> *object*
 
