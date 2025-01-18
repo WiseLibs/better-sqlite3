@@ -83,7 +83,7 @@ echo "configuring amalgamation..."
 sh configure > /dev/null || exit 1
 
 echo "building amalgamation..."
-make sqlite3.c > /dev/null || exit 1
+make OPTIONS="$CFLAGS" sqlite3.c > /dev/null || exit 1
 
 echo "copying amalgamation..."
 cp sqlite3.c sqlite3.h sqlite3ext.h "$OUTPUT/" || exit 1
