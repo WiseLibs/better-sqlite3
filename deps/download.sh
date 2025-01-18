@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # ===
-# This script defines and generates the bundled SQLite3 unit (sqlite3.c).
+# This script defines and generates the bundled SQLite unit (sqlite3.c).
 #
 # The following steps are taken:
 # 1. populate the shell environment with the defined compile-time options.
-# 2. download and extract the SQLite3 source code into a temporary directory.
+# 2. download and extract the SQLite source code into a temporary directory.
 # 3. run "sh configure" and "make sqlite3.c" within the source directory.
 # 4. copy the generated amalgamation into the output directory (./sqlite3).
 # 5. export the defined compile-time options to a gyp file (./defines.gypi).

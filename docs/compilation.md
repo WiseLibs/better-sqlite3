@@ -1,6 +1,6 @@
 # Custom configuration
 
-If you want to use a customized version of [SQLite3](https://www.sqlite.org) with `better-sqlite3`, you can do so by specifying the directory of your [custom amalgamation](https://www.sqlite.org/amalgamation.html) during installation.
+If you want to use a customized version of [SQLite](https://www.sqlite.org) with `better-sqlite3`, you can do so by specifying the directory of your [custom amalgamation](https://www.sqlite.org/amalgamation.html) during installation.
 
 ```bash
 npm install better-sqlite3 --build-from-source --sqlite3=/path/to/sqlite-amalgamation
@@ -30,7 +30,7 @@ Your amalgamation directory must contain `sqlite3.c` and `sqlite3.h`. Any desire
 
 If you're creating a package that relies on a custom build of `better-sqlite3`, you can follow these steps to get started.
 
-1. Download the SQLite3 source code from [their website](https://sqlite.com/download.html) (e.g., `sqlite-amalgamation-1234567.zip`)
+1. Download the SQLite source code from [their website](https://sqlite.com/download.html) (e.g., `sqlite-amalgamation-1234567.zip`)
 2. Unzip the compressed archive
 3. Move the `sqlite3.c` and `sqlite3.h` files to your project folder
 4. Add a `preinstall` script to your `package.json`, like the one shown above
@@ -39,11 +39,11 @@ If you're creating a package that relies on a custom build of `better-sqlite3`, 
 8. Make sure to remove `better-sqlite3` from your `dependencies`
 9. Run `npm install` in your project folder
 
-If you're using a SQLite3 encryption extension that is a drop-in replacement for SQLite3 (such as [SEE](https://www.sqlite.org/see/doc/release/www/readme.wiki) or [sqleet](https://github.com/resilar/sqleet)), then simply replace `sqlite3.c` and `sqlite3.h` with the source files of your encryption extension.
+If you're using a SQLite encryption extension that is a drop-in replacement for SQLite (such as [SEE](https://www.sqlite.org/see/doc/release/www/readme.wiki) or [sqleet](https://github.com/resilar/sqleet)), then simply replace `sqlite3.c` and `sqlite3.h` with the source files of your encryption extension.
 
 # Bundled configuration
 
-By default, this distribution currently uses SQLite3 **version 3.48.0** with the following [compilation options](https://www.sqlite.org/compile.html):
+By default, this distribution currently uses SQLite **version 3.48.0** with the following [compilation options](https://www.sqlite.org/compile.html):
 
 ```
 HAVE_INT16_T=1

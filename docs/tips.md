@@ -1,13 +1,13 @@
-# Helpful tips for SQLite3
+# Helpful tips for SQLite
 
 ## Creating good tables
 
 It's a good idea to use `INTEGER PRIMARY KEY AUTOINCREMENT` as one of the columns in a table. This ensures two things:
 
-- `INTEGER PRIMARY KEY`: improved performance by reusing SQLite3's built-in `rowid` column.
+- `INTEGER PRIMARY KEY`: improved performance by reusing SQLite's built-in `rowid` column.
 - `AUTOINCREMENT`: no future row will have the same ID as an old one that was deleted. This can prevent potential bugs and security breaches.
 
-If you don't use `INTEGER PRIMARY KEY`, then you *must* use `NOT NULL` in all of your your primary key columns. Otherwise you'll be victim to an SQLite3 bug that allows primary keys to be `NULL`.
+If you don't use `INTEGER PRIMARY KEY`, then you *must* use `NOT NULL` in all of your your primary key columns. Otherwise you'll be victim to an SQLite bug that allows primary keys to be `NULL`.
 
 Any column with `INTEGER PRIMARY KEY` will automatically increment when setting its value to `NULL`. But without `AUTOINCREMENT`, the behavior only ensures uniqueness from currently existing rows.
 

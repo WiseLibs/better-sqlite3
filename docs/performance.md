@@ -1,6 +1,6 @@
 # Performance
 
-Concurrently reading and writing from an SQLite3 database can be very slow in some cases. Since concurrency is usually very important in web applications, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html) to greatly increase overall performance.
+Concurrently reading and writing from an SQLite database can be very slow in some cases. Since concurrency is usually very important in web applications, it's recommended to turn on [WAL mode](https://www.sqlite.org/wal.html) to greatly increase overall performance.
 
 ```js
 db.pragma('journal_mode = WAL');
@@ -16,7 +16,7 @@ However, you trade those disadvantages for extremely fast performance in most we
 
 ## Checkpoint starvation
 
-Checkpoint starvation is when SQLite3 is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
+Checkpoint starvation is when SQLite is unable to recycle the [WAL file](https://www.sqlite.org/wal.html) due to everlasting concurrent reads to the database. If this happens, the WAL file will grow without bound, leading to unacceptable amounts of disk usage and deteriorating performance.
 
 If you don't access the database from multiple processes or threads simultaneously, you'll never encounter this issue.
 
@@ -34,6 +34,6 @@ setInterval(fs.stat.bind(null, 'foobar.db-wal', (err, stat) => {
 
 ## A note about durability
 
-This distribution of SQLite3 uses the `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1` [compile-time option](https://sqlite.org/compile.html#default_wal_synchronous), which makes databases in WAL mode default to the ["NORMAL" synchronous setting](https://sqlite.org/pragma.html#pragma_synchronous). This allows applications to achieve extreme performance, but introduces a slight loss of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)) while in WAL mode.
+This distribution of SQLite uses the `SQLITE_DEFAULT_WAL_SYNCHRONOUS=1` [compile-time option](https://sqlite.org/compile.html#default_wal_synchronous), which makes databases in WAL mode default to the ["NORMAL" synchronous setting](https://sqlite.org/pragma.html#pragma_synchronous). This allows applications to achieve extreme performance, but introduces a slight loss of [durability](https://en.wikipedia.org/wiki/Durability_(database_systems)) while in WAL mode.
 
 You can override this setting by running `db.pragma('synchronous = FULL')`.
