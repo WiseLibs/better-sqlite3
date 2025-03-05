@@ -27,7 +27,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-22.04
           - macos-13
           - macos-14
           - windows-2019
@@ -67,7 +67,7 @@ jobs:
   publish:
     if: ${{ github.event_name == 'release' }}
     name: Publishing to NPM
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       - prebuild
       - prebuild-alpine
@@ -89,7 +89,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-20.04
+          - ubuntu-22.04
           - macos-13
           - macos-14
           - windows-2019
