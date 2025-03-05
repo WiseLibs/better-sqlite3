@@ -19,3 +19,12 @@ module.exports = new Map([
 		return db;
 	}],
 ]);
+
+const moduleExists = (m) => { try { return require.resolve(m); } catch (e) {} };
+if (moduleExists('node:sqlite')) {
+	module.exports.set('node:sqlite', async (filename, pragma) => {
+		const db = new (require('node:sqlite').DatabaseSync)(filename, {open: true});
+		for (const str of pragma) db.exec(`PRAGMA ${str}`);
+		return db;
+	});
+}
