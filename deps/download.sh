@@ -19,7 +19,7 @@
 # ===
 
 YEAR="2025"
-VERSION="3480000"
+VERSION="3490100"
 
 # Defines below are sorted alphabetically
 DEFINES="
