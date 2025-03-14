@@ -14,3 +14,14 @@ exports['node-sqlite3'] = async (db, { table, columns }) => {
 		.map(([k, v]) => ({ ['@' + k]: v })));
 	return () => db.run(sql, row);
 };
+
+exports['node:sqlite'] = (db, { table, columns }) => {
+	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
+	const row = Object.assign({}, ...Object.entries(db.prepare(`SELECT * FROM ${table} LIMIT 1`).get())
+		.filter(([k]) => columns.includes(k))
+		.map(([k, v]) => ({ ['@' + k]: v })));
+	return () => {
+		const stmt = db.prepare(sql);
+		return stmt.run(row);
+	}
+};
