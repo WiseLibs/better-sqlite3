@@ -49,6 +49,14 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 		return ThrowTypeError("Expected "#at" argument to be "#message);       \
 	var = (info[at()].As<v8::Type>())__VA_ARGS__
 
+#define _REQUIRE_OPTIONAL_ARGUMENT(at, var, Type, message, ...)                              \
+	var = ({                                                                                   \
+		bool isSupplied = info.Length() > (at()) && !info[at()]->IsNullOrUndefined();            \
+		if (isSupplied && !info[at()]->Is##Type())                                               \
+			return ThrowTypeError("Expected "#at" argument to be "#message", null, or undefined"); \
+		(isSupplied ? info[at()].As<v8::Type>() : v8::MaybeLocal<v8::Type>())__VA_ARGS__;        \
+	})
+
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \
 	_REQUIRE_ARGUMENT(at, var, Int32, a 32-bit signed integer, ->Value())
 #define REQUIRE_ARGUMENT_BOOLEAN(at, var)                                      \
@@ -59,6 +67,9 @@ void ThrowRangeError(const char* message) { EasyIsolate; isolate->ThrowException
 	_REQUIRE_ARGUMENT(at, var, Object, an object)
 #define REQUIRE_ARGUMENT_FUNCTION(at, var)                                     \
 	_REQUIRE_ARGUMENT(at, var, Function, a function)
+
+#define REQUIRE_OPTIONAL_ARGUMENT_FUNCTION(at, var)                            \
+	_REQUIRE_OPTIONAL_ARGUMENT(at, var, Function, a function)
 
 #define REQUIRE_DATABASE_OPEN(db)                                              \
 	if (!db->open)                                                             \
