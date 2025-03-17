@@ -72,6 +72,7 @@ jobs:
       - prebuild
       - prebuild-alpine
       - prebuild-alpine-arm
+      - prebuild-linux-x64
       - prebuild-linux-arm
     steps:
       - uses: actions/checkout@v4
@@ -89,7 +90,6 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
           - macos-13
           - macos-14
           - windows-2019
@@ -105,13 +105,6 @@ jobs:
         run: pip.exe install setuptools
       - if: ${{ startsWith(matrix.os, 'macos') }}
         run: brew install python-setuptools
-      - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
-        run: python3 -m pip install setuptools
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
-        run: |
-          sudo apt update
-          sudo apt install gcc-10 g++-10 -y
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
@@ -122,10 +115,20 @@ jobs:
           ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
+  prebuild-linux-x64:
+    if: ${{ github.event_name == 'release' }}
+    name: Prebuild on Linux x64
+    runs-on: ubuntu-latest
+    container: node:18-bullseye
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+
   prebuild-alpine:
     if: ${{ github.event_name == 'release' }}
-    strategy:
-      fail-fast: false
     name: Prebuild on alpine
     runs-on: ubuntu-latest
     container: node:18-alpine
