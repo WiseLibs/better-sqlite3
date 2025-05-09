@@ -7,6 +7,12 @@ public:
 		return StringFromUtf8(isolate, (std::string("UNKNOWN_SQLITE_ERROR_") + std::to_string(code)).c_str(), -1);
 	}
 
+	v8::Local<v8::String> Op(v8::Isolate* isolate, int op) {
+		auto element = ops.find(op);
+		if (element != ops.end()) return element->second.Get(isolate);
+		return StringFromUtf8(isolate, (std::string("UNKNOWN_SQLITE_OP_") + std::to_string(op)).c_str(), -1);
+	}
+
 	explicit CS(v8::Isolate* isolate) {
 		SetString(isolate, database, "database");
 		SetString(isolate, reader, "reader");
@@ -135,6 +141,10 @@ public:
 		SetCode(isolate, SQLITE_AUTH_USER, "SQLITE_AUTH_USER");
 		SetCode(isolate, SQLITE_OK_LOAD_PERMANENTLY, "SQLITE_OK_LOAD_PERMANENTLY");
 		SetCode(isolate, SQLITE_OK_SYMLINK, "SQLITE_OK_SYMLINK");
+
+		SetOp(isolate, SQLITE_DELETE, "SQLITE_DELETE");
+		SetOp(isolate, SQLITE_INSERT, "SQLITE_INSERT");
+		SetOp(isolate, SQLITE_UPDATE, "SQLITE_UPDATE");
 	}
 
 	v8::Global<v8::String> database;
@@ -168,5 +178,12 @@ private:
 			std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
 	}
 
+	void SetOp(v8::Isolate* isolate, int op, const char* str) {
+		ops.emplace(std::piecewise_construct,
+			std::forward_as_tuple(op),
+			std::forward_as_tuple(isolate, InternalizedFromLatin1(isolate, str)));
+	}
+
 	std::unordered_map<int, v8::Global<v8::String> > codes;
+	std::unordered_map<int, v8::Global<v8::String> > ops;
 };
