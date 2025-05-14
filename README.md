@@ -34,6 +34,14 @@ npm install better-sqlite3
 
 > Requires Node.js v14.21.1 or later. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/). If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
+### If you don't want to setup `node-gyp` ...
+
+```
+npm install better-sqlite3 --ignore-scripts
+```
+
+Then go to the [Releases](https://github.com/WiseLibs/better-sqlite3/releases/) page to download the corresponding version and place the file at `node_modules/better-sqlite3/build/Release/better_sqlite3.node`
+
 ## Usage
 
 ```js
