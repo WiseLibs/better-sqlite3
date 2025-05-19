@@ -30,16 +30,19 @@ void SetPrototypeGetter(
 	);
 	#endif
 }
-#line 184 "./src/util/macros.lzz"
-#ifndef V8_COMPRESS_POINTERS_IN_SHARED_CAGE
-#define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
-#else
+#line 183 "./src/util/macros.lzz"
+#if defined(V8_ENABLE_SANDBOX)
+// When V8 Sandbox is enabled (in newer Electron versions), we need to use Buffer::Copy
+// instead of Buffer::New to ensure the ArrayBuffer backing store is allocated inside the sandbox
 static inline v8::MaybeLocal<v8::Object> BufferSandboxNew(v8::Isolate* isolate, char* data, size_t length, void (*finalizeCallback)(char*, void*), void* finalizeHint) {
-	v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, data, length);
-	finalizeCallback(data, finalizeHint);
-	return buffer;
+    v8::MaybeLocal<v8::Object> buffer = node::Buffer::Copy(isolate, data, length);
+    finalizeCallback(data, finalizeHint);
+    return buffer;
 }
 #define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) BufferSandboxNew(env, data, length, finalizeCallback, finalizeHint)
+#else
+// When V8 Sandbox is not enabled, we can use the more efficient Buffer::New
+#define SAFE_NEW_BUFFER(env, data, length, finalizeCallback, finalizeHint) node::Buffer::New(env, data, length, finalizeCallback, finalizeHint)
 #endif
 #line 39 "./src/util/binder.lzz"
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
