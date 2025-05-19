@@ -14,13 +14,12 @@ on:
 
 env:
   # See https://github.com/nodejs/release#release-schedule
-  # Node.js v16 EOL = 2023-09-11. v21 EOL = 2024-06-01.
-  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 18.0.0 -t 20.0.0 -t 22.0.0 -t 23.0.0 --include-regex 'better_sqlite3.node$'
-  # Merge with NODE_BUILD_CMD when Node.js v18 is EOL
-  NO_V18_NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 -t 23.0.0 --include-regex 'better_sqlite3.node$'
+  # Node.js v20 EOL = 2026-04-30. v22 EOL = 2027-04-30. v23 EOL = 2025-06-01. v24 EOL = 2028-04-30.
+  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
-  # Electron v25 EOL = 2023-12-05. v26 EOL = 2024-02-20. v27 EOL = 2024-04-16. v28 EOL = 2024-06-11. v29 EOL = 2024-08-20.
-  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 26.0.0 -t 27.0.0 -t 28.0.0 -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 -t 34.0.0 -t 35.0.0 -t 36.0.0 --include-regex 'better_sqlite3.node$'
+  # Electron v29 EOL = 2024-08-20. v30 EOL = 2024-10-15. v31 EOL = 2025-01-14. v32 EOL = 2025-03-11. v33 EOL = 2025-05-13. v34 EOL = 2025-06-24. v35 EOL = 2025-09-02. v36 EOL = 2025-10-28.
+  ELECTRON_BUILD_CMD: npx --no-install prebuild -r electron -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 -t 34.0.0 -t 35.0.0 -t 36.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
@@ -32,10 +31,10 @@ jobs:
           - macos-14
           - windows-2019
         node:
-          - 18
           - 20
           - 22
           - 23
+          - 24
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -78,7 +77,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           registry-url: https://registry.npmjs.org
       - run: npm publish
         env:
@@ -100,7 +99,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - if: ${{ startsWith(matrix.os, 'windows') }}
         run: pip.exe install setuptools
       - if: ${{ startsWith(matrix.os, 'macos') }}
@@ -111,7 +110,7 @@ jobs:
       - if: matrix.os == 'windows-2019'
         run: |
           ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
-          ${{ env.NO_V18_NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
 
@@ -119,7 +118,7 @@ jobs:
     if: ${{ github.event_name == 'release' }}
     name: Prebuild on Linux x64
     runs-on: ubuntu-latest
-    container: node:18-bullseye
+    container: node:20-bullseye
     needs: test
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +130,7 @@ jobs:
     if: ${{ github.event_name == 'release' }}
     name: Prebuild on alpine
     runs-on: ubuntu-latest
-    container: node:18-alpine
+    container: node:20-alpine
     needs: test
     steps:
       - uses: actions/checkout@v4
@@ -154,7 +153,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
       - run: |
-          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:18-alpine -c "\
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-alpine -c "\
           apk add build-base git python3 py3-setuptools --update-cache && \
           cd /tmp/project && \
           npm install --ignore-scripts && \
@@ -175,7 +174,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
       - run: |
-          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:18-bullseye -c "\
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-bullseye -c "\
           cd /tmp/project && \
           npm install --ignore-scripts && \
           ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }} && \
