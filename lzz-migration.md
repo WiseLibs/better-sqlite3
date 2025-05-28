@@ -175,9 +175,89 @@ cp src/better_sqlite3.cpp src/better_sqlite3.cpp.backup
 - Requires careful testing
 - Could improve code quality significantly
 
+## Migration Options (continued)
+
+### Option C: Automated Split Using #line Directives
+**Approach**: Use lzz's #line directives as metadata to automate file splitting
+
+**Steps**:
+1. Generate files WITH #line directives to use as splitting guides
+2. Parse #line directives to automatically split into correct files
+3. Clean up the split files and remove #line directives
+4. Maintain single compilation unit or modularize as needed
+
+**Advantages**:
+- Automated and accurate file splitting
+- No manual boundary detection needed
+- Preserves exact lzz file organization
+- Less error-prone than manual splitting
+- Can be scripted for repeatability
+
+**Disadvantages**:
+- Requires writing a parsing script
+- Still need to clean up #line directives
+- Temporary use of "dirty" files with #line
+
+**Detailed Instructions**:
+```bash
+# 1. Generate with #line directives (intentionally keeping them)
+lzz -hx hpp -sx cpp -k BETTER_SQLITE3 -d -hl -sl -e ./src/better_sqlite3.lzz
+
+# 2. Backup the #line-annotated files
+cp src/better_sqlite3.hpp src/better_sqlite3.hpp.withlines
+cp src/better_sqlite3.cpp src/better_sqlite3.cpp.withlines
+
+# 3. Parse #line directives to understand file boundaries
+# Example #line format: #line 1 "util/macros.lzz"
+# This indicates the following content originated from util/macros.lzz
+
+# 4. Write a script to:
+#    a. Read the generated .hpp file
+#    b. Split content based on #line directives
+#    c. Create individual .hpp files for each original .lzz file
+#    d. Remove all #line directives from the split files
+
+# 5. For the .cpp file:
+#    - Keep as single compilation unit (Option C-A), OR
+#    - Split into modules using same #line parsing (Option C-B)
+
+# 6. Create new src/better_sqlite3.hpp that includes all split headers:
+#include "util/macros.hpp"
+#include "util/query-macros.hpp"
+// ... in original #insert order
+
+# 7. Test the build and remove .lzz files
+```
+
+**Sample Splitting Script Logic**:
+```python
+# Pseudocode for splitting based on #line
+current_file = None
+current_content = []
+
+for line in generated_file:
+    if line.startswith('#line'):
+        # Parse: #line 123 "path/to/file.lzz"
+        if current_file:
+            write_content_to_file(current_file, current_content)
+        current_file = extract_path_from_line_directive(line)
+        current_content = []
+    elif not line.startswith('#line'):
+        current_content.append(line)
+
+# Write final file
+if current_file:
+    write_content_to_file(current_file, current_content)
+```
+
 ## Recommendation
 
-Start with **Option A** as a safe intermediate step, then consider moving to Option B in a separate phase. This allows:
-1. Immediate removal of lzz dependency
-2. Working codebase to test against
-3. Future improvement opportunity
+**Option C** is likely the best approach because it:
+1. Automates the most error-prone part (identifying file boundaries)
+2. Guarantees correct file organization matching original .lzz structure
+3. Can be validated by comparing against original .lzz files
+4. Provides a clear migration path with less manual work
+
+After using Option C to split files, you can then decide whether to:
+- Keep single compilation unit (simpler, like Option A)
+- Move to modular compilation (cleaner, like Option B)
