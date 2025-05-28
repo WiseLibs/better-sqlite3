@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.lazycplusplus.com)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(lzz:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": false
+}
