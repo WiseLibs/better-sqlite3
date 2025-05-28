@@ -52,7 +52,7 @@ If you've never written a native addon for Node.js before, you should start by r
 
 #### C++
 
-The C++ code in `better-sqlite3` is written using a tool called [`lzz`](https://github.com/WiseLibs/lzz), which alleviates the programmer from needing to write header files. If you plan on changing any C++ code, you'll need to edit `*.lzz` files and then re-compile them into `*.cpp` and `*.hpp` by running `npm run lzz` (while the `lzz` executable is in your PATH). You can learn how to download and install `lzz` [here](https://github.com/WiseLibs/lzz).
+The C++ code in `better-sqlite3` uses standard C++ source files (`.cpp`) and header files (`.hpp`). The codebase is organized into modular components under `src/objects/` (core classes like Database, Statement) and `src/util/` (utilities and type conversion). When making C++ changes, edit the appropriate `.cpp` and `.hpp` files directly, then build with `npm run build-release`.
 
 #### Style guide
 

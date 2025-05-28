@@ -11,13 +11,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Essential Commands
 - **Build**: `npm run build-release` (production build)
 - **Debug Build**: `npm run build-debug` 
-- **Full Rebuild**: `npm run rebuild-release` (includes LZZ preprocessing)
 - **Test**: `npm test` (mocha with 5s timeout)
 - **Single Test**: `npx mocha test/[test-file].js`
 - **Benchmark**: `npm run benchmark`
-
-### LZZ-Specific (Current Architecture)
-- **Generate C++**: `npm run lzz` (preprocesses .lzz files to .cpp/.hpp)
 - **Download SQLite**: `npm run download`
 
 ## Architecture
@@ -29,21 +25,18 @@ lib/                    # JavaScript API layer
 ├── database.js        # Database class with native binding
 └── methods/           # Method implementations
 
-src/                   # C++ source (LZZ-based)
-├── better_sqlite3.lzz # Main file (generates .cpp/.hpp)
+src/                   # C++ source
+├── better_sqlite3.cpp # Main implementation file
+├── better_sqlite3.hpp # Main header file
 ├── objects/           # Core classes (Database, Statement, etc.)
 └── util/              # Utilities and type conversion
 ```
 
-### Critical LZZ Pattern
-- **Never edit `.cpp` or `.hpp` files directly** - they are generated
-- Edit `.lzz` files only, then run `npm run lzz`
-- Uses `#insert` directive (literal inclusion, not C++ #include)
-- Single compilation unit architecture
-- Order dependency matters in .lzz files
-
-### LZZ Migration Status
-This codebase is currently migrating away from LZZ (see `lzz-migration.md`). The current branch `no-lzz-20250428` contains migration work. Be aware that the build process may change during this transition.
+### C++ Architecture
+- Standard C++ source files (.cpp/.hpp)
+- Modular header structure in `src/objects/` and `src/util/`
+- Single compilation unit architecture maintained
+- Uses standard C++ #include directives
 
 ## Native Addon Structure
 
@@ -72,7 +65,7 @@ Tests are organized by functionality in `test/`:
 
 ## Development Workflow
 
-1. **For C++ changes**: Edit `.lzz` files → `npm run lzz` → `npm run build-release` → `npm test`
+1. **For C++ changes**: Edit `.cpp/.hpp` files → `npm run build-release` → `npm test`
 2. **For JavaScript changes**: Edit files in `lib/` → `npm test`
 3. **Performance testing**: Use `npm run benchmark` after changes
 
