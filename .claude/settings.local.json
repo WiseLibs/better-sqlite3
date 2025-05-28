@@ -6,7 +6,13 @@
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(lzz:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(npm run:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(npm test:*)",
+      "Bash(timeout:*)",
+      "Bash(awk:*)"
     ]
   },
   "enableAllProjectMcpServers": false
