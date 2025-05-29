@@ -107,6 +107,10 @@ LZZ_INLINE void Database::RemoveBackup(Backup *backup) {
   backups.erase(backup);
 }
 LZZ_INLINE Database::State *Database::GetState() {
+  // Cast Database members to State struct - members layout must match exactly
+  // State: {open, busy, safe_ints, unsafe_mode, was_js_error, has_logger, iterators, addon}
+  // This relies on the fact that Database members from 'open' onwards have identical layout to State
+  static_assert(std::is_standard_layout_v<State>, "State must have standard layout for safe casting");
   return reinterpret_cast<State *>(&open);
 }
 LZZ_INLINE sqlite3 *Database::GetHandle() { return db_handle; }
