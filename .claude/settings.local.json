@@ -12,7 +12,11 @@
       "Bash(python3:*)",
       "Bash(npm test:*)",
       "Bash(timeout:*)",
-      "Bash(awk:*)"
+      "Bash(awk:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git stash:*)",
+      "Bash(rg:*)"
     ]
   },
   "enableAllProjectMcpServers": false
