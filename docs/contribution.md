@@ -58,6 +58,8 @@ The C++ code in `better-sqlite3` uses standard C++ source files (`.cpp`) and hea
 
 There is currently no linter or style guide associated with `better-sqlite3` (this may change in the future). For now, just try to match the style of existing code as much as possible. Code owners will reject your PR or rewrite your changes if they feel that you've used a coding style that doesn't match the existing code. Although the rules aren't layed out formally, you are expected to adhere to them by using your eyeballs.
 
+For C++ code formatting, you can use `npm run fmt` to run `clang-format` on all C++ source files, which will automatically format your code according to the project's formatting standards.
+
 #### Testing
 
 All tests are written in JavaScript, and they test `better-sqlite3`'s public API. All new features must be accompanied by a robust set of tests that scrutinize the new feature under all manner of circumstances and edge cases. It's not enough to simply test the "common case". If you write code that detects errors and throws exceptions, those error cases should be tested too, to ensure that all errors are being properly detected. If a new feature interacts with existing features, those interactions must be tested as well.
