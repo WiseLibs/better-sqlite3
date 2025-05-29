@@ -1,11 +1,8 @@
-#ifndef BETTER_SQLITE3_BETTER_SQLITE3_HPP
-#define BETTER_SQLITE3_BETTER_SQLITE3_HPP
+#ifndef BETTER_SQLITE3_SPLIT_HPP
+#define BETTER_SQLITE3_SPLIT_HPP
 
-// better_sqlite3.hpp
+// better_sqlite3_split.hpp
 //
-
-#ifndef LZZ_BETTER_SQLITE3_better_sqlite3_hpp
-#define LZZ_BETTER_SQLITE3_better_sqlite3_hpp
 
 #include "objects/backup.hpp"
 #include "objects/database.hpp"
@@ -21,4 +18,4 @@
 #include "util/data.hpp"
 #include "util/macros.hpp"
 
-#endif // BETTER_SQLITE3_BETTER_SQLITE3_HPP
+#endif // BETTER_SQLITE3_SPLIT_HPP
