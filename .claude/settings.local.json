@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.lazycplusplus.com)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "Bash(lzz:*)",
+      "Bash(cp:*)",
+      "Bash(npm run:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(npm test:*)",
+      "Bash(timeout:*)",
+      "Bash(awk:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge-base:*)",
+      "Bash(git stash:*)",
+      "Bash(rg:*)",
+      "Bash(clang-format:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": false
+}
