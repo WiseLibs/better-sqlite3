@@ -24,7 +24,7 @@ void BindMap::Add(v8::Isolate *isolate, char const *name, int index) {
 }
 void BindMap::Grow(v8::Isolate *isolate) {
   assert(capacity == length);
-  capacity = (capacity << 1) | 2;
+  capacity = capacity * 2 + 2;
   Pair *new_pairs = ALLOC_ARRAY<Pair>(capacity);
   for (int i = 0; i < length; ++i) {
     new (new_pairs + i) Pair(isolate, pairs + i);
