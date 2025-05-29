@@ -1,8 +1,8 @@
 #include "statement.hpp"
 #include "../better_sqlite3_impl.hpp"
 
-v8::Local<v8 ::Function> Statement::Init(v8::Isolate *isolate,
-                                         v8::Local<v8 ::External> data) {
+v8::Local<v8::Function> Statement::Init(v8::Isolate *isolate,
+                                        v8::Local<v8::External> data) {
   v8::Local<v8::FunctionTemplate> t =
       NewConstructorTemplate(isolate, data, JS_new, "Statement");
   SetPrototypeMethod(isolate, data, t, "run", JS_run);
@@ -56,8 +56,8 @@ Statement::Statement(Database *db, sqlite3_stmt *handle, sqlite3_uint64 id,
   assert(!db->GetState()->busy);
   db->AddStatement(this);
 }
-void Statement::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
-  Addon *addon = static_cast<Addon *>(info.Data().As<v8 ::External>()->Value());
+void Statement::JS_new(v8::FunctionCallbackInfo<v8::Value> const &info) {
+  Addon *addon = static_cast<Addon *>(info.Data().As<v8::External>()->Value());
   if (!addon->privileged_info) {
     return ThrowTypeError(
         "Statements can only be constructed by the db.prepare() method");
@@ -86,7 +86,7 @@ void Statement::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
     flags = 0;
   }
 
-  v8 ::Isolate *isolate = info.GetIsolate();
+  v8::Isolate *isolate = info.GetIsolate();
   v8::String::Utf8Value utf8(isolate, source);
   sqlite3_stmt *handle;
   const char *tail;
@@ -127,7 +127,7 @@ void Statement::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
     }
   }
 
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
   bool returns_data = sqlite3_column_count(handle) >= 1 || pragmaMode;
   Statement *stmt = new Statement(db, handle, addon->NextId(), returns_data);
   stmt->Wrap(info.This());
@@ -140,7 +140,7 @@ void Statement::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
 
   info.GetReturnValue().Set(info.This());
 }
-void Statement::JS_run(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_run(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   ((void)0);
   sqlite3_stmt *handle = stmt->handle;
@@ -170,7 +170,7 @@ void Statement::JS_run(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   ((void)0);
   db->GetState()->busy = true;
-  v8 ::Isolate *isolate = info.GetIsolate();
+  v8::Isolate *isolate = info.GetIsolate();
   if (db->Log(isolate, handle)) {
     db->GetState()->busy = false;
     db->ThrowDatabaseError();
@@ -190,7 +190,7 @@ void Statement::JS_run(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
                       : sqlite3_changes(db_handle);
     sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
     Addon *addon = db->GetAddon();
-    v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+    v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
     v8::Local<v8::Object> result = v8::Object::New(isolate);
     result
         ->Set(ctx, addon->cs.changes.Get(isolate),
@@ -216,7 +216,7 @@ void Statement::JS_run(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   return;
 }
-void Statement::JS_get(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_get(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -242,7 +242,7 @@ void Statement::JS_get(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   ((void)0);
   db->GetState()->busy = true;
-  v8 ::Isolate *isolate = info.GetIsolate();
+  v8::Isolate *isolate = info.GetIsolate();
   if (db->Log(isolate, handle)) {
     db->GetState()->busy = false;
     db->ThrowDatabaseError();
@@ -267,7 +267,7 @@ void Statement::JS_get(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   } else if (status == SQLITE_DONE) {
     sqlite3_reset(handle);
     db->GetState()->busy = false;
-    info.GetReturnValue().Set(v8 ::Undefined(isolate));
+    info.GetReturnValue().Set(v8::Undefined(isolate));
     if (!bound) {
       sqlite3_clear_bindings(handle);
     }
@@ -281,7 +281,7 @@ void Statement::JS_get(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   return;
 }
-void Statement::JS_all(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_all(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -307,7 +307,7 @@ void Statement::JS_all(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   ((void)0);
   db->GetState()->busy = true;
-  v8 ::Isolate *isolate = info.GetIsolate();
+  v8::Isolate *isolate = info.GetIsolate();
   if (db->Log(isolate, handle)) {
     db->GetState()->busy = false;
     db->ThrowDatabaseError();
@@ -317,7 +317,7 @@ void Statement::JS_all(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
     return;
   }
   ((void)0);
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
   v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
   uint32_t row_count = 0;
   const bool safe_ints = stmt->safe_ints;
@@ -353,9 +353,9 @@ void Statement::JS_all(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
   return;
 }
-void Statement::JS_iterate(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
-  Addon *addon = static_cast<Addon *>(info.Data().As<v8 ::External>()->Value());
-  v8 ::Isolate *isolate = info.GetIsolate();
+void Statement::JS_iterate(v8::FunctionCallbackInfo<v8::Value> const &info) {
+  Addon *addon = static_cast<Addon *>(info.Data().As<v8::External>()->Value());
+  v8::Isolate *isolate = info.GetIsolate();
   v8::Local<v8::Function> c = addon->StatementIterator.Get(isolate);
   addon->privileged_info = &info;
   v8::MaybeLocal<v8::Object> maybeIterator =
@@ -364,7 +364,7 @@ void Statement::JS_iterate(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   if (!maybeIterator.IsEmpty())
     info.GetReturnValue().Set(maybeIterator.ToLocalChecked());
 }
-void Statement::JS_bind(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_bind(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (stmt->bound)
     return ThrowTypeError(
@@ -384,7 +384,7 @@ void Statement::JS_bind(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   stmt->bound = true;
   info.GetReturnValue().Set(info.This());
 }
-void Statement::JS_pluck(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_pluck(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -400,14 +400,14 @@ void Statement::JS_pluck(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
                             "first"
                             " argument to be "
                             "a boolean");
-    use = (info[0].As<v8 ::Boolean>())->Value();
+    use = (info[0].As<v8::Boolean>())->Value();
   }
   stmt->mode = use                         ? Data::PLUCK
                : stmt->mode == Data::PLUCK ? Data::FLAT
                                            : stmt->mode;
   info.GetReturnValue().Set(info.This());
 }
-void Statement::JS_expand(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_expand(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -423,14 +423,14 @@ void Statement::JS_expand(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
                             "first"
                             " argument to be "
                             "a boolean");
-    use = (info[0].As<v8 ::Boolean>())->Value();
+    use = (info[0].As<v8::Boolean>())->Value();
   }
   stmt->mode = use                          ? Data::EXPAND
                : stmt->mode == Data::EXPAND ? Data::FLAT
                                             : stmt->mode;
   info.GetReturnValue().Set(info.This());
 }
-void Statement::JS_raw(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_raw(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -446,7 +446,7 @@ void Statement::JS_raw(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
                             "first"
                             " argument to be "
                             "a boolean");
-    use = (info[0].As<v8 ::Boolean>())->Value();
+    use = (info[0].As<v8::Boolean>())->Value();
   }
   stmt->mode = use                       ? Data::RAW
                : stmt->mode == Data::RAW ? Data::FLAT
@@ -454,7 +454,7 @@ void Statement::JS_raw(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   info.GetReturnValue().Set(info.This());
 }
 void Statement::JS_safeIntegers(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (stmt->db->GetState()->busy)
     return ThrowTypeError("This database connection is busy executing a query");
@@ -468,11 +468,11 @@ void Statement::JS_safeIntegers(
                             "first"
                             " argument to be "
                             "a boolean");
-    stmt->safe_ints = (info[0].As<v8 ::Boolean>())->Value();
+    stmt->safe_ints = (info[0].As<v8::Boolean>())->Value();
   }
   info.GetReturnValue().Set(info.This());
 }
-void Statement::JS_columns(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_columns(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   if (!stmt->returns_data)
     return ThrowTypeError(
@@ -482,8 +482,8 @@ void Statement::JS_columns(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   if (stmt->db->GetState()->busy)
     return ThrowTypeError("This database connection is busy executing a query");
   Addon *addon = stmt->db->GetAddon();
-  v8 ::Isolate *isolate = info.GetIsolate();
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Isolate *isolate = info.GetIsolate();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 
   int column_count = sqlite3_column_count(stmt->handle);
   v8::Local<v8::Array> columns = v8::Array::New(isolate);
@@ -528,8 +528,8 @@ void Statement::JS_columns(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
 
   info.GetReturnValue().Set(columns);
 }
-void Statement::JS_busy(v8::Local<v8 ::Name> _,
-                        v8::PropertyCallbackInfo<v8 ::Value> const &info) {
+void Statement::JS_busy(v8::Local<v8::Name> _,
+                        v8::PropertyCallbackInfo<v8::Value> const &info) {
   Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
   info.GetReturnValue().Set(stmt->alive && stmt->locked);
 }

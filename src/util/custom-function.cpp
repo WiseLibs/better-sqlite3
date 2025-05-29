@@ -14,8 +14,8 @@ void CustomFunction::xFunc(sqlite3_context *invocation, int argc,
                            sqlite3_value **argv) {
   CustomFunction *self =
       static_cast<CustomFunction *>(sqlite3_user_data(invocation));
-  v8 ::Isolate *isolate = self->isolate;
-  v8 ::HandleScope scope(isolate);
+  v8::Isolate *isolate = self->isolate;
+  v8::HandleScope scope(isolate);
 
   v8::Local<v8::Value> args_fast[4];
   v8::Local<v8::Value> *args = NULL;

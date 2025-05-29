@@ -22,7 +22,7 @@ Binder::Binder(sqlite3_stmt *_handle) {
   anon_index = 0;
   success = true;
 }
-bool Binder::Bind(v8::FunctionCallbackInfo<v8 ::Value> const &info, int argc,
+bool Binder::Bind(v8::FunctionCallbackInfo<v8::Value> const &info, int argc,
                   Statement *stmt) {
   assert(anon_index == 0);
   Result result = BindArgs(info, argc, stmt);
@@ -79,7 +79,7 @@ void Binder::BindValue(v8::Isolate *isolate, v8::Local<v8::Value> value,
   }
 }
 int Binder::BindArray(v8::Isolate *isolate, v8::Local<v8::Array> arr) {
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
   uint32_t length = arr->Length();
   if (length > INT_MAX) {
     Fail(ThrowRangeError, "Too many parameter values were provided");
@@ -101,7 +101,7 @@ int Binder::BindArray(v8::Isolate *isolate, v8::Local<v8::Array> arr) {
 }
 int Binder::BindObject(v8::Isolate *isolate, v8::Local<v8::Object> obj,
                        Statement *stmt) {
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
   BindMap *bind_map = stmt->GetBindMap(isolate);
   BindMap::Pair *pairs = bind_map->GetPairs();
   int len = bind_map->GetSize();
@@ -136,10 +136,9 @@ int Binder::BindObject(v8::Isolate *isolate, v8::Local<v8::Object> obj,
 
   return len;
 }
-Binder::Result
-Binder::BindArgs(v8::FunctionCallbackInfo<v8 ::Value> const &info, int argc,
-                 Statement *stmt) {
-  v8 ::Isolate *isolate = info.GetIsolate();
+Binder::Result Binder::BindArgs(v8::FunctionCallbackInfo<v8::Value> const &info,
+                                int argc, Statement *stmt) {
+  v8::Isolate *isolate = info.GetIsolate();
   int count = 0;
   bool bound_object = false;
 

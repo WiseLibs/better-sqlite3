@@ -17,17 +17,17 @@ void SetPrototypeGetter(v8::Isolate *isolate, v8::Local<v8::External> data,
 }
 
 void ThrowError(char const *message) {
-  v8 ::Isolate *isolate = v8 ::Isolate ::GetCurrent();
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
   isolate->ThrowException(
       v8::Exception::Error(StringFromUtf8(isolate, message, -1)));
 }
 void ThrowTypeError(char const *message) {
-  v8 ::Isolate *isolate = v8 ::Isolate ::GetCurrent();
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
   isolate->ThrowException(
       v8::Exception::TypeError(StringFromUtf8(isolate, message, -1)));
 }
 void ThrowRangeError(char const *message) {
-  v8 ::Isolate *isolate = v8 ::Isolate ::GetCurrent();
+  v8::Isolate *isolate = v8::Isolate::GetCurrent();
   isolate->ThrowException(
       v8::Exception::RangeError(StringFromUtf8(isolate, message, -1)));
 }

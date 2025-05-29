@@ -10,8 +10,8 @@ class Statement : public node::ObjectWrap {
   friend class StatementIterator;
 
 public:
-  static v8::Local<v8 ::Function> Init(v8::Isolate *isolate,
-                                       v8::Local<v8 ::External> data);
+  static v8::Local<v8::Function> Init(v8::Isolate *isolate,
+                                      v8::Local<v8::External> data);
   static bool Compare(Statement const *const a, Statement const *const b);
   BindMap *GetBindMap(v8::Isolate *isolate);
   void CloseHandles();
@@ -26,19 +26,19 @@ private:
   };
   explicit Statement(Database *db, sqlite3_stmt *handle, sqlite3_uint64 id,
                      bool returns_data);
-  static void JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_run(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_get(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_all(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_iterate(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_bind(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_pluck(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_expand(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_raw(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_safeIntegers(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_columns(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_busy(v8::Local<v8 ::Name> _,
-                      v8::PropertyCallbackInfo<v8 ::Value> const &info);
+  static void JS_new(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_run(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_get(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_all(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_iterate(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_bind(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_pluck(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_expand(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_raw(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_safeIntegers(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_columns(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_busy(v8::Local<v8::Name> _,
+                      v8::PropertyCallbackInfo<v8::Value> const &info);
   Database *const db;
   sqlite3_stmt *const handle;
   Extras *const extras;

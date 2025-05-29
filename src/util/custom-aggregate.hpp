@@ -45,8 +45,8 @@ LZZ_INLINE void CustomAggregate::xStepBase(
     v8::Global<v8::Function> const CustomAggregate::*ptrtm) {
   CustomAggregate *self =
       static_cast<CustomAggregate *>(sqlite3_user_data(invocation));
-  v8 ::Isolate *isolate = self->isolate;
-  v8 ::HandleScope scope(isolate);
+  v8::Isolate *isolate = self->isolate;
+  v8::HandleScope scope(isolate);
   Accumulator *acc = self->GetAccumulator(invocation);
   if (acc->value.IsEmpty())
     return;
@@ -78,8 +78,8 @@ LZZ_INLINE void CustomAggregate::xValueBase(sqlite3_context *invocation,
                                             bool is_final) {
   CustomAggregate *self =
       static_cast<CustomAggregate *>(sqlite3_user_data(invocation));
-  v8 ::Isolate *isolate = self->isolate;
-  v8 ::HandleScope scope(isolate);
+  v8::Isolate *isolate = self->isolate;
+  v8::HandleScope scope(isolate);
   Accumulator *acc = self->GetAccumulator(invocation);
   if (acc->value.IsEmpty())
     return;

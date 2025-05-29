@@ -16,7 +16,8 @@
       "Bash(git fetch:*)",
       "Bash(git merge-base:*)",
       "Bash(git stash:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(clang-format:*)"
     ]
   },
   "enableAllProjectMcpServers": false

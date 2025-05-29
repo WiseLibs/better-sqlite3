@@ -6,19 +6,19 @@
 
 class StatementIterator : public node::ObjectWrap {
 public:
-  static v8::Local<v8 ::Function> Init(v8::Isolate *isolate,
-                                       v8::Local<v8 ::External> data);
+  static v8::Local<v8::Function> Init(v8::Isolate *isolate,
+                                      v8::Local<v8::External> data);
   ~StatementIterator();
 
 private:
   explicit StatementIterator(Statement *stmt, bool bound);
-  static void JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_next(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_return(v8::FunctionCallbackInfo<v8 ::Value> const &info);
+  static void JS_new(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_next(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_return(v8::FunctionCallbackInfo<v8::Value> const &info);
   static void
-  JS_symbolIterator(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  void Next(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  void Return(v8::FunctionCallbackInfo<v8 ::Value> const &info);
+  JS_symbolIterator(v8::FunctionCallbackInfo<v8::Value> const &info);
+  void Next(v8::FunctionCallbackInfo<v8::Value> const &info);
+  void Return(v8::FunctionCallbackInfo<v8::Value> const &info);
   void Throw();
   void Cleanup();
   static v8::Local<v8::Object> NewRecord(v8::Isolate *isolate,

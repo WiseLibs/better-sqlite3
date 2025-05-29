@@ -47,7 +47,7 @@ int CustomTable::xConnect(sqlite3 *db_handle, void *_self, int argc,
   CustomTable *self = static_cast<CustomTable *>(_self);
   v8::Isolate *isolate = self->isolate;
   v8::HandleScope scope(isolate);
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 
   v8::Local<v8::Value> *args = ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
   for (int i = 0; i < argc; ++i) {
@@ -123,7 +123,7 @@ int CustomTable::xFilter(sqlite3_vtab_cursor *_cursor, int idxNum,
   Addon *addon = self->addon;
   v8::Isolate *isolate = self->isolate;
   v8::HandleScope scope(isolate);
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 
   v8::Local<v8::Value> args_fast[4];
   v8::Local<v8::Value> *args = NULL;
@@ -177,7 +177,7 @@ int CustomTable::xNext(sqlite3_vtab_cursor *_cursor) {
   Addon *addon = self->addon;
   v8::Isolate *isolate = self->isolate;
   v8::HandleScope scope(isolate);
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
 
   v8::Local<v8::Object> iterator = cursor->iterator.Get(isolate);
   v8::Local<v8::Function> next = cursor->next.Get(isolate);

@@ -19,8 +19,8 @@ v8::Local<v8::Object> StatementIterator::DoneRecord(v8::Isolate *isolate,
                    v8::Undefined(isolate), addon, true);
 }
 
-v8::Local<v8 ::Function>
-StatementIterator::Init(v8::Isolate *isolate, v8::Local<v8 ::External> data) {
+v8::Local<v8::Function> StatementIterator::Init(v8::Isolate *isolate,
+                                                v8::Local<v8::External> data) {
   v8::Local<v8::FunctionTemplate> t =
       NewConstructorTemplate(isolate, data, JS_new, "StatementIterator");
   SetPrototypeMethod(isolate, data, t, "next", JS_next);
@@ -44,15 +44,15 @@ StatementIterator::StatementIterator(Statement *stmt, bool bound)
   db_state->iterators += 1;
 }
 void StatementIterator::JS_new(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
-  Addon *addon = static_cast<Addon *>(info.Data().As<v8 ::External>()->Value());
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
+  Addon *addon = static_cast<Addon *>(info.Data().As<v8::External>()->Value());
   if (!addon->privileged_info)
     return ThrowTypeError("Disabled constructor");
   assert(info.IsConstructCall());
 
   StatementIterator *iter;
   {
-    const v8 ::FunctionCallbackInfo<v8 ::Value> &info = *addon->privileged_info;
+    const v8::FunctionCallbackInfo<v8::Value> &info = *addon->privileged_info;
     Statement *stmt = node ::ObjectWrap ::Unwrap<Statement>(info.This());
     if (!stmt->returns_data)
       return ThrowTypeError(
@@ -82,8 +82,8 @@ void StatementIterator::JS_new(
     ((void)0);
     iter = new StatementIterator(stmt, bound);
   }
-  v8 ::Isolate *isolate = info.GetIsolate();
-  v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+  v8::Isolate *isolate = info.GetIsolate();
+  v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
   iter->Wrap(info.This());
   SetFrozen(isolate, ctx, info.This(), addon->cs.statement,
             addon->privileged_info->This());
@@ -91,7 +91,7 @@ void StatementIterator::JS_new(
   info.GetReturnValue().Set(info.This());
 }
 void StatementIterator::JS_next(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
   StatementIterator *iter =
       node ::ObjectWrap ::Unwrap<StatementIterator>(info.This());
   if (iter->db_state->busy)
@@ -103,7 +103,7 @@ void StatementIterator::JS_next(
         DoneRecord(info.GetIsolate(), iter->db_state->addon));
 }
 void StatementIterator::JS_return(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
   StatementIterator *iter =
       node ::ObjectWrap ::Unwrap<StatementIterator>(info.This());
   if (iter->db_state->busy)
@@ -115,10 +115,10 @@ void StatementIterator::JS_return(
         DoneRecord(info.GetIsolate(), iter->db_state->addon));
 }
 void StatementIterator::JS_symbolIterator(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
   info.GetReturnValue().Set(info.This());
 }
-void StatementIterator::Next(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void StatementIterator::Next(v8::FunctionCallbackInfo<v8::Value> const &info) {
   assert(alive == true);
   db_state->busy = true;
   if (!logged) {
@@ -132,8 +132,8 @@ void StatementIterator::Next(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   int status = sqlite3_step(handle);
   db_state->busy = false;
   if (status == SQLITE_ROW) {
-    v8 ::Isolate *isolate = info.GetIsolate();
-    v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+    v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
     info.GetReturnValue().Set(NewRecord(
         isolate, ctx, Data::GetRowJS(isolate, ctx, handle, safe_ints, mode),
         db_state->addon, false));
@@ -145,7 +145,7 @@ void StatementIterator::Next(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   }
 }
 void StatementIterator::Return(
-    v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+    v8::FunctionCallbackInfo<v8::Value> const &info) {
   Cleanup();
   info.GetReturnValue().Set(DoneRecord(info.GetIsolate(), db_state->addon));
   if (!bound) {

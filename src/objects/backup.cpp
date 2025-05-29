@@ -1,8 +1,8 @@
 #include "backup.hpp"
 #include "../better_sqlite3_impl.hpp"
 
-v8::Local<v8 ::Function> Backup::Init(v8::Isolate *isolate,
-                                      v8::Local<v8 ::External> data) {
+v8::Local<v8::Function> Backup::Init(v8::Isolate *isolate,
+                                     v8::Local<v8::External> data) {
   v8::Local<v8::FunctionTemplate> t =
       NewConstructorTemplate(isolate, data, JS_new, "Backup");
   SetPrototypeMethod(isolate, data, t, "transfer", JS_transfer);
@@ -35,8 +35,8 @@ Backup::Backup(Database *db, sqlite3 *dest_handle,
   assert(backup_handle != NULL);
   db->AddBackup(this);
 }
-void Backup::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
-  Addon *addon = static_cast<Addon *>(info.Data().As<v8 ::External>()->Value());
+void Backup::JS_new(v8::FunctionCallbackInfo<v8::Value> const &info) {
+  Addon *addon = static_cast<Addon *>(info.Data().As<v8::External>()->Value());
   if (!addon->privileged_info)
     return ThrowTypeError("Disabled constructor");
   assert(info.IsConstructCall());
@@ -55,7 +55,7 @@ void Backup::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
       (*addon->privileged_info)[2].As<v8::String>();
   bool unlink = (*addon->privileged_info)[3].As<v8::Boolean>()->Value();
 
-  v8 ::Isolate *isolate = info.GetIsolate();
+  v8::Isolate *isolate = info.GetIsolate();
   sqlite3 *dest_handle;
   v8::String::Utf8Value dest_file(isolate, destFile);
   v8::String::Utf8Value attached_name(isolate, attachedName);
@@ -89,14 +89,14 @@ void Backup::JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
 
   info.GetReturnValue().Set(info.This());
 }
-void Backup::JS_transfer(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Backup::JS_transfer(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Backup *backup = node ::ObjectWrap ::Unwrap<Backup>(info.This());
   if (info.Length() <= (0) || !info[0]->IsInt32())
     return ThrowTypeError("Expected "
                           "first"
                           " argument to be "
                           "a 32-bit signed integer");
-  int pages = (info[0].As<v8 ::Int32>())->Value();
+  int pages = (info[0].As<v8::Int32>())->Value();
   if (!backup->db->GetState()->open)
     return ThrowTypeError("The database connection is not open");
   assert(backup->db->GetState()->busy == false);
@@ -109,8 +109,8 @@ void Backup::JS_transfer(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
   if (status == SQLITE_OK || status == SQLITE_DONE || status == SQLITE_BUSY) {
     int total_pages = sqlite3_backup_pagecount(backup_handle);
     int remaining_pages = sqlite3_backup_remaining(backup_handle);
-    v8 ::Isolate *isolate = info.GetIsolate();
-    v8 ::Local<v8 ::Context> ctx = isolate->GetCurrentContext();
+    v8::Isolate *isolate = info.GetIsolate();
+    v8::Local<v8::Context> ctx = isolate->GetCurrentContext();
     v8::Local<v8::Object> result = v8::Object::New(isolate);
     result
         ->Set(ctx, addon->cs.totalPages.Get(isolate),
@@ -127,7 +127,7 @@ void Backup::JS_transfer(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
     Database::ThrowSqliteError(addon, sqlite3_errstr(status), status);
   }
 }
-void Backup::JS_close(v8::FunctionCallbackInfo<v8 ::Value> const &info) {
+void Backup::JS_close(v8::FunctionCallbackInfo<v8::Value> const &info) {
   Backup *backup = node ::ObjectWrap ::Unwrap<Backup>(info.This());
   assert(backup->db->GetState()->busy == false);
   if (backup->alive)

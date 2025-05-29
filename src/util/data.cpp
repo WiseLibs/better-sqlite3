@@ -8,10 +8,10 @@ v8::Local<v8::Value> GetValueJS(v8::Isolate *isolate, sqlite3_stmt *handle,
   switch (sqlite3_column_type(handle, column)) {
   case SQLITE_INTEGER:
     if (safe_ints) {
-      return v8 ::BigInt ::New(isolate, sqlite3_column_int64(handle, column));
+      return v8::BigInt ::New(isolate, sqlite3_column_int64(handle, column));
     }
   case SQLITE_FLOAT:
-    return v8 ::Number ::New(isolate, sqlite3_column_double(handle, column));
+    return v8::Number ::New(isolate, sqlite3_column_double(handle, column));
   case SQLITE_TEXT:
     return StringFromUtf8(
         isolate,
@@ -25,7 +25,7 @@ v8::Local<v8::Value> GetValueJS(v8::Isolate *isolate, sqlite3_stmt *handle,
         .ToLocalChecked();
   default:
     assert(sqlite3_column_type(handle, column) == SQLITE_NULL);
-    return v8 ::Null(isolate);
+    return v8::Null(isolate);
   }
   assert(false);
   ;
@@ -37,10 +37,10 @@ v8::Local<v8::Value> GetValueJS(v8::Isolate *isolate, sqlite3_value *value,
   switch (sqlite3_value_type(value)) {
   case SQLITE_INTEGER:
     if (safe_ints) {
-      return v8 ::BigInt ::New(isolate, sqlite3_value_int64(value));
+      return v8::BigInt ::New(isolate, sqlite3_value_int64(value));
     }
   case SQLITE_FLOAT:
-    return v8 ::Number ::New(isolate, sqlite3_value_double(value));
+    return v8::Number ::New(isolate, sqlite3_value_double(value));
   case SQLITE_TEXT:
     return StringFromUtf8(
         isolate, reinterpret_cast<const char *>(sqlite3_value_text(value)),
@@ -52,7 +52,7 @@ v8::Local<v8::Value> GetValueJS(v8::Isolate *isolate, sqlite3_value *value,
         .ToLocalChecked();
   default:
     assert(sqlite3_value_type(value) == SQLITE_NULL);
-    return v8 ::Null(isolate);
+    return v8::Null(isolate);
   }
   assert(false);
   ;
@@ -144,15 +144,15 @@ namespace Data {
 int BindValueFromJS(v8::Isolate *isolate, sqlite3_stmt *handle, int index,
                     v8::Local<v8::Value> value) {
   if (value->IsNumber()) {
-    return sqlite3_bind_double(handle, index, value.As<v8 ::Number>()->Value());
+    return sqlite3_bind_double(handle, index, value.As<v8::Number>()->Value());
   } else if (value->IsBigInt()) {
     bool lossless;
-    int64_t v = value.As<v8 ::BigInt>()->Int64Value(&lossless);
+    int64_t v = value.As<v8::BigInt>()->Int64Value(&lossless);
     if (lossless) {
       return sqlite3_bind_int64(handle, index, v);
     }
   } else if (value->IsString()) {
-    v8 ::String ::Utf8Value utf8(isolate, value.As<v8 ::String>());
+    v8::String ::Utf8Value utf8(isolate, value.As<v8::String>());
     return sqlite3_bind_text(handle, index, *utf8, utf8.length(),
                              SQLITE_TRANSIENT);
   } else if (node ::Buffer ::HasInstance(value)) {
@@ -169,15 +169,15 @@ namespace Data {
 void ResultValueFromJS(v8::Isolate *isolate, sqlite3_context *invocation,
                        v8::Local<v8::Value> value, DataConverter *converter) {
   if (value->IsNumber()) {
-    return sqlite3_result_double(invocation, value.As<v8 ::Number>()->Value());
+    return sqlite3_result_double(invocation, value.As<v8::Number>()->Value());
   } else if (value->IsBigInt()) {
     bool lossless;
-    int64_t v = value.As<v8 ::BigInt>()->Int64Value(&lossless);
+    int64_t v = value.As<v8::BigInt>()->Int64Value(&lossless);
     if (lossless) {
       return sqlite3_result_int64(invocation, v);
     }
   } else if (value->IsString()) {
-    v8 ::String ::Utf8Value utf8(isolate, value.As<v8 ::String>());
+    v8::String ::Utf8Value utf8(isolate, value.As<v8::String>());
     return sqlite3_result_text(invocation, *utf8, utf8.length(),
                                SQLITE_TRANSIENT);
   } else if (node ::Buffer ::HasInstance(value)) {

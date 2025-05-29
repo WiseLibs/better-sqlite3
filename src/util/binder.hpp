@@ -10,7 +10,7 @@ bool IsPlainObject(v8::Isolate *isolate, v8::Local<v8::Object> obj);
 class Binder {
 public:
   explicit Binder(sqlite3_stmt *_handle);
-  bool Bind(v8::FunctionCallbackInfo<v8 ::Value> const &info, int argc,
+  bool Bind(v8::FunctionCallbackInfo<v8::Value> const &info, int argc,
             Statement *stmt);
 
 private:
@@ -24,7 +24,7 @@ private:
   int BindArray(v8::Isolate *isolate, v8::Local<v8::Array> arr);
   int BindObject(v8::Isolate *isolate, v8::Local<v8::Object> obj,
                  Statement *stmt);
-  Result BindArgs(v8::FunctionCallbackInfo<v8 ::Value> const &info, int argc,
+  Result BindArgs(v8::FunctionCallbackInfo<v8::Value> const &info, int argc,
                   Statement *stmt);
   sqlite3_stmt *handle;
   int param_count;

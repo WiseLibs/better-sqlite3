@@ -10,8 +10,8 @@ class Backup;
 
 class Database : public node::ObjectWrap {
 public:
-  static v8::Local<v8 ::Function> Init(v8::Isolate *isolate,
-                                       v8::Local<v8 ::External> data);
+  static v8::Local<v8::Function> Init(v8::Isolate *isolate,
+                                      v8::Local<v8::External> data);
   class CompareDatabase {
   public:
     bool operator()(Database const *const a, Database const *const b) const;
@@ -51,25 +51,23 @@ public:
 private:
   explicit Database(v8::Isolate *isolate, Addon *addon, sqlite3 *db_handle,
                     v8::Local<v8::Value> logger);
-  static void JS_new(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_prepare(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_exec(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_backup(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_serialize(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_function(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_aggregate(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_table(v8::FunctionCallbackInfo<v8 ::Value> const &info);
+  static void JS_new(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_prepare(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_exec(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_backup(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_serialize(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_function(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_aggregate(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_table(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_loadExtension(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_close(v8::FunctionCallbackInfo<v8::Value> const &info);
   static void
-  JS_loadExtension(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_close(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void
-  JS_defaultSafeIntegers(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_unsafeMode(v8::FunctionCallbackInfo<v8 ::Value> const &info);
-  static void JS_open(v8::Local<v8 ::Name> _,
-                      v8::PropertyCallbackInfo<v8 ::Value> const &info);
-  static void
-  JS_inTransaction(v8::Local<v8 ::Name> _,
-                   v8::PropertyCallbackInfo<v8 ::Value> const &info);
+  JS_defaultSafeIntegers(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_unsafeMode(v8::FunctionCallbackInfo<v8::Value> const &info);
+  static void JS_open(v8::Local<v8::Name> _,
+                      v8::PropertyCallbackInfo<v8::Value> const &info);
+  static void JS_inTransaction(v8::Local<v8::Name> _,
+                               v8::PropertyCallbackInfo<v8::Value> const &info);
   static bool Deserialize(v8::Local<v8::Object> buffer, Addon *addon,
                           sqlite3 *db_handle, bool readonly);
   static void FreeSerialization(char *data, void *_);
@@ -108,9 +106,11 @@ LZZ_INLINE void Database::RemoveBackup(Backup *backup) {
 }
 LZZ_INLINE Database::State *Database::GetState() {
   // Cast Database members to State struct - members layout must match exactly
-  // State: {open, busy, safe_ints, unsafe_mode, was_js_error, has_logger, iterators, addon}
-  // This relies on the fact that Database members from 'open' onwards have identical layout to State
-  static_assert(std::is_standard_layout_v<State>, "State must have standard layout for safe casting");
+  // State: {open, busy, safe_ints, unsafe_mode, was_js_error, has_logger,
+  // iterators, addon} This relies on the fact that Database members from 'open'
+  // onwards have identical layout to State
+  static_assert(std::is_standard_layout_v<State>,
+                "State must have standard layout for safe casting");
   return reinterpret_cast<State *>(&open);
 }
 LZZ_INLINE sqlite3 *Database::GetHandle() { return db_handle; }
