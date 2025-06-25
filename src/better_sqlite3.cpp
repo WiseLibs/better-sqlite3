@@ -76,6 +76,62 @@ NODE_MODULE_INIT(/* exports, context */) {
 	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
 	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
 
+	// Export sqlite3 metadata
+	v8::Local<v8::Object> metadata = v8::Object::New(isolate);
+	exports->Set(context, InternalizedFromLatin1(isolate, "metadata"), metadata).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_READONLY"), v8::Integer::New(isolate, SQLITE_OPEN_READONLY)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_READWRITE"), v8::Integer::New(isolate, SQLITE_OPEN_READWRITE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_CREATE"), v8::Integer::New(isolate, SQLITE_OPEN_CREATE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_FULLMUTEX"), v8::Integer::New(isolate, SQLITE_OPEN_FULLMUTEX)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_URI"), v8::Integer::New(isolate, SQLITE_OPEN_URI)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_SHAREDCACHE"), v8::Integer::New(isolate, SQLITE_OPEN_SHAREDCACHE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_PRIVATECACHE"), v8::Integer::New(isolate, SQLITE_OPEN_PRIVATECACHE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_VERSION"), v8::String::NewFromUtf8(isolate, SQLITE_VERSION).ToLocalChecked()).FromJust();
+	#ifdef SQLITE_SOURCE_ID
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_SOURCE_ID"), v8::String::NewFromUtf8(isolate, SQLITE_SOURCE_ID).ToLocalChecked()).FromJust();
+	#endif
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_VERSION_NUMBER"), v8::Integer::New(isolate, SQLITE_VERSION_NUMBER)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OPEN_READWRITE"), v8::Integer::New(isolate, SQLITE_OPEN_READWRITE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_OK"), v8::Integer::New(isolate, SQLITE_OK)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_ERROR"), v8::Integer::New(isolate, SQLITE_ERROR)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_INTERNAL"), v8::Integer::New(isolate, SQLITE_INTERNAL)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_PERM"), v8::Integer::New(isolate, SQLITE_PERM)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_ABORT"), v8::Integer::New(isolate, SQLITE_ABORT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_BUSY"), v8::Integer::New(isolate, SQLITE_BUSY)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LOCKED"), v8::Integer::New(isolate, SQLITE_LOCKED)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_NOMEM"), v8::Integer::New(isolate, SQLITE_NOMEM)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_READONLY"), v8::Integer::New(isolate, SQLITE_READONLY)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_INTERRUPT"), v8::Integer::New(isolate, SQLITE_INTERRUPT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_IOERR"), v8::Integer::New(isolate, SQLITE_IOERR)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_CORRUPT"), v8::Integer::New(isolate, SQLITE_CORRUPT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_NOTFOUND"), v8::Integer::New(isolate, SQLITE_NOTFOUND)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_FULL"), v8::Integer::New(isolate, SQLITE_FULL)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_CANTOPEN"), v8::Integer::New(isolate, SQLITE_CANTOPEN)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_PROTOCOL"), v8::Integer::New(isolate, SQLITE_PROTOCOL)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_EMPTY"), v8::Integer::New(isolate, SQLITE_EMPTY)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_SCHEMA"), v8::Integer::New(isolate, SQLITE_SCHEMA)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_TOOBIG"), v8::Integer::New(isolate, SQLITE_TOOBIG)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_CONSTRAINT"), v8::Integer::New(isolate, SQLITE_CONSTRAINT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_MISMATCH"), v8::Integer::New(isolate, SQLITE_MISMATCH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_MISUSE"), v8::Integer::New(isolate, SQLITE_MISUSE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_NOLFS"), v8::Integer::New(isolate, SQLITE_NOLFS)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_AUTH"), v8::Integer::New(isolate, SQLITE_AUTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_FORMAT"), v8::Integer::New(isolate, SQLITE_FORMAT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_RANGE"), v8::Integer::New(isolate, SQLITE_RANGE)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_NOTADB"), v8::Integer::New(isolate, SQLITE_NOTADB)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_LENGTH"), v8::Integer::New(isolate, SQLITE_LIMIT_LENGTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_SQL_LENGTH"), v8::Integer::New(isolate, SQLITE_LIMIT_SQL_LENGTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_COLUMN"), v8::Integer::New(isolate, SQLITE_LIMIT_COLUMN)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_EXPR_DEPTH"), v8::Integer::New(isolate, SQLITE_LIMIT_EXPR_DEPTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_COMPOUND_SELECT"), v8::Integer::New(isolate, SQLITE_LIMIT_COMPOUND_SELECT)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_VDBE_OP"), v8::Integer::New(isolate, SQLITE_LIMIT_VDBE_OP)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_FUNCTION_ARG"), v8::Integer::New(isolate, SQLITE_LIMIT_FUNCTION_ARG)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_ATTACHED"), v8::Integer::New(isolate, SQLITE_LIMIT_ATTACHED)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_LIKE_PATTERN_LENGTH"), v8::Integer::New(isolate, SQLITE_LIMIT_LIKE_PATTERN_LENGTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_VARIABLE_NUMBER"), v8::Integer::New(isolate, SQLITE_LIMIT_VARIABLE_NUMBER)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_TRIGGER_DEPTH"), v8::Integer::New(isolate, SQLITE_LIMIT_TRIGGER_DEPTH)).FromJust();
+	metadata->Set(context, InternalizedFromLatin1(isolate, "SQLITE_LIMIT_WORKER_THREADS"), v8::Integer::New(isolate, SQLITE_LIMIT_WORKER_THREADS)).FromJust();
+
 	// Store addon instance data.
 	addon->Statement.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked().As<v8::Function>());
 	addon->StatementIterator.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked().As<v8::Function>());
