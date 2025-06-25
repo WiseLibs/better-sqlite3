@@ -38,3 +38,16 @@ exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
 		}
 	});
 };
+
+exports['node:sqlite'] = (db, { table, columns }) => {
+	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
+	const row = Object.assign({}, ...Object.entries(db.prepare(`SELECT * FROM ${table} LIMIT 1`).get())
+		.filter(([k]) => columns.includes(k))
+		.map(([k, v]) => ({ ['@' + k]: v })));
+	return () => {
+		const stmt = db.prepare(sql);
+		db.exec(`BEGIN`);
+		for (let i = 0; i < 100; ++i) stmt.run(row);
+		db.exec(`COMMIT`);
+	}
+};
