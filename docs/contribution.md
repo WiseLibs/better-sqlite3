@@ -52,11 +52,13 @@ If you've never written a native addon for Node.js before, you should start by r
 
 #### C++
 
-The C++ code in `better-sqlite3` is written using a tool called [`lzz`](https://github.com/WiseLibs/lzz), which alleviates the programmer from needing to write header files. If you plan on changing any C++ code, you'll need to edit `*.lzz` files and then re-compile them into `*.cpp` and `*.hpp` by running `npm run lzz` (while the `lzz` executable is in your PATH). You can learn how to download and install `lzz` [here](https://github.com/WiseLibs/lzz).
+The C++ code in `better-sqlite3` uses standard C++ source files (`.cpp`) and header files (`.hpp`). The codebase is organized into modular components under `src/objects/` (core classes like Database, Statement) and `src/util/` (utilities and type conversion). When making C++ changes, edit the appropriate `.cpp` and `.hpp` files directly, then build with `npm run build-release`.
 
 #### Style guide
 
-There is currently no linter or style guide associated with `better-sqlite3` (this may change in the future). For now, just try to match the style of existing code as much as possible. Code owners will reject your PR or rewrite your changes if they feel that you've used a coding style that doesn't match the existing code. Although the rules aren't layed out formally, you are expected to adhere to them by using your eyeballs.
+There is currently no linter or style guide associated with `better-sqlite3` (this may change in the future). For now, just try to match the style of existing code as much as possible. Code owners will reject your PR or rewrite your changes if they feel that you've used a coding style that doesn't match the existing code. Although the rules aren't laid out formally, you are expected to adhere to them by using your eyeballs.
+
+For C++ code formatting, you can use `npm run fmt` to run `clang-format` on all C++ source files, which will automatically format your code according to the project's formatting standards.
 
 #### Testing
 
