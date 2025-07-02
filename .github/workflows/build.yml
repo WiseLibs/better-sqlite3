@@ -29,7 +29,7 @@ jobs:
           - ubuntu-22.04
           - macos-13
           - macos-14
-          - windows-2019
+          - windows-2022
         node:
           - 20
           - 22
@@ -91,7 +91,7 @@ jobs:
         os:
           - macos-13
           - macos-14
-          - windows-2019
+          - windows-2022
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: test
@@ -107,7 +107,7 @@ jobs:
       - run: npm install --ignore-scripts
       - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
-      - if: matrix.os == 'windows-2019'
+      - if: matrix.os == 'windows-2022'
         run: |
           ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
