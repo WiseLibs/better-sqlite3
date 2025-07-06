@@ -834,7 +834,7 @@ BindMap * Statement::GetBindMap (v8::Isolate * isolate)
                 int param_count = sqlite3_bind_parameter_count(handle);
                 for (int i = 1; i <= param_count; ++i) {
                         const char* name = sqlite3_bind_parameter_name(handle, i);
-                        if (name != NULL) bind_map->Add(isolate, name + 1, i);
+                        if (name != NULL && name[0] != '?') bind_map->Add(isolate, name + 1, i);
                 }
                 has_bind_map = true;
                 return bind_map;
@@ -2032,15 +2032,22 @@ void Binder::Fail (void (* Throw) (char const *), char const * message)
                 success = false;
 }
 #line 63 "./src/util/binder.lzz"
-int Binder::NextAnonIndex ()
+bool Binder::IsAnonIndex (int index)
 #line 63 "./src/util/binder.lzz"
+                                    {
+                const char* name = sqlite3_bind_parameter_name(handle, index);
+                return name == NULL || name[0] == '?';
+}
+#line 68 "./src/util/binder.lzz"
+int Binder::NextAnonIndex ()
+#line 68 "./src/util/binder.lzz"
                             {
-                while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+                while (!IsAnonIndex(++anon_index)) {}
                 return anon_index;
 }
-#line 69 "./src/util/binder.lzz"
+#line 74 "./src/util/binder.lzz"
 void Binder::BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int index)
-#line 69 "./src/util/binder.lzz"
+#line 74 "./src/util/binder.lzz"
                                                                                     {
                 int status = Data::BindValueFromJS(isolate, handle, index, value);
                 if (status != SQLITE_OK) {
@@ -2059,9 +2066,9 @@ void Binder::BindValue (v8::Isolate * isolate, v8::Local <v8::Value> value, int 
                         assert(false);
                 }
 }
-#line 90 "./src/util/binder.lzz"
+#line 95 "./src/util/binder.lzz"
 int Binder::BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr)
-#line 90 "./src/util/binder.lzz"
+#line 95 "./src/util/binder.lzz"
                                                                       {
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 uint32_t length = arr->Length();
@@ -2083,9 +2090,9 @@ int Binder::BindArray (v8::Isolate * isolate, v8::Local <v8::Array> arr)
                 }
                 return len;
 }
-#line 116 "./src/util/binder.lzz"
+#line 121 "./src/util/binder.lzz"
 int Binder::BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, Statement * stmt)
-#line 116 "./src/util/binder.lzz"
+#line 121 "./src/util/binder.lzz"
                                                                                          {
                 v8 :: Local < v8 :: Context > ctx = isolate -> GetCurrentContext ( ) ;
                 BindMap* bind_map = stmt->GetBindMap(isolate);
@@ -2122,9 +2129,9 @@ int Binder::BindObject (v8::Isolate * isolate, v8::Local <v8::Object> obj, State
 
                 return len;
 }
-#line 160 "./src/util/binder.lzz"
+#line 165 "./src/util/binder.lzz"
 Binder::Result Binder::BindArgs (v8::FunctionCallbackInfo <v8 :: Value> const & info, int argc, Statement * stmt)
-#line 160 "./src/util/binder.lzz"
+#line 165 "./src/util/binder.lzz"
                                                                         {
                 v8 :: Isolate * isolate = info . GetIsolate ( ) ;
                 int count = 0;
