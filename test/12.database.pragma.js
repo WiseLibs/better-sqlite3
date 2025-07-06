@@ -62,4 +62,10 @@ describe('Database#pragma()', function () {
 	it('should return undefined if no rows exist and simpler results are desired', function () {
 		expect(this.db.pragma('table_info', { simple: true })).to.be.undefined;
 	});
+	// Added for issue: https://github.com/WiseLibs/better-sqlite3/issues/1021
+	it('should return sqlite3 compile_options', function () {
+		const compileOptionRows = this.db.pragma('compile_options')
+		const compileOption = compileOptionRows.map((x) => x.compile_options)
+		expect(compileOption).to.have.length(57)
+	});
 });
