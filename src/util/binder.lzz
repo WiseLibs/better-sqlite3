@@ -61,7 +61,8 @@ private:
 	}
 
 	int NextAnonIndex() {
-		while (sqlite3_bind_parameter_name(handle, ++anon_index) != NULL) {}
+		const char* name;
+		while ((name = sqlite3_bind_parameter_name(handle, ++anon_index)) != NULL && name[0] != '?') {}
 		return anon_index;
 	}
 
