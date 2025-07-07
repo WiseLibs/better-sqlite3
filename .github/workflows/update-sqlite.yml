@@ -35,7 +35,7 @@ jobs:
       - name: Download, compile and package SQLite
         run: npm run download
       - name: Push update branch
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Update SQLite to version ${{ env.ENV_TRUE_VERSION }}
           branch: sqlite-update-${{ env.ENV_VERSION }}
