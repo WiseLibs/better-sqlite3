@@ -363,7 +363,7 @@ NODE_METHOD(Statement::JS_columns) {
 		);
 		columns.emplace_back(
 			v8::Object::New(isolate,
-				v8::Null(isolate),
+				v8::Object::New(isolate)->GetPrototype(),
 				keys.data(),
 				values.data(),
 				keys.size()

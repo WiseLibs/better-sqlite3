@@ -33,7 +33,7 @@ public:
 		}
 
 		return v8::Object::New(isolate,
-			v8::Null(isolate),
+			v8::Object::New(isolate)->GetPrototype(),
 			keys.data(),
 			values.data(),
 			column_count

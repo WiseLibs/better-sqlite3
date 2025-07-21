@@ -15,6 +15,22 @@ struct Addon {
 		return next_id++;
 	}
 
+	static void ConfigureURI() {
+		static std::once_flag init_flag;
+		std::call_once(init_flag, [](){
+			const char* env = getenv("SQLITE_USE_URI");
+			if (env != NULL) {
+				if (strcmp(env, "1") == 0) {
+					int status = sqlite3_config(SQLITE_CONFIG_URI, 1);
+					assert(status == SQLITE_OK); ((void)status);
+				} else if (strcmp(env, "0") == 0) {
+					int status = sqlite3_config(SQLITE_CONFIG_URI, 0);
+					assert(status == SQLITE_OK); ((void)status);
+				}
+			}
+		});
+	}
+
 	static NODE_METHOD(JS_setErrorConstructor) {
 		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> SqliteError);
 		OnlyAddon->SqliteError.Reset(OnlyIsolate, SqliteError);

@@ -6,6 +6,7 @@
 #include <set>
 #include <unordered_map>
 #include <algorithm>
+#include <mutex>
 #include <sqlite3.h>
 #include <node.h>
 #include <node_object_wrap.h>
@@ -47,6 +48,7 @@ class Backup;
 NODE_MODULE_INIT(/* exports, context */) {
 	v8::Isolate* isolate = context->GetIsolate();
 	v8::HandleScope scope(isolate);
+	Addon::ConfigureURI();
 
 	// Initialize addon instance.
 	Addon* addon = new Addon(isolate);

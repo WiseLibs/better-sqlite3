@@ -173,9 +173,9 @@ NODE_METHOD(Database::JS_new) {
 	sqlite3_limit(db_handle, SQLITE_LIMIT_LENGTH, MAX_BUFFER_SIZE < MAX_STRING_SIZE ? MAX_BUFFER_SIZE : MAX_STRING_SIZE);
 	sqlite3_limit(db_handle, SQLITE_LIMIT_SQL_LENGTH, MAX_STRING_SIZE);
 	int status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, NULL);
-	assert(status == SQLITE_OK);
+	assert(status == SQLITE_OK); ((void)status);
 	status = sqlite3_db_config(db_handle, SQLITE_DBCONFIG_DEFENSIVE, 1, NULL);
-	assert(status == SQLITE_OK);
+	assert(status == SQLITE_OK); ((void)status);
 
 	if (node::Buffer::HasInstance(buffer) && !Deserialize(buffer.As<v8::Object>(), addon, db_handle, readonly)) {
 		int status = sqlite3_close(db_handle);
