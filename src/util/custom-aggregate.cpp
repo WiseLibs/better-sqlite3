@@ -83,7 +83,7 @@ private:
 		v8::Global<v8::Value> value;
 		bool initialized;
 		bool is_window;
-	}
+	};
 
 	Accumulator* GetAccumulator(sqlite3_context* invocation) {
 		Accumulator* acc = static_cast<Accumulator*>(sqlite3_aggregate_context(invocation, sizeof(Accumulator)));

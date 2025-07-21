@@ -52,11 +52,11 @@ If you've never written a native addon for Node.js before, you should start by r
 
 #### C++
 
-The C++ code in `better-sqlite3` is written using a tool called [`lzz`](https://github.com/WiseLibs/lzz), which alleviates the programmer from needing to write header files. If you plan on changing any C++ code, you'll need to edit `*.lzz` files and then re-compile them into `*.cpp` and `*.hpp` by running `npm run lzz` (while the `lzz` executable is in your PATH). You can learn how to download and install `lzz` [here](https://github.com/WiseLibs/lzz).
+The C++ code in `better-sqlite3` uses standard C++ source files (`.cpp`) and header files (`.hpp`). All source files and header files are compiled into a single translation unit (i.e., a ["unity build"](https://en.wikipedia.org/wiki/Unity_build)). Compared to linking many small translation units, this method improves the compiler's ability to optimize code, and enhances compilation speed.
 
 #### Style guide
 
-There is currently no linter or style guide associated with `better-sqlite3` (this may change in the future). For now, just try to match the style of existing code as much as possible. Code owners will reject your PR or rewrite your changes if they feel that you've used a coding style that doesn't match the existing code. Although the rules aren't layed out formally, you are expected to adhere to them by using your eyeballs.
+There is currently no linter or style guide associated with `better-sqlite3` (this may change in the future). For now, just try to match the style of existing code as much as possible. Code owners will reject your PR or rewrite your changes if they feel that you've used a coding style that doesn't match the existing code. Although the rules aren't laid out formally, you are expected to adhere to them by using your eyeballs.
 
 #### Testing
 

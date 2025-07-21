@@ -17,59 +17,8 @@ public:
 		delete static_cast<CustomTable*>(self);
 	}
 
-	static sqlite3_module MODULE = {
-		0,                            /* iVersion */
-		xCreate,                      /* xCreate */
-		xConnect,                     /* xConnect */
-		xBestIndex,                   /* xBestIndex */
-		xDisconnect,                  /* xDisconnect */
-		xDisconnect,                  /* xDestroy */
-		xOpen,                        /* xOpen */
-		xClose,                       /* xClose */
-		xFilter,                      /* xFilter */
-		xNext,                        /* xNext */
-		xEof,                         /* xEof */
-		xColumn,                      /* xColumn */
-		xRowid,                       /* xRowid */
-		NULL,                         /* xUpdate */
-		NULL,                         /* xBegin */
-		NULL,                         /* xSync */
-		NULL,                         /* xCommit */
-		NULL,                         /* xRollback */
-		NULL,                         /* xFindMethod */
-		NULL,                         /* xRename */
-		NULL,                         /* xSavepoint */
-		NULL,                         /* xRelease */
-		NULL,                         /* xRollbackTo */
-		NULL                          /* xShadowName */
-	};
-
-	static sqlite3_module EPONYMOUS_MODULE = {
-		0,                            /* iVersion */
-		NULL,                         /* xCreate */
-		xConnect,                     /* xConnect */
-		xBestIndex,                   /* xBestIndex */
-		xDisconnect,                  /* xDisconnect */
-		xDisconnect,                  /* xDestroy */
-		xOpen,                        /* xOpen */
-		xClose,                       /* xClose */
-		xFilter,                      /* xFilter */
-		xNext,                        /* xNext */
-		xEof,                         /* xEof */
-		xColumn,                      /* xColumn */
-		xRowid,                       /* xRowid */
-		NULL,                         /* xUpdate */
-		NULL,                         /* xBegin */
-		NULL,                         /* xSync */
-		NULL,                         /* xCommit */
-		NULL,                         /* xRollback */
-		NULL,                         /* xFindMethod */
-		NULL,                         /* xRename */
-		NULL,                         /* xSavepoint */
-		NULL,                         /* xRelease */
-		NULL,                         /* xRollbackTo */
-		NULL                          /* xShadowName */
-	};
+	static sqlite3_module MODULE;
+	static sqlite3_module EPONYMOUS_MODULE;
 
 private:
 
@@ -401,4 +350,60 @@ private:
 	Database* const db;
 	const std::string name;
 	const v8::Global<v8::Function> factory;
+};
+
+sqlite3_module CustomTable::MODULE = {
+	0,                            /* iVersion */
+	xCreate,                      /* xCreate */
+	xConnect,                     /* xConnect */
+	xBestIndex,                   /* xBestIndex */
+	xDisconnect,                  /* xDisconnect */
+	xDisconnect,                  /* xDestroy */
+	xOpen,                        /* xOpen */
+	xClose,                       /* xClose */
+	xFilter,                      /* xFilter */
+	xNext,                        /* xNext */
+	xEof,                         /* xEof */
+	xColumn,                      /* xColumn */
+	xRowid,                       /* xRowid */
+	NULL,                         /* xUpdate */
+	NULL,                         /* xBegin */
+	NULL,                         /* xSync */
+	NULL,                         /* xCommit */
+	NULL,                         /* xRollback */
+	NULL,                         /* xFindMethod */
+	NULL,                         /* xRename */
+	NULL,                         /* xSavepoint */
+	NULL,                         /* xRelease */
+	NULL,                         /* xRollbackTo */
+	NULL,                         /* xShadowName */
+	NULL                          /* xIntegrity */
+};
+
+sqlite3_module CustomTable::EPONYMOUS_MODULE = {
+	0,                            /* iVersion */
+	NULL,                         /* xCreate */
+	xConnect,                     /* xConnect */
+	xBestIndex,                   /* xBestIndex */
+	xDisconnect,                  /* xDisconnect */
+	xDisconnect,                  /* xDestroy */
+	xOpen,                        /* xOpen */
+	xClose,                       /* xClose */
+	xFilter,                      /* xFilter */
+	xNext,                        /* xNext */
+	xEof,                         /* xEof */
+	xColumn,                      /* xColumn */
+	xRowid,                       /* xRowid */
+	NULL,                         /* xUpdate */
+	NULL,                         /* xBegin */
+	NULL,                         /* xSync */
+	NULL,                         /* xCommit */
+	NULL,                         /* xRollback */
+	NULL,                         /* xFindMethod */
+	NULL,                         /* xRename */
+	NULL,                         /* xSavepoint */
+	NULL,                         /* xRelease */
+	NULL,                         /* xRollbackTo */
+	NULL,                         /* xShadowName */
+	NULL                          /* xIntegrity */
 };
