@@ -86,24 +86,12 @@ void SetPrototypeGetter(
 	v8::AccessorNameGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
-
-	#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
-	recv->InstanceTemplate()->SetAccessor(
-		InternalizedFromLatin1(isolate, name),
-		func,
-		0,
-		data,
-		v8::AccessControl::DEFAULT,
-		v8::PropertyAttribute::None
-	);
-	#else
 	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
 		data
 	);
-	#endif
 }
 
 #if defined(V8_ENABLE_SANDBOX)

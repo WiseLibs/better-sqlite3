@@ -1,11 +1,7 @@
 #define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
 #define NODE_ARGUMENTS_POINTER const v8::FunctionCallbackInfo<v8::Value>*
 #define NODE_METHOD(name) void name(NODE_ARGUMENTS info)
-#if defined NODE_MODULE_VERSION && NODE_MODULE_VERSION < 121
-#define NODE_GETTER(name) void name(v8::Local<v8::String> _, const v8::PropertyCallbackInfo<v8::Value>& info)
-#else
 #define NODE_GETTER(name) void name(v8::Local<v8::Name> _, const v8::PropertyCallbackInfo<v8::Value>& info)
-#endif
 #define INIT(name) v8::Local<v8::Function> name(v8::Isolate* isolate, v8::Local<v8::External> data)
 
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
