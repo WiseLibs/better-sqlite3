@@ -3,7 +3,7 @@ exports.readonly = false; // Inserting 100 rows in a single transaction
 
 exports['better-sqlite3'] = (db, { table, columns }) => {
 	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);
-	const row = db.prepare(`SELECT * FROM ${table} LIMIT 1`).get();
+	const row = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} LIMIT 1`).get();
 	const trx = db.transaction((row) => {
 		for (let i = 0; i < 100; ++i) stmt.run(row);
 	});
@@ -12,7 +12,7 @@ exports['better-sqlite3'] = (db, { table, columns }) => {
 
 exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
 	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
-	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT * FROM ${table} LIMIT 1`))
+	const row = Object.assign({}, ...Object.entries(await db.get(`SELECT ${columns.join(', ')} FROM ${table} LIMIT 1`))
 		.filter(([k]) => columns.includes(k))
 		.map(([k, v]) => ({ ['@' + k]: v })));
 	const open = require('../drivers').get(driver);
@@ -40,14 +40,16 @@ exports['node-sqlite3'] = async (db, { table, columns, driver, pragma }) => {
 };
 
 exports['node:sqlite'] = (db, { table, columns }) => {
-	const sql = `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`;
-	const row = Object.assign({}, ...Object.entries(db.prepare(`SELECT * FROM ${table} LIMIT 1`).get())
-		.filter(([k]) => columns.includes(k))
-		.map(([k, v]) => ({ ['@' + k]: v })));
+	const stmt = db.prepare(`INSERT INTO ${table} (${columns.join(', ')}) VALUES (${columns.map(x => '@' + x).join(', ')})`);
+	const row = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} LIMIT 1`).get();
 	return () => {
-		const stmt = db.prepare(sql);
-		db.exec(`BEGIN`);
-		for (let i = 0; i < 100; ++i) stmt.run(row);
-		db.exec(`COMMIT`);
+		db.exec('BEGIN');
+		try {
+			for (let i = 0; i < 100; ++i) stmt.run(row);
+			db.exec('COMMIT');
+		} catch (err) {
+			db.isTransaction && db.exec('ROLLBACK');
+			throw err;
+		}
 	}
 };

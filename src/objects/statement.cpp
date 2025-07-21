@@ -180,11 +180,13 @@ NODE_METHOD(Statement::JS_get) {
 NODE_METHOD(Statement::JS_all) {
 	STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
 	UseContext;
-	v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
-	uint32_t row_count = 0;
 	const bool safe_ints = stmt->safe_ints;
 	const char mode = stmt->mode;
+
+#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 127
 	bool js_error = false;
+	uint32_t row_count = 0;
+	v8::Local<v8::Array> result = v8::Array::New(isolate, 0);
 
 	while (sqlite3_step(handle) == SQLITE_ROW) {
 		if (row_count == 0xffffffff) { ThrowRangeError("Array overflow (too many rows returned)"); js_error = true; break; }
@@ -196,6 +198,31 @@ NODE_METHOD(Statement::JS_all) {
 	}
 	if (js_error) db->GetState()->was_js_error = true;
 	STATEMENT_THROW();
+#else
+	v8::LocalVector<v8::Value> rows(isolate);
+	rows.reserve(8);
+
+	if (mode == Data::FLAT) {
+		RowBuilder rowBuilder(isolate, handle, safe_ints);
+		while (sqlite3_step(handle) == SQLITE_ROW) {
+			rows.emplace_back(rowBuilder.GetRowJS());
+		}
+	} else {
+		while (sqlite3_step(handle) == SQLITE_ROW) {
+			rows.emplace_back(Data::GetRowJS(isolate, ctx, handle, safe_ints, mode));
+		}
+	}
+
+	if (sqlite3_reset(handle) == SQLITE_OK) {
+		if (rows.size() > 0xffffffff) {
+			ThrowRangeError("Array overflow (too many rows returned)");
+			db->GetState()->was_js_error = true;
+		} else {
+			STATEMENT_RETURN(v8::Array::New(isolate, rows.data(), rows.size()));
+		}
+	}
+	STATEMENT_THROW();
+#endif
 }
 
 NODE_METHOD(Statement::JS_iterate) {
@@ -268,8 +295,9 @@ NODE_METHOD(Statement::JS_columns) {
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 	Addon* addon = stmt->db->GetAddon();
 	UseIsolate;
-	UseContext;
 
+#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 127
+	UseContext;
 	int column_count = sqlite3_column_count(stmt->handle);
 	v8::Local<v8::Array> columns = v8::Array::New(isolate);
 
@@ -302,6 +330,51 @@ NODE_METHOD(Statement::JS_columns) {
 	}
 
 	info.GetReturnValue().Set(columns);
+#else
+	v8::LocalVector<v8::Name> keys(isolate);
+	keys.reserve(5);
+	keys.emplace_back(addon->cs.name.Get(isolate).As<v8::Name>());
+	keys.emplace_back(addon->cs.column.Get(isolate).As<v8::Name>());
+	keys.emplace_back(addon->cs.table.Get(isolate).As<v8::Name>());
+	keys.emplace_back(addon->cs.database.Get(isolate).As<v8::Name>());
+	keys.emplace_back(addon->cs.type.Get(isolate).As<v8::Name>());
+
+	int column_count = sqlite3_column_count(stmt->handle);
+	v8::LocalVector<v8::Value> columns(isolate);
+	columns.reserve(column_count);
+
+	for (int i = 0; i < column_count; ++i) {
+		v8::LocalVector<v8::Value> values(isolate);
+		keys.reserve(5);
+		values.emplace_back(
+			InternalizedFromUtf8OrNull(isolate, sqlite3_column_name(stmt->handle, i), -1)
+		);
+		values.emplace_back(
+			InternalizedFromUtf8OrNull(isolate, sqlite3_column_origin_name(stmt->handle, i), -1)
+		);
+		values.emplace_back(
+			InternalizedFromUtf8OrNull(isolate, sqlite3_column_table_name(stmt->handle, i), -1)
+		);
+		values.emplace_back(
+			InternalizedFromUtf8OrNull(isolate, sqlite3_column_database_name(stmt->handle, i), -1)
+		);
+		values.emplace_back(
+			InternalizedFromUtf8OrNull(isolate, sqlite3_column_decltype(stmt->handle, i), -1)
+		);
+		columns.emplace_back(
+			v8::Object::New(isolate,
+				v8::Null(isolate),
+				keys.data(),
+				values.data(),
+				keys.size()
+			)
+		);
+	}
+
+	info.GetReturnValue().Set(
+		v8::Array::New(isolate, columns.data(), columns.size())
+	);
+#endif
 }
 
 NODE_GETTER(Statement::JS_busy) {

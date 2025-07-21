@@ -23,6 +23,9 @@ class Backup;
 #include "util/bind-map.cpp"
 #include "util/data-converter.cpp"
 #include "util/data.cpp"
+#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 127
+#include "util/row-builder.cpp"
+#endif
 
 #include "objects/backup.hpp"
 #include "objects/statement.hpp"

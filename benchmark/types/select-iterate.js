@@ -23,17 +23,9 @@ exports['node-sqlite3'] = async (db, { table, columns, count }) => {
 };
 
 exports['node:sqlite'] = (db, { table, columns, count }) => {
-	const sql = `SELECT ${columns.join(', ')} FROM ${table} WHERE rowid >= ? LIMIT 100`;
+	const stmt = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} WHERE rowid >= ? LIMIT 100`);
 	let rowid = -100;
-
-	if (!("iterate" in require("node:sqlite").StatementSync.prototype)) {
-		// Error: StatementSync.iterate is not a function (added in Node v23.4.0+)
-		return () => {};
-	}
-
 	return () => {
-		// Error: statement has been finalized
-		// for (const row of db.prepare(sql).iterate((rowid += 100) % count + 1)) {}
-		return () => {};
+		for (const row of stmt.iterate((rowid += 100) % count + 1)) {}
 	};
 };

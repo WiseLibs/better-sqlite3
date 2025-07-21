@@ -14,10 +14,7 @@ exports['node-sqlite3'] = async (db, { table, columns, count }) => {
 };
 
 exports['node:sqlite'] = (db, { table, columns, count }) => {
-	const sql = `SELECT ${columns.join(', ')} FROM ${table} WHERE rowid = ?`;
+	const stmt = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} WHERE rowid = ?`);
 	let rowid = -1;
-	return () => {
-		const stmt = db.prepare(sql);
-		return stmt.get(++rowid % count + 1);
-	}
+	return () => stmt.get(++rowid % count + 1);
 };

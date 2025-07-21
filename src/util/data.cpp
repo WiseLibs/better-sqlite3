@@ -77,17 +77,6 @@ namespace Data {
 		SQLITE_VALUE_TO_JS(value, isolate, safe_ints, value);
 	}
 
-	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		v8::Local<v8::Object> row = v8::Object::New(isolate);
-		int column_count = sqlite3_column_count(handle);
-		for (int i = 0; i < column_count; ++i) {
-			row->Set(ctx,
-				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
-				Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
-		}
-		return row;
-	}
-
 	v8::Local<v8::Value> GetExpandedRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
 		v8::Local<v8::Object> row = v8::Object::New(isolate);
 		int column_count = sqlite3_column_count(handle);
@@ -103,6 +92,20 @@ namespace Data {
 				row->Set(ctx, table, nested).FromJust();
 				nested->Set(ctx, column, value).FromJust();
 			}
+		}
+		return row;
+	}
+
+#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 127
+
+	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
+		v8::Local<v8::Object> row = v8::Object::New(isolate);
+		int column_count = sqlite3_column_count(handle);
+		for (int i = 0; i < column_count; ++i) {
+			row->Set(ctx,
+				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
+				Data::GetValueJS(isolate, handle, i, safe_ints)
+			).FromJust();
 		}
 		return row;
 	}
@@ -124,6 +127,52 @@ namespace Data {
 		assert(false);
 		return v8::Local<v8::Value>();
 	}
+
+#else
+
+	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, sqlite3_stmt* handle, bool safe_ints) {
+		int column_count = sqlite3_column_count(handle);
+		v8::LocalVector<v8::Name> keys(isolate);
+		v8::LocalVector<v8::Value> values(isolate);
+		keys.reserve(column_count);
+		values.reserve(column_count);
+		for (int i = 0; i < column_count; ++i) {
+			keys.emplace_back(
+				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1).As<v8::Name>()
+			);
+			values.emplace_back(
+				Data::GetValueJS(isolate, handle, i, safe_ints)
+			);
+		}
+		return v8::Object::New(
+			isolate,
+			v8::Null(isolate),
+			keys.data(),
+			values.data(),
+			column_count
+		);
+	}
+
+	v8::Local<v8::Value> GetRawRowJS(v8::Isolate* isolate, sqlite3_stmt* handle, bool safe_ints) {
+		int column_count = sqlite3_column_count(handle);
+		v8::LocalVector<v8::Value> row(isolate);
+		row.reserve(column_count);
+		for (int i = 0; i < column_count; ++i) {
+			row.emplace_back(Data::GetValueJS(isolate, handle, i, safe_ints));
+		}
+		return v8::Array::New(isolate, row.data(), row.size());
+	}
+
+	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints, char mode) {
+		if (mode == FLAT) return GetFlatRowJS(isolate, handle, safe_ints);
+		if (mode == PLUCK) return GetValueJS(isolate, handle, 0, safe_ints);
+		if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
+		if (mode == RAW) return GetRawRowJS(isolate, handle, safe_ints);
+		assert(false);
+		return v8::Local<v8::Value>();
+	}
+
+#endif
 
 	void GetArgumentsJS(v8::Isolate* isolate, v8::Local<v8::Value>* out, sqlite3_value** values, int argument_count, bool safe_ints) {
 		assert(argument_count > 0);

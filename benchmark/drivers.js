@@ -18,13 +18,19 @@ module.exports = new Map([
 		for (const str of pragma) await db.run(`PRAGMA ${str}`);
 		return db;
 	}],
+	...!moduleExists('node:sqlite') ? [] : [
+		['node:sqlite', async (filename, pragma) => {
+			const db = new (require('node:sqlite').DatabaseSync)(filename);
+			for (const str of pragma) db.exec(`PRAGMA ${str}`);
+			return db;
+		}]
+	],
 ]);
 
-const moduleExists = (m) => { try { return require.resolve(m); } catch (e) {} };
-if (moduleExists('node:sqlite')) {
-	module.exports.set('node:sqlite', async (filename, pragma) => {
-		const db = new (require('node:sqlite').DatabaseSync)(filename, {open: true});
-		for (const str of pragma) db.exec(`PRAGMA ${str}`);
-		return db;
-	});
-}
+function moduleExists(moduleName) {
+	try {
+		return !!(require.resolve(moduleName));
+	} catch (_) {
+		return false;
+	}
+};
