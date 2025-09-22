@@ -11,7 +11,7 @@
   "main": "lib/index.js",
   "files": [
     "binding.gyp",
-    "src/*.[ch]pp",
+    "src/**/*.[ch]pp",
     "lib/**",
     "deps/**"
   ],
