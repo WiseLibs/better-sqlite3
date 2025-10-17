@@ -32,7 +32,7 @@ The fastest and simplest library for SQLite in Node.js.
 npm install better-sqlite3
 ```
 
-> Requires Node.js v14.21.1 or later. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/). If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
+> Requires Node.js v20.0.0 or later. Prebuilt binaries are available for [LTS versions](https://nodejs.org/en/about/releases/). If you have trouble installing, check the [troubleshooting guide](./docs/troubleshooting.md).
 
 ## Usage
 
