@@ -46,7 +46,12 @@ class Backup;
 #include "objects/statement-iterator.cpp"
 
 NODE_MODULE_INIT(/* exports, context */) {
+    #if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 140
+    // Use Isolate::GetCurrent as statet in deprecation message within v8_context.h 13.9.72320122
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	#else
 	v8::Isolate* isolate = context->GetIsolate();
+	#endif
 	v8::HandleScope scope(isolate);
 	Addon::ConfigureURI();
 
