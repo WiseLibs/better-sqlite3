@@ -12,6 +12,44 @@
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 
+// Utilities that smooth over V8 API changes between Node/V8 versions.
+namespace {
+
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+inline v8::Local<v8::Value> GetPrototypeCompat(
+	v8::Isolate* isolate,
+	v8::Local<v8::Context> context,
+	v8::Local<v8::Object> object
+) {
+	v8::Local<v8::Value> prototype;
+	if (!object->GetPrototype(context).ToLocal(&prototype)) {
+		return v8::Null(isolate);
+	}
+	return prototype;
+}
+#else
+inline v8::Local<v8::Value> GetPrototypeCompat(
+	v8::Isolate* /*isolate*/,
+	v8::Local<v8::Context> /*context*/,
+	v8::Local<v8::Object> object
+) {
+	return object->GetPrototype();
+}
+#endif
+
+inline v8::Local<v8::Value> GetPrototypeCompat(
+	v8::Isolate* isolate,
+	v8::Local<v8::Object> object
+) {
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+	return GetPrototypeCompat(isolate, isolate->GetCurrentContext(), object);
+#else
+	return object->GetPrototype();
+#endif
+}
+
+} // namespace
+
 struct Addon;
 class Database;
 class Statement;
@@ -46,7 +84,12 @@ class Backup;
 #include "objects/statement-iterator.cpp"
 
 NODE_MODULE_INIT(/* exports, context */) {
+	#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 140
+	// Use Isolate::GetCurrent as stated in deprecation message within v8_context.h 13.9.72320122
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	#else
 	v8::Isolate* isolate = context->GetIsolate();
+	#endif
 	v8::HandleScope scope(isolate);
 	Addon::ConfigureURI();
 

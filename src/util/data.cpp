@@ -146,7 +146,7 @@ namespace Data {
 		}
 		return v8::Object::New(
 			isolate,
-			v8::Object::New(isolate)->GetPrototype(),
+			GetPrototypeCompat(isolate, v8::Object::New(isolate)),
 			keys.data(),
 			values.data(),
 			column_count
