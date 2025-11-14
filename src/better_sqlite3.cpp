@@ -15,27 +15,17 @@
 // Utilities that smooth over V8 API changes between Node/V8 versions.
 namespace {
 
-#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
-inline v8::Local<v8::Value> GetPrototypeCompat(
-	v8::Isolate* isolate,
-	v8::Local<v8::Context> context,
-	v8::Local<v8::Object> object
-) {
-	v8::Local<v8::Value> prototype;
-	if (!object->GetPrototype(context).ToLocal(&prototype)) {
-		return v8::Null(isolate);
-	}
-	return prototype;
-}
-#else
 inline v8::Local<v8::Value> GetPrototypeCompat(
 	v8::Isolate* /*isolate*/,
 	v8::Local<v8::Context> /*context*/,
 	v8::Local<v8::Object> object
 ) {
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+	return object->GetPrototypeV2();
+#else
 	return object->GetPrototype();
-}
 #endif
+}
 
 inline v8::Local<v8::Value> GetPrototypeCompat(
 	v8::Isolate* isolate,
