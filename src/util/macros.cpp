@@ -4,6 +4,13 @@
 #define NODE_GETTER(name) void name(v8::Local<v8::Name> _, const v8::PropertyCallbackInfo<v8::Value>& info)
 #define INIT(name) v8::Local<v8::Function> name(v8::Isolate* isolate, v8::Local<v8::External> data)
 
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+// v8::Object::GetPrototype has been deprecated. See http://crbug.com/333672197
+#define GET_PROTOTYPE(obj) ((obj)->GetPrototypeV2())
+#else
+#define GET_PROTOTYPE(obj) ((obj)->GetPrototype())
+#endif
+
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()

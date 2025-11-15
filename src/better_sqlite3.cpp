@@ -12,11 +12,6 @@
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 
-// v8::Object::GetPrototype has been deprecated. See http://crbug.com/333672197
-#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
-#define USE_GETPROTOTYPEV2
-#endif
-
 struct Addon;
 class Database;
 class Statement;
