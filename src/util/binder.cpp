@@ -33,10 +33,18 @@ private:
 	};
 
 	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
+		#ifdef USE_GETPROTOTYPEV2
+		v8::Local<v8::Value> proto = obj->GetPrototypeV2();
+		#else
 		v8::Local<v8::Value> proto = obj->GetPrototype();
+		#endif
 		v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
 		ctx->Enter();
+		#ifdef USE_GETPROTOTYPEV2
+		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototypeV2();
+		#else
 		v8::Local<v8::Value> baseProto = v8::Object::New(isolate)->GetPrototype();
+		#endif
 		ctx->Exit();
 		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
 	}

@@ -146,7 +146,11 @@ namespace Data {
 		}
 		return v8::Object::New(
 			isolate,
+			#ifdef USE_GETPROTOTYPEV2
+			v8::Object::New(isolate)->GetPrototypeV2(),
+			#else
 			v8::Object::New(isolate)->GetPrototype(),
+			#endif
 			keys.data(),
 			values.data(),
 			column_count

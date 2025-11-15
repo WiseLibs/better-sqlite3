@@ -12,6 +12,11 @@
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 
+// v8::Object::GetPrototype has been deprecated. See http://crbug.com/333672197
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+#define USE_GETPROTOTYPEV2
+#endif
+
 struct Addon;
 class Database;
 class Statement;
@@ -46,7 +51,12 @@ class Backup;
 #include "objects/statement-iterator.cpp"
 
 NODE_MODULE_INIT(/* exports, context */) {
+    #if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 140
+    // Use Isolate::GetCurrent as stated in deprecation message within v8_context.h 13.9.72320122
+	v8::Isolate* isolate = v8::Isolate::GetCurrent();
+	#else
 	v8::Isolate* isolate = context->GetIsolate();
+	#endif
 	v8::HandleScope scope(isolate);
 	Addon::ConfigureURI();
 
