@@ -27,8 +27,8 @@ jobs:
       matrix:
         os:
           - ubuntu-22.04
-          - macos-13
           - macos-14
+          - macos-15
           - windows-2022
         node:
           - 20
@@ -89,8 +89,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - macos-13
           - macos-14
+          - macos-15
           - windows-2022
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
