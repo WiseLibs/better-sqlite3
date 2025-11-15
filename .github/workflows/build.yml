@@ -28,7 +28,7 @@ jobs:
         os:
           - ubuntu-22.04
           - macos-15
-          - macos-15-large
+          - macos-15-intel
           - windows-2022
         node:
           - 20
@@ -90,7 +90,7 @@ jobs:
       matrix:
         os:
           - macos-15
-          - macos-15-large
+          - macos-15-intel
           - windows-2022
     name: Prebuild on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
