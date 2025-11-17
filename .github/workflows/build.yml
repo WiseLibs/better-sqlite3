@@ -14,8 +14,11 @@ on:
 
 env:
   # See https://github.com/nodejs/release#release-schedule
-  # Node.js v20 EOL = 2026-04-30. v22 EOL = 2027-04-30. v23 EOL = 2025-06-01. v24 EOL = 2028-04-30.
-  NODE_BUILD_CMD: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+  # Node.js v20 EOL = 2026-04-30. v22 EOL = 2027-04-30. v23 EOL = 2025-06-01. v24 EOL = 2028-04-30. v25 EOL = 2026-06-01.
+  # Node.js 20-24 can build with GCC 10 (bullseye)
+  NODE_BUILD_CMD_LEGACY: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+  # Node.js 25+ requires GCC 11+ for <source_location> header (bookworm)
+  NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 --include-regex 'better_sqlite3.node$'
 
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
   # Electron v29 EOL = 2024-08-20. v30 EOL = 2024-10-15. v31 EOL = 2025-01-14. v32 EOL = 2025-03-11. v33 EOL = 2025-05-13. v34 EOL = 2025-06-24. v35 EOL = 2025-09-02. v36 EOL = 2025-10-28. v37 EOL = 2026-01-13. v38 EOL = 2026-03-10. v39 EOL = 2026-05-05
@@ -38,6 +41,7 @@ jobs:
           - 22
           - 23
           - 24
+          - 25
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
@@ -51,11 +55,16 @@ jobs:
         run: brew install python-setuptools
       - if: ${{ !startsWith(matrix.os, 'windows') && !startsWith(matrix.os, 'macos') }}
         run: python3 -m pip install setuptools
-      - if: ${{ startsWith(matrix.os, 'ubuntu') }}
+      - if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.node < 25 }}
         run: |
           sudo apt update
           sudo apt install gcc-10 g++-10 -y
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+      - if: ${{ startsWith(matrix.os, 'ubuntu') && matrix.node >= 25 }}
+        run: |
+          sudo apt update
+          sudo apt install gcc-11 g++-11 -y
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 100 --slave /usr/bin/g++ g++ /usr/bin/g++-11 --slave /usr/bin/gcov gcov /usr/bin/gcov-11
       - run: npm install --ignore-scripts
       - run: npm run build-debug
       - run: npm test
@@ -76,7 +85,9 @@ jobs:
       - prebuild-alpine-arm
       - prebuild-linux-x64
       - prebuild-linux-arm
+      - prebuild-linux-x64-node-modern
       - prebuild-linux-x64-electron-modern
+      - prebuild-linux-arm-node-modern
       - prebuild-linux-arm64-electron-modern
     steps:
       - uses: actions/checkout@v4
@@ -110,13 +121,16 @@ jobs:
       - if: ${{ startsWith(matrix.os, 'macos') }}
         run: brew install python-setuptools
       - run: npm install --ignore-scripts
-      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
       - if: matrix.os == 'windows-2022'
         run: |
-          ${{ env.NODE_BUILD_CMD }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
-          ${{ env.NODE_BUILD_CMD }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NODE_BUILD_CMD_LEGACY }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NODE_BUILD_CMD_MODERN }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NODE_BUILD_CMD_LEGACY }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
+          ${{ env.NODE_BUILD_CMD_MODERN }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD_MODERN }} --arch ia32 -u ${{ secrets.GITHUB_TOKEN }}
           ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}
@@ -131,8 +145,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: npm install --ignore-scripts
-      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }}
       - run: ${{ env.ELECTRON_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }}
+
+  prebuild-linux-x64-node-modern:
+    if: ${{ github.event_name == 'release' }}
+    name: Prebuild on Linux x64 (Node 25+)
+    runs-on: ubuntu-latest
+    container: node:20-bookworm
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
+
+  prebuild-linux-x64-electron-modern:
+    if: ${{ github.event_name == 'release' }}
+    name: Prebuild on Linux x64 (Electron 39+)
+    runs-on: ubuntu-latest
+    container: node:20-bookworm
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install --ignore-scripts
+      - run: ${{ env.ELECTRON_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine:
     if: ${{ github.event_name == 'release' }}
@@ -144,7 +180,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: apk add build-base git python3 py3-setuptools --update-cache
       - run: npm install --ignore-scripts
-      - run: ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }}
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
 
   prebuild-alpine-arm:
     if: ${{ github.event_name == 'release' }}
@@ -165,7 +202,8 @@ jobs:
           apk add build-base git python3 py3-setuptools --update-cache && \
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }}"
+          ${{ env.NODE_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }} && \
+          ${{ env.NODE_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}"
 
   prebuild-linux-arm:
     if: ${{ github.event_name == 'release' }}
@@ -185,19 +223,28 @@ jobs:
           docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-bullseye -c "\
           cd /tmp/project && \
           npm install --ignore-scripts && \
-          ${{ env.NODE_BUILD_CMD }} -u ${{ secrets.GITHUB_TOKEN }} && \
+          ${{ env.NODE_BUILD_CMD_LEGACY }} -u ${{ secrets.GITHUB_TOKEN }} && \
           if [ '${{ matrix.arch }}' = 'arm64' ]; then ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch arm64 -u ${{ secrets.GITHUB_TOKEN }}; fi"
 
-  prebuild-linux-x64-electron-modern:
+  prebuild-linux-arm-node-modern:
     if: ${{ github.event_name == 'release' }}
-    name: Prebuild on Linux x64 (Electron 39+)
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm/v7
+          - arm64
+    name: Prebuild on Linux (${{ matrix.arch }}) (Node 25+)
     runs-on: ubuntu-latest
-    container: node:20-bookworm
     needs: test
     steps:
       - uses: actions/checkout@v4
-      - run: npm install --ignore-scripts
-      - run: ${{ env.ELECTRON_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-qemu-action@v3
+      - run: |
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-bookworm -c "\
+          cd /tmp/project && \
+          npm install --ignore-scripts && \
+          ${{ env.NODE_BUILD_CMD_MODERN }} -u ${{ secrets.GITHUB_TOKEN }}"
 
   prebuild-linux-arm64-electron-modern:
     if: ${{ github.event_name == 'release' }}
