@@ -10,6 +10,19 @@ If `better-sqlite3` refuses to install, follow these guidelines:
 
 - Make sure you're using a [supported version of Node.js](https://nodejs.org/en/about/previous-releases). `better-sqlite3` is only tested with currently-supported versions of Node.js.
 
+## Encountering a `node-gyp` error report
+
+This error may occur when the pre-built file cannot be obtained properly.
+To bypass the post-installation script, run the following command first:
+
+```
+npm install better-sqlite3 --ignore-scripts
+```
+
+Then, navigate to the [Releases](https://github.com/WiseLibs/better-sqlite3/releases/) page to download the corresponding version.
+After downloading, place the file in the following location:
+`node_modules/better-sqlite3/build/Release/better_sqlite3.node`
+
 ## "Install the necessary tools" 
    
 - If you're on Windows, during installation of Node.js, be sure to select "Automatically install the necessary tools" from the "Tools for Native Modules" page.
