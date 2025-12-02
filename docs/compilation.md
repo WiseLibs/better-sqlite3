@@ -41,6 +41,29 @@ If you're creating a package that relies on a custom build of `better-sqlite3`, 
 
 If you're using a SQLite encryption extension that is a drop-in replacement for SQLite (such as [SEE](https://www.sqlite.org/see/doc/release/www/readme.wiki) or [sqleet](https://github.com/resilar/sqleet)), then simply replace `sqlite3.c` and `sqlite3.h` with the source files of your encryption extension.
 
+### Automated example
+Here's an automated script that will do all of this for you.
+
+```sh
+mkdir -p sqlite-amalgamation
+cd sqlite-amalgamation
+
+curl -O https://sqlite.com/2024/sqlite-amalgamation-3450100.zip
+unzip sqlite-amalgamation-3450100.zip
+mv sqlite-amalgamation-3450100/* .
+
+rm -rf sqlite-amalgamation-3450100.zip
+rm -rf sqlite-amalgamation-3450100
+
+
+# Enable whatever flags you want here.
+LINE='#define SQLITE_ENABLE_RTREE 1'
+sed -i '' "1s|^|$LINE\\n|" sqlite3.c
+
+cd ..
+npm install better-sqlite3 --no-save --build-from-source --sqlite3="$(pwd)/sqlite-amalgamation"
+```
+
 # Bundled configuration
 
 By default, this distribution currently uses SQLite **version 3.51.1** with the following [compilation options](https://www.sqlite.org/compile.html):
