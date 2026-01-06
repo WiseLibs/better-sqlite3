@@ -2,7 +2,7 @@
 SQLITE_EXTENSION_INIT1
 
 /*
-	This SQLite3 extension is used only for testing purposes (npm test).
+	This SQLite extension is used only for testing purposes (npm test).
  */
 
 static void TestExtensionFunction(sqlite3_context* pCtx, int nVal, sqlite3_value** _) {

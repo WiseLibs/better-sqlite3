@@ -1,5 +1,5 @@
 # ===
-# This configuration defines options specific to compiling SQLite3 itself.
+# This configuration defines options specific to compiling SQLite itself.
 # Compile-time options are loaded by the auto-generated file "defines.gypi".
 # The --sqlite3 option can be provided to use a custom amalgamation instead.
 # ===

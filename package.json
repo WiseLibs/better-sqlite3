@@ -1,7 +1,7 @@
 {
   "name": "better-sqlite3",
-  "version": "11.6.0",
-  "description": "The fastest and simplest library for SQLite3 in Node.js.",
+  "version": "12.5.0",
+  "description": "The fastest and simplest library for SQLite in Node.js.",
   "homepage": "http://github.com/WiseLibs/better-sqlite3",
   "author": "Joshua Wise <joshuathomaswise@gmail.com>",
   "repository": {
@@ -11,13 +11,21 @@
   "main": "lib/index.js",
   "files": [
     "binding.gyp",
-    "src/*.[ch]pp",
+    "src/**/*.[ch]pp",
     "lib/**",
     "deps/**"
   ],
+  "engines": {
+    "node": "20.x || 22.x || 23.x || 24.x || 25.x"
+  },
   "dependencies": {
     "bindings": "^1.5.0",
     "prebuild-install": "^7.1.1"
+  },
+  "overrides": {
+    "prebuild": {
+      "node-abi": "4.15.0"
+    }
   },
   "devDependencies": {
     "chai": "^4.3.8",
@@ -25,7 +33,7 @@
     "fs-extra": "^11.1.1",
     "mocha": "^10.2.0",
     "nodemark": "^0.3.0",
-    "prebuild": "^13.0.0",
+    "prebuild": "^13.0.1",
     "sqlite": "^5.0.1",
     "sqlite3": "^5.1.6"
   },
@@ -52,6 +60,7 @@
     "prebuild-electron-arm64": "prebuild --runtime electron --target 22.0.0 --arch arm64",
     "prebuild-electron-x64": "prebuild --runtime electron --target 22.0.0 --arch x64",
     "prebuild-electron-all": "npm run prebuild-electron-arm64 && npm run prebuild-electron-x64"
+    "test": "mocha --exit --slow=75 --timeout=5000",
   },
   "license": "MIT",
   "keywords": [

@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - name: Create new update branch
         run: git checkout -b sqlite-update-${{ env.ENV_VERSION }}
       - name: Update download script
@@ -35,7 +35,7 @@ jobs:
       - name: Download, compile and package SQLite
         run: npm run download
       - name: Push update branch
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Update SQLite to version ${{ env.ENV_TRUE_VERSION }}
           branch: sqlite-update-${{ env.ENV_VERSION }}

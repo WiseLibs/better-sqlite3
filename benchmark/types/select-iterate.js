@@ -21,3 +21,11 @@ exports['node-sqlite3'] = async (db, { table, columns, count }) => {
 		})();
 	};
 };
+
+exports['node:sqlite'] = (db, { table, columns, count }) => {
+	const stmt = db.prepare(`SELECT ${columns.join(', ')} FROM ${table} WHERE rowid >= ? LIMIT 100`);
+	let rowid = -100;
+	return () => {
+		for (const row of stmt.iterate((rowid += 100) % count + 1)) {}
+	};
+};

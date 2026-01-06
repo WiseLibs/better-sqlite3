@@ -9,6 +9,30 @@ describe('miscellaneous', function () {
 		this.db.close();
 	});
 
+	it('supports LIMIT in DELETE statements', function () {
+		this.db.prepare("CREATE TABLE foo (x INTEGER PRIMARY KEY)").run();
+		expect(this.db.prepare('INSERT INTO foo (x) VALUES (1), (2), (3)').run())
+			.to.deep.equal({ changes: 3, lastInsertRowid: 3 });
+
+		expect(this.db.prepare('DELETE FROM foo ORDER BY x ASC LIMIT 1').run())
+			.to.have.property('changes', 1);
+
+		expect(this.db.prepare('SELECT x FROM foo ORDER BY x ASC').all())
+			.to.deep.equal([{ x: 2 }, { x: 3 }]);
+	});
+
+	it('supports LIMIT in UPDATE statements', function () {
+		this.db.prepare("CREATE TABLE foo (x INTEGER PRIMARY KEY, y INTEGER)").run();
+		expect(this.db.prepare('INSERT INTO foo (x, y) VALUES (1, 1), (2, 2), (3, 3)').run())
+			.to.deep.equal({ changes: 3, lastInsertRowid: 3 });
+
+		expect(this.db.prepare('UPDATE foo SET y = 100 ORDER BY x DESC LIMIT 2').run())
+			.to.have.property('changes', 2);
+
+		expect(this.db.prepare('SELECT x, y FROM foo ORDER BY x ASC').all())
+			.to.deep.equal([{ x: 1, y: 1 }, { x: 2, y: 100 }, { x: 3, y: 100 }]);
+	});
+
 	it('persists non-trivial quantities of reads and writes', function () {
 		const runDuration = 1000;
 		const runUntil = Date.now() + runDuration;

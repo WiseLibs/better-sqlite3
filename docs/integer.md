@@ -1,6 +1,6 @@
 # The `BigInt` primitive type
 
-SQLite3 can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) to fully represent. To support this data type, `better-sqlite3` is fully compatible with [BigInts](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
+SQLite can store data in 64-bit signed integers, which are too big for JavaScript's [number format](https://en.wikipedia.org/wiki/Double-precision_floating-point_format) to fully represent. To support this data type, `better-sqlite3` is fully compatible with [BigInts](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt).
 
 ```js
 const big = BigInt('1152735103331642317');

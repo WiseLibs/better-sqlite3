@@ -1,6 +1,10 @@
 # better-sqlite3 [![构建状态](https://github.com/JoshuaWise/better-sqlite3/actions/workflows/build.yml/badge.svg)](https://github.com/JoshuaWise/better-sqlite3/actions/workflows/build.yml?query=branch%3Amaster)
 
+
 Node.js 中最快速和最简单的 SQLite3 库。
+
+The fastest and simplest library for SQLite in Node.js.
+
 
 - 完整的事务支持
 - 高性能、高效率和高安全性
@@ -31,6 +35,7 @@ Node.js 中最快速和最简单的 SQLite3 库。
 ```bash
 npm install better-sqlite3
 ```
+
 
 > 你必须使用 Node.js v14.21.1 或更高版本。预编译的二进制文件适用于 [LTS 版本](https://nodejs.org/en/about/releases/)。如果安装遇到问题，请查看[故障排除指南](./docs/troubleshooting.md)。
 
@@ -66,7 +71,9 @@ db.pragma('journal_mode = WAL');
 
 #### 什么时候不适合使用这个库？
 
+
 在大多数情况下，如果你尝试做一些无法用 `better-sqlite3` 合理完成的事情，那么可能也无法用 SQLite3 合理完成。例如，如果你执行的查询需要一秒钟才能完成，并且你预计会有许多并发用户执行这些查询，那么无论多少异步性都无法解决 SQLite3 的串行化特性。幸运的是，SQLite3 非常非常快。通过适当的索引，我们能够在一个 60 GB 的数据库中实现每秒 2000 个带有 5 路连接的查询，每个查询处理 5-50 KB 的实际数据。
+
 
 如果你遇到性能问题，最可能的原因是查询效率低下、索引不当或缺少 [WAL 模式](./docs/performance.md)，而不是 `better-sqlite3` 本身。但是，在某些情况下，`better-sqlite3` 可能不适合：
 
@@ -76,16 +83,26 @@ db.pragma('journal_mode = WAL');
 
 对于这些情况，你可能应该使用完整的 RDBMS，比如 [PostgreSQL](https://www.postgresql.org/)。
 
-# 文档
 
-- [API 文档](./docs/api.md)
-- [性能](./docs/performance.md)（另见[基准测试结果](./docs/benchmark.md)）
-- [64 位整数支持](./docs/integer.md)
-- [工作线程支持](./docs/threads.md)
-- [不安全模式（高级）](./docs/unsafe.md)
-- [SQLite3 编译（高级）](./docs/compilation.md)
-- [贡献规则](./docs/contribution.md)
-- [行为准则](./docs/conduct.md)
+
+## Upgrading
+
+Upgrading your `better-sqlite3` dependency can potentially introduce breaking changes, either in the `better-sqlite3` API (if you upgrade to a new [major version](https://semver.org/)), or between your existing database(s) and the underlying version of SQLite. Before upgrading, review:
+
+* [`better-sqlite3` release notes](https://github.com/WiseLibs/better-sqlite3/releases)
+* [SQLite release history](https://www.sqlite.org/changes.html)
+
+# Documentation
+
+- [API documentation](./docs/api.md)
+- [Performance](./docs/performance.md) (also see [benchmark results](./docs/benchmark.md))
+- [64-bit integer support](./docs/integer.md)
+- [Worker thread support](./docs/threads.md)
+- [Unsafe mode (advanced)](./docs/unsafe.md)
+- [SQLite compilation (advanced)](./docs/compilation.md)
+- [Contribution rules](./docs/contribution.md)
+- [Code of conduct](./docs/conduct.md)
+
 
 # 许可证
 

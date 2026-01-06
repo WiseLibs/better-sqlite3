@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # ===
-# This script defines and generates the bundled SQLite3 unit (sqlite3.c).
+# This script defines and generates the bundled SQLite unit (sqlite3.c).
 #
 # The following steps are taken:
 # 1. populate the shell environment with the defined compile-time options.
-# 2. download and extract the SQLite3 source code into a temporary directory.
+# 2. download and extract the SQLite source code into a temporary directory.
 # 3. run "sh configure" and "make sqlite3.c" within the source directory.
 # 4. copy the generated amalgamation into the output directory (./sqlite3).
 # 5. export the defined compile-time options to a gyp file (./defines.gypi).
@@ -18,8 +18,8 @@
 # 4. node-gyp links the two resulting binaries to generate better_sqlite3.node.
 # ===
 
-YEAR="2024"
-VERSION="3470100"
+YEAR="2025"
+VERSION="3510100"
 
 # Defines below are sorted alphabetically
 DEFINES="
@@ -83,7 +83,7 @@ echo "configuring amalgamation..."
 sh configure > /dev/null || exit 1
 
 echo "building amalgamation..."
-make sqlite3.c > /dev/null || exit 1
+make OPTIONS="$CFLAGS" sqlite3.c > /dev/null || exit 1
 
 echo "copying amalgamation..."
 cp sqlite3.c sqlite3.h sqlite3ext.h "$OUTPUT/" || exit 1
