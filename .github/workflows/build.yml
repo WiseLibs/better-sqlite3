@@ -21,10 +21,12 @@ env:
   NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 --include-regex 'better_sqlite3.node$'
 
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
-  # Electron v29 EOL = 2024-08-20. v30 EOL = 2024-10-15. v31 EOL = 2025-01-14. v32 EOL = 2025-03-11. v33 EOL = 2025-05-13. v34 EOL = 2025-06-24. v35 EOL = 2025-09-02. v36 EOL = 2025-10-28. v37 EOL = 2026-01-13. v38 EOL = 2026-03-10. v39 EOL = 2026-05-05
+  # Electron v29 EOL = 2024-08-20. v30 EOL = 2024-10-15. v31 EOL = 2025-01-14. v32 EOL = 2025-03-11. v33 EOL = 2025-05-13. v34 EOL = 2025-06-24. v35 EOL = 2025-09-02. v36 EOL = 2025-10-28. v37 EOL = 2026-01-13. v38 EOL = 2026-03-10.
   # Electron 29-38 can build with GCC 10 (bullseye)
   ELECTRON_BUILD_CMD_LEGACY: npx --no-install prebuild -r electron -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 -t 34.0.0 -t 35.0.0 -t 36.0.0 -t 37.0.0 -t 38.0.0 --include-regex 'better_sqlite3.node$'
-  # Electron 39+ requires GCC 11+ for <source_location> header (bookworm)
+
+  # Electron v39 EOL = 2026-05-05. v40 EOL = 2026-06-30.
+  # Electron 39+ requires GCC 11+ for <source_location> header (bookworm).
   ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
