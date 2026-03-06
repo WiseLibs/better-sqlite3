@@ -86,12 +86,14 @@ cp sqlite3.c sqlite3.h sqlite3ext.h "$OUTPUT/" || exit 1
 
 echo "applying patches..."
 cd "$DEPS" || exit 1
+shopt -s nullglob
 for patch in patches/*.patch; do
   # If a patch fails, just skip it an move on.
   # By default `patch` tries to be clever and reverse the patch, so we have to specify `--forward`.
   # If the patch fails, we # don't write .orig and .rej files, so we have to specify `--no-backup-if-mismatch` and `--reject-file=-`.
   patch --batch --forward --no-backup-if-mismatch --reject-file=- -p2 < "$patch"
 done
+shopt -u nullglob
 
 echo "updating gyp configs..."
 GYP="$DEPS/defines.gypi"
