@@ -378,6 +378,6 @@ NODE_METHOD(Statement::JS_columns) {
 }
 
 NODE_GETTER(Statement::JS_busy) {
-	Statement* stmt = Unwrap<Statement>(info.This());
+	Statement* stmt = Unwrap<Statement>(info.Holder());
 	info.GetReturnValue().Set(stmt->alive && stmt->locked);
 }
