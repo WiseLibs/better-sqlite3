@@ -11,6 +11,19 @@
 #define GET_PROTOTYPE(obj) ((obj)->GetPrototype())
 #endif
 
+// PropertyCallbackInfo::This() and Holder() were removed; use HolderV2().
+// Tracking bug for V8 API removals: http://crbug.com/333672197
+// V8 head has since restored Holder() and deprecated HolderV2():
+//   https://chromium.googlesource.com/v8/v8/+/main/include/v8-function-callback.h
+//   V8_INLINE Local<Object> Holder() const;
+//   V8_DEPRECATE_SOON("Use Holder().")
+//   V8_INLINE Local<Object> HolderV2() const;
+#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
+#define PROPERTY_HOLDER(info) (info).HolderV2()
+#else
+#define PROPERTY_HOLDER(info) (info).This()
+#endif
+
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
