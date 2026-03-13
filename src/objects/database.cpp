@@ -408,10 +408,10 @@ NODE_METHOD(Database::JS_unsafeMode) {
 }
 
 NODE_GETTER(Database::JS_open) {
-	info.GetReturnValue().Set(Unwrap<Database>(info.Holder())->open);
+	info.GetReturnValue().Set(Unwrap<Database>(PROPERTY_HOLDER(info))->open);
 }
 
 NODE_GETTER(Database::JS_inTransaction) {
-	Database* db = Unwrap<Database>(info.Holder());
+	Database* db = Unwrap<Database>(PROPERTY_HOLDER(info));
 	info.GetReturnValue().Set(db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 }
