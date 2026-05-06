@@ -25,9 +25,9 @@ env:
   # Electron 29-38 can build with GCC 10 (bullseye)
   ELECTRON_BUILD_CMD_LEGACY: npx --no-install prebuild -r electron -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 -t 34.0.0 -t 35.0.0 -t 36.0.0 -t 37.0.0 -t 38.0.0 --include-regex 'better_sqlite3.node$'
 
-  # Electron v39 EOL = 2026-05-05. v40 EOL = 2026-06-30. v41 EOL = 2026-08-25.
+  # Electron v39 EOL = 2026-05-05. v40 EOL = 2026-06-30. v41 EOL = 2026-08-25. v42 EOL = 2026-09-22.
   # Electron 39+ requires GCC 11+ for <source_location> header (bookworm).
-  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 -t 42.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
