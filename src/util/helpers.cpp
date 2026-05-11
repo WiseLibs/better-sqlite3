@@ -86,12 +86,22 @@ void SetPrototypeGetter(
 	v8::AccessorNameGetterCallback func
 ) {
 	v8::HandleScope scope(isolate);
+	#if V8_MAJOR_VERSION >= 14
+    recv->InstanceTemplate()->SetNativeDataProperty(
+        InternalizedFromLatin1(isolate, name), // Name
+        func,                                  // Getter
+        nullptr,                               // Setter (explizit nullptr!)
+        data,                                  // Data
+        v8::None                               // Attributes (statt 0)
+    );
+	#else
 	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
 		0,
 		data
 	);
+	#endif
 }
 
 #if defined(V8_ENABLE_SANDBOX)
