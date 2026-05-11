@@ -14,11 +14,12 @@ on:
 
 env:
   # See https://github.com/nodejs/release#release-schedule
-  # Node.js v20 EOL = 2026-04-30. v22 EOL = 2027-04-30. v23 EOL = 2025-06-01. v24 EOL = 2028-04-30. v25 EOL = 2026-06-01.
-  # Node.js 20-24 can build with GCC 10 (bullseye)
-  NODE_BUILD_CMD_LEGACY: npx --no-install prebuild -r node -t 20.0.0 -t 22.0.0 -t 23.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+  # Node.js v22 EOL = 2027-04-30. v24 EOL = 2028-04-30.
+  # Node.js 22-24 can build with GCC 10 (bullseye)
+  NODE_BUILD_CMD_LEGACY: npx --no-install prebuild -r node -t 22.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+  # Node.js v25 EOL = 2026-06-01. v26 EOL = TBD.
   # Node.js 25+ requires GCC 11+ for <source_location> header (bookworm)
-  NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 --include-regex 'better_sqlite3.node$'
+  NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 -t 26.0.0 --include-regex 'better_sqlite3.node$'
 
   # See https://www.electronjs.org/docs/latest/tutorial/electron-timelines#version-support-policy
   # Electron v29 EOL = 2024-08-20. v30 EOL = 2024-10-15. v31 EOL = 2025-01-14. v32 EOL = 2025-03-11. v33 EOL = 2025-05-13. v34 EOL = 2025-06-24. v35 EOL = 2025-09-02. v36 EOL = 2025-10-28. v37 EOL = 2026-01-13. v38 EOL = 2026-03-10.
@@ -40,11 +41,10 @@ jobs:
           - macos-15-intel
           - windows-2022
         node:
-          - 20
           - 22
-          - 23
           - 24
           - 25
+          - 26
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
