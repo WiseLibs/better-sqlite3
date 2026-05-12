@@ -27,7 +27,7 @@
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
-#if V8_MAJOR_VERSION >= 14
+#if V8_MAJOR_VERSION >= 15
 #define OnlyAddon static_cast<Addon*>(info.Data().As<v8::External>()->Value(v8::kExternalPointerTypeTagDefault))
 #else
 #define OnlyAddon static_cast<Addon*>(info.Data().As<v8::External>()->Value())
