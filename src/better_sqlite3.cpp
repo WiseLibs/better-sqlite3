@@ -57,7 +57,7 @@ NODE_MODULE_INIT(/* exports, context */) {
 
 	// Initialize addon instance.
 	Addon* addon = new Addon(isolate);
-	v8::Local<v8::External> data = v8::External::New(isolate, addon);
+	v8::Local<v8::External> data = EXTERNAL_NEW(isolate, addon);
 	node::AddEnvironmentCleanupHook(isolate, Addon::Cleanup, addon);
 
 	// Create and export native-backed classes and functions.

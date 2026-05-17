@@ -89,7 +89,7 @@ void SetPrototypeGetter(
 	recv->InstanceTemplate()->SetNativeDataProperty(
 		InternalizedFromLatin1(isolate, name),
 		func,
-		0,
+		nullptr,
 		data
 	);
 }
