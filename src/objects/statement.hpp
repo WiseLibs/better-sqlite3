@@ -46,6 +46,7 @@ private:
 	static NODE_GETTER(JS_busy);
 
 	Database* const db;
+	Addon* const addon;
 	sqlite3_stmt* const handle;
 	Extras* const extras;
 	bool alive;

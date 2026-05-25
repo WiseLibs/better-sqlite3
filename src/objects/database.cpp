@@ -31,10 +31,12 @@ Database::Database(
 	backups() {
 	assert(db_handle != NULL);
 	addon->dbs.insert(this);
+	addon->wrappers.insert(this);
 }
 
 Database::~Database() {
 	if (open) addon->dbs.erase(this);
+	addon->wrappers.erase(this);
 	CloseHandles();
 }
 

@@ -1,6 +1,7 @@
 StatementIterator::StatementIterator(Statement* stmt, bool bound) :
 	node::ObjectWrap(),
 	stmt(stmt),
+	addon(stmt->db->GetAddon()),
 	handle(stmt->handle),
 	db_state(stmt->db->GetState()),
 	bound(bound),
@@ -16,12 +17,15 @@ StatementIterator::StatementIterator(Statement* stmt, bool bound) :
 	assert(db_state->iterators < USHRT_MAX);
 	stmt->locked = true;
 	db_state->iterators += 1;
+	addon->wrappers.insert(this);
 }
 
 // The ~Statement destructor currently covers any state this object creates.
 // Additionally, we actually DON'T want to revert stmt->locked or db_state
 // ->iterators in this destructor, to ensure deterministic database access.
-StatementIterator::~StatementIterator() {}
+StatementIterator::~StatementIterator() {
+	addon->wrappers.erase(this);
+}
 
 void StatementIterator::Next(NODE_ARGUMENTS info) {
 	assert(alive == true);
