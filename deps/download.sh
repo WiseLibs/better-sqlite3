@@ -21,6 +21,10 @@
 YEAR="2026"
 VERSION="3530100"
 
+# SHA3-256 of sqlite-src-$VERSION.zip as published at
+# https://www.sqlite.org/download.html. Update together with VERSION.
+EXPECTED_SHA3="27cfc9264b2188fd17f811a8c03424eb65391c2ef9874cbfc860ea25f4322363"
+
 # Defines below are sorted alphabetically
 DEFINES="
 HAVE_INT16_T=1
@@ -75,6 +79,15 @@ export CFLAGS=`echo $(echo "$DEFINES" | sed -e "/^\s*$/d" -e "s/^/-D/")`
 
 echo "downloading source..."
 curl -#f "https://www.sqlite.org/$YEAR/sqlite-src-$VERSION.zip" > "$TEMP/source.zip" || exit 1
+
+echo "verifying source integrity..."
+ACTUAL_SHA3=$(node -e "const c=require('crypto'),f=require('fs');const h=c.createHash('sha3-256');h.update(f.readFileSync(process.argv[1]));console.log(h.digest('hex'))" "$TEMP/source.zip") || exit 1
+if [ "$ACTUAL_SHA3" != "$EXPECTED_SHA3" ]; then
+  echo "ERROR: SHA3-256 mismatch for sqlite-src-$VERSION.zip" >&2
+  echo "  expected: $EXPECTED_SHA3" >&2
+  echo "  actual:   $ACTUAL_SHA3" >&2
+  exit 1
+fi
 
 echo "extracting source..."
 unzip "$TEMP/source.zip" -d "$TEMP" > /dev/null || exit 1
