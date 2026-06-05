@@ -1,3 +1,6 @@
+permissions: 
+  contents: write
+
 name: build
 
 on:
@@ -27,7 +30,7 @@ env:
 
   # Electron v39 EOL = 2026-05-05. v40 EOL = 2026-06-30. v41 EOL = 2026-08-25.
   # Electron 39+ requires GCC 11+ for <source_location> header (bookworm).
-  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 -t 42.1.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
@@ -106,7 +109,7 @@ jobs:
       - run: npm publish --provenance
 
   prebuild:
-    if: ${{ github.event_name == 'release' }}
+    if: ${{ false }}
     strategy:
       fail-fast: false
       matrix:
