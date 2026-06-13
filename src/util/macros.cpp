@@ -27,7 +27,14 @@
 #define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
 #define OnlyIsolate info.GetIsolate()
 #define OnlyContext isolate->GetCurrentContext()
-#define OnlyAddon static_cast<Addon*>(info.Data().As<v8::External>()->Value())
+#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 146
+#define EXTERNAL_NEW(isolate, value) v8::External::New((isolate), (value), 0)
+#define EXTERNAL_VALUE(value) (value)->Value(0)
+#else
+#define EXTERNAL_NEW(isolate, value) v8::External::New((isolate), (value))
+#define EXTERNAL_VALUE(value) (value)->Value()
+#endif
+#define OnlyAddon static_cast<Addon*>(EXTERNAL_VALUE(info.Data().As<v8::External>()))
 #define UseIsolate v8::Isolate* isolate = OnlyIsolate
 #define UseContext v8::Local<v8::Context> ctx = OnlyContext
 #define UseAddon Addon* addon = OnlyAddon
