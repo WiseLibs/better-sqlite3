@@ -17,7 +17,7 @@ env:
   # Node.js v22 EOL = 2027-04-30. v24 EOL = 2028-04-30.
   # Node.js 22-24 can build with GCC 10 (bullseye)
   NODE_BUILD_CMD_LEGACY: npx --no-install prebuild -r node -t 22.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
-  # Node.js v25 EOL = 2026-06-01. v26 EOL = TBD.
+  # Node.js v25 EOL = 2026-06-01. v26 EOL = 2029-04-30.
   # Node.js 25+ requires GCC 11+ for <source_location> header (bookworm)
   NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 -t 26.0.0 --include-regex 'better_sqlite3.node$'
 
@@ -28,7 +28,7 @@ env:
 
   # Electron v39 EOL = 2026-05-05. v40 EOL = 2026-06-30. v41 EOL = 2026-08-25. v42 EOL = 2026-09-22.
   # Electron 39+ requires GCC 11+ for <source_location> header (bookworm).
-  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 -t 42.0.0 --include-regex 'better_sqlite3.node$'
 
 jobs:
   test:
