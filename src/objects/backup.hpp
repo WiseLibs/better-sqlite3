@@ -28,6 +28,7 @@ private:
 	static NODE_METHOD(JS_close);
 
 	Database* const db;
+	Addon* const addon;
 	sqlite3* const dest_handle;
 	sqlite3_backup* const backup_handle;
 	const sqlite3_uint64 id;

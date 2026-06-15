@@ -8,6 +8,16 @@ struct Addon {
 		Addon* addon = static_cast<Addon*>(ptr);
 		for (Database* db : addon->dbs) db->CloseHandles();
 		addon->dbs.clear();
+		// Disarm V8 weak callbacks on every surviving wrapper. ObjectWrap's
+		// WeakCallback is inlined into this addon's .node binary, so if any
+		// callback fires after the module loader unloads us (during V8's
+		// final GC inside Isolate::Deinit), it dispatches into unmapped
+		// memory and crashes the worker. See issue #1476.
+		for (node::ObjectWrap* w : addon->wrappers) {
+			w->persistent().ClearWeak();
+			w->persistent().Reset();
+		}
+		addon->wrappers.clear();
 		delete addon;
 	}
 
@@ -44,4 +54,9 @@ struct Addon {
 	sqlite3_uint64 next_id;
 	CS cs;
 	std::set<Database*, Database::CompareDatabase> dbs;
+	// Every live ObjectWrap-derived instance (Database, Statement, Backup,
+	// StatementIterator) registers here on construction and removes itself
+	// on destruction. Used by Cleanup to disarm V8 weak callbacks at addon
+	// teardown - see issue #1476.
+	std::set<node::ObjectWrap*> wrappers;
 };

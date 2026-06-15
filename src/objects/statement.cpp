@@ -6,6 +6,7 @@ Statement::Statement(
 ) :
 	node::ObjectWrap(),
 	db(db),
+	addon(db->GetAddon()),
 	handle(handle),
 	extras(new Extras(id)),
 	alive(true),
@@ -20,10 +21,12 @@ Statement::Statement(
 	assert(db->GetState()->open);
 	assert(!db->GetState()->busy);
 	db->AddStatement(this);
+	addon->wrappers.insert(this);
 }
 
 Statement::~Statement() {
 	if (alive) db->RemoveStatement(this);
+	addon->wrappers.erase(this);
 	CloseHandles();
 	delete extras;
 }

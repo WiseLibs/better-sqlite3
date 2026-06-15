@@ -7,6 +7,7 @@ Backup::Backup(
 ) :
 	node::ObjectWrap(),
 	db(db),
+	addon(db->GetAddon()),
 	dest_handle(dest_handle),
 	backup_handle(backup_handle),
 	id(id),
@@ -16,10 +17,12 @@ Backup::Backup(
 	assert(dest_handle != NULL);
 	assert(backup_handle != NULL);
 	db->AddBackup(this);
+	addon->wrappers.insert(this);
 }
 
 Backup::~Backup() {
 	if (alive) db->RemoveBackup(this);
+	addon->wrappers.erase(this);
 	CloseHandles();
 }
 

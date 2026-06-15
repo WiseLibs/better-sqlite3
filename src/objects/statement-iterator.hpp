@@ -40,6 +40,7 @@ private:
 	static NODE_METHOD(JS_symbolIterator);
 
 	Statement* const stmt;
+	Addon* const addon;
 	sqlite3_stmt* const handle;
 	Database::State* const db_state;
 	const bool bound;
