@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "bindings": "^1.5.0",
-    "prebuild-install": "^7.1.1"
+    "node-gyp": "^12.2.0"
   },
   "overrides": {
     "prebuild": {
