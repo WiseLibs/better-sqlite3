@@ -9,23 +9,30 @@
     "url": "git://github.com/WiseLibs/better-sqlite3.git"
   },
   "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./linux-x64": "./lib/linux-x64.js",
+    "./linux-arm64": "./lib/linux-arm64.js",
+    "./linuxmusl-x64": "./lib/linuxmusl-x64.js",
+    "./linuxmusl-arm64": "./lib/linuxmusl-arm64.js",
+    "./darwin-x64": "./lib/darwin-x64.js",
+    "./darwin-arm64": "./lib/darwin-arm64.js",
+    "./win32-x64": "./lib/win32-x64.js",
+    "./win32-arm64": "./lib/win32-arm64.js",
+    "./package.json": "./package.json"
+  },
   "files": [
     "binding.gyp",
     "src/**/*.[ch]pp",
     "lib/**",
-    "deps/**"
+    "deps/**",
+    "prebuilds/**"
   ],
   "engines": {
-    "node": "20.x || 22.x || 23.x || 24.x || 25.x || 26.x"
+    "node": ">=22"
   },
   "dependencies": {
-    "bindings": "^1.5.0",
-    "prebuild-install": "^7.1.1"
-  },
-  "overrides": {
-    "prebuild": {
-      "node-abi": "^4.25.0"
-    }
+    "node-addon-api": "^8.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.8",
@@ -33,17 +40,16 @@
     "fs-extra": "^11.1.1",
     "mocha": "^11.7.5",
     "nodemark": "^0.3.0",
-    "prebuild": "^13.0.1",
     "sqlite": "^5.0.1",
     "sqlite3": "^5.1.6"
   },
   "scripts": {
-    "install": "prebuild-install || node-gyp rebuild --release",
-    "build-release": "node-gyp rebuild --release",
-    "build-debug": "node-gyp rebuild --debug",
+    "build-release": "node-gyp clean && node-gyp rebuild --release --force_build=1",
+    "build-debug": "node-gyp clean && node-gyp rebuild --debug --force_build=1",
     "test": "mocha --exit --slow=75 --timeout=5000",
     "benchmark": "node benchmark",
-    "download": "bash ./deps/download.sh"
+    "download": "bash ./deps/download.sh",
+    "clean": "rm -rf node_modules build prebuilds"
   },
   "license": "MIT",
   "keywords": [

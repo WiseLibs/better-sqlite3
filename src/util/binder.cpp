@@ -10,16 +10,17 @@ public:
 
 	bool Bind(NODE_ARGUMENTS info, int argc, Statement* stmt) {
 		assert(anon_index == 0);
+		Napi::Env env = info.Env();
 		Result result = BindArgs(info, argc, stmt);
 		if (success && result.count != param_count) {
 			if (result.count < param_count) {
-				if (!result.bound_object && stmt->GetBindMap(OnlyIsolate)->GetSize()) {
-					Fail(ThrowTypeError, "Missing named parameters");
+				if (!result.bound_object && stmt->GetBindMap(env)->GetSize()) {
+					Fail(ThrowTypeError, env, "Missing named parameters");
 				} else {
-					Fail(ThrowRangeError, "Too few parameter values were provided");
+					Fail(ThrowRangeError, env, "Too few parameter values were provided");
 				}
 			} else {
-				Fail(ThrowRangeError, "Too many parameter values were provided");
+				Fail(ThrowRangeError, env, "Too many parameter values were provided");
 			}
 		}
 		return success;
@@ -32,20 +33,31 @@ private:
 		bool bound_object;
 	};
 
-	static bool IsPlainObject(v8::Isolate* isolate, v8::Local<v8::Object> obj) {
-		v8::Local<v8::Value> proto = GET_PROTOTYPE(obj);
-		v8::Local<v8::Context> ctx = obj->GetCreationContext().ToLocalChecked();
-		ctx->Enter();
-		v8::Local<v8::Value> baseProto = GET_PROTOTYPE(v8::Object::New(isolate));
-		ctx->Exit();
-		return proto->StrictEquals(baseProto) || proto->StrictEquals(v8::Null(isolate));
+	static Napi::Value GetPrototype(Napi::Env env, Napi::Object obj) {
+		napi_value proto;
+		// This can fail (e.g., a Proxy whose getPrototypeOf trap throws), in
+		// which case an empty value is returned and an exception is pending.
+		if (napi_get_prototype(env, obj, &proto) != napi_ok) return Napi::Value();
+		return Napi::Value(env, proto);
 	}
 
-	void Fail(void (*Throw)(const char* _), const char* message) {
+	// An object is "plain" if its prototype is null or Object.prototype. Unlike
+	// the original V8 implementation, we cannot look up Object.prototype within
+	// the object's creation context (Node-API has no such concept), so plain
+	// objects from other contexts (e.g., the "vm" module) are not recognized.
+	static bool IsPlainObject(Napi::Env env, Napi::Object obj) {
+		Napi::Value proto = GetPrototype(env, obj);
+		if (proto.IsEmpty()) return false;
+		if (proto.IsNull()) return true;
+		Napi::Value baseProto = GetPrototype(env, Napi::Object::New(env));
+		return !baseProto.IsEmpty() && proto.StrictEquals(baseProto);
+	}
+
+	void Fail(Napi::Value (*Throw)(Napi::Env, const char*), Napi::Env env, const char* message) {
 		assert(success == true);
 		assert((Throw == NULL) == (message == NULL));
 		assert(Throw == ThrowError || Throw == ThrowTypeError || Throw == ThrowRangeError || Throw == NULL);
-		if (Throw) Throw(message);
+		if (Throw) Throw(env, message);
 		success = false;
 	}
 
@@ -55,20 +67,20 @@ private:
 	}
 
 	// Binds the value at the given index or throws an appropriate error.
-	void BindValue(v8::Isolate* isolate, v8::Local<v8::Value> value, int index) {
-		int status = Data::BindValueFromJS(isolate, handle, index, value);
+	void BindValue(Napi::Env env, Napi::Value value, int index) {
+		int status = Data::BindValueFromJS(env, handle, index, value);
 		if (status != SQLITE_OK) {
 			switch (status) {
 				case -1:
-					return Fail(ThrowTypeError, "SQLite3 can only bind numbers, strings, bigints, buffers, and null");
+					return Fail(ThrowTypeError, env, "SQLite3 can only bind numbers, strings, bigints, buffers, and null");
 				case SQLITE_TOOBIG:
-					return Fail(ThrowRangeError, "The bound string, buffer, or bigint is too big");
+					return Fail(ThrowRangeError, env, "The bound string, buffer, or bigint is too big");
 				case SQLITE_RANGE:
-					return Fail(ThrowRangeError, "Too many parameter values were provided");
+					return Fail(ThrowRangeError, env, "Too many parameter values were provided");
 				case SQLITE_NOMEM:
-					return Fail(ThrowError, "Out of memory");
+					return Fail(ThrowError, env, "Out of memory");
 				default:
-					return Fail(ThrowError, "An unexpected error occured while trying to bind parameters");
+					return Fail(ThrowError, env, "An unexpected error occured while trying to bind parameters");
 			}
 			assert(false);
 		}
@@ -76,21 +88,20 @@ private:
 
 	// Binds each value in the array or throws an appropriate error.
 	// The number of successfully bound parameters is returned.
-	int BindArray(v8::Isolate* isolate, v8::Local<v8::Array> arr) {
-		UseContext;
-		uint32_t length = arr->Length();
+	int BindArray(Napi::Env env, Napi::Array arr) {
+		uint32_t length = arr.Length();
 		if (length > INT_MAX) {
-			Fail(ThrowRangeError, "Too many parameter values were provided");
+			Fail(ThrowRangeError, env, "Too many parameter values were provided");
 			return 0;
 		}
 		int len = static_cast<int>(length);
 		for (int i = 0; i < len; ++i) {
-			v8::MaybeLocal<v8::Value> maybeValue = arr->Get(ctx, i);
-			if (maybeValue.IsEmpty()) {
-				Fail(NULL, NULL);
+			Napi::Value value = SafeGetElement(env, arr, static_cast<uint32_t>(i));
+			if (value.IsEmpty()) {
+				Fail(NULL, env, NULL);
 				return i;
 			}
-			BindValue(isolate, maybeValue.ToLocalChecked(), NextAnonIndex());
+			BindValue(env, value, NextAnonIndex());
 			if (!success) {
 				return i;
 			}
@@ -102,35 +113,34 @@ private:
 	// The number of successfully bound parameters is returned.
 	// If a named parameter is missing from the object, an error is thrown.
 	// This should only be invoked once per instance.
-	int BindObject(v8::Isolate* isolate, v8::Local<v8::Object> obj, Statement* stmt) {
-		UseContext;
-		BindMap* bind_map = stmt->GetBindMap(isolate);
+	int BindObject(Napi::Env env, Napi::Object obj, Statement* stmt) {
+		BindMap* bind_map = stmt->GetBindMap(env);
 		BindMap::Pair* pairs = bind_map->GetPairs();
 		int len = bind_map->GetSize();
 
 		for (int i = 0; i < len; ++i) {
-			v8::Local<v8::String> key = pairs[i].GetName(isolate);
+			Napi::String key = pairs[i].GetName(env);
 
 			// Check if the named parameter was provided.
-			v8::Maybe<bool> has_property = obj->HasOwnProperty(ctx, key);
-			if (has_property.IsNothing()) {
-				Fail(NULL, NULL);
+			bool has_property;
+			if (!SafeHasOwnProperty(env, obj, key, &has_property)) {
+				Fail(NULL, env, NULL);
 				return i;
 			}
-			if (!has_property.FromJust()) {
-				v8::String::Utf8Value param_name(isolate, key);
-				Fail(ThrowRangeError, (std::string("Missing named parameter \"") + *param_name + "\"").c_str());
+			if (!has_property) {
+				std::string param_name = key.Utf8Value();
+				Fail(ThrowRangeError, env, (std::string("Missing named parameter \"") + param_name + "\"").c_str());
 				return i;
 			}
 
 			// Get the current property value.
-			v8::MaybeLocal<v8::Value> maybeValue = obj->Get(ctx, key);
-			if (maybeValue.IsEmpty()) {
-				Fail(NULL, NULL);
+			Napi::Value value = SafeGet(env, obj, key);
+			if (value.IsEmpty()) {
+				Fail(NULL, env, NULL);
 				return i;
 			}
 
-			BindValue(isolate, maybeValue.ToLocalChecked(), pairs[i].GetIndex());
+			BindValue(env, value, pairs[i].GetIndex());
 			if (!success) {
 				return i;
 			}
@@ -147,38 +157,41 @@ private:
 	// The return value is a struct indicating how many parameters were successfully bound
 	// and whether or not it tried to bind an object.
 	Result BindArgs(NODE_ARGUMENTS info, int argc, Statement* stmt) {
-		UseIsolate;
+		Napi::Env env = info.Env();
 		int count = 0;
 		bool bound_object = false;
 
 		for (int i = 0; i < argc; ++i) {
-			v8::Local<v8::Value> arg = info[i];
+			Napi::Value arg = info[i];
 
-			if (arg->IsArray()) {
-				count += BindArray(isolate, arg.As<v8::Array>());
+			if (arg.IsArray()) {
+				count += BindArray(env, arg.As<Napi::Array>());
 				if (!success) break;
 				continue;
 			}
 
-			if (arg->IsObject() && !node::Buffer::HasInstance(arg)) {
-				v8::Local<v8::Object> obj = arg.As<v8::Object>();
-				if (IsPlainObject(isolate, obj)) {
+			if (arg.IsObject() && !arg.IsBuffer()) {
+				Napi::Object obj = arg.As<Napi::Object>();
+				if (IsPlainObject(env, obj)) {
 					if (bound_object) {
-						Fail(ThrowTypeError, "You cannot specify named parameters in two different objects");
+						Fail(ThrowTypeError, env, "You cannot specify named parameters in two different objects");
 						break;
 					}
 					bound_object = true;
 
-					count += BindObject(isolate, obj, stmt);
+					count += BindObject(env, obj, stmt);
 					if (!success) break;
 					continue;
-				} else if (stmt->GetBindMap(isolate)->GetSize()) {
-					Fail(ThrowTypeError, "Named parameters can only be passed within plain objects");
+				} else if (env.IsExceptionPending()) {
+					Fail(NULL, env, NULL);
+					break;
+				} else if (stmt->GetBindMap(env)->GetSize()) {
+					Fail(ThrowTypeError, env, "Named parameters can only be passed within plain objects");
 					break;
 				}
 			}
 
-			BindValue(isolate, arg, NextAnonIndex());
+			BindValue(env, arg, NextAnonIndex());
 			if (!success) break;
 			count += 1;
 		}

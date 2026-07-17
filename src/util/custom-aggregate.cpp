@@ -2,21 +2,21 @@ class CustomAggregate : public CustomFunction {
 public:
 
 	explicit CustomAggregate(
-		v8::Isolate* isolate,
+		Napi::Env env,
 		Database* db,
 		const char* name,
-		v8::Local<v8::Value> start,
-		v8::Local<v8::Function> step,
-		v8::Local<v8::Value> inverse,
-		v8::Local<v8::Value> result,
+		Napi::Value start,
+		Napi::Function step,
+		Napi::Value inverse,
+		Napi::Value result,
 		bool safe_ints
 	) :
-		CustomFunction(isolate, db, name, step, safe_ints),
-		invoke_result(result->IsFunction()),
-		invoke_start(start->IsFunction()),
-		inverse(isolate, inverse->IsFunction() ? inverse.As<v8::Function>() : v8::Local<v8::Function>()),
-		result(isolate, result->IsFunction() ? result.As<v8::Function>() : v8::Local<v8::Function>()),
-		start(isolate, start) {}
+		CustomFunction(env, db, name, step, safe_ints),
+		invoke_result(result.IsFunction()),
+		invoke_start(start.IsFunction()),
+		inverse(inverse.IsFunction() ? Napi::Persistent(inverse.As<Napi::Function>()) : Napi::FunctionReference()),
+		result(result.IsFunction() ? Napi::Persistent(result.As<Napi::Function>()) : Napi::FunctionReference()),
+		start(Napi::Persistent(start)) {}
 
 	static void xStep(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
 		xStepBase(invocation, argc, argv, &CustomAggregate::fn);
@@ -36,22 +36,21 @@ public:
 
 private:
 
-	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const v8::Global<v8::Function> CustomAggregate::*ptrtm) {
+	static inline void xStepBase(sqlite3_context* invocation, int argc, sqlite3_value** argv, const Napi::FunctionReference CustomAggregate::*ptrtm) {
 		AGGREGATE_START();
 
-		v8::Local<v8::Value> args_fast[5];
-		v8::Local<v8::Value>* args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc + 1);
-		args[0] = acc->value.Get(isolate);
-		if (argc != 0) Data::GetArgumentsJS(isolate, args + 1, argv, argc, self->safe_ints);
+		napi_value args_fast[5];
+		napi_value* args = argc <= 4 ? args_fast : ALLOC_ARRAY<napi_value>(argc + 1);
+		args[0] = acc->value.Value();
+		if (argc != 0) Data::GetArgumentsJS(env, args + 1, argv, argc, self->safe_ints);
 
-		v8::MaybeLocal<v8::Value> maybeReturnValue = (self->*ptrtm).Get(isolate)->Call(OnlyContext, v8::Undefined(isolate), argc + 1, args);
+		Napi::Value returnValue = SafeCall(env, (self->*ptrtm).Value(), env.Undefined(), argc + 1, args);
 		if (args != args_fast) delete[] args;
 
-		if (maybeReturnValue.IsEmpty()) {
+		if (env.IsExceptionPending()) {
 			self->PropagateJSError(invocation);
 		} else {
-			v8::Local<v8::Value> returnValue = maybeReturnValue.ToLocalChecked();
-			if (!returnValue->IsUndefined()) acc->value.Reset(isolate, returnValue);
+			if (!returnValue.IsUndefined()) acc->value.Reset(returnValue, 1);
 		}
 	}
 
@@ -65,22 +64,23 @@ private:
 			return;
 		}
 
-		v8::Local<v8::Value> result = acc->value.Get(isolate);
+		Napi::Value result = acc->value.Value();
 		if (self->invoke_result) {
-			v8::MaybeLocal<v8::Value> maybeResult = self->result.Get(isolate)->Call(OnlyContext, v8::Undefined(isolate), 1, &result);
-			if (maybeResult.IsEmpty()) {
+			napi_value arg = result;
+			Napi::Value maybeResult = SafeCall(env, self->result.Value(), env.Undefined(), 1, &arg);
+			if (env.IsExceptionPending()) {
 				self->PropagateJSError(invocation);
 				return;
 			}
-			result = maybeResult.ToLocalChecked();
+			result = maybeResult;
 		}
 
-		Data::ResultValueFromJS(isolate, invocation, result, self);
+		Data::ResultValueFromJS(env, invocation, result, self);
 		if (is_final) DestroyAccumulator(invocation);
 	}
 
 	struct Accumulator { public:
-		v8::Global<v8::Value> value;
+		Napi::Reference<Napi::Value> value;
 		bool initialized;
 		bool is_window;
 	};
@@ -91,12 +91,12 @@ private:
 			assert(acc->value.IsEmpty());
 			acc->initialized = true;
 			if (invoke_start) {
-				v8::MaybeLocal<v8::Value> maybeSeed = start.Get(isolate).As<v8::Function>()->Call(OnlyContext, v8::Undefined(isolate), 0, NULL);
-				if (maybeSeed.IsEmpty()) PropagateJSError(invocation);
-				else acc->value.Reset(isolate, maybeSeed.ToLocalChecked());
+				Napi::Value maybeSeed = SafeCall(env, start.Value().As<Napi::Function>(), env.Undefined(), 0, NULL);
+				if (env.IsExceptionPending()) PropagateJSError(invocation);
+				else acc->value.Reset(maybeSeed, 1);
 			} else {
 				assert(!start.IsEmpty());
-				acc->value.Reset(isolate, start);
+				acc->value.Reset(start.Value(), 1);
 			}
 		}
 		return acc;
@@ -115,7 +115,7 @@ private:
 
 	const bool invoke_result;
 	const bool invoke_start;
-	const v8::Global<v8::Function> inverse;
-	const v8::Global<v8::Function> result;
-	const v8::Global<v8::Value> start;
+	const Napi::FunctionReference inverse;
+	const Napi::FunctionReference result;
+	const Napi::Reference<Napi::Value> start;
 };

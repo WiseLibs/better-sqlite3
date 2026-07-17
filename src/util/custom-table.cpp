@@ -2,16 +2,16 @@ class CustomTable {
 public:
 
 	explicit CustomTable(
-		v8::Isolate* isolate,
+		Napi::Env env,
 		Database* db,
 		const char* name,
-		v8::Local<v8::Function> factory
+		Napi::Function factory
 	) :
 		addon(db->GetAddon()),
-		isolate(isolate),
+		env(env),
 		db(db),
 		name(name),
-		factory(isolate, factory) {}
+		factory(Napi::Persistent(factory)) {}
 
 	static void Destructor(void* self) {
 		delete static_cast<CustomTable*>(self);
@@ -26,14 +26,14 @@ private:
 	class VTab { friend class CustomTable;
 		explicit VTab(
 			CustomTable* parent,
-			v8::Local<v8::Function> generator,
+			Napi::Function generator,
 			std::vector<std::string> parameter_names,
 			bool safe_ints
 		) :
 			parent(parent),
 			parameter_count(parameter_names.size()),
 			safe_ints(safe_ints),
-			generator(parent->isolate, generator),
+			generator(Napi::Persistent(generator)),
 			parameter_names(parameter_names) {
 			((void)base);
 		}
@@ -50,7 +50,7 @@ private:
 		CustomTable * const parent;
 		const int parameter_count;
 		const bool safe_ints;
-		const v8::Global<v8::Function> generator;
+		const Napi::FunctionReference generator;
 		const std::vector<std::string> parameter_names;
 	};
 
@@ -69,9 +69,9 @@ private:
 		}
 
 		sqlite3_vtab_cursor base;
-		v8::Global<v8::Object> iterator;
-		v8::Global<v8::Function> next;
-		v8::Global<v8::Array> row;
+		Napi::ObjectReference iterator;
+		Napi::FunctionReference next;
+		Napi::Reference<Napi::Array> row;
 		bool done;
 		sqlite_int64 rowid;
 	};
@@ -104,45 +104,43 @@ private:
 	// This method uses the factory function to instantiate a new virtual table.
 	static int xConnect(sqlite3* db_handle, void* _self, int argc, const char* const * argv, sqlite3_vtab** output, char** errOutput) {
 		CustomTable* self = static_cast<CustomTable*>(_self);
-		v8::Isolate* isolate = self->isolate;
-		v8::HandleScope scope(isolate);
-		UseContext;
+		Napi::Env env = self->env;
+		Napi::HandleScope scope(env);
 
-		v8::Local<v8::Value>* args = ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
+		napi_value* args = ALLOC_ARRAY<napi_value>(argc);
 		for (int i = 0; i < argc; ++i) {
-			args[i] = StringFromUtf8(isolate, argv[i], -1);
+			args[i] = StringFromUtf8(env, argv[i], -1);
 		}
 
 		// Run the factory function to receive a new virtual table definition.
-		v8::MaybeLocal<v8::Value> maybeReturnValue = self->factory.Get(isolate)->Call(ctx, v8::Undefined(isolate), argc, args);
+		Napi::Value returnValue = SafeCall(env, self->factory.Value(), env.Undefined(), argc, args);
 		delete[] args;
 
-		if (maybeReturnValue.IsEmpty()) {
+		if (env.IsExceptionPending()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
 		// Extract each part of the virtual table definition.
-		v8::Local<v8::Array> returnValue = maybeReturnValue.ToLocalChecked().As<v8::Array>();
-		v8::Local<v8::String> sqlString = returnValue->Get(ctx, 0).ToLocalChecked().As<v8::String>();
-		v8::Local<v8::Function> generator = returnValue->Get(ctx, 1).ToLocalChecked().As<v8::Function>();
-		v8::Local<v8::Array> parameterNames = returnValue->Get(ctx, 2).ToLocalChecked().As<v8::Array>();
-		int safe_ints = returnValue->Get(ctx, 3).ToLocalChecked().As<v8::Int32>()->Value();
-		bool direct_only = returnValue->Get(ctx, 4).ToLocalChecked().As<v8::Boolean>()->Value();
+		Napi::Array array = returnValue.As<Napi::Array>();
+		Napi::String sqlString = array.Get((uint32_t)0).As<Napi::String>();
+		Napi::Function generator = array.Get((uint32_t)1).As<Napi::Function>();
+		Napi::Array parameterNames = array.Get((uint32_t)2).As<Napi::Array>();
+		int safe_ints = array.Get((uint32_t)3).As<Napi::Number>().Int32Value();
+		bool direct_only = array.Get((uint32_t)4).As<Napi::Boolean>().Value();
 
-		v8::String::Utf8Value sql(isolate, sqlString);
+		std::string sql = sqlString.Utf8Value();
 		safe_ints = safe_ints < 2 ? safe_ints : static_cast<int>(self->db->GetState()->safe_ints);
 
 		// Copy the parameter names into a std::vector.
 		std::vector<std::string> parameter_names;
-		for (int i = 0, len = parameterNames->Length(); i < len; ++i) {
-			v8::Local<v8::String> parameterName = parameterNames->Get(ctx, i).ToLocalChecked().As<v8::String>();
-			v8::String::Utf8Value parameter_name(isolate, parameterName);
-			parameter_names.emplace_back(*parameter_name);
+		for (int i = 0, len = parameterNames.Length(); i < len; ++i) {
+			Napi::String parameterName = parameterNames.Get((uint32_t)i).As<Napi::String>();
+			parameter_names.emplace_back(parameterName.Utf8Value());
 		}
 
 		// Pass our SQL table definition to SQLite (this should never fail).
-		if (sqlite3_declare_vtab(db_handle, *sql) != SQLITE_OK) {
+		if (sqlite3_declare_vtab(db_handle, sql.c_str()) != SQLITE_OK) {
 			*errOutput = sqlite3_mprintf("failed to declare virtual table \"%s\"", argv[2]);
 			return SQLITE_ERROR;
 		}
@@ -179,49 +177,49 @@ private:
 		VTab* vtab = cursor->GetVTab();
 		CustomTable* self = vtab->parent;
 		Addon* addon = self->addon;
-		v8::Isolate* isolate = self->isolate;
-		v8::HandleScope scope(isolate);
-		UseContext;
+		Napi::Env env = self->env;
+		Napi::HandleScope scope(env);
 
 		// Convert the SQLite arguments into JavaScript arguments. Note that
 		// the values in argv may be in the wrong order, so we fix that here.
-		v8::Local<v8::Value> args_fast[4];
-		v8::Local<v8::Value>* args = NULL;
+		napi_value args_fast[4];
+		napi_value* args = NULL;
 		int parameter_count = vtab->parameter_count;
 		if (parameter_count != 0) {
-			args = parameter_count <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(parameter_count);
+			args = parameter_count <= 4 ? args_fast : ALLOC_ARRAY<napi_value>(parameter_count);
 			int argn = 0;
 			bool safe_ints = vtab->safe_ints;
 			for (int i = 0; i < parameter_count; ++i) {
 				if (idxNum & 1 << i) {
-					args[i] = Data::GetValueJS(isolate, argv[argn++], safe_ints);
+					Napi::Value arg = Data::GetValueJS(env, argv[argn++], safe_ints);
+					args[i] = arg;
 					// If any arguments are NULL, the result set is necessarily
 					// empty, so don't bother to run the generator function.
-					if (args[i]->IsNull()) {
+					if (arg.IsNull()) {
 						if (args != args_fast) delete[] args;
 						cursor->done = true;
 						return SQLITE_OK;
 					}
 				} else {
-					args[i] = v8::Undefined(isolate);
+					args[i] = env.Undefined();
 				}
 			}
 		}
 
 		// Invoke the generator function to create a new iterator.
-		v8::MaybeLocal<v8::Value> maybeIterator = vtab->generator.Get(isolate)->Call(ctx, v8::Undefined(isolate), parameter_count, args);
+		Napi::Value maybeIterator = SafeCall(env, vtab->generator.Value(), env.Undefined(), parameter_count, args);
 		if (args != args_fast) delete[] args;
 
-		if (maybeIterator.IsEmpty()) {
+		if (env.IsExceptionPending()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
 		// Store the iterator and its next() method; we'll be using it a lot.
-		v8::Local<v8::Object> iterator = maybeIterator.ToLocalChecked().As<v8::Object>();
-		v8::Local<v8::Function> next = iterator->Get(ctx, addon->cs.next.Get(isolate)).ToLocalChecked().As<v8::Function>();
-		cursor->iterator.Reset(isolate, iterator);
-		cursor->next.Reset(isolate, next);
+		Napi::Object iterator = maybeIterator.As<Napi::Object>();
+		Napi::Function next = iterator.Get(addon->cs.next.Value()).As<Napi::Function>();
+		cursor->iterator.Reset(iterator, 1);
+		cursor->next.Reset(next, 1);
 		cursor->rowid = 0;
 
 		// Advance the iterator/cursor to the first row.
@@ -234,23 +232,22 @@ private:
 		Cursor* cursor = Cursor::Upcast(_cursor);
 		CustomTable* self = cursor->GetVTab()->parent;
 		Addon* addon = self->addon;
-		v8::Isolate* isolate = self->isolate;
-		v8::HandleScope scope(isolate);
-		UseContext;
+		Napi::Env env = self->env;
+		Napi::HandleScope scope(env);
 
-		v8::Local<v8::Object> iterator = cursor->iterator.Get(isolate);
-		v8::Local<v8::Function> next = cursor->next.Get(isolate);
+		Napi::Object iterator = cursor->iterator.Value();
+		Napi::Function next = cursor->next.Value();
 
-		v8::MaybeLocal<v8::Value> maybeRecord = next->Call(ctx, iterator, 0, NULL);
-		if (maybeRecord.IsEmpty()) {
+		Napi::Value maybeRecord = SafeCall(env, next, iterator, 0, NULL);
+		if (env.IsExceptionPending()) {
 			self->PropagateJSError();
 			return SQLITE_ERROR;
 		}
 
-		v8::Local<v8::Object> record = maybeRecord.ToLocalChecked().As<v8::Object>();
-		bool done = record->Get(ctx, addon->cs.done.Get(isolate)).ToLocalChecked().As<v8::Boolean>()->Value();
+		Napi::Object record = maybeRecord.As<Napi::Object>();
+		bool done = record.Get(addon->cs.done.Value()).As<Napi::Boolean>().Value();
 		if (!done) {
-			cursor->row.Reset(isolate, record->Get(ctx, addon->cs.value.Get(isolate)).ToLocalChecked().As<v8::Array>());
+			cursor->row.Reset(record.Get(addon->cs.value.Value()).As<Napi::Array>(), 1);
 		}
 		cursor->done = done;
 		cursor->rowid += 1;
@@ -268,15 +265,15 @@ private:
 		Cursor* cursor = Cursor::Upcast(_cursor);
 		CustomTable* self = cursor->GetVTab()->parent;
 		TempDataConverter temp_data_converter(self);
-		v8::Isolate* isolate = self->isolate;
-		v8::HandleScope scope(isolate);
+		Napi::Env env = self->env;
+		Napi::HandleScope scope(env);
 
-		v8::Local<v8::Array> row = cursor->row.Get(isolate);
-		v8::MaybeLocal<v8::Value> maybeColumnValue = row->Get(OnlyContext, column);
+		Napi::Array row = cursor->row.Value();
+		Napi::Value maybeColumnValue = SafeGetElement(env, row, (uint32_t)column);
 		if (maybeColumnValue.IsEmpty()) {
 			temp_data_converter.PropagateJSError(NULL);
 		} else {
-			Data::ResultValueFromJS(isolate, invocation, maybeColumnValue.ToLocalChecked(), &temp_data_converter);
+			Data::ResultValueFromJS(env, invocation, maybeColumnValue, &temp_data_converter);
 		}
 		return temp_data_converter.status;
 	}
@@ -346,10 +343,10 @@ private:
 	}
 
 	Addon* const addon;
-	v8::Isolate* const isolate;
+	const Napi::Env env;
 	Database* const db;
 	const std::string name;
-	const v8::Global<v8::Function> factory;
+	const Napi::FunctionReference factory;
 };
 
 sqlite3_module CustomTable::MODULE = {

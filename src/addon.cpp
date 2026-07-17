@@ -1,11 +1,10 @@
 struct Addon {
-	explicit Addon(v8::Isolate* isolate) :
+	explicit Addon(Napi::Env env) :
 		privileged_info(NULL),
 		next_id(0),
-		cs(isolate) {}
+		cs(env) {}
 
-	static void Cleanup(void* ptr) {
-		Addon* addon = static_cast<Addon*>(ptr);
+	static void Cleanup(Addon* addon) {
 		for (Database* db : addon->dbs) db->CloseHandles();
 		addon->dbs.clear();
 		delete addon;
@@ -32,14 +31,15 @@ struct Addon {
 	}
 
 	static NODE_METHOD(JS_setErrorConstructor) {
-		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> SqliteError);
-		OnlyAddon->SqliteError.Reset(OnlyIsolate, SqliteError);
+		REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function SqliteError);
+		OnlyAddon->SqliteError = Napi::Persistent(SqliteError);
+		return info.Env().Undefined();
 	}
 
-	v8::Global<v8::Function> Statement;
-	v8::Global<v8::Function> StatementIterator;
-	v8::Global<v8::Function> Backup;
-	v8::Global<v8::Function> SqliteError;
+	Napi::FunctionReference Statement;
+	Napi::FunctionReference StatementIterator;
+	Napi::FunctionReference Backup;
+	Napi::FunctionReference SqliteError;
 	NODE_ARGUMENTS_POINTER privileged_info;
 	sqlite3_uint64 next_id;
 	CS cs;

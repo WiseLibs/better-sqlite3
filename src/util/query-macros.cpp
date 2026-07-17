@@ -2,21 +2,21 @@
 	Binder binder(handle);                                                     \
 	if (!binder.Bind(info, info.Length(), stmt)) {                             \
 		sqlite3_clear_bindings(handle);                                        \
-		return;                                                                \
+		return info.Env().Undefined();                                         \
 	} ((void)0)
 
 #define STATEMENT_THROW_LOGIC()                                                \
-	db->ThrowDatabaseError();                                                  \
+	db->ThrowDatabaseError(env);                                               \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
-	return
+	return env.Undefined()
 
 #define STATEMENT_RETURN_LOGIC(return_value)                                   \
-	info.GetReturnValue().Set(return_value);                                   \
+	Napi::Value _return_value = (return_value);                                \
 	if (!bound) { sqlite3_clear_bindings(handle); }                            \
-	return
+	return _return_value
 
 #define STATEMENT_START_LOGIC(RETURNS_DATA_CHECK, MUTATE_CHECK)                \
-	Statement* stmt = Unwrap<Statement>(info.This());                          \
+	Statement* stmt = ::Unwrap<Statement>(info.This());                        \
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	Database* db = stmt->db;                                                   \
@@ -27,7 +27,7 @@
 	if (!bound) {                                                              \
 		STATEMENT_BIND(handle);                                                \
 	} else if (info.Length() > 0) {                                            \
-		return ThrowTypeError("This statement already has bound parameters");  \
+		return ThrowTypeError(info.Env(), "This statement already has bound parameters"); \
 	} ((void)0)
 
 
@@ -37,7 +37,7 @@
 	STATEMENT_START_LOGIC(x, y);                                               \
 	db->GetState()->busy = true;                                               \
 	UseIsolate;                                                                \
-	if (db->Log(isolate, handle)) {                                            \
+	if (db->Log(env, handle)) {                                                \
 		STATEMENT_THROW();                                                     \
 	} ((void)0)
 
@@ -49,18 +49,18 @@
 #define DOES_ADD_ITERATOR()                                                    \
 	DOES_NOT_MUTATE();                                                         \
 	if (db->GetState()->iterators == USHRT_MAX)                                \
-		return ThrowRangeError("Too many active database iterators")
+		return ThrowRangeError(info.Env(), "Too many active database iterators")
 #define REQUIRE_STATEMENT_RETURNS_DATA()                                       \
 	if (!stmt->returns_data)                                                   \
-		return ThrowTypeError("This statement does not return data. Use run() instead")
+		return ThrowTypeError(info.Env(), "This statement does not return data. Use run() instead")
 #define ALLOW_ANY_STATEMENT()                                                  \
 	((void)0)
 
 
 #define _FUNCTION_START(type)                                                  \
 	type* self = static_cast<type*>(sqlite3_user_data(invocation));            \
-	v8::Isolate* isolate = self->isolate;                                      \
-	v8::HandleScope scope(isolate)
+	Napi::Env env = self->env;                                                 \
+	Napi::HandleScope scope(env)
 
 #define FUNCTION_START()                                                       \
 	_FUNCTION_START(CustomFunction)

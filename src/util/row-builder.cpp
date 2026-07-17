@@ -1,49 +1,49 @@
+// Builds row objects for queries that return many rows (see Statement::JS_all).
+// The column names are converted into JavaScript strings only once, and then
+// reused for every row; Node-API has no equivalent of V8's internalized
+// strings, so recreating the keys for each row would be needlessly expensive.
+// The cached keys are local handles, so a RowBuilder must not outlive the
+// handle scope it was created in.
 class RowBuilder {
 public:
 
 	explicit RowBuilder(
-		v8::Isolate* isolate,
+		Napi::Env env,
 		sqlite3_stmt* handle,
 		bool safe_ints
 	) :
-		isolate(isolate),
+		env(env),
 		handle(handle),
 		column_count(-1),
 		safe_ints(safe_ints),
-		keys(isolate) {}
+		keys() {}
 
-	v8::Local<v8::Value> GetRowJS() {
+	Napi::Value GetRowJS() {
 		if (column_count < 0) {
 			column_count = sqlite3_column_count(handle);
 			keys.reserve(column_count);
 			for (int i = 0; i < column_count; ++i) {
 				keys.emplace_back(
-					InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1)
-						.As<v8::Name>()
+					InternalizedFromUtf8(env, sqlite3_column_name(handle, i), -1)
 				);
 			}
 		}
 
-		v8::LocalVector<v8::Value> values(isolate);
-		values.reserve(column_count);
+		Napi::Object row = Napi::Object::New(env);
 		for (int i = 0; i < column_count; ++i) {
-			values.emplace_back(
-				Data::GetValueJS(isolate, handle, i, safe_ints)
+			row.Set(
+				keys[i],
+				Data::GetValueJS(env, handle, i, safe_ints)
 			);
 		}
 
-		return v8::Object::New(isolate,
-			GET_PROTOTYPE(v8::Object::New(isolate)),
-			keys.data(),
-			values.data(),
-			column_count
-		);
+		return row;
 	}
 
 private:
-	v8::Isolate* isolate;
+	Napi::Env env;
 	sqlite3_stmt* handle;
 	int column_count;
 	const bool safe_ints;
-	v8::LocalVector<v8::Name> keys;
+	std::vector<Napi::String> keys;
 };

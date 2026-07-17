@@ -10,19 +10,19 @@ public:
 				return index;
 			}
 
-			inline v8::Local<v8::String> GetName(v8::Isolate* isolate) {
-				return name.Get(isolate);
+			inline Napi::String GetName(Napi::Env env) {
+				return name.Value();
 			}
 
 		private:
 
-			explicit Pair(v8::Isolate* isolate, const char* name, int index)
-				: name(isolate, InternalizedFromUtf8(isolate, name, -1)), index(index) {}
+			explicit Pair(Napi::Env env, const char* name, int index)
+				: name(Napi::Persistent(InternalizedFromUtf8(env, name, -1))), index(index) {}
 
-			explicit Pair(v8::Isolate* isolate, Pair* pair)
-				: name(isolate, pair->name), index(pair->index) {}
+			explicit Pair(Napi::Env env, Pair* pair)
+				: name(Napi::Persistent(pair->name.Value())), index(pair->index) {}
 
-			const v8::Global<v8::String> name;
+			const Napi::Reference<Napi::String> name;
 			const int index;
 	};
 
@@ -47,20 +47,20 @@ public:
 	}
 
 	// Adds a pair to the bind map, expanding the capacity if necessary.
-	void Add(v8::Isolate* isolate, const char* name, int index) {
+	void Add(Napi::Env env, const char* name, int index) {
 		assert(name != NULL);
-		if (capacity == length) Grow(isolate);
-		new (pairs + length++) Pair(isolate, name, index);
+		if (capacity == length) Grow(env);
+		new (pairs + length++) Pair(env, name, index);
 	}
 
 private:
 
-	void Grow(v8::Isolate* isolate) {
+	void Grow(Napi::Env env) {
 		assert(capacity == length);
 		capacity = (capacity << 1) | 2;
 		Pair* new_pairs = ALLOC_ARRAY<Pair>(capacity);
 		for (int i = 0; i < length; ++i) {
-			new (new_pairs + i) Pair(isolate, pairs + i);
+			new (new_pairs + i) Pair(env, pairs + i);
 			pairs[i].~Pair();
 		}
 		FREE_ARRAY<Pair>(pairs);

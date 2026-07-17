@@ -119,7 +119,8 @@ describe('new Database()', function () {
 	});
 	it('should accept the "nativeBinding" option', function () {
 		this.slow(500);
-		const oldBinding = require('bindings')({ bindings: 'better_sqlite3.node', path: true });
+		const configuration = fs.existsSync(path.resolve('build/Debug/better_sqlite3.node')) ? 'Debug' : 'Release';
+		const oldBinding = path.resolve(`build/${configuration}/better_sqlite3.node`);
 		const newBinding = path.join(path.dirname(oldBinding), 'test.node');
 		expect(oldBinding).to.be.a('string');
 		fs.copyFileSync(oldBinding, newBinding);

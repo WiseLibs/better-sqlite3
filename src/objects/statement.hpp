@@ -1,6 +1,7 @@
-class Statement : public node::ObjectWrap { friend class StatementIterator;
+class Statement : public Napi::ObjectWrap<Statement> { friend class StatementIterator;
 public:
 
+	explicit Statement(const Napi::CallbackInfo& info);
 	~Statement();
 
 	// Whenever this is used, db->RemoveStatement must be invoked beforehand.
@@ -12,7 +13,10 @@ public:
 	}
 
 	// Returns the Statement's bind map (creates it upon first execution).
-	BindMap* GetBindMap(v8::Isolate* isolate);
+	BindMap* GetBindMap(Napi::Env env);
+
+	// Identifies objects that are backed by this class (see IsInstanceOf).
+	static const napi_type_tag TYPE_TAG;
 
 	static INIT(Init);
 
@@ -25,14 +29,7 @@ private:
 		const sqlite3_uint64 id;
 	};
 
-	explicit Statement(
-		Database* db,
-		sqlite3_stmt* handle,
-		sqlite3_uint64 id,
-		bool returns_data
-	);
-
-	static NODE_METHOD(JS_new);
+	NODE_METHOD(JS_new);
 	static NODE_METHOD(JS_run);
 	static NODE_METHOD(JS_get);
 	static NODE_METHOD(JS_all);
@@ -45,14 +42,14 @@ private:
 	static NODE_METHOD(JS_columns);
 	static NODE_GETTER(JS_busy);
 
-	Database* const db;
-	sqlite3_stmt* const handle;
-	Extras* const extras;
+	Database* db;
+	sqlite3_stmt* handle;
+	Extras* extras;
 	bool alive;
 	bool locked;
 	bool bound;
 	bool has_bind_map;
 	bool safe_ints;
 	char mode;
-	const bool returns_data;
+	bool returns_data;
 };

@@ -1,16 +1,17 @@
+#include <cassert>
 #include <climits>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 #include <set>
+#include <random>
 #include <unordered_map>
 #include <algorithm>
 #include <mutex>
 #include <sqlite3.h>
-#include <node.h>
-#include <node_object_wrap.h>
-#include <node_buffer.h>
+#include <napi.h>
 
 struct Addon;
 class Database;
@@ -24,9 +25,7 @@ class Backup;
 #include "util/bind-map.cpp"
 #include "util/data-converter.cpp"
 #include "util/data.cpp"
-#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 127
 #include "util/row-builder.cpp"
-#endif
 
 #include "objects/backup.hpp"
 #include "objects/statement.hpp"
@@ -45,30 +44,29 @@ class Backup;
 #include "objects/database.cpp"
 #include "objects/statement-iterator.cpp"
 
-NODE_MODULE_INIT(/* exports, context */) {
-    #if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 140
-    // Use Isolate::GetCurrent as stated in deprecation message within v8_context.h 13.9.72320122
-	v8::Isolate* isolate = v8::Isolate::GetCurrent();
-	#else
-	v8::Isolate* isolate = context->GetIsolate();
-	#endif
-	v8::HandleScope scope(isolate);
+Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
+	Napi::HandleScope scope(env);
 	Addon::ConfigureURI();
 
-	// Initialize addon instance.
-	Addon* addon = new Addon(isolate);
-	v8::Local<v8::External> data = EXTERNAL_NEW(isolate, addon);
-	node::AddEnvironmentCleanupHook(isolate, Addon::Cleanup, addon);
+	// Initialize addon instance. The addon is bound to each native-backed class
+	// as callback data (rather than per-environment instance data) so that
+	// multiple copies of the addon can be loaded into a single environment.
+	Addon* addon = new Addon(env);
+	env.AddCleanupHook(Addon::Cleanup, addon);
 
 	// Create and export native-backed classes and functions.
-	exports->Set(context, InternalizedFromLatin1(isolate, "Database"), Database::Init(isolate, data)).FromJust();
-	exports->Set(context, InternalizedFromLatin1(isolate, "Statement"), Statement::Init(isolate, data)).FromJust();
-	exports->Set(context, InternalizedFromLatin1(isolate, "StatementIterator"), StatementIterator::Init(isolate, data)).FromJust();
-	exports->Set(context, InternalizedFromLatin1(isolate, "Backup"), Backup::Init(isolate, data)).FromJust();
-	exports->Set(context, InternalizedFromLatin1(isolate, "setErrorConstructor"), v8::FunctionTemplate::New(isolate, Addon::JS_setErrorConstructor, data)->GetFunction(context).ToLocalChecked()).FromJust();
+	exports.Set("Database", Database::Init(env, addon));
+	exports.Set("Statement", Statement::Init(env, addon));
+	exports.Set("StatementIterator", StatementIterator::Init(env, addon));
+	exports.Set("Backup", Backup::Init(env, addon));
+	exports.Set("setErrorConstructor", Napi::Function::New(env, Addon::JS_setErrorConstructor, "setErrorConstructor", addon));
 
 	// Store addon instance data.
-	addon->Statement.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Statement")).ToLocalChecked().As<v8::Function>());
-	addon->StatementIterator.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "StatementIterator")).ToLocalChecked().As<v8::Function>());
-	addon->Backup.Reset(isolate, exports->Get(context, InternalizedFromLatin1(isolate, "Backup")).ToLocalChecked().As<v8::Function>());
+	addon->Statement = Napi::Persistent(exports.Get("Statement").As<Napi::Function>());
+	addon->StatementIterator = Napi::Persistent(exports.Get("StatementIterator").As<Napi::Function>());
+	addon->Backup = Napi::Persistent(exports.Get("Backup").As<Napi::Function>());
+
+	return exports;
 }
+
+NODE_API_MODULE(better_sqlite3, InitAll)

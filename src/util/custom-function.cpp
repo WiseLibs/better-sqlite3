@@ -2,16 +2,16 @@ class CustomFunction : protected DataConverter {
 public:
 
 	explicit CustomFunction(
-		v8::Isolate* isolate,
+		Napi::Env env,
 		Database* db,
 		const char* name,
-		v8::Local<v8::Function> fn,
+		Napi::Function fn,
 		bool safe_ints
 	) :
 		name(name),
 		db(db),
-		isolate(isolate),
-		fn(isolate, fn),
+		env(env),
+		fn(Napi::Persistent(fn)),
 		safe_ints(safe_ints) {}
 
 	virtual ~CustomFunction() {}
@@ -23,18 +23,18 @@ public:
 	static void xFunc(sqlite3_context* invocation, int argc, sqlite3_value** argv) {
 		FUNCTION_START();
 
-		v8::Local<v8::Value> args_fast[4];
-		v8::Local<v8::Value>* args = NULL;
+		napi_value args_fast[4];
+		napi_value* args = NULL;
 		if (argc != 0) {
-			args = argc <= 4 ? args_fast : ALLOC_ARRAY<v8::Local<v8::Value>>(argc);
-			Data::GetArgumentsJS(isolate, args, argv, argc, self->safe_ints);
+			args = argc <= 4 ? args_fast : ALLOC_ARRAY<napi_value>(argc);
+			Data::GetArgumentsJS(env, args, argv, argc, self->safe_ints);
 		}
 
-		v8::MaybeLocal<v8::Value> maybeReturnValue = self->fn.Get(isolate)->Call(OnlyContext, v8::Undefined(isolate), argc, args);
+		Napi::Value returnValue = SafeCall(env, self->fn.Value(), env.Undefined(), argc, args);
 		if (args != args_fast) delete[] args;
 
-		if (maybeReturnValue.IsEmpty()) self->PropagateJSError(invocation);
-		else Data::ResultValueFromJS(isolate, invocation, maybeReturnValue.ToLocalChecked(), self);
+		if (env.IsExceptionPending()) self->PropagateJSError(invocation);
+		else Data::ResultValueFromJS(env, invocation, returnValue, self);
 	}
 
 protected:
@@ -53,7 +53,7 @@ private:
 	const std::string name;
 	Database* const db;
 protected:
-	v8::Isolate* const isolate;
-	const v8::Global<v8::Function> fn;
+	const Napi::Env env;
+	const Napi::FunctionReference fn;
 	const bool safe_ints;
 };
