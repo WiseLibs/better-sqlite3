@@ -23,10 +23,11 @@ describe('entrypoints', function () {
 	});
 
 	it('publishes a statically-bound entrypoint for the current platform', function () {
-		const Database = require(`../lib/${target}`);
-		const db = new Database(':memory:');
-		expect(db.prepare('SELECT 1 AS value').get()).to.deep.equal({ value: 1 });
-		db.close();
+		// Load the temporary prebuild in a child process. On Windows, a native
+		// addon cannot be removed while the process that loaded it is running.
+		const script = `const Database = require('./lib/${target}'); const db = new Database(':memory:'); try { process.stdout.write(JSON.stringify(db.prepare('SELECT 1 AS value').get())) } finally { db.close() }`;
+		const result = childProcess.execFileSync(process.execPath, ['-e', script], { cwd: path.join(__dirname, '..'), encoding: 'utf8' });
+		expect(JSON.parse(result)).to.deep.equal({ value: 1 });
 	});
 
 	it('rejects nativeBinding from statically-bound entrypoints', function () {
