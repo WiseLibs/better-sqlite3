@@ -25,10 +25,20 @@ private:
 		Addon* addon,
 		bool done
 	) {
-		Napi::Object record = Napi::Object::New(env);
-		record.Set(addon->cs.value.Value(), value);
-		record.Set(addon->cs.done.Value(), Napi::Boolean::New(env, done));
-		return record;
+		napi_property_descriptor properties[2] = {};
+		properties[0].name = addon->cs.value.Value();
+		properties[0].value = value;
+		properties[0].attributes = DEFAULT_ATTRIBUTES;
+		properties[1].name = addon->cs.done.Value();
+		properties[1].value = Napi::Boolean::New(env, done);
+		properties[1].attributes = DEFAULT_ATTRIBUTES;
+
+		napi_value record;
+		napi_status status = napi_create_object(env, &record);
+		assert(status == napi_ok);
+		status = napi_define_properties(env, record, 2, properties);
+		assert(status == napi_ok); ((void)status);
+		return Napi::Object(env, record);
 	}
 
 	static inline Napi::Object DoneRecord(Napi::Env env, Addon* addon) {
