@@ -154,14 +154,24 @@ NODE_METHOD(Statement::JS_run) {
 		int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
 		sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 		Addon* addon = db->GetAddon();
-		Napi::Object result = Napi::Object::New(env);
-		result.Set(addon->cs.changes.Value(), Napi::Number::New(env, changes));
+		napi_property_descriptor properties[2] = {};
+		properties[0].name = addon->cs.changes.Value();
+		properties[0].value = Napi::Number::New(env, changes);
+		properties[0].attributes = DEFAULT_ATTRIBUTES;
+		properties[1].name = addon->cs.lastInsertRowid.Value();
 		if (stmt->safe_ints) {
-			result.Set(addon->cs.lastInsertRowid.Value(), Napi::BigInt::New(env, (int64_t)id));
+			properties[1].value = Napi::BigInt::New(env, (int64_t)id);
 		} else {
-			result.Set(addon->cs.lastInsertRowid.Value(), Napi::Number::New(env, (double)id));
+			properties[1].value = Napi::Number::New(env, (double)id);
 		}
-		STATEMENT_RETURN(result);
+		properties[1].attributes = DEFAULT_ATTRIBUTES;
+
+		napi_value result;
+		napi_status status = napi_create_object(env, &result);
+		assert(status == napi_ok);
+		status = napi_define_properties(env, result, 2, properties);
+		assert(status == napi_ok); ((void)status);
+		STATEMENT_RETURN(Napi::Object(env, result));
 	}
 	STATEMENT_THROW();
 }
