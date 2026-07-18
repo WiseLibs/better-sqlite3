@@ -1,9 +1,6 @@
 // Builds row objects for queries that return many rows (see Statement::JS_all).
-// The column names are converted into JavaScript strings only once, and then
-// reused for every row; Node-API has no equivalent of V8's internalized
-// strings, so recreating the keys for each row would be needlessly expensive.
-// The cached keys are local handles, so a RowBuilder must not outlive the
-// handle scope it was created in.
+// The property descriptors and JavaScript column-name handles are initialized
+// only once and reused for every row.
 class RowBuilder {
 public:
 
@@ -16,28 +13,30 @@ public:
 		handle(handle),
 		column_count(-1),
 		safe_ints(safe_ints),
-		keys() {}
+		properties() {}
 
 	Napi::Value GetRowJS() {
 		if (column_count < 0) {
 			column_count = sqlite3_column_count(handle);
-			keys.reserve(column_count);
+			properties.resize(column_count);
 			for (int i = 0; i < column_count; ++i) {
-				keys.emplace_back(
-					InternalizedFromUtf8(env, sqlite3_column_name(handle, i), -1)
-				);
+				napi_property_descriptor& property = properties[i];
+				property.name = InternalizedFromUtf8(env, sqlite3_column_name(handle, i), -1);
+				property.attributes = DEFAULT_ATTRIBUTES;
 			}
 		}
 
-		Napi::Object row = Napi::Object::New(env);
 		for (int i = 0; i < column_count; ++i) {
-			row.Set(
-				keys[i],
-				Data::GetValueJS(env, handle, i, safe_ints)
-			);
+			properties[i].value = Data::GetValueJS(env, handle, i, safe_ints);
 		}
 
-		return row;
+		napi_value row;
+		napi_status status = napi_create_object(env, &row);
+		assert(status == napi_ok);
+		status = napi_define_properties(env, row, properties.size(), properties.data());
+		assert(status == napi_ok); ((void)status);
+
+		return Napi::Value(env, row);
 	}
 
 private:
@@ -45,5 +44,5 @@ private:
 	sqlite3_stmt* handle;
 	int column_count;
 	const bool safe_ints;
-	std::vector<Napi::String> keys;
+	std::vector<napi_property_descriptor> properties;
 };

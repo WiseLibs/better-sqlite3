@@ -112,7 +112,6 @@ inline napi_type_tag RandomTypeTag() {
 // native class. Each native class is identified by a unique type tag, which
 // gets applied to each of its instances upon construction.
 template <typename T> inline bool IsInstanceOf(Napi::Env env, Napi::Value value) {
-	if (!value.IsObject()) return false;
 	bool result = false;
 	napi_status status = napi_check_object_type_tag(env, value.As<Napi::Object>(), &T::TYPE_TAG, &result);
 	return status == napi_ok && result;
@@ -134,7 +133,7 @@ napi_value TypeSafeCallback(napi_env env, napi_callback_info info) {
 }
 
 // These match the default attributes of properties created by a V8 template.
-constexpr napi_property_attributes METHOD_ATTRIBUTES =
+constexpr napi_property_attributes DEFAULT_ATTRIBUTES =
 	static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable);
 
 template <typename T, Napi::Value (*method)(const Napi::CallbackInfo&)>
@@ -142,7 +141,7 @@ napi_property_descriptor PrototypeMethod(const char* name, Addon* addon) {
 	napi_property_descriptor desc = {};
 	desc.utf8name = name;
 	desc.method = TypeSafeCallback<T, method>;
-	desc.attributes = METHOD_ATTRIBUTES;
+	desc.attributes = DEFAULT_ATTRIBUTES;
 	desc.data = addon;
 	return desc;
 }
@@ -152,7 +151,7 @@ napi_property_descriptor PrototypeSymbolMethod(Napi::Symbol symbol, Addon* addon
 	napi_property_descriptor desc = {};
 	desc.name = symbol;
 	desc.method = TypeSafeCallback<T, method>;
-	desc.attributes = METHOD_ATTRIBUTES;
+	desc.attributes = DEFAULT_ATTRIBUTES;
 	desc.data = addon;
 	return desc;
 }

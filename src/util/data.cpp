@@ -98,15 +98,21 @@ namespace Data {
 	}
 
 	Napi::Value GetFlatRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints) {
-		Napi::Object row = Napi::Object::New(env);
 		int column_count = sqlite3_column_count(handle);
+		std::vector<napi_property_descriptor> properties(column_count);
 		for (int i = 0; i < column_count; ++i) {
-			row.Set(
-				InternalizedFromUtf8(env, sqlite3_column_name(handle, i), -1),
-				Data::GetValueJS(env, handle, i, safe_ints)
-			);
+			napi_property_descriptor& property = properties[i];
+			property.utf8name = sqlite3_column_name(handle, i);
+			property.value = Data::GetValueJS(env, handle, i, safe_ints);
+			property.attributes = DEFAULT_ATTRIBUTES;
 		}
-		return row;
+
+		napi_value row;
+		napi_status status = napi_create_object(env, &row);
+		assert(status == napi_ok);
+		status = napi_define_properties(env, row, properties.size(), properties.data());
+		assert(status == napi_ok); ((void)status);
+		return Napi::Value(env, row);
 	}
 
 	Napi::Value GetRawRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints) {
