@@ -222,20 +222,23 @@ NODE_METHOD(Statement::JS_all) {
 		} else {
 			Addon* addon = db->GetAddon();
 			assert(!addon->ArrayFactory.IsEmpty());
-			if (rows.size() <= 32768) {
-				// Fast path, using a factory function from JS land.
-				Napi::Value result = SafeCall(env, addon->ArrayFactory.Value(), env.Undefined(), rows.size(), rows.data());
-				if (env.IsExceptionPending()) {
-					db->GetState()->was_js_error = true;
-				} else {
-					STATEMENT_RETURN(result);
+			assert(!addon->ArrayAppender.IsEmpty());
+			static const size_t batch_size = 1024;
+			size_t first_batch_size = std::min(rows.size(), batch_size);
+			Napi::Value result = SafeCall(env, addon->ArrayFactory.Value(), env.Undefined(), first_batch_size, rows.data());
+			if (!env.IsExceptionPending()) {
+				napi_value args[batch_size + 1];
+				args[0] = result;
+				for (size_t offset = first_batch_size; offset < rows.size(); offset += batch_size) {
+					size_t count = std::min(rows.size() - offset, batch_size);
+					std::copy_n(rows.data() + offset, count, args + 1);
+					SafeCall(env, addon->ArrayAppender.Value(), env.Undefined(), count + 1, args);
+					if (env.IsExceptionPending()) break;
 				}
+			}
+			if (env.IsExceptionPending()) {
+				db->GetState()->was_js_error = true;
 			} else {
-				// Slow path, only used for very large arrays.
-				Napi::Array result = Napi::Array::New(env, rows.size());
-				for (uint32_t i = 0, len = rows.size(); i < len; ++i) {
-					result.Set(i, rows[i]);
-				}
 				STATEMENT_RETURN(result);
 			}
 		}
