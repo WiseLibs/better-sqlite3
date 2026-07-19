@@ -34,10 +34,12 @@ struct Addon {
 		REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function SqliteError);
 		REQUIRE_ARGUMENT_FUNCTION(second, Napi::Function ArrayFactory);
 		REQUIRE_ARGUMENT_FUNCTION(third, Napi::Function ArrayAppender);
-		REQUIRE_ARGUMENT_FUNCTION(fourth, Napi::Function RecordFactory);
+		REQUIRE_ARGUMENT_FUNCTION(fourth, Napi::Function RowFactory);
+		REQUIRE_ARGUMENT_FUNCTION(fifth, Napi::Function RecordFactory);
 		OnlyAddon->SqliteError = Napi::Persistent(SqliteError);
 		OnlyAddon->ArrayFactory = Napi::Persistent(ArrayFactory);
 		OnlyAddon->ArrayAppender = Napi::Persistent(ArrayAppender);
+		OnlyAddon->RowFactory = Napi::Persistent(RowFactory);
 		OnlyAddon->RecordFactory = Napi::Persistent(RecordFactory);
 		return info.Env().Undefined();
 	}
@@ -48,6 +50,7 @@ struct Addon {
 	Napi::FunctionReference SqliteError;
 	Napi::FunctionReference ArrayFactory;
 	Napi::FunctionReference ArrayAppender;
+	Napi::FunctionReference RowFactory;
 	Napi::FunctionReference RecordFactory;
 	NODE_ARGUMENTS_POINTER privileged_info;
 	sqlite3_uint64 next_id;

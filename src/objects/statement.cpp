@@ -45,12 +45,19 @@ BindMap& Statement::GetBindMap(Napi::Env env) {
 }
 
 // Returns the Statement's row builder.
-PersistentRowBuilder& Statement::GetRowBuilder() {
+RowBuilder& Statement::GetRowBuilder() {
 	return extras->row_builder;
 }
 
-Statement::Extras::Extras(Napi::Env env, sqlite3_uint64 id)
-	: bind_map(0), row_builder(env), id(id) {}
+Statement::Extras::Extras(
+	Napi::Env env,
+	Napi::Function row_factory,
+	Napi::Function array_factory,
+	sqlite3_uint64 id
+) :
+	bind_map(0),
+	row_builder(env, row_factory, array_factory),
+	id(id) {}
 
 INIT(Statement::Init) {
 	return DefineClass(env, "Statement", {
@@ -131,7 +138,7 @@ NODE_METHOD(Statement::JS_new) {
 	bool returns_data = sqlite3_column_count(handle) >= 1 || pragmaMode;
 	this->db = db;
 	this->handle = handle;
-	this->extras = new Extras(env, addon->NextId());
+	this->extras = new Extras(env, addon->RowFactory.Value(), addon->ArrayFactory.Value(), addon->NextId());
 	this->safe_ints = db->GetState()->safe_ints;
 	this->returns_data = returns_data;
 	this->alive = true;
@@ -159,6 +166,7 @@ NODE_METHOD(Statement::JS_run) {
 		int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
 		sqlite3_int64 id = sqlite3_last_insert_rowid(db_handle);
 		Addon* addon = db->GetAddon();
+
 		napi_property_descriptor properties[2] = {};
 		properties[0].name = addon->cs.changes.Value();
 		properties[0].value = Napi::Number::New(env, changes);
@@ -204,15 +212,8 @@ NODE_METHOD(Statement::JS_all) {
 	std::vector<napi_value> rows;
 	rows.reserve(8);
 
-	if (mode == Data::FLAT) {
-		LocalRowBuilder rowBuilder(env, handle, safe_ints);
-		while (sqlite3_step(handle) == SQLITE_ROW) {
-			rows.emplace_back(rowBuilder.GetRowJS());
-		}
-	} else {
-		while (sqlite3_step(handle) == SQLITE_ROW) {
-			rows.emplace_back(Data::GetRowJS(env, stmt, handle, safe_ints, mode));
-		}
+	while (sqlite3_step(handle) == SQLITE_ROW) {
+		rows.emplace_back(Data::GetRowJS(env, stmt, handle, safe_ints, mode));
 	}
 
 	if (sqlite3_reset(handle) == SQLITE_OK) {

@@ -1,39 +1,22 @@
-// Builds row objects for queries that return many rows (i.e., Statement#all).
-// The column names are initialized only once and reused for every row.
-class LocalRowBuilder {
-public:
-
-	explicit LocalRowBuilder(Napi::Env env, sqlite3_stmt* handle, bool safe_ints);
-	Napi::Value GetRowJS();
-
-private:
-
-	Napi::Env env;
-	sqlite3_stmt* handle;
-	int column_count;
-	const bool safe_ints;
-	CreateObjectWithPropertiesFn create;
-	Napi::Value prototype;
-	Napi::Value null_value;
-	std::vector<napi_value> keys;
-	std::vector<napi_value> values;
-	std::vector<napi_property_descriptor> properties;
-};
-
-// Similar to LocalRowBuilder, but can be reused across separate query calls.
+// Builds row objects efficiently by utilizing a factory function in JS land.
+// The column names are initialized only once and reused for every row/query.
 // The cache is rebuilt if SQLite reparses the statement after a schema change.
-// This is used to optimize Statement#get and Statement#iterate.
-class PersistentRowBuilder {
+class RowBuilder {
 public:
 
-	explicit PersistentRowBuilder(Napi::Env env);
+	explicit RowBuilder(
+		Napi::Env env,
+		Napi::Function row_factory,
+		Napi::Function array_factory
+	);
+
 	Napi::Value GetRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints);
+	Napi::Value GetRawRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints);
 
 private:
-
-	CreateObjectWithPropertiesFn create;
-	Napi::Reference<Napi::Object> prototype;
-	std::vector<Napi::Reference<Napi::String>> keys;
+	Napi::FunctionReference row_factory;
+	Napi::FunctionReference create_row;
+	Napi::FunctionReference array_factory;
 	int column_count;
 	int reprepare_count;
 };

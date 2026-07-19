@@ -19,19 +19,25 @@
           'sources': ['src/better_sqlite3.cpp'],
           'include_dirs': ["<!@(node -p \"require('node-addon-api').include\")"],
           'defines': ['NAPI_VERSION=10', 'NAPI_DISABLE_CPP_EXCEPTIONS'],
-          'cflags_cc': ['-std=c++20', '-fvisibility=hidden', '-fvisibility-inlines-hidden'],
+          'cflags_cc': ['-std=c++20', '-fvisibility=hidden', '-fvisibility-inlines-hidden', '-flto'],
+          'ldflags': ['-flto'],
           'xcode_settings': {
             'OTHER_CPLUSPLUSFLAGS': ['-std=c++20', '-stdlib=libc++'],
             'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES',
             'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES',
+            'LLVM_LTO': 'YES',
           },
           'msvs_settings': {
             'VCCLCompilerTool': {
               'AdditionalOptions': ['/std:c++20'],
+              'WholeProgramOptimization': 'true',
+            },
+            'VCLinkerTool': {
+              'LinkTimeCodeGeneration': 1,
             },
           },
           'conditions': [['OS=="linux"', {
-            'ldflags': ['-Wl,-Bsymbolic', '-Wl,--exclude-libs,ALL'],
+            'ldflags': ['-flto', '-Wl,-Bsymbolic', '-Wl,--exclude-libs,ALL'],
             'libraries': ['-ldl'],
           }]],
         }, {

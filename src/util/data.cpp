@@ -2,16 +2,16 @@
 	if (value.IsNumber()) {                                                    \
 		return sqlite3_##to##_double(                                          \
 			__VA_ARGS__,                                                       \
-			value.As<Napi::Number>().DoubleValue()                            \
+			value.As<Napi::Number>().DoubleValue()                             \
 		);                                                                     \
 	} else if (value.IsBigInt()) {                                             \
 		bool lossless;                                                         \
-		int64_t v = value.As<Napi::BigInt>().Int64Value(&lossless);           \
+		int64_t v = value.As<Napi::BigInt>().Int64Value(&lossless);            \
 		if (lossless) {                                                        \
 			return sqlite3_##to##_int64(__VA_ARGS__, v);                       \
 		}                                                                      \
 	} else if (value.IsString()) {                                             \
-		std::string utf8 = value.As<Napi::String>().Utf8Value();              \
+		std::string utf8 = value.As<Napi::String>().Utf8Value();               \
 		return sqlite3_##to##_text(                                            \
 			__VA_ARGS__,                                                       \
 			utf8.c_str(),                                                      \
@@ -19,8 +19,8 @@
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
 	} else if (value.IsBuffer()) {                                             \
-		Napi::Buffer<char> buffer = value.As<Napi::Buffer<char>>();           \
-		const char* data = buffer.Data();                                     \
+		Napi::Buffer<char> buffer = value.As<Napi::Buffer<char>>();            \
+		const char* data = buffer.Data();                                      \
 		return sqlite3_##to##_blob(                                            \
 			__VA_ARGS__,                                                       \
 			data ? data : "",                                                  \
@@ -31,7 +31,7 @@
 		return sqlite3_##to##_null(__VA_ARGS__);                               \
 	}
 
-#define SQLITE_VALUE_TO_JS(from, env, safe_ints, null_value, ...)              \
+#define SQLITE_VALUE_TO_JS(from, env, safe_ints, ...)                          \
 	switch (sqlite3_##from##_type(__VA_ARGS__)) {                              \
 	case SQLITE_INTEGER:                                                       \
 		if (safe_ints) {                                                       \
@@ -59,7 +59,7 @@
 		);                                                                     \
 	default:                                                                   \
 		assert(sqlite3_##from##_type(__VA_ARGS__) == SQLITE_NULL);             \
-		return null_value;                                                     \
+		return env.Null();                                                     \
 	}                                                                          \
 	assert(false);
 
@@ -71,15 +71,11 @@ namespace Data {
 	static const char RAW = 3;
 
 	Napi::Value GetValueJS(Napi::Env env, sqlite3_stmt* handle, int column, bool safe_ints) {
-		SQLITE_VALUE_TO_JS(column, env, safe_ints, env.Null(), handle, column);
-	}
-
-	Napi::Value GetValueJS(Napi::Env env, sqlite3_stmt* handle, int column, bool safe_ints, napi_value null_value) {
-		SQLITE_VALUE_TO_JS(column, env, safe_ints, Napi::Value(env, null_value), handle, column);
+		SQLITE_VALUE_TO_JS(column, env, safe_ints, handle, column);
 	}
 
 	Napi::Value GetValueJS(Napi::Env env, sqlite3_value* value, bool safe_ints) {
-		SQLITE_VALUE_TO_JS(value, env, safe_ints, env.Null(), value);
+		SQLITE_VALUE_TO_JS(value, env, safe_ints, value);
 	}
 
 	Napi::Value GetExpandedRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints) {
@@ -102,43 +98,18 @@ namespace Data {
 	}
 
 	Napi::Value GetFlatRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints) {
-		// Fast path, using a PersistentRowBuilder.
-		if (GetCreateObjectWithProperties() != NULL) {
-			return stmt->GetRowBuilder().GetRowJS(env, handle, safe_ints);
-		}
-
-		// Slow path, only in old versions of Node.
-		int column_count = sqlite3_column_count(handle);
-		std::vector<napi_property_descriptor> properties(column_count);
-		for (int i = 0; i < column_count; ++i) {
-			napi_property_descriptor& property = properties[i];
-			property.utf8name = sqlite3_column_name(handle, i);
-			property.value = Data::GetValueJS(env, handle, i, safe_ints);
-			property.attributes = DEFAULT_ATTRIBUTES;
-		}
-
-		napi_value row;
-		napi_status status = napi_create_object(env, &row);
-		assert(status == napi_ok);
-		status = napi_define_properties(env, row, properties.size(), properties.data());
-		assert(status == napi_ok); ((void)status);
-		return Napi::Value(env, row);
+		return stmt->GetRowBuilder().GetRowJS(env, handle, safe_ints);
 	}
 
-	Napi::Value GetRawRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints) {
-		int column_count = sqlite3_column_count(handle);
-		Napi::Array row = Napi::Array::New(env, column_count);
-		for (int i = 0; i < column_count; ++i) {
-			row.Set(i, Data::GetValueJS(env, handle, i, safe_ints));
-		}
-		return row;
+	Napi::Value GetRawRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints) {
+		return stmt->GetRowBuilder().GetRawRowJS(env, handle, safe_ints);
 	}
 
 	Napi::Value GetRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints, char mode) {
 		if (mode == Data::FLAT) return GetFlatRowJS(env, stmt, handle, safe_ints);
 		if (mode == PLUCK) return GetValueJS(env, handle, 0, safe_ints);
 		if (mode == EXPAND) return GetExpandedRowJS(env, handle, safe_ints);
-		if (mode == RAW) return GetRawRowJS(env, handle, safe_ints);
+		if (mode == RAW) return GetRawRowJS(env, stmt, handle, safe_ints);
 		assert(false);
 		return Napi::Value();
 	}
