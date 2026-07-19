@@ -10,6 +10,11 @@
 #include <unordered_map>
 #include <algorithm>
 #include <mutex>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
 #include <sqlite3.h>
 #include <napi.h>
 

@@ -32,6 +32,7 @@
           },
           'conditions': [['OS=="linux"', {
             'ldflags': ['-Wl,-Bsymbolic', '-Wl,--exclude-libs,ALL'],
+            'libraries': ['-ldl'],
           }]],
         }, {
           'type': 'none',

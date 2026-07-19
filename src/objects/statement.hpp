@@ -23,9 +23,11 @@ public:
 private:
 
 	// A class for holding values that are less often used.
-	class Extras { friend class Statement;
+	class Extras { friend class Statement; friend class StatementIterator;
 		explicit Extras(sqlite3_uint64 id);
+		~Extras();
 		BindMap bind_map;
+		PersistentRowBuilder* row_builder;
 		const sqlite3_uint64 id;
 	};
 

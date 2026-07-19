@@ -45,7 +45,11 @@ BindMap* Statement::GetBindMap(Napi::Env env) {
 }
 
 Statement::Extras::Extras(sqlite3_uint64 id)
-	: bind_map(0), id(id) {}
+	: bind_map(0), row_builder(NULL), id(id) {}
+
+Statement::Extras::~Extras() {
+	delete row_builder;
+}
 
 INIT(Statement::Init) {
 	return DefineClass(env, "Statement", {
@@ -180,7 +184,15 @@ NODE_METHOD(Statement::JS_get) {
 	STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_ROW) {
-		Napi::Value result = Data::GetRowJS(env, handle, stmt->safe_ints, stmt->mode);
+		Napi::Value result;
+		if (stmt->mode == Data::FLAT && GetCreateObjectWithProperties() != NULL) {
+			if (stmt->extras->row_builder == NULL) {
+				stmt->extras->row_builder = new PersistentRowBuilder(env);
+			}
+			result = stmt->extras->row_builder->GetRowJS(env, handle, stmt->safe_ints);
+		} else {
+			result = Data::GetRowJS(env, handle, stmt->safe_ints, stmt->mode);
+		}
 		sqlite3_reset(handle);
 		STATEMENT_RETURN(result);
 	} else if (status == SQLITE_DONE) {

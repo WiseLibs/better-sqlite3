@@ -20,6 +20,30 @@ inline Napi::String InternalizedFromLatin1(Napi::Env env, const char* str) {
 	return Napi::String::New(env, str);
 }
 
+using CreateObjectWithPropertiesFn = napi_status (NAPI_CDECL *)(
+	napi_env, napi_value, napi_value*, napi_value*, size_t, napi_value*);
+
+inline CreateObjectWithPropertiesFn GetCreateObjectWithProperties() {
+	static CreateObjectWithPropertiesFn fn = []() {
+#ifdef _WIN32
+		HMODULE process = GetModuleHandleW(NULL);
+		FARPROC symbol = process == NULL ? NULL :
+			GetProcAddress(process, "node_api_create_object_with_properties");
+		if (symbol == NULL) {
+			HMODULE node = GetModuleHandleW(L"node.dll");
+			symbol = node == NULL ? NULL :
+				GetProcAddress(node, "node_api_create_object_with_properties");
+		}
+		return reinterpret_cast<CreateObjectWithPropertiesFn>(symbol);
+#else
+		return reinterpret_cast<CreateObjectWithPropertiesFn>(
+			dlsym(RTLD_DEFAULT, "node_api_create_object_with_properties")
+		);
+#endif
+	}();
+	return fn;
+}
+
 // Replicates the semantics of v8::Value::IsInt32() (an integral number within
 // the range of a 32-bit signed integer, excluding -0), which has no direct
 // Node-API equivalent.
