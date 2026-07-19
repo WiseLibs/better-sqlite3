@@ -14,7 +14,7 @@ public:
 		Result result = BindArgs(info, argc, stmt);
 		if (success && result.count != param_count) {
 			if (result.count < param_count) {
-				if (!result.bound_object && stmt->GetBindMap(env)->GetSize()) {
+				if (!result.bound_object && stmt->GetBindMap(env).GetSize()) {
 					Fail(ThrowTypeError, env, "Missing named parameters");
 				} else {
 					Fail(ThrowRangeError, env, "Too few parameter values were provided");
@@ -114,9 +114,9 @@ private:
 	// If a named parameter is missing from the object, an error is thrown.
 	// This should only be invoked once per instance.
 	int BindObject(Napi::Env env, Napi::Object obj, Statement* stmt) {
-		BindMap* bind_map = stmt->GetBindMap(env);
-		BindMap::Pair* pairs = bind_map->GetPairs();
-		int len = bind_map->GetSize();
+		BindMap& bind_map = stmt->GetBindMap(env);
+		BindMap::Pair* pairs = bind_map.GetPairs();
+		int len = bind_map.GetSize();
 
 		for (int i = 0; i < len; ++i) {
 			Napi::String key = pairs[i].GetName(env);
@@ -185,7 +185,7 @@ private:
 				} else if (env.IsExceptionPending()) {
 					Fail(NULL, env, NULL);
 					break;
-				} else if (stmt->GetBindMap(env)->GetSize()) {
+				} else if (stmt->GetBindMap(env).GetSize()) {
 					Fail(ThrowTypeError, env, "Named parameters can only be passed within plain objects");
 					break;
 				}

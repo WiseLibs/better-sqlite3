@@ -13,7 +13,10 @@ public:
 	}
 
 	// Returns the Statement's bind map (creates it upon first execution).
-	BindMap* GetBindMap(Napi::Env env);
+	BindMap& GetBindMap(Napi::Env env);
+
+	// Returns the Statement's row builder.
+	PersistentRowBuilder& GetRowBuilder();
 
 	// Identifies objects that are backed by this class (see IsInstanceOf).
 	static const napi_type_tag TYPE_TAG;
@@ -24,10 +27,9 @@ private:
 
 	// A class for holding values that are less often used.
 	class Extras { friend class Statement; friend class StatementIterator;
-		explicit Extras(sqlite3_uint64 id);
-		~Extras();
+		explicit Extras(Napi::Env env, sqlite3_uint64 id);
 		BindMap bind_map;
-		PersistentRowBuilder* row_builder;
+		PersistentRowBuilder row_builder;
 		const sqlite3_uint64 id;
 	};
 

@@ -32,24 +32,25 @@ void Statement::CloseHandles() {
 }
 
 // Returns the Statement's bind map (creates it upon first execution).
-BindMap* Statement::GetBindMap(Napi::Env env) {
-	if (has_bind_map) return &extras->bind_map;
-	BindMap* bind_map = &extras->bind_map;
+BindMap& Statement::GetBindMap(Napi::Env env) {
+	if (has_bind_map) return extras->bind_map;
+	BindMap& bind_map = extras->bind_map;
 	int param_count = sqlite3_bind_parameter_count(handle);
 	for (int i = 1; i <= param_count; ++i) {
 		const char* name = sqlite3_bind_parameter_name(handle, i);
-		if (name != NULL) bind_map->Add(env, name + 1, i);
+		if (name != NULL) bind_map.Add(env, name + 1, i);
 	}
 	has_bind_map = true;
 	return bind_map;
 }
 
-Statement::Extras::Extras(sqlite3_uint64 id)
-	: bind_map(0), row_builder(NULL), id(id) {}
-
-Statement::Extras::~Extras() {
-	delete row_builder;
+// Returns the Statement's row builder.
+PersistentRowBuilder& Statement::GetRowBuilder() {
+	return extras->row_builder;
 }
+
+Statement::Extras::Extras(Napi::Env env, sqlite3_uint64 id)
+	: bind_map(0), row_builder(env), id(id) {}
 
 INIT(Statement::Init) {
 	return DefineClass(env, "Statement", {
@@ -130,7 +131,7 @@ NODE_METHOD(Statement::JS_new) {
 	bool returns_data = sqlite3_column_count(handle) >= 1 || pragmaMode;
 	this->db = db;
 	this->handle = handle;
-	this->extras = new Extras(addon->NextId());
+	this->extras = new Extras(env, addon->NextId());
 	this->safe_ints = db->GetState()->safe_ints;
 	this->returns_data = returns_data;
 	this->alive = true;
@@ -184,15 +185,7 @@ NODE_METHOD(Statement::JS_get) {
 	STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_ROW) {
-		Napi::Value result;
-		if (stmt->mode == Data::FLAT && GetCreateObjectWithProperties() != NULL) {
-			if (stmt->extras->row_builder == NULL) {
-				stmt->extras->row_builder = new PersistentRowBuilder(env);
-			}
-			result = stmt->extras->row_builder->GetRowJS(env, handle, stmt->safe_ints);
-		} else {
-			result = Data::GetRowJS(env, handle, stmt->safe_ints, stmt->mode);
-		}
+		Napi::Value result = Data::GetRowJS(env, stmt, handle, stmt->safe_ints, stmt->mode);
 		sqlite3_reset(handle);
 		STATEMENT_RETURN(result);
 	} else if (status == SQLITE_DONE) {
@@ -212,13 +205,13 @@ NODE_METHOD(Statement::JS_all) {
 	rows.reserve(8);
 
 	if (mode == Data::FLAT) {
-		RowBuilder rowBuilder(env, handle, safe_ints);
+		LocalRowBuilder rowBuilder(env, handle, safe_ints);
 		while (sqlite3_step(handle) == SQLITE_ROW) {
 			rows.emplace_back(rowBuilder.GetRowJS());
 		}
 	} else {
 		while (sqlite3_step(handle) == SQLITE_ROW) {
-			rows.emplace_back(Data::GetRowJS(env, handle, safe_ints, mode));
+			rows.emplace_back(Data::GetRowJS(env, stmt, handle, safe_ints, mode));
 		}
 	}
 
@@ -227,11 +220,24 @@ NODE_METHOD(Statement::JS_all) {
 			ThrowRangeError(env, "Array overflow (too many rows returned)");
 			db->GetState()->was_js_error = true;
 		} else {
-			Napi::Array result = Napi::Array::New(env, rows.size());
-			for (uint32_t i = 0, len = rows.size(); i < len; ++i) {
-				result.Set(i, rows[i]);
+			Addon* addon = db->GetAddon();
+			assert(!addon->ArrayFactory.IsEmpty());
+			if (rows.size() <= 32768) {
+				// Fast path, using a factory function from JS land.
+				Napi::Value result = SafeCall(env, addon->ArrayFactory.Value(), env.Undefined(), rows.size(), rows.data());
+				if (env.IsExceptionPending()) {
+					db->GetState()->was_js_error = true;
+				} else {
+					STATEMENT_RETURN(result);
+				}
+			} else {
+				// Slow path, only used for very large arrays.
+				Napi::Array result = Napi::Array::New(env, rows.size());
+				for (uint32_t i = 0, len = rows.size(); i < len; ++i) {
+					result.Set(i, rows[i]);
+				}
+				STATEMENT_RETURN(result);
 			}
-			STATEMENT_RETURN(result);
 		}
 	}
 	STATEMENT_THROW();

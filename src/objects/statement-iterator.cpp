@@ -32,20 +32,13 @@ Napi::Value StatementIterator::Next(Napi::Env env) {
 	}
 	int status = sqlite3_step(handle);
 	db_state->busy = false;
+
 	if (status == SQLITE_ROW) {
-		Napi::Value row;
-		if (mode == Data::FLAT && GetCreateObjectWithProperties() != NULL) {
-			if (stmt->extras->row_builder == NULL) {
-				stmt->extras->row_builder = new PersistentRowBuilder(env);
-			}
-			row = stmt->extras->row_builder->GetRowJS(env, handle, safe_ints);
-		} else {
-			row = Data::GetRowJS(env, handle, safe_ints, mode);
-		}
+		Napi::Value row = Data::GetRowJS(env, stmt, handle, safe_ints, mode);
 		return NewRecord(env, row, db_state->addon, false);
 	} else {
 		if (status == SQLITE_DONE) return Return(env);
-		else return Throw(env);
+		return Throw(env);
 	}
 }
 

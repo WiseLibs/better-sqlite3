@@ -30,9 +30,13 @@ struct Addon {
 		});
 	}
 
-	static NODE_METHOD(JS_setErrorConstructor) {
+	static NODE_METHOD(JS_initialize) {
 		REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function SqliteError);
+		REQUIRE_ARGUMENT_FUNCTION(second, Napi::Function ArrayFactory);
+		REQUIRE_ARGUMENT_FUNCTION(third, Napi::Function RecordFactory);
 		OnlyAddon->SqliteError = Napi::Persistent(SqliteError);
+		OnlyAddon->ArrayFactory = Napi::Persistent(ArrayFactory);
+		OnlyAddon->RecordFactory = Napi::Persistent(RecordFactory);
 		return info.Env().Undefined();
 	}
 
@@ -40,6 +44,8 @@ struct Addon {
 	Napi::FunctionReference StatementIterator;
 	Napi::FunctionReference Backup;
 	Napi::FunctionReference SqliteError;
+	Napi::FunctionReference ArrayFactory;
+	Napi::FunctionReference RecordFactory;
 	NODE_ARGUMENTS_POINTER privileged_info;
 	sqlite3_uint64 next_id;
 	CS cs;

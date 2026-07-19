@@ -25,6 +25,16 @@ private:
 		Addon* addon,
 		bool done
 	) {
+		assert(!addon->RecordFactory.IsEmpty());
+
+		// Fast path, using a factory function from JS land.
+		if (!done) {
+			napi_value arg = value;
+			return SafeCall(env, addon->RecordFactory.Value(), env.Undefined(), 1, &arg)
+				.As<Napi::Object>();
+		}
+
+		// Slow path, only used after the iterator is done.
 		napi_property_descriptor properties[2] = {};
 		properties[0].name = addon->cs.value.Value();
 		properties[0].value = value;

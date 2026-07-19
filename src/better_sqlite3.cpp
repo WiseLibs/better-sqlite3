@@ -29,15 +29,16 @@ class Backup;
 #include "util/constants.cpp"
 #include "util/bind-map.cpp"
 #include "util/data-converter.cpp"
-#include "util/data.cpp"
-#include "util/row-builder.cpp"
 
+#include "util/row-builder.hpp"
 #include "objects/backup.hpp"
 #include "objects/statement.hpp"
 #include "objects/database.hpp"
 #include "addon.cpp"
 #include "objects/statement-iterator.hpp"
 
+#include "util/data.cpp"
+#include "util/row-builder.cpp"
 #include "util/query-macros.cpp"
 #include "util/custom-function.cpp"
 #include "util/custom-aggregate.cpp"
@@ -64,7 +65,7 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
 	exports.Set("Statement", Statement::Init(env, addon));
 	exports.Set("StatementIterator", StatementIterator::Init(env, addon));
 	exports.Set("Backup", Backup::Init(env, addon));
-	exports.Set("setErrorConstructor", Napi::Function::New(env, Addon::JS_setErrorConstructor, "setErrorConstructor", addon));
+	exports.Set("initialize", Napi::Function::New(env, Addon::JS_initialize, "initialize", addon));
 
 	// Store addon instance data.
 	addon->Statement = Napi::Persistent(exports.Get("Statement").As<Napi::Function>());
