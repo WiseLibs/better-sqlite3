@@ -89,10 +89,14 @@ NODE_METHOD(Statement::JS_new) {
 	Napi::String source = pinfo[0].As<Napi::String>();
 	Napi::Object database = pinfo[1].As<Napi::Object>();
 	bool pragmaMode = pinfo[2].As<Napi::Boolean>().Value();
+	bool explainMode = pinfo[3].As<Napi::Boolean>().Value();
 	int flags = SQLITE_PREPARE_PERSISTENT;
 
 	if (pragmaMode) {
 		REQUIRE_DATABASE_NO_ITERATORS_UNLESS_UNSAFE(db->GetState());
+		flags = 0;
+	}
+	if (explainMode) {
 		flags = 0;
 	}
 
@@ -140,6 +144,7 @@ NODE_METHOD(Statement::JS_new) {
 	this->db = db;
 	this->handle = handle;
 	this->extras = new Extras(env, addon->RowFactory.Value(), addon->ArrayFactory.Value(), addon->NextId());
+	this->bound = explainMode;
 	this->safe_ints = db->GetState()->safe_ints;
 	this->returns_data = returns_data;
 	this->alive = true;

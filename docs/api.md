@@ -11,6 +11,7 @@
 - [Database#prepare()](#preparestring---statement) (see [`Statement`](#class-statement))
 - [Database#transaction()](#transactionfunction---function)
 - [Database#pragma()](#pragmastring-options---results)
+- [Database#explain()](#explainstring---array-of-rows)
 - [Database#backup()](#backupdestination-options---promise)
 - [Database#serialize()](#serializeoptions---buffer)
 - [Database#function()](#functionname-options-function---this)
@@ -125,6 +126,19 @@ console.log(db.pragma('cache_size', { simple: true })); // => 32000
 If execution of the PRAGMA fails, an `Error` is thrown.
 
 It's better to use this method instead of normal [prepared statements](#preparestring---statement) when executing PRAGMA, because this method normalizes some odd behavior that may otherwise be experienced. The documentation on SQLite PRAGMA can be found [here](https://www.sqlite.org/pragma.html).
+
+### .explain(*string*) -> *array of rows*
+
+Runs [`EXPLAIN`](https://www.sqlite.org/eqp.html) on the given SQL string and returns the result. By default this returns the low-level [bytecode](https://www.sqlite.org/opcode.html) program that SQLite would use to execute the statement (one row per virtual machine instruction). To get the higher-level [query plan](https://www.sqlite.org/eqp.html) instead, prefix your SQL with `QUERY PLAN`.
+
+```js
+db.explain('SELECT * FROM cats WHERE name = ?');
+db.explain('QUERY PLAN SELECT * FROM cats WHERE name = ?');
+```
+
+Unlike normal [prepared statements](#preparestring---statement), the SQL passed to this method may contain [parameters](#binding-parameters) that are left unbound. Since `EXPLAIN` only inspects the statement rather than executing it, no parameter values are needed.
+
+If the given SQL is invalid, an `Error` is thrown.
 
 ### .backup(*destination*, [*options*]) -> *promise*
 

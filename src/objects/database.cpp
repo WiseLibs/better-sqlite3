@@ -199,9 +199,11 @@ NODE_METHOD(Database::JS_prepare) {
 	REQUIRE_ARGUMENT_STRING(first, Napi::String source);
 	REQUIRE_ARGUMENT_OBJECT(second, Napi::Object database);
 	REQUIRE_ARGUMENT_BOOLEAN(third, bool pragmaMode);
+	REQUIRE_ARGUMENT_BOOLEAN(fourth, bool explainMode);
 	(void)source;
 	(void)database;
 	(void)pragmaMode;
+	(void)explainMode;
 	UseAddon;
 	UseIsolate;
 	Napi::Function c = addon->Statement.Value();
