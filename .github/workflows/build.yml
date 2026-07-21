@@ -19,8 +19,8 @@ jobs:
     name: Testing Node ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
       - if: ${{ startsWith(matrix.os, 'windows') }}
@@ -71,8 +71,8 @@ jobs:
     name: Prebuild ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - if: ${{ startsWith(matrix.os, 'windows') }}
@@ -83,7 +83,7 @@ jobs:
         run: python3 -m pip install setuptools
       - run: npm install --ignore-scripts
       - run: npm run build-release
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.target }}
           path: build/Release/better_sqlite3.node
@@ -103,7 +103,7 @@ jobs:
     name: Prebuild ${{ matrix.target }}
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: docker/setup-qemu-action@v4
       - name: Build in Alpine
         run: |
@@ -119,7 +119,7 @@ jobs:
               cp build/Release/better_sqlite3.node prebuilds/${{ matrix.target }}.node && \
               rm -rf build && \
               node -e \"require('./lib')(':memory:').close()\""
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.target }}
           path: prebuilds/${{ matrix.target }}.node
@@ -133,12 +133,12 @@ jobs:
       id-token: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: '*-*'
           path: artifacts
