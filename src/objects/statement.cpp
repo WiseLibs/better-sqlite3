@@ -71,6 +71,7 @@ INIT(Statement::Init) {
 		PrototypeMethod<Statement, &Statement::JS_raw>("raw", addon),
 		PrototypeMethod<Statement, &Statement::JS_safeIntegers>("safeIntegers", addon),
 		PrototypeMethod<Statement, &Statement::JS_columns>("columns", addon),
+		PrototypeMethod<Statement, &Statement::JS_toString>("toString", addon),
 	}, addon);
 }
 
@@ -351,6 +352,22 @@ NODE_METHOD(Statement::JS_columns) {
 	}
 
 	return columns;
+}
+
+NODE_METHOD(Statement::JS_toString) {
+	Statement* stmt = ::Unwrap<Statement>(info.This());
+	Addon* addon = stmt->db->GetAddon();
+
+	char* expanded = stmt->alive && stmt->bound ? sqlite3_expanded_sql(stmt->handle) : NULL;
+	if (expanded != NULL) {
+		Napi::Value ret = StringFromUtf8(info.Env(), expanded, -1);
+		sqlite3_free(expanded);
+		return ret;
+	}
+
+	return info.This().As<Napi::Object>()
+		.Get(addon->cs.source.Value())
+		.As<Napi::String>();
 }
 
 NODE_GETTER(Statement::JS_busy) {
