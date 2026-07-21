@@ -1,64 +1,65 @@
-#define JS_VALUE_TO_SQLITE(to, value, isolate, ...)                            \
-	if (value->IsNumber()) {                                                   \
+#define JS_VALUE_TO_SQLITE(to, value, env, ...)                                \
+	if (value.IsNumber()) {                                                    \
 		return sqlite3_##to##_double(                                          \
 			__VA_ARGS__,                                                       \
-			value.As<v8::Number>()->Value()                                    \
+			value.As<Napi::Number>().DoubleValue()                             \
 		);                                                                     \
-	} else if (value->IsBigInt()) {                                            \
+	} else if (value.IsBigInt()) {                                             \
 		bool lossless;                                                         \
-		int64_t v = value.As<v8::BigInt>()->Int64Value(&lossless);             \
+		int64_t v = value.As<Napi::BigInt>().Int64Value(&lossless);            \
 		if (lossless) {                                                        \
 			return sqlite3_##to##_int64(__VA_ARGS__, v);                       \
 		}                                                                      \
-	} else if (value->IsString()) {                                            \
-		v8::String::Utf8Value utf8(isolate, value.As<v8::String>());           \
+	} else if (value.IsString()) {                                             \
+		std::string utf8 = value.As<Napi::String>().Utf8Value();               \
 		return sqlite3_##to##_text(                                            \
 			__VA_ARGS__,                                                       \
-			*utf8,                                                             \
+			utf8.c_str(),                                                      \
 			utf8.length(),                                                     \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
-	} else if (node::Buffer::HasInstance(value)) {                             \
-		const char* data = node::Buffer::Data(value);                          \
+	} else if (value.IsBuffer()) {                                             \
+		Napi::Buffer<char> buffer = value.As<Napi::Buffer<char>>();            \
+		const char* data = buffer.Data();                                      \
 		return sqlite3_##to##_blob(                                            \
 			__VA_ARGS__,                                                       \
 			data ? data : "",                                                  \
-			node::Buffer::Length(value),                                       \
+			buffer.Length(),                                                   \
 			SQLITE_TRANSIENT                                                   \
 		);                                                                     \
-	} else if (value->IsNull() || value->IsUndefined()) {                      \
+	} else if (value.IsNull() || value.IsUndefined()) {                        \
 		return sqlite3_##to##_null(__VA_ARGS__);                               \
 	}
 
-#define SQLITE_VALUE_TO_JS(from, isolate, safe_ints, ...)                      \
+#define SQLITE_VALUE_TO_JS(from, env, safe_ints, ...)                          \
 	switch (sqlite3_##from##_type(__VA_ARGS__)) {                              \
 	case SQLITE_INTEGER:                                                       \
 		if (safe_ints) {                                                       \
-			return v8::BigInt::New(                                            \
-				isolate,                                                       \
-				sqlite3_##from##_int64(__VA_ARGS__)                            \
+			return Napi::BigInt::New(                                          \
+				env,                                                           \
+				(int64_t)sqlite3_##from##_int64(__VA_ARGS__)                   \
 			);                                                                 \
 		}                                                                      \
 	case SQLITE_FLOAT:                                                         \
-		return v8::Number::New(                                                \
-			isolate,                                                           \
+		return Napi::Number::New(                                              \
+			env,                                                               \
 			sqlite3_##from##_double(__VA_ARGS__)                               \
 		);                                                                     \
 	case SQLITE_TEXT:                                                          \
 		return StringFromUtf8(                                                 \
-			isolate,                                                           \
+			env,                                                               \
 			reinterpret_cast<const char*>(sqlite3_##from##_text(__VA_ARGS__)), \
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
 		);                                                                     \
 	case SQLITE_BLOB:                                                          \
-		return node::Buffer::Copy(                                             \
-			isolate,                                                           \
+		return Napi::Buffer<char>::Copy(                                       \
+			env,                                                               \
 			static_cast<const char*>(sqlite3_##from##_blob(__VA_ARGS__)),      \
 			sqlite3_##from##_bytes(__VA_ARGS__)                                \
-		).ToLocalChecked();                                                    \
+		);                                                                     \
 	default:                                                                   \
 		assert(sqlite3_##from##_type(__VA_ARGS__) == SQLITE_NULL);             \
-		return v8::Null(isolate);                                              \
+		return env.Null();                                                     \
 	}                                                                          \
 	assert(false);
 
@@ -69,126 +70,65 @@ namespace Data {
 	static const char EXPAND = 2;
 	static const char RAW = 3;
 
-	v8::Local<v8::Value> GetValueJS(v8::Isolate* isolate, sqlite3_stmt* handle, int column, bool safe_ints) {
-		SQLITE_VALUE_TO_JS(column, isolate, safe_ints, handle, column);
+	Napi::Value GetValueJS(Napi::Env env, sqlite3_stmt* handle, int column, bool safe_ints) {
+		SQLITE_VALUE_TO_JS(column, env, safe_ints, handle, column);
 	}
 
-	v8::Local<v8::Value> GetValueJS(v8::Isolate* isolate, sqlite3_value* value, bool safe_ints) {
-		SQLITE_VALUE_TO_JS(value, isolate, safe_ints, value);
+	Napi::Value GetValueJS(Napi::Env env, sqlite3_value* value, bool safe_ints) {
+		SQLITE_VALUE_TO_JS(value, env, safe_ints, value);
 	}
 
-	v8::Local<v8::Value> GetExpandedRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		v8::Local<v8::Object> row = v8::Object::New(isolate);
+	Napi::Value GetExpandedRowJS(Napi::Env env, sqlite3_stmt* handle, bool safe_ints) {
+		Napi::Object row = Napi::Object::New(env);
 		int column_count = sqlite3_column_count(handle);
 		for (int i = 0; i < column_count; ++i) {
 			const char* table_raw = sqlite3_column_table_name(handle, i);
-			v8::Local<v8::String> table = InternalizedFromUtf8(isolate, table_raw == NULL ? "$" : table_raw, -1);
-			v8::Local<v8::String> column = InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1);
-			v8::Local<v8::Value> value = Data::GetValueJS(isolate, handle, i, safe_ints);
-			if (row->HasOwnProperty(ctx, table).FromJust()) {
-				row->Get(ctx, table).ToLocalChecked().As<v8::Object>()->Set(ctx, column, value).FromJust();
+			Napi::String table = InternalizedFromUtf8(env, table_raw == NULL ? "$" : table_raw, -1);
+			Napi::String column = InternalizedFromUtf8(env, sqlite3_column_name(handle, i), -1);
+			Napi::Value value = Data::GetValueJS(env, handle, i, safe_ints);
+			if (row.HasOwnProperty(table)) {
+				row.Get(table).As<Napi::Object>().Set(column, value);
 			} else {
-				v8::Local<v8::Object> nested = v8::Object::New(isolate);
-				row->Set(ctx, table, nested).FromJust();
-				nested->Set(ctx, column, value).FromJust();
+				Napi::Object nested = Napi::Object::New(env);
+				row.Set(table, nested);
+				nested.Set(column, value);
 			}
 		}
 		return row;
 	}
 
-#if !defined(NODE_MODULE_VERSION) || NODE_MODULE_VERSION < 127
-
-	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		v8::Local<v8::Object> row = v8::Object::New(isolate);
-		int column_count = sqlite3_column_count(handle);
-		for (int i = 0; i < column_count; ++i) {
-			row->Set(ctx,
-				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1),
-				Data::GetValueJS(isolate, handle, i, safe_ints)
-			).FromJust();
-		}
-		return row;
+	Napi::Value GetFlatRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints) {
+		return stmt->GetRowBuilder().GetRowJS(env, handle, safe_ints);
 	}
 
-	v8::Local<v8::Value> GetRawRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints) {
-		v8::Local<v8::Array> row = v8::Array::New(isolate);
-		int column_count = sqlite3_column_count(handle);
-		for (int i = 0; i < column_count; ++i) {
-			row->Set(ctx, i, Data::GetValueJS(isolate, handle, i, safe_ints)).FromJust();
-		}
-		return row;
+	Napi::Value GetRawRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints) {
+		return stmt->GetRowBuilder().GetRawRowJS(env, handle, safe_ints);
 	}
 
-	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints, char mode) {
-		if (mode == FLAT) return GetFlatRowJS(isolate, ctx, handle, safe_ints);
-		if (mode == PLUCK) return GetValueJS(isolate, handle, 0, safe_ints);
-		if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
-		if (mode == RAW) return GetRawRowJS(isolate, ctx, handle, safe_ints);
+	Napi::Value GetRowJS(Napi::Env env, Statement* stmt, sqlite3_stmt* handle, bool safe_ints, char mode) {
+		if (mode == Data::FLAT) return GetFlatRowJS(env, stmt, handle, safe_ints);
+		if (mode == PLUCK) return GetValueJS(env, handle, 0, safe_ints);
+		if (mode == EXPAND) return GetExpandedRowJS(env, handle, safe_ints);
+		if (mode == RAW) return GetRawRowJS(env, stmt, handle, safe_ints);
 		assert(false);
-		return v8::Local<v8::Value>();
+		return Napi::Value();
 	}
 
-#else
-
-	v8::Local<v8::Value> GetFlatRowJS(v8::Isolate* isolate, sqlite3_stmt* handle, bool safe_ints) {
-		int column_count = sqlite3_column_count(handle);
-		v8::LocalVector<v8::Name> keys(isolate);
-		v8::LocalVector<v8::Value> values(isolate);
-		keys.reserve(column_count);
-		values.reserve(column_count);
-		for (int i = 0; i < column_count; ++i) {
-			keys.emplace_back(
-				InternalizedFromUtf8(isolate, sqlite3_column_name(handle, i), -1).As<v8::Name>()
-			);
-			values.emplace_back(
-				Data::GetValueJS(isolate, handle, i, safe_ints)
-			);
-		}
-		return v8::Object::New(
-			isolate,
-			GET_PROTOTYPE(v8::Object::New(isolate)),
-			keys.data(),
-			values.data(),
-			column_count
-		);
-	}
-
-	v8::Local<v8::Value> GetRawRowJS(v8::Isolate* isolate, sqlite3_stmt* handle, bool safe_ints) {
-		int column_count = sqlite3_column_count(handle);
-		v8::LocalVector<v8::Value> row(isolate);
-		row.reserve(column_count);
-		for (int i = 0; i < column_count; ++i) {
-			row.emplace_back(Data::GetValueJS(isolate, handle, i, safe_ints));
-		}
-		return v8::Array::New(isolate, row.data(), row.size());
-	}
-
-	v8::Local<v8::Value> GetRowJS(v8::Isolate* isolate, v8::Local<v8::Context> ctx, sqlite3_stmt* handle, bool safe_ints, char mode) {
-		if (mode == FLAT) return GetFlatRowJS(isolate, handle, safe_ints);
-		if (mode == PLUCK) return GetValueJS(isolate, handle, 0, safe_ints);
-		if (mode == EXPAND) return GetExpandedRowJS(isolate, ctx, handle, safe_ints);
-		if (mode == RAW) return GetRawRowJS(isolate, handle, safe_ints);
-		assert(false);
-		return v8::Local<v8::Value>();
-	}
-
-#endif
-
-	void GetArgumentsJS(v8::Isolate* isolate, v8::Local<v8::Value>* out, sqlite3_value** values, int argument_count, bool safe_ints) {
+	void GetArgumentsJS(Napi::Env env, napi_value* out, sqlite3_value** values, int argument_count, bool safe_ints) {
 		assert(argument_count > 0);
 		for (int i = 0; i < argument_count; ++i) {
-			out[i] = Data::GetValueJS(isolate, values[i], safe_ints);
+			out[i] = Data::GetValueJS(env, values[i], safe_ints);
 		}
 	}
 
-	int BindValueFromJS(v8::Isolate* isolate, sqlite3_stmt* handle, int index, v8::Local<v8::Value> value) {
-		JS_VALUE_TO_SQLITE(bind, value, isolate, handle, index);
-		return value->IsBigInt() ? SQLITE_TOOBIG : -1;
+	int BindValueFromJS(Napi::Env env, sqlite3_stmt* handle, int index, Napi::Value value) {
+		JS_VALUE_TO_SQLITE(bind, value, env, handle, index);
+		return value.IsBigInt() ? SQLITE_TOOBIG : -1;
 	}
 
-	void ResultValueFromJS(v8::Isolate* isolate, sqlite3_context* invocation, v8::Local<v8::Value> value, DataConverter* converter) {
-		JS_VALUE_TO_SQLITE(result, value, isolate, invocation);
-		converter->ThrowDataConversionError(invocation, value->IsBigInt());
+	void ResultValueFromJS(Napi::Env env, sqlite3_context* invocation, Napi::Value value, DataConverter* converter) {
+		JS_VALUE_TO_SQLITE(result, value, env, invocation);
+		converter->ThrowDataConversionError(env, invocation, value.IsBigInt());
 	}
 
 }

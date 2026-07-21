@@ -1,59 +1,29 @@
-#define NODE_ARGUMENTS const v8::FunctionCallbackInfo<v8::Value>&
-#define NODE_ARGUMENTS_POINTER const v8::FunctionCallbackInfo<v8::Value>*
-#define NODE_METHOD(name) void name(NODE_ARGUMENTS info)
-#define NODE_GETTER(name) void name(v8::Local<v8::Name> _, const v8::PropertyCallbackInfo<v8::Value>& info)
-#define INIT(name) v8::Local<v8::Function> name(v8::Isolate* isolate, v8::Local<v8::External> data)
+#define NODE_ARGUMENTS const Napi::CallbackInfo&
+#define NODE_ARGUMENTS_POINTER const Napi::CallbackInfo*
+#define NODE_METHOD(name) Napi::Value name(const Napi::CallbackInfo& info)
+#define NODE_GETTER(name) Napi::Value name(const Napi::CallbackInfo& info)
+#define INIT(name) Napi::Function name(Napi::Env env, Addon* addon)
 
-#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
-// v8::Object::GetPrototype has been deprecated. See http://crbug.com/333672197
-#define GET_PROTOTYPE(obj) ((obj)->GetPrototypeV2())
-#else
-#define GET_PROTOTYPE(obj) ((obj)->GetPrototype())
-#endif
-
-// PropertyCallbackInfo::This() and Holder() were removed; use HolderV2().
-// Tracking bug for V8 API removals: http://crbug.com/333672197
-// V8 head has since restored Holder() and deprecated HolderV2():
-//   https://chromium.googlesource.com/v8/v8/+/main/include/v8-function-callback.h
-//   V8_INLINE Local<Object> Holder() const;
-//   V8_DEPRECATE_SOON("Use Holder().")
-//   V8_INLINE Local<Object> HolderV2() const;
-#if defined(V8_MAJOR_VERSION) && V8_MAJOR_VERSION >= 13
-#define PROPERTY_HOLDER(info) (info).HolderV2()
-#else
-#define PROPERTY_HOLDER(info) (info).This()
-#endif
-
-#define EasyIsolate v8::Isolate* isolate = v8::Isolate::GetCurrent()
-#define OnlyIsolate info.GetIsolate()
-#define OnlyContext isolate->GetCurrentContext()
-#if defined(NODE_MODULE_VERSION) && NODE_MODULE_VERSION >= 146
-#define EXTERNAL_NEW(isolate, value) v8::External::New((isolate), (value), 0)
-#define EXTERNAL_VALUE(value) (value)->Value(0)
-#else
-#define EXTERNAL_NEW(isolate, value) v8::External::New((isolate), (value))
-#define EXTERNAL_VALUE(value) (value)->Value()
-#endif
-#define OnlyAddon static_cast<Addon*>(EXTERNAL_VALUE(info.Data().As<v8::External>()))
-#define UseIsolate v8::Isolate* isolate = OnlyIsolate
-#define UseContext v8::Local<v8::Context> ctx = OnlyContext
-#define UseAddon Addon* addon = OnlyAddon
-#define Unwrap node::ObjectWrap::Unwrap
+#define OnlyAddon (static_cast<Addon*>(info.Data()))
+#define UseIsolate Napi::Env env = info.Env()
+#define UseAddon Addon* addon = static_cast<Addon*>(info.Data())
 
 #define REQUIRE_ARGUMENT_ANY(at, var)                                          \
 	if (info.Length() <= (at()))                                               \
-		return ThrowTypeError("Expected a "#at" argument");                    \
+		return ThrowTypeError(info.Env(), "Expected a "#at" argument");        \
 	var = info[at()]
 
 #define _REQUIRE_ARGUMENT(at, var, Type, message, ...)                         \
-	if (info.Length() <= (at()) || !info[at()]->Is##Type())                    \
-		return ThrowTypeError("Expected "#at" argument to be "#message);       \
-	var = (info[at()].As<v8::Type>())__VA_ARGS__
+	if (info.Length() <= (at()) || !info[at()].Is##Type())                     \
+		return ThrowTypeError(info.Env(), "Expected "#at" argument to be "#message); \
+	var = (info[at()].As<Napi::Type>())__VA_ARGS__
 
 #define REQUIRE_ARGUMENT_INT32(at, var)                                        \
-	_REQUIRE_ARGUMENT(at, var, Int32, a 32-bit signed integer, ->Value())
+	if (info.Length() <= (at()) || !IsInt32(info[at()]))                       \
+		return ThrowTypeError(info.Env(), "Expected "#at" argument to be a 32-bit signed integer"); \
+	var = info[at()].As<Napi::Number>().Int32Value()
 #define REQUIRE_ARGUMENT_BOOLEAN(at, var)                                      \
-	_REQUIRE_ARGUMENT(at, var, Boolean, a boolean, ->Value())
+	_REQUIRE_ARGUMENT(at, var, Boolean, a boolean, .Value())
 #define REQUIRE_ARGUMENT_STRING(at, var)                                       \
 	_REQUIRE_ARGUMENT(at, var, String, a string)
 #define REQUIRE_ARGUMENT_OBJECT(at, var)                                       \
@@ -63,20 +33,20 @@
 
 #define REQUIRE_DATABASE_OPEN(db)                                              \
 	if (!db->open)                                                             \
-		return ThrowTypeError("The database connection is not open")
+		return ThrowTypeError(info.Env(), "The database connection is not open")
 #define REQUIRE_DATABASE_NOT_BUSY(db)                                          \
 	if (db->busy)                                                              \
-		return ThrowTypeError("This database connection is busy executing a query")
+		return ThrowTypeError(info.Env(), "This database connection is busy executing a query")
 #define REQUIRE_DATABASE_NO_ITERATORS(db)                                      \
 	if (db->iterators)                                                         \
-		return ThrowTypeError("This database connection is busy executing a query")
+		return ThrowTypeError(info.Env(), "This database connection is busy executing a query")
 #define REQUIRE_DATABASE_NO_ITERATORS_UNLESS_UNSAFE(db)                        \
 	if (!db->unsafe_mode) {                                                    \
 		REQUIRE_DATABASE_NO_ITERATORS(db);                                     \
 	} ((void)0)
 #define REQUIRE_STATEMENT_NOT_LOCKED(stmt)                                     \
 	if (stmt->locked)                                                          \
-		return ThrowTypeError("This statement is busy executing a query")
+		return ThrowTypeError(info.Env(), "This statement is busy executing a query")
 
 #define first() 0
 #define second() 1

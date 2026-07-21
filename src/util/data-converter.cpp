@@ -1,11 +1,11 @@
 class DataConverter {
 public:
 
-	void ThrowDataConversionError(sqlite3_context* invocation, bool isBigInt) {
+	void ThrowDataConversionError(Napi::Env env, sqlite3_context* invocation, bool isBigInt) {
 		if (isBigInt) {
-			ThrowRangeError((GetDataErrorPrefix() + " a bigint that was too big").c_str());
+			ThrowRangeError(env, (GetDataErrorPrefix() + " a bigint that was too big").c_str());
 		} else {
-			ThrowTypeError((GetDataErrorPrefix() + " an invalid value").c_str());
+			ThrowTypeError(env, (GetDataErrorPrefix() + " an invalid value").c_str());
 		}
 		PropagateJSError(invocation);
 	}

@@ -1,21 +1,16 @@
-Backup::Backup(
-	Database* db,
-	sqlite3* dest_handle,
-	sqlite3_backup* backup_handle,
-	sqlite3_uint64 id,
-	bool unlink
-) :
-	node::ObjectWrap(),
-	db(db),
-	dest_handle(dest_handle),
-	backup_handle(backup_handle),
-	id(id),
-	alive(true),
-	unlink(unlink) {
-	assert(db != NULL);
-	assert(dest_handle != NULL);
-	assert(backup_handle != NULL);
-	db->AddBackup(this);
+const napi_type_tag Backup::TYPE_TAG = RandomTypeTag();
+
+Backup::Backup(const Napi::CallbackInfo& info) :
+	Napi::ObjectWrap<Backup>(info),
+	db(NULL),
+	dest_handle(NULL),
+	backup_handle(NULL),
+	id(0),
+	alive(false),
+	unlink(false) {
+	napi_status status = napi_type_tag_object(info.Env(), info.This(), &TYPE_TAG);
+	assert(status == napi_ok); ((void)status);
+	JS_new(info);
 }
 
 Backup::~Backup() {
@@ -36,62 +31,70 @@ void Backup::CloseHandles() {
 }
 
 INIT(Backup::Init) {
-	v8::Local<v8::FunctionTemplate> t = NewConstructorTemplate(isolate, data, JS_new, "Backup");
-	SetPrototypeMethod(isolate, data, t, "transfer", JS_transfer);
-	SetPrototypeMethod(isolate, data, t, "close", JS_close);
-	return t->GetFunction(OnlyContext).ToLocalChecked();
+	return DefineClass(env, "Backup", {
+		PrototypeMethod<Backup, &Backup::JS_transfer>("transfer", addon),
+		PrototypeMethod<Backup, &Backup::JS_close>("close", addon),
+	}, addon);
 }
 
 NODE_METHOD(Backup::JS_new) {
 	UseAddon;
-	if (!addon->privileged_info) return ThrowTypeError("Disabled constructor");
+	if (!addon->privileged_info) return ThrowTypeError(info.Env(), "Disabled constructor");
 	assert(info.IsConstructCall());
-	Database* db = Unwrap<Database>(addon->privileged_info->This());
+	const Napi::CallbackInfo& pinfo = *addon->privileged_info;
+	Database* db = ::Unwrap<Database>(pinfo.This());
 	REQUIRE_DATABASE_OPEN(db->GetState());
 	REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
-	v8::Local<v8::Object> database = (*addon->privileged_info)[0].As<v8::Object>();
-	v8::Local<v8::String> attachedName = (*addon->privileged_info)[1].As<v8::String>();
-	v8::Local<v8::String> destFile = (*addon->privileged_info)[2].As<v8::String>();
-	bool unlink = (*addon->privileged_info)[3].As<v8::Boolean>()->Value();
+	Napi::Object database = pinfo[0].As<Napi::Object>();
+	Napi::String attachedName = pinfo[1].As<Napi::String>();
+	Napi::String destFile = pinfo[2].As<Napi::String>();
+	bool unlink = pinfo[3].As<Napi::Boolean>().Value();
 
 	UseIsolate;
 	sqlite3* dest_handle;
-	v8::String::Utf8Value dest_file(isolate, destFile);
-	v8::String::Utf8Value attached_name(isolate, attachedName);
+	std::string dest_file = destFile.Utf8Value();
+	std::string attached_name = attachedName.Utf8Value();
 	int mask = (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
-	if (sqlite3_open_v2(*dest_file, &dest_handle, mask, NULL) != SQLITE_OK) {
-		Database::ThrowSqliteError(addon, dest_handle);
+	if (sqlite3_open_v2(dest_file.c_str(), &dest_handle, mask, NULL) != SQLITE_OK) {
+		Database::ThrowSqliteError(env, addon, dest_handle);
 		int status = sqlite3_close(dest_handle);
 		assert(status == SQLITE_OK); ((void)status);
-		return;
+		return env.Undefined();
 	}
 
 	sqlite3_extended_result_codes(dest_handle, 1);
 	sqlite3_limit(dest_handle, SQLITE_LIMIT_LENGTH, INT_MAX);
-	sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), *attached_name);
+	sqlite3_backup* backup_handle = sqlite3_backup_init(dest_handle, "main", db->GetHandle(), attached_name.c_str());
 	if (backup_handle == NULL) {
-		Database::ThrowSqliteError(addon, dest_handle);
+		Database::ThrowSqliteError(env, addon, dest_handle);
 		int status = sqlite3_close(dest_handle);
 		assert(status == SQLITE_OK); ((void)status);
-		return;
+		return env.Undefined();
 	}
 
-	Backup* backup = new Backup(db, dest_handle, backup_handle, addon->NextId(), unlink);
-	backup->Wrap(info.This());
-	SetFrozen(isolate, OnlyContext, info.This(), addon->cs.database, database);
+	this->db = db;
+	this->dest_handle = dest_handle;
+	this->backup_handle = backup_handle;
+	this->id = addon->NextId();
+	this->unlink = unlink;
+	this->alive = true;
+	db->AddBackup(this);
 
-	info.GetReturnValue().Set(info.This());
+	SetFrozen(env, info.This().As<Napi::Object>(), addon->cs.database, database);
+
+	return info.This();
 }
 
 NODE_METHOD(Backup::JS_transfer) {
-	Backup* backup = Unwrap<Backup>(info.This());
+	Backup* backup = ::Unwrap<Backup>(info.This());
 	REQUIRE_ARGUMENT_INT32(first, int pages);
 	REQUIRE_DATABASE_OPEN(backup->db->GetState());
 	assert(backup->db->GetState()->busy == false);
 	assert(backup->alive == true);
 
+	UseIsolate;
 	sqlite3_backup* backup_handle = backup->backup_handle;
 	int status = sqlite3_backup_step(backup_handle, pages) & 0xff;
 
@@ -99,22 +102,21 @@ NODE_METHOD(Backup::JS_transfer) {
 	if (status == SQLITE_OK || status == SQLITE_DONE || status == SQLITE_BUSY) {
 		int total_pages = sqlite3_backup_pagecount(backup_handle);
 		int remaining_pages = sqlite3_backup_remaining(backup_handle);
-		UseIsolate;
-		UseContext;
-		v8::Local<v8::Object> result = v8::Object::New(isolate);
-		result->Set(ctx, addon->cs.totalPages.Get(isolate), v8::Int32::New(isolate, total_pages)).FromJust();
-		result->Set(ctx, addon->cs.remainingPages.Get(isolate), v8::Int32::New(isolate, remaining_pages)).FromJust();
-		info.GetReturnValue().Set(result);
+		Napi::Object result = Napi::Object::New(env);
+		result.Set(addon->cs.totalPages.Value(), Napi::Number::New(env, total_pages));
+		result.Set(addon->cs.remainingPages.Value(), Napi::Number::New(env, remaining_pages));
 		if (status == SQLITE_DONE) backup->unlink = false;
+		return result;
 	} else {
-		Database::ThrowSqliteError(addon, sqlite3_errstr(status), status);
+		Database::ThrowSqliteError(env, addon, sqlite3_errstr(status), status);
+		return env.Undefined();
 	}
 }
 
 NODE_METHOD(Backup::JS_close) {
-	Backup* backup = Unwrap<Backup>(info.This());
+	Backup* backup = ::Unwrap<Backup>(info.This());
 	assert(backup->db->GetState()->busy == false);
 	if (backup->alive) backup->db->RemoveBackup(backup);
 	backup->CloseHandles();
-	info.GetReturnValue().Set(info.This());
+	return info.This();
 }

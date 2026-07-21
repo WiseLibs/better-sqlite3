@@ -1,6 +1,7 @@
-class Database : public node::ObjectWrap {
+class Database : public Napi::ObjectWrap<Database> {
 public:
 
+	explicit Database(const Napi::CallbackInfo& info);
 	~Database();
 
 	// Whenever this is used, addon->dbs.erase() must be invoked beforehand.
@@ -24,12 +25,12 @@ public:
 	};
 
 	// Proper error handling logic for when an sqlite3 operation fails.
-	void ThrowDatabaseError();
-	static void ThrowSqliteError(Addon* addon, sqlite3* db_handle);
-	static void ThrowSqliteError(Addon* addon, const char* message, int code);
+	void ThrowDatabaseError(Napi::Env env);
+	static void ThrowSqliteError(Napi::Env env, Addon* addon, sqlite3* db_handle);
+	static void ThrowSqliteError(Napi::Env env, Addon* addon, const char* message, int code);
 
 	// Allows Statements to log their executed SQL.
-	bool Log(v8::Isolate* isolate, sqlite3_stmt* handle);
+	bool Log(Napi::Env env, sqlite3_stmt* handle);
 
 	// Allow Statements to manage themselves when created and garbage collected.
 	inline void AddStatement(Statement* stmt) { stmts.insert(stmts.end(), stmt); }
@@ -56,18 +57,14 @@ public:
 	inline sqlite3* GetHandle() { return db_handle; }
 	inline Addon* GetAddon() { return addon; }
 
+	// Identifies objects that are backed by this class (see IsInstanceOf).
+	static const napi_type_tag TYPE_TAG;
+
 	static INIT(Init);
 
 private:
 
-	explicit Database(
-		v8::Isolate* isolate,
-		Addon* addon,
-		sqlite3* db_handle,
-		v8::Local<v8::Value> logger
-	);
-
-	static NODE_METHOD(JS_new);
+	NODE_METHOD(JS_new);
 	static NODE_METHOD(JS_prepare);
 	static NODE_METHOD(JS_exec);
 	static NODE_METHOD(JS_backup);
@@ -82,22 +79,22 @@ private:
 	static NODE_GETTER(JS_open);
 	static NODE_GETTER(JS_inTransaction);
 
-	static bool Deserialize(v8::Local<v8::Object> buffer, Addon* addon, sqlite3* db_handle, bool readonly);
-	static void FreeSerialization(char* data, void* _);
+	static bool Deserialize(Napi::Env env, Napi::Object buffer, Addon* addon, sqlite3* db_handle, bool readonly);
+	static void FreeSerialization(Napi::Env env, char* data);
 
 	static const int MAX_BUFFER_SIZE;
 	static const int MAX_STRING_SIZE;
 
-	sqlite3* const db_handle;
+	sqlite3* db_handle;
 	bool open;
 	bool busy;
 	bool safe_ints;
 	bool unsafe_mode;
 	bool was_js_error;
-	const bool has_logger;
+	bool has_logger;
 	unsigned short iterators;
 	Addon* const addon;
-	const v8::Global<v8::Value> logger;
+	Napi::Reference<Napi::Value> logger;
 	std::set<Statement*, CompareStatement> stmts;
 	std::set<Backup*, CompareBackup> backups;
 };

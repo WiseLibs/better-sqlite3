@@ -1,11 +1,10 @@
 struct Addon {
-	explicit Addon(v8::Isolate* isolate) :
+	explicit Addon(Napi::Env env) :
 		privileged_info(NULL),
 		next_id(0),
-		cs(isolate) {}
+		cs(env) {}
 
-	static void Cleanup(void* ptr) {
-		Addon* addon = static_cast<Addon*>(ptr);
+	static void Cleanup(Addon* addon) {
 		for (Database* db : addon->dbs) db->CloseHandles();
 		addon->dbs.clear();
 		delete addon;
@@ -31,15 +30,28 @@ struct Addon {
 		});
 	}
 
-	static NODE_METHOD(JS_setErrorConstructor) {
-		REQUIRE_ARGUMENT_FUNCTION(first, v8::Local<v8::Function> SqliteError);
-		OnlyAddon->SqliteError.Reset(OnlyIsolate, SqliteError);
+	static NODE_METHOD(JS_initialize) {
+		REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function SqliteError);
+		REQUIRE_ARGUMENT_FUNCTION(second, Napi::Function ArrayFactory);
+		REQUIRE_ARGUMENT_FUNCTION(third, Napi::Function ArrayAppender);
+		REQUIRE_ARGUMENT_FUNCTION(fourth, Napi::Function RowFactory);
+		REQUIRE_ARGUMENT_FUNCTION(fifth, Napi::Function RecordFactory);
+		OnlyAddon->SqliteError = Napi::Persistent(SqliteError);
+		OnlyAddon->ArrayFactory = Napi::Persistent(ArrayFactory);
+		OnlyAddon->ArrayAppender = Napi::Persistent(ArrayAppender);
+		OnlyAddon->RowFactory = Napi::Persistent(RowFactory);
+		OnlyAddon->RecordFactory = Napi::Persistent(RecordFactory);
+		return info.Env().Undefined();
 	}
 
-	v8::Global<v8::Function> Statement;
-	v8::Global<v8::Function> StatementIterator;
-	v8::Global<v8::Function> Backup;
-	v8::Global<v8::Function> SqliteError;
+	Napi::FunctionReference Statement;
+	Napi::FunctionReference StatementIterator;
+	Napi::FunctionReference Backup;
+	Napi::FunctionReference SqliteError;
+	Napi::FunctionReference ArrayFactory;
+	Napi::FunctionReference ArrayAppender;
+	Napi::FunctionReference RowFactory;
+	Napi::FunctionReference RecordFactory;
 	NODE_ARGUMENTS_POINTER privileged_info;
 	sqlite3_uint64 next_id;
 	CS cs;
