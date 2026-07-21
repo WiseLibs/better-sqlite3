@@ -81,6 +81,46 @@ describe('Statement#bind()', function () {
 		stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
 		stmt.bind({ a: '123', b: null }, null);
 	});
+	it('should not treat class instances as plain objects', function () {
+		const stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		expect(() => stmt.bind(new (class { get a() { return "123"; } })(), null)).to.throw(TypeError);
+		expect(() => stmt.bind(Object.assign(new Date(), { a: 123 }), null)).to.throw(TypeError);
+		expect(() => stmt.bind(Object.assign(new Number(123), { a: 123 }), null)).to.throw(TypeError);
+		expect(() => stmt.bind(Object.assign(() => {}, { a: 123 }), null)).to.throw(TypeError);
+	});
+	it('should not treat class instances from other realms as plain objects', function () {
+		const vm = require('vm');
+		const context = vm.createContext({});
+
+		// A class instance from another realm is not a plain object, so passing it
+		// where named parameters are expected must throw.
+		const foreignInstance = vm.runInContext('(new (class { get a() { return "123"; } })())', context);
+		const stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		expect(() => stmt.bind(foreignInstance, null)).to.throw(TypeError);
+	});
+	it('should recognize plain objects created in other realms', function () {
+		const vm = require('vm');
+		const context = vm.createContext({});
+
+		// A plain object created in another realm has a different Object.prototype
+		// identity, but should still be recognized as a plain object.
+		const foreignPlainObject = vm.runInContext('({ a: "123", b: null })', context);
+		expect(Object.getPrototypeOf(foreignPlainObject)).to.not.equal(Object.prototype);
+
+		const stmt = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		stmt.bind(foreignPlainObject, null);
+		stmt.run();
+		const row = this.db.prepare('SELECT * FROM entries WHERE rowid=1').get();
+		expect(row.a).to.equal('123');
+
+		// An object created via Object.create(null) in another realm is plain too.
+		const foreignNullProtoObject = vm.runInContext('Object.assign(Object.create(null), { a: "456", b: null })', context);
+		const stmt2 = this.db.prepare('INSERT INTO entries VALUES (@a, @a, ?)');
+		stmt2.bind(foreignNullProtoObject, null);
+		stmt2.run();
+		const row2 = this.db.prepare('SELECT * FROM entries WHERE rowid=2').get();
+		expect(row2.a).to.equal('456');
+	});
 	it('should propagate exceptions thrown while accessing array/object members', function () {
 		const arr = [22];
 		const obj = {};

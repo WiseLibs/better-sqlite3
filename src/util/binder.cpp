@@ -41,16 +41,20 @@ private:
 		return Napi::Value(env, proto);
 	}
 
-	// An object is "plain" if its prototype is null or Object.prototype. Unlike
-	// the original V8 implementation, we cannot look up Object.prototype within
-	// the object's creation context (Node-API has no such concept), so plain
-	// objects from other contexts (e.g., the "vm" module) are not recognized.
+	// An object is "plain" if its prototype is null or a top-level prototype
+	// (i.e., some realm's Object.prototype). Rather than comparing against the
+	// current realm's Object.prototype -- which would reject plain objects from
+	// other contexts, such as the "vm" module -- we walk to the top of the
+	// prototype chain. A plain object's chain is exactly "obj -> proto -> null",
+	// so its immediate prototype must itself have a null prototype. This mirrors
+	// the cross-realm heuristic used by lodash's isPlainObject.
 	static bool IsPlainObject(Napi::Env env, Napi::Object obj) {
 		Napi::Value proto = GetPrototype(env, obj);
 		if (proto.IsEmpty()) return false;
 		if (proto.IsNull()) return true;
-		Napi::Value baseProto = GetPrototype(env, Napi::Object::New(env));
-		return !baseProto.IsEmpty() && proto.StrictEquals(baseProto);
+		Napi::Value grandproto = GetPrototype(env, proto.As<Napi::Object>());
+		if (grandproto.IsEmpty()) return false;
+		return grandproto.IsNull();
 	}
 
 	void Fail(Napi::Value (*Throw)(Napi::Env, const char*), Napi::Env env, const char* message) {
