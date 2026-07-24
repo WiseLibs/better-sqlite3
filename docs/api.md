@@ -305,7 +305,7 @@ db.table('regex_matches', {
   },
 });
 
-const stmt = db.prepare("SELECT * FROM regex('\\$(\\d+)', ?)");
+const stmt = db.prepare("SELECT * FROM regex_matches('\\$(\\d+)', ?)");
 
 stmt.all('Desks cost $500 and chairs cost $27');
 // => [{ match: '$500', capture: '500' }, { match: '$27', capture: '27' }]
