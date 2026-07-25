@@ -54,6 +54,19 @@ describe('Database#table()', function () {
 		expect(() => this.db.table('g', { parameters: ['x'], columns: ['x'], rows: function*(){} })).to.throw(TypeError);
 		expect(() => this.db.table('h', { parameters: [...Array(33)].map((_, i) => `p${i}`), columns: ['foo'], rows: function*(){} })).to.throw(RangeError);
 	});
+	it('should reject non-string parameters even if Array.prototype.every is polluted', function () {
+		const original = Array.prototype.every;
+		Array.prototype.every = () => true;
+		let thrown;
+		try {
+			this.db.table('a', { parameters: [new String('x')], columns: ['foo'], rows: function*(){} });
+		} catch (err) {
+			thrown = err;
+		} finally {
+			Array.prototype.every = original;
+		}
+		expect(thrown).to.be.an.instanceof(TypeError);
+	});
 	it('should throw an exception if the "rows" option is invalid', function () {
 		expect(() => this.db.table('a', { columns: ['x'] })).to.throw(TypeError);
 		expect(() => this.db.table('b', { columns: ['x'], rows: undefined })).to.throw(TypeError);
