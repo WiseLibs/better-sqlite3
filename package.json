@@ -28,6 +28,7 @@
     "deps/**",
     "prebuilds/**"
   ],
+  "gypfile": false,
   "engines": {
     "node": ">=22"
   },
