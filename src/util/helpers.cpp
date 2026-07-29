@@ -90,7 +90,9 @@ Napi::Value ThrowRangeError(Napi::Env env, const char* message) {
 // only be used on values that are already known to be backed by the given
 // class (e.g., a receiver that was validated by TypeSafeCallback below, or a
 // value produced by our own code), because napi_unwrap does not check the
-// object's type.
+// object's type. Returns NULL if the environment can no longer run JavaScript
+// (e.g., worker.terminate()), so callers should use UNWRAP_OR_RETURN, which
+// checks for that case.
 template <typename T> inline T* Unwrap(Napi::Value value) {
 	return T::Unwrap(value.As<Napi::Object>());
 }
@@ -169,7 +171,7 @@ void SetInstanceGetter(Napi::Object obj, const char* name, Addon* addon) {
 	desc.attributes = napi_enumerable;
 	desc.data = addon;
 	napi_status status = napi_define_properties(obj.Env(), obj, 1, &desc);
-	assert(status == napi_ok); ((void)status);
+	assert(status == napi_ok || status == napi_cannot_run_js); ((void)status);
 }
 
 // Determines whether to skip the given character at the start of an SQL string.

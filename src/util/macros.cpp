@@ -8,6 +8,20 @@
 #define UseIsolate Napi::Env env = info.Env()
 #define UseAddon Addon* addon = static_cast<Addon*>(info.Data())
 
+// Type-tag an object, but bail if the thread is terminating, to avoid
+// undesirable side-effects in the subsequent JS_new call (e.g, sqlite3_open()).
+#define TYPE_TAG_CONSTRUCTOR(info)                                             \
+	napi_status status =                                                       \
+		napi_type_tag_object((info).Env(), (info).This(), &TYPE_TAG);          \
+	assert(status == napi_ok || status == napi_cannot_run_js);                 \
+	if (status != napi_ok) return
+
+// Unwrap a native-backed object (see ::Unwrap in helpers.cpp), but bail if the
+// the unwrap fails (which should only happen if the thread is terminating).
+#define UNWRAP_OR_RETURN(T, var, value)                                        \
+	T* var = ::Unwrap<T>(value);                                               \
+	if (var == NULL) return info.Env().Undefined()
+
 #define REQUIRE_ARGUMENT_ANY(at, var)                                          \
 	if (info.Length() <= (at()))                                               \
 		return ThrowTypeError(info.Env(), "Expected a "#at" argument");        \

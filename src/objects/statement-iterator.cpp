@@ -10,8 +10,7 @@ StatementIterator::StatementIterator(const Napi::CallbackInfo& info) :
 	mode(Data::FLAT),
 	alive(false),
 	logged(false) {
-	napi_status status = napi_type_tag_object(info.Env(), info.This(), &TYPE_TAG);
-	assert(status == napi_ok); ((void)status);
+	TYPE_TAG_CONSTRUCTOR(info);
 	JS_new(info);
 }
 
@@ -102,14 +101,14 @@ NODE_METHOD(StatementIterator::JS_new) {
 }
 
 NODE_METHOD(StatementIterator::JS_next) {
-	StatementIterator* iter = ::Unwrap<StatementIterator>(info.This());
+	UNWRAP_OR_RETURN(StatementIterator, iter, info.This());
 	REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 	if (iter->alive) return iter->Next(info.Env());
 	return DoneRecord(info.Env(), iter->db_state->addon);
 }
 
 NODE_METHOD(StatementIterator::JS_return) {
-	StatementIterator* iter = ::Unwrap<StatementIterator>(info.This());
+	UNWRAP_OR_RETURN(StatementIterator, iter, info.This());
 	REQUIRE_DATABASE_NOT_BUSY(iter->db_state);
 	if (iter->alive) return iter->Return(info.Env());
 	return DoneRecord(info.Env(), iter->db_state->addon);

@@ -12,8 +12,7 @@ Statement::Statement(const Napi::CallbackInfo& info) :
 	safe_ints(false),
 	mode(Data::FLAT),
 	returns_data(false) {
-	napi_status status = napi_type_tag_object(info.Env(), info.This(), &TYPE_TAG);
-	assert(status == napi_ok); ((void)status);
+	TYPE_TAG_CONSTRUCTOR(info);
 	JS_new(info);
 }
 
@@ -82,7 +81,7 @@ NODE_METHOD(Statement::JS_new) {
 	}
 	assert(info.IsConstructCall());
 	const Napi::CallbackInfo& pinfo = *addon->privileged_info;
-	Database* db = ::Unwrap<Database>(pinfo.This());
+	UNWRAP_OR_RETURN(Database, db, pinfo.This());
 	REQUIRE_DATABASE_OPEN(db->GetState());
 	REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
@@ -187,9 +186,9 @@ NODE_METHOD(Statement::JS_run) {
 
 		napi_value result;
 		napi_status status = napi_create_object(env, &result);
-		assert(status == napi_ok);
+		assert(status == napi_ok || status == napi_cannot_run_js);
 		status = napi_define_properties(env, result, 2, properties);
-		assert(status == napi_ok); ((void)status);
+		assert(status == napi_ok || status == napi_cannot_run_js); ((void)status);
 		STATEMENT_RETURN(Napi::Object(env, result));
 	}
 	STATEMENT_THROW();
@@ -265,7 +264,7 @@ NODE_METHOD(Statement::JS_iterate) {
 }
 
 NODE_METHOD(Statement::JS_bind) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	if (stmt->bound) return ThrowTypeError(info.Env(), "The bind() method can only be invoked once per statement object");
 	REQUIRE_DATABASE_OPEN(stmt->db->GetState());
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
@@ -276,7 +275,7 @@ NODE_METHOD(Statement::JS_bind) {
 }
 
 NODE_METHOD(Statement::JS_pluck) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	if (!stmt->returns_data) return ThrowTypeError(info.Env(), "The pluck() method is only for statements that return data");
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 	REQUIRE_STATEMENT_NOT_LOCKED(stmt);
@@ -287,7 +286,7 @@ NODE_METHOD(Statement::JS_pluck) {
 }
 
 NODE_METHOD(Statement::JS_expand) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	if (!stmt->returns_data) return ThrowTypeError(info.Env(), "The expand() method is only for statements that return data");
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 	REQUIRE_STATEMENT_NOT_LOCKED(stmt);
@@ -298,7 +297,7 @@ NODE_METHOD(Statement::JS_expand) {
 }
 
 NODE_METHOD(Statement::JS_raw) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	if (!stmt->returns_data) return ThrowTypeError(info.Env(), "The raw() method is only for statements that return data");
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 	REQUIRE_STATEMENT_NOT_LOCKED(stmt);
@@ -309,7 +308,7 @@ NODE_METHOD(Statement::JS_raw) {
 }
 
 NODE_METHOD(Statement::JS_safeIntegers) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
 	REQUIRE_STATEMENT_NOT_LOCKED(stmt);
 	if (info.Length() == 0) stmt->safe_ints = true;
@@ -318,7 +317,7 @@ NODE_METHOD(Statement::JS_safeIntegers) {
 }
 
 NODE_METHOD(Statement::JS_columns) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	if (!stmt->returns_data) return ThrowTypeError(info.Env(), "The columns() method is only for statements that return data");
 	REQUIRE_DATABASE_OPEN(stmt->db->GetState());
 	REQUIRE_DATABASE_NOT_BUSY(stmt->db->GetState());
@@ -360,7 +359,7 @@ NODE_METHOD(Statement::JS_columns) {
 }
 
 NODE_METHOD(Statement::JS_toString) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	Addon* addon = stmt->db->GetAddon();
 
 	char* expanded = stmt->alive && stmt->bound ? sqlite3_expanded_sql(stmt->handle) : NULL;
@@ -376,6 +375,6 @@ NODE_METHOD(Statement::JS_toString) {
 }
 
 NODE_GETTER(Statement::JS_busy) {
-	Statement* stmt = ::Unwrap<Statement>(info.This());
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());
 	return Napi::Boolean::New(info.Env(), stmt->alive && stmt->locked);
 }

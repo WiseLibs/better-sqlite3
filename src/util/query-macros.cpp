@@ -16,7 +16,7 @@
 	return _return_value
 
 #define STATEMENT_START_LOGIC(RETURNS_DATA_CHECK, MUTATE_CHECK)                \
-	Statement* stmt = ::Unwrap<Statement>(info.This());                        \
+	UNWRAP_OR_RETURN(Statement, stmt, info.This());                            \
 	RETURNS_DATA_CHECK();                                                      \
 	sqlite3_stmt* handle = stmt->handle;                                       \
 	Database* db = stmt->db;                                                   \

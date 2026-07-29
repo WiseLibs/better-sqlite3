@@ -45,9 +45,9 @@ private:
 
 		napi_value record;
 		napi_status status = napi_create_object(env, &record);
-		assert(status == napi_ok);
+		assert(status == napi_ok || status == napi_cannot_run_js);
 		status = napi_define_properties(env, record, 2, properties);
-		assert(status == napi_ok); ((void)status);
+		assert(status == napi_ok || status == napi_cannot_run_js); ((void)status);
 		return Napi::Object(env, record);
 	}
 

@@ -23,8 +23,7 @@ Database::Database(const Napi::CallbackInfo& info) :
 	logger(),
 	stmts(),
 	backups() {
-	napi_status status = napi_type_tag_object(info.Env(), info.This(), &TYPE_TAG);
-	assert(status == napi_ok); ((void)status);
+	TYPE_TAG_CONSTRUCTOR(info);
 	JS_new(info);
 }
 
@@ -215,7 +214,7 @@ NODE_METHOD(Database::JS_prepare) {
 }
 
 NODE_METHOD(Database::JS_exec) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	REQUIRE_ARGUMENT_STRING(first, Napi::String source);
 	REQUIRE_DATABASE_OPEN(db);
 	REQUIRE_DATABASE_NOT_BUSY(db);
@@ -275,7 +274,7 @@ NODE_METHOD(Database::JS_backup) {
 }
 
 NODE_METHOD(Database::JS_serialize) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	REQUIRE_ARGUMENT_STRING(first, Napi::String attachedName);
 	REQUIRE_DATABASE_OPEN(db);
 	REQUIRE_DATABASE_NOT_BUSY(db);
@@ -294,7 +293,7 @@ NODE_METHOD(Database::JS_serialize) {
 }
 
 NODE_METHOD(Database::JS_function) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function fn);
 	REQUIRE_ARGUMENT_STRING(second, Napi::String nameString);
 	REQUIRE_ARGUMENT_INT32(third, int argc);
@@ -319,7 +318,7 @@ NODE_METHOD(Database::JS_function) {
 }
 
 NODE_METHOD(Database::JS_aggregate) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	REQUIRE_ARGUMENT_ANY(first, Napi::Value start);
 	REQUIRE_ARGUMENT_FUNCTION(second, Napi::Function step);
 	REQUIRE_ARGUMENT_ANY(third, Napi::Value inverse);
@@ -349,7 +348,7 @@ NODE_METHOD(Database::JS_aggregate) {
 }
 
 NODE_METHOD(Database::JS_table) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	REQUIRE_ARGUMENT_FUNCTION(first, Napi::Function factory);
 	REQUIRE_ARGUMENT_STRING(second, Napi::String nameString);
 	REQUIRE_ARGUMENT_BOOLEAN(third, bool eponymous);
@@ -370,7 +369,7 @@ NODE_METHOD(Database::JS_table) {
 }
 
 NODE_METHOD(Database::JS_loadExtension) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	Napi::String entryPoint;
 	REQUIRE_ARGUMENT_STRING(first, Napi::String filename);
 	if (info.Length() > 1) { REQUIRE_ARGUMENT_STRING(second, entryPoint); }
@@ -397,7 +396,7 @@ NODE_METHOD(Database::JS_loadExtension) {
 }
 
 NODE_METHOD(Database::JS_close) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	if (db->open) {
 		REQUIRE_DATABASE_NOT_BUSY(db);
 		REQUIRE_DATABASE_NO_ITERATORS(db);
@@ -408,14 +407,14 @@ NODE_METHOD(Database::JS_close) {
 }
 
 NODE_METHOD(Database::JS_defaultSafeIntegers) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	if (info.Length() == 0) db->safe_ints = true;
 	else { REQUIRE_ARGUMENT_BOOLEAN(first, db->safe_ints); }
 	return info.Env().Undefined();
 }
 
 NODE_METHOD(Database::JS_unsafeMode) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	if (info.Length() == 0) db->unsafe_mode = true;
 	else { REQUIRE_ARGUMENT_BOOLEAN(first, db->unsafe_mode); }
 	sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
@@ -423,11 +422,11 @@ NODE_METHOD(Database::JS_unsafeMode) {
 }
 
 NODE_GETTER(Database::JS_open) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	return Napi::Boolean::New(info.Env(), db->open);
 }
 
 NODE_GETTER(Database::JS_inTransaction) {
-	Database* db = ::Unwrap<Database>(info.This());
+	UNWRAP_OR_RETURN(Database, db, info.This());
 	return Napi::Boolean::New(info.Env(), db->open && !static_cast<bool>(sqlite3_get_autocommit(db->db_handle)));
 }

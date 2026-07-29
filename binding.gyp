@@ -18,7 +18,7 @@
           'dependencies': ['deps/sqlite3.gyp:sqlite3'],
           'sources': ['src/better_sqlite3.cpp'],
           'include_dirs': ["<!@(node -p \"require('node-addon-api').include\")"],
-          'defines': ['NAPI_VERSION=10', 'NAPI_DISABLE_CPP_EXCEPTIONS'],
+          'defines': ['NAPI_VERSION=10', 'NAPI_DISABLE_CPP_EXCEPTIONS', 'NODE_API_SWALLOW_UNTHROWABLE_EXCEPTIONS'],
           'cflags_cc': ['-std=c++20', '-fvisibility=hidden', '-fvisibility-inlines-hidden', '-flto'],
           'ldflags': ['-flto'],
           'xcode_settings': {

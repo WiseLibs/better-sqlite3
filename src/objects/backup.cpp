@@ -8,8 +8,7 @@ Backup::Backup(const Napi::CallbackInfo& info) :
 	id(0),
 	alive(false),
 	unlink(false) {
-	napi_status status = napi_type_tag_object(info.Env(), info.This(), &TYPE_TAG);
-	assert(status == napi_ok); ((void)status);
+	TYPE_TAG_CONSTRUCTOR(info);
 	JS_new(info);
 }
 
@@ -42,7 +41,7 @@ NODE_METHOD(Backup::JS_new) {
 	if (!addon->privileged_info) return ThrowTypeError(info.Env(), "Disabled constructor");
 	assert(info.IsConstructCall());
 	const Napi::CallbackInfo& pinfo = *addon->privileged_info;
-	Database* db = ::Unwrap<Database>(pinfo.This());
+	UNWRAP_OR_RETURN(Database, db, pinfo.This());
 	REQUIRE_DATABASE_OPEN(db->GetState());
 	REQUIRE_DATABASE_NOT_BUSY(db->GetState());
 
@@ -88,7 +87,7 @@ NODE_METHOD(Backup::JS_new) {
 }
 
 NODE_METHOD(Backup::JS_transfer) {
-	Backup* backup = ::Unwrap<Backup>(info.This());
+	UNWRAP_OR_RETURN(Backup, backup, info.This());
 	REQUIRE_ARGUMENT_INT32(first, int pages);
 	REQUIRE_DATABASE_OPEN(backup->db->GetState());
 	assert(backup->db->GetState()->busy == false);
@@ -114,7 +113,7 @@ NODE_METHOD(Backup::JS_transfer) {
 }
 
 NODE_METHOD(Backup::JS_close) {
-	Backup* backup = ::Unwrap<Backup>(info.This());
+	UNWRAP_OR_RETURN(Backup, backup, info.This());
 	assert(backup->db->GetState()->busy == false);
 	if (backup->alive) backup->db->RemoveBackup(backup);
 	backup->CloseHandles();
