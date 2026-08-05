@@ -1,0 +1,154 @@
+name: test-build-all
+
+on:
+  workflow_dispatch: {}
+
+env:
+  NODE_BUILD_CMD_LEGACY: npx --no-install prebuild -r node -t 22.0.0 -t 24.0.0 --include-regex 'better_sqlite3.node$'
+  NODE_BUILD_CMD_MODERN: npx --no-install prebuild -r node -t 25.0.0 -t 26.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD_LEGACY: npx --no-install prebuild -r electron -t 29.0.0 -t 30.0.0 -t 31.0.0 -t 32.0.0 -t 33.0.0 -t 34.0.0 -t 35.0.0 -t 36.0.0 -t 37.0.0 -t 38.0.0 --include-regex 'better_sqlite3.node$'
+  ELECTRON_BUILD_CMD_MODERN: npx --no-install prebuild -r electron -t 39.0.0 -t 40.0.0 -t 41.0.0 -t 42.3.0 -t 43.0.0 --include-regex 'better_sqlite3.node$'
+
+jobs:
+  prebuild:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-15
+          - macos-15-intel
+          - windows-2022
+    name: Prebuild on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+      - if: ${{ startsWith(matrix.os, 'windows') }}
+        run: pip.exe install setuptools
+      - if: ${{ startsWith(matrix.os, 'macos') }}
+        run: brew install python-setuptools
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }}
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }}
+      - run: ${{ env.ELECTRON_BUILD_CMD_LEGACY }}
+      - run: ${{ env.ELECTRON_BUILD_CMD_MODERN }}
+      - if: matrix.os == 'windows-2022'
+        run: |
+          ${{ env.NODE_BUILD_CMD_LEGACY }} --arch ia32
+          ${{ env.NODE_BUILD_CMD_MODERN }} --arch ia32
+          ${{ env.NODE_BUILD_CMD_LEGACY }} --arch arm64
+          ${{ env.NODE_BUILD_CMD_MODERN }} --arch arm64
+          ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch ia32
+          ${{ env.ELECTRON_BUILD_CMD_MODERN }} --arch ia32
+          ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch arm64
+          ${{ env.ELECTRON_BUILD_CMD_MODERN }} --arch arm64
+
+  prebuild-linux-x64:
+    name: Prebuild on Linux x64
+    runs-on: ubuntu-latest
+    container: node:20-bullseye
+    steps:
+      - uses: actions/checkout@v6
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }}
+      - run: ${{ env.ELECTRON_BUILD_CMD_LEGACY }}
+
+  prebuild-linux-x64-node-modern:
+    name: Prebuild on Linux x64 (Node 25+)
+    runs-on: ubuntu-latest
+    container: node:20-bookworm
+    steps:
+      - uses: actions/checkout@v6
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }}
+
+  prebuild-linux-x64-electron-modern:
+    name: Prebuild on Linux x64 (Electron 39+)
+    runs-on: ubuntu-latest
+    container: node:20-bookworm
+    steps:
+      - uses: actions/checkout@v6
+      - run: npm install --ignore-scripts
+      - run: ${{ env.ELECTRON_BUILD_CMD_MODERN }}
+
+  prebuild-alpine:
+    name: Prebuild on alpine
+    runs-on: ubuntu-latest
+    container: node:20-alpine
+    steps:
+      - uses: actions/checkout@v6
+      - run: apk add build-base git python3 py3-setuptools --update-cache
+      - run: npm install --ignore-scripts
+      - run: ${{ env.NODE_BUILD_CMD_LEGACY }}
+      - run: ${{ env.NODE_BUILD_CMD_MODERN }}
+
+  prebuild-alpine-arm:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm/v7
+          - arm64
+    name: Prebuild on alpine (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - run: |
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-alpine -c "\
+          apk add build-base git python3 py3-setuptools --update-cache && \
+          cd /tmp/project && \
+          npm install --ignore-scripts && \
+          ${{ env.NODE_BUILD_CMD_LEGACY }} && \
+          ${{ env.NODE_BUILD_CMD_MODERN }}"
+
+  prebuild-linux-arm:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm/v7
+          - arm64
+    name: Prebuild on Linux (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - run: |
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-bullseye -c "\
+          cd /tmp/project && \
+          npm install --ignore-scripts && \
+          ${{ env.NODE_BUILD_CMD_LEGACY }} && \
+          if [ '${{ matrix.arch }}' = 'arm64' ]; then ${{ env.ELECTRON_BUILD_CMD_LEGACY }} --arch arm64; fi"
+
+  prebuild-linux-arm-node-modern:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - arm/v7
+          - arm64
+    name: Prebuild on Linux (${{ matrix.arch }}) (Node 25+)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - run: |
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/${{ matrix.arch }} node:20-bookworm -c "\
+          cd /tmp/project && \
+          npm install --ignore-scripts && \
+          ${{ env.NODE_BUILD_CMD_MODERN }}"
+
+  prebuild-linux-arm64-electron-modern:
+    name: Prebuild on Linux arm64 (Electron 39+)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - run: |
+          docker run --rm -v $(pwd):/tmp/project --entrypoint /bin/sh --platform linux/arm64 node:20-bookworm -c "\
+          cd /tmp/project && \
+          npm install --ignore-scripts && \
+          ${{ env.ELECTRON_BUILD_CMD_MODERN }} --arch arm64"
