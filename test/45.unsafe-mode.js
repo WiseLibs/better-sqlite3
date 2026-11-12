@@ -49,4 +49,10 @@ describe('Database#unsafeMode()', function () {
 		this.db.unsafeMode(true);
 		this.db.exec("update sqlite_master set name = 'foo' where name = 'bar'");
 	});
+	it('should throw if the database is closed', function () {
+		this.db.close();
+		expect(() => this.db.unsafeMode()).to.throw(TypeError, 'The database connection is not open');
+		expect(() => this.db.unsafeMode(true)).to.throw(TypeError, 'The database connection is not open');
+		expect(() => this.db.unsafeMode(false)).to.throw(TypeError, 'The database connection is not open');
+	});
 });
