@@ -52,7 +52,9 @@ void Database::ThrowDatabaseError(Napi::Env env) {
 
 void Database::ThrowSqliteError(Napi::Env env, Addon* addon, sqlite3* db_handle) {
 	assert(db_handle != NULL);
-	ThrowSqliteError(env, addon, sqlite3_errmsg(db_handle), sqlite3_extended_errcode(db_handle));
+	int code = sqlite3_extended_errcode(db_handle);
+	const char* vfs_message = FdVfs::TakeErrorMessage(db_handle, code);
+	ThrowSqliteError(env, addon, vfs_message ? vfs_message : sqlite3_errmsg(db_handle), code);
 }
 
 void Database::ThrowSqliteError(Napi::Env env, Addon* addon, const char* message, int code) {
@@ -146,17 +148,39 @@ NODE_METHOD(Database::JS_new) {
 	REQUIRE_ARGUMENT_INT32(sixth, int timeout);
 	REQUIRE_ARGUMENT_ANY(seventh, Napi::Value logger);
 	REQUIRE_ARGUMENT_ANY(eighth, Napi::Value buffer);
+	REQUIRE_ARGUMENT_ANY(ninth, Napi::Value databaseFd);
+	REQUIRE_ARGUMENT_ANY(tenth, Napi::Value journalFd);
 
 	UseAddon;
 	UseIsolate;
 	sqlite3* db_handle;
-	std::string utf8 = filename.Utf8Value();
 	int mask = readonly ? SQLITE_OPEN_READONLY
 		: must_exist ? SQLITE_OPEN_READWRITE
 		: (SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE);
 
-	if (sqlite3_open_v2(utf8.c_str(), &db_handle, mask, NULL) != SQLITE_OK) {
-		ThrowSqliteError(env, addon, db_handle);
+	int open_status;
+	const char* open_error = NULL;
+	if (databaseFd.IsNumber()) {
+		if (!IsInt32(databaseFd) || databaseFd.As<Napi::Number>().Int32Value() < 0 || !IsInt32(journalFd) || journalFd.As<Napi::Number>().Int32Value() < 0) {
+			return ThrowTypeError(env, "Expected file descriptors to be non-negative 32-bit integers");
+		}
+		int database_fd = databaseFd.As<Napi::Number>().Int32Value();
+		int journal_fd = journalFd.As<Napi::Number>().Int32Value();
+		const char* error = FdVfs::Validate(database_fd, journal_fd, readonly);
+		if (error != NULL) return ThrowTypeError(env, error);
+		open_status = FdVfs::Open(database_fd, journal_fd, mask, &db_handle, &open_error);
+	} else {
+		std::string utf8 = filename.Utf8Value();
+		open_status = sqlite3_open_v2(utf8.c_str(), &db_handle, mask, NULL);
+	}
+
+	if (open_status != SQLITE_OK) {
+		if (db_handle == NULL) {
+			ThrowSqliteError(env, addon, open_error ? open_error : sqlite3_errstr(open_status), open_status);
+			return env.Undefined();
+		}
+		if (open_error) ThrowSqliteError(env, addon, open_error, sqlite3_extended_errcode(db_handle));
+		else ThrowSqliteError(env, addon, db_handle);
 		int status = sqlite3_close(db_handle);
 		assert(status == SQLITE_OK); ((void)status);
 		return env.Undefined();
@@ -231,6 +255,7 @@ NODE_METHOD(Database::JS_exec) {
 	sqlite3* const db_handle = db->db_handle;
 	sqlite3_stmt* handle;
 
+	FdVfs::BeginOperation();
 	for (;;) {
 		while (IS_SKIPPED(*sql)) ++sql;
 		status = sqlite3_prepare_v2(db_handle, sql, -1, &handle, &tail);

@@ -104,6 +104,7 @@ NODE_METHOD(Statement::JS_new) {
 	sqlite3_stmt* handle;
 	const char* tail;
 
+	FdVfs::BeginOperation();
 	if (sqlite3_prepare_v3(db->GetHandle(), utf8.c_str(), utf8.length() + 1, flags, &handle, &tail) != SQLITE_OK) {
 		db->ThrowDatabaseError(env);
 		return env.Undefined();
@@ -166,6 +167,7 @@ NODE_METHOD(Statement::JS_run) {
 	sqlite3* db_handle = db->GetHandle();
 	int total_changes_before = sqlite3_total_changes(db_handle);
 
+	FdVfs::BeginOperation();
 	sqlite3_step(handle);
 	if (sqlite3_reset(handle) == SQLITE_OK) {
 		int changes = sqlite3_total_changes(db_handle) == total_changes_before ? 0 : sqlite3_changes(db_handle);
@@ -196,6 +198,7 @@ NODE_METHOD(Statement::JS_run) {
 
 NODE_METHOD(Statement::JS_get) {
 	STATEMENT_START(REQUIRE_STATEMENT_RETURNS_DATA, DOES_NOT_MUTATE);
+	FdVfs::BeginOperation();
 	int status = sqlite3_step(handle);
 	if (status == SQLITE_ROW) {
 		Napi::Value result = Data::GetRowJS(env, stmt, handle, stmt->safe_ints, stmt->mode);
@@ -217,6 +220,7 @@ NODE_METHOD(Statement::JS_all) {
 	std::vector<napi_value> rows;
 	rows.reserve(8);
 
+	FdVfs::BeginOperation();
 	while (sqlite3_step(handle) == SQLITE_ROW) {
 		rows.emplace_back(Data::GetRowJS(env, stmt, handle, safe_ints, mode));
 	}

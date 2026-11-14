@@ -28,11 +28,13 @@ Creates a new database connection. If the database file does not exist, it is cr
 
 > In-memory databases can also be created by passing a buffer returned by [`.serialize()`](#serializeoptions---buffer), instead of passing a string as the first argument.
 
+> On Unix-like systems (Linux, macOS, etc.), a database can also be opened from open file descriptors, by passing the database's file descriptor as the first argument. See [Opening a database from a file descriptor](./fd.md).
+
 Various options are accepted:
 
 - `options.readonly`: open the database connection in readonly mode (default: `false`).
 
-- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option is ignored for in-memory, temporary, or readonly database connections (default: `false`).
+- `options.fileMustExist`: if the database does not exist, an `Error` will be thrown instead of creating a new file. This option is ignored for in-memory, temporary, readonly, or [file descriptor](./fd.md) database connections (default: `false`).
 
 - `options.timeout`: the number of milliseconds to wait when executing queries on a locked database, before throwing a `SQLITE_BUSY` error (default: `5000`).
 

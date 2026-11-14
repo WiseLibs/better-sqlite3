@@ -13,8 +13,8 @@ describe('new Database()', function () {
 		expect(() => (this.db = new Database({}, ''))).to.throw(TypeError);
 		expect(() => (this.db = new Database({}, {}))).to.throw(TypeError);
 		expect(() => (this.db = new Database({}))).to.throw(TypeError);
-		expect(() => (this.db = new Database(0))).to.throw(TypeError);
-		expect(() => (this.db = new Database(123))).to.throw(TypeError);
+		expect(() => (this.db = new Database(-1))).to.throw(TypeError);
+		expect(() => (this.db = new Database(1.5))).to.throw(TypeError);
 		expect(() => (this.db = new Database(new String(util.next())))).to.throw(TypeError);
 		expect(() => (this.db = new Database(() => util.next()))).to.throw(TypeError);
 		expect(() => (this.db = new Database([util.next()]))).to.throw(TypeError);

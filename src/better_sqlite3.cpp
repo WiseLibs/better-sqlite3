@@ -21,6 +21,7 @@ class Backup;
 
 #include "util/macros.cpp"
 #include "util/helpers.cpp"
+#include "util/fd-vfs.cpp"
 #include "util/constants.cpp"
 #include "util/bind-map.cpp"
 #include "util/data-converter.cpp"

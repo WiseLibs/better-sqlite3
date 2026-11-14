@@ -29,6 +29,7 @@ Napi::Value StatementIterator::Next(Napi::Env env) {
 			return Throw(env);
 		}
 	}
+	FdVfs::BeginOperation();
 	int status = sqlite3_step(handle);
 	db_state->busy = false;
 
