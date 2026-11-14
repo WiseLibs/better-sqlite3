@@ -440,6 +440,7 @@ NODE_METHOD(Database::JS_defaultSafeIntegers) {
 
 NODE_METHOD(Database::JS_unsafeMode) {
 	UNWRAP_OR_RETURN(Database, db, info.This());
+	REQUIRE_DATABASE_OPEN(db);
 	if (info.Length() == 0) db->unsafe_mode = true;
 	else { REQUIRE_ARGUMENT_BOOLEAN(first, db->unsafe_mode); }
 	sqlite3_db_config(db->db_handle, SQLITE_DBCONFIG_DEFENSIVE, static_cast<int>(!db->unsafe_mode), NULL);
