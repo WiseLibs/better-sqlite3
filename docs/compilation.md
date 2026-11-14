@@ -1,22 +1,67 @@
 # Custom configuration
 
-If you want to use a customized version of [SQLite](https://www.sqlite.org) with `better-sqlite3`, you can do so by specifying the directory of your [custom amalgamation](https://www.sqlite.org/amalgamation.html) during installation.
+If you want to use a customized version of [SQLite](https://www.sqlite.org) with `better-sqlite3`, you can compile it against your own [amalgamation](https://www.sqlite.org/amalgamation.html) (a directory containing `sqlite3.c` and `sqlite3.h`).
 
-```bash
-npm install better-sqlite3 --build-from-source --sqlite3=/path/to/sqlite-amalgamation
+`better-sqlite3` ships with prebuilt binaries and does not compile anything when it's installed, so you'll need to compile it yourself. The easiest way to do this automatically is to add a `postinstall` script to your own `package.json`, which compiles `better-sqlite3` after the rest of your dependencies have been installed. Once compiled, your build is used instead of the prebuilt binary.
+
+### Step by step example
+
+1. Download the SQLite source code from [their website](https://sqlite.com/download.html) (e.g., `sqlite-amalgamation-1234567.zip`)
+2. Unzip it, and move the `sqlite3.c` and `sqlite3.h` files into a folder in your project (e.g., `sqlite-amalgamation/`)
+3. Define your preferred [compile time options](https://www.sqlite.org/compile.html) at the top of `sqlite3.c` (see [below](#compile-time-options))
+4. Add `better-sqlite3` to your `dependencies` as usual
+5. Save the script below as `scripts/build-sqlite.js` in your project
+6. Add a `postinstall` script to your `package.json`, as shown below
+7. Run `npm install` in your project folder
+
+```js
+// scripts/build-sqlite.js
+'use strict';
+const { execFileSync } = require('child_process');
+const path = require('path');
+
+// This must be an absolute path.
+const amalgamation = path.resolve(__dirname, '..', 'sqlite-amalgamation');
+const betterSqlite3 = path.dirname(require.resolve('better-sqlite3/package.json'));
+
+// npm sets this variable to the location of its bundled node-gyp.
+if (!process.env.npm_config_node_gyp) {
+  throw new Error('This script must be run by npm (e.g., "npm run postinstall")');
+}
+
+execFileSync(process.execPath, [
+  process.env.npm_config_node_gyp,
+  'rebuild',
+  '--release',
+  '--force_build=1',
+  `--sqlite3=${amalgamation}`,
+], { cwd: betterSqlite3, stdio: 'inherit' });
 ```
-
-However, if you simply run `npm install` while `better-sqlite3` is listed as a dependency in your `package.json`, the required flags above will *not* be applied. Therefore, it's recommended that you remove `better-sqlite3` from your dependency list, and instead add a [`preinstall` script](https://docs.npmjs.com/misc/scripts) like the one shown below.
 
 ```json
 {
   "scripts": {
-    "preinstall": "npm install better-sqlite3@'^7.0.0' --no-save --build-from-source --sqlite3=\"$(pwd)/sqlite-amalgamation\""
+    "postinstall": "node scripts/build-sqlite.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "..."
   }
 }
 ```
 
-Your amalgamation directory must contain `sqlite3.c` and `sqlite3.h`. Any desired [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`, as shown below.
+From then on, `npm install` and `npm ci` will compile `better-sqlite3` with your amalgamation every time. Compiling requires the usual [`node-gyp` prerequisites](https://github.com/nodejs/node-gyp#installation) (Python and a C++ compiler); see [troubleshooting](./troubleshooting.md) if the build fails.
+
+There are some cases where npm won't run your `postinstall` script, and you'll get the prebuilt binary instead:
+
+- When you add or upgrade a specific package (e.g., `npm install better-sqlite3@latest`), npm doesn't run your project's own install scripts. Run `npm install` (with no arguments) afterwards to compile it again.
+- `npm rebuild` doesn't run your project's own install scripts either. Use `npm run postinstall` instead.
+- Your build won't be compiled if install scripts are disabled (e.g., `--ignore-scripts`).
+
+To verify which SQLite build you're using, check `db.pragma('compile_options')`.
+
+### Compile time options
+
+When you use a custom amalgamation, none of the [bundled configuration's](#bundled-configuration) compile time options are applied; the only option that `better-sqlite3` defines for you is `SQLITE_ENABLE_COLUMN_METADATA`, which it requires. Any other [compile time options](https://www.sqlite.org/compile.html) must be defined directly within `sqlite3.c`, as shown below.
 
 ```c
 // These go at the top of the file
@@ -26,20 +71,9 @@ Your amalgamation directory must contain `sqlite3.c` and `sqlite3.h`. Any desire
 // ... the original content of the file remains below
 ```
 
-### Step by step example
+### Encryption
 
-If you're creating a package that relies on a custom build of `better-sqlite3`, you can follow these steps to get started.
-
-1. Download the SQLite source code from [their website](https://sqlite.com/download.html) (e.g., `sqlite-amalgamation-1234567.zip`)
-2. Unzip the compressed archive
-3. Move the `sqlite3.c` and `sqlite3.h` files to your project folder
-4. Add a `preinstall` script to your `package.json`, like the one shown above
-6. Make sure the `--sqlite3` flag points to the location of your `sqlite3.c` and `sqlite3.h` files
-7. Define your preferred [compile time options](https://www.sqlite.org/compile.html) at the top of `sqlite3.c`
-8. Make sure to remove `better-sqlite3` from your `dependencies`
-9. Run `npm install` in your project folder
-
-If you're using a SQLite encryption extension that is a drop-in replacement for SQLite (such as [SEE](https://www.sqlite.org/see/doc/release/www/readme.wiki) or [sqleet](https://github.com/resilar/sqleet)), then simply replace `sqlite3.c` and `sqlite3.h` with the source files of your encryption extension.
+If you're using a SQLite encryption extension that is a drop-in replacement for SQLite (such as [SEE](https://www.sqlite.org/see/doc/release/www/readme.wiki) or [SQLite3MultipleCiphers](https://github.com/utelle/SQLite3MultipleCiphers)), then simply replace `sqlite3.c` and `sqlite3.h` with the source files of your encryption extension.
 
 # Bundled configuration
 
