@@ -199,6 +199,25 @@ db.function('add2', (a, b) => a + b);
 db.prepare('SELECT add2(?, ?)').pluck().get(12, 4); // => 16
 db.prepare('SELECT add2(?, ?)').pluck().get('foo', 'bar'); // => "foobar"
 db.prepare('SELECT add2(?, ?, ?)').pluck().get(12, 4, 18); // => Error: wrong number of arguments
+
+// Custom functions can also read row values, for example to sort by distance.
+// This Haversine implementation runs in JavaScript, so a native SQLite
+// extension will be faster on very large tables.
+db.function('haversine', { deterministic: true }, (lat1, lon1, lat2, lon2) => {
+  const toRad = (deg) => deg * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2
+    + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.sqrt(a)); // kilometers
+});
+
+const nearby = db.prepare(`
+  SELECT name, haversine(lat, lon, @lat, @lon) AS km
+  FROM places
+  ORDER BY km
+`);
+nearby.all({ lat: 37.78, lon: -122.41 });
 ```
 
 By default, user-defined functions have a strict number of arguments (determined by `function.length`). You can register multiple functions of the same name, each with a different number of arguments, causing SQLite to execute a different function depending on how many arguments were passed to it. If you register two functions with same name and the same number of arguments, the second registration will erase the first one.
