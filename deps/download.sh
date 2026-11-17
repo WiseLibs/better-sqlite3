@@ -38,13 +38,10 @@ SQLITE_DEFAULT_WAL_SYNCHRONOUS=1
 SQLITE_DQS=0
 SQLITE_ENABLE_COLUMN_METADATA
 SQLITE_ENABLE_DBSTAT_VTAB
-SQLITE_ENABLE_DESERIALIZE
 SQLITE_ENABLE_FTS3
 SQLITE_ENABLE_FTS3_PARENTHESIS
-SQLITE_ENABLE_FTS4
 SQLITE_ENABLE_FTS5
 SQLITE_ENABLE_GEOPOLY
-SQLITE_ENABLE_JSON1
 SQLITE_ENABLE_MATH_FUNCTIONS
 SQLITE_ENABLE_PERCENTILE
 SQLITE_ENABLE_RTREE
@@ -58,7 +55,6 @@ SQLITE_OMIT_TCL_VARIABLE
 SQLITE_SOUNDEX
 SQLITE_THREADSAFE=2
 SQLITE_TRACE_SIZE_LIMIT=32
-SQLITE_USE_URI=0
 "
 
 # ========== START SCRIPT ========== #
@@ -91,12 +87,14 @@ cp sqlite3.c sqlite3.h sqlite3ext.h "$OUTPUT/" || exit 1
 
 echo "applying patches..."
 cd "$DEPS" || exit 1
+shopt -s nullglob
 for patch in patches/*.patch; do
   # If a patch fails, just skip it an move on.
   # By default `patch` tries to be clever and reverse the patch, so we have to specify `--forward`.
   # If the patch fails, we # don't write .orig and .rej files, so we have to specify `--no-backup-if-mismatch` and `--reject-file=-`.
   patch --batch --forward --no-backup-if-mismatch --reject-file=- -p2 < "$patch"
 done
+shopt -u nullglob
 
 echo "updating gyp configs..."
 GYP="$DEPS/defines.gypi"
