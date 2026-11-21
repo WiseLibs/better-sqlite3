@@ -24,6 +24,16 @@ describe('new Database()', function () {
 		expect(() => (this.db = new Database(util.next(), { readonly: undefined }))).to.throw(TypeError);
 		expect(() => (this.db = new Database(util.next(), { fileMustExist: undefined }))).to.throw(TypeError);
 	});
+	it('should throw a clear error when the runtime lacks Node-API 10', function () {
+		const descriptor = Object.getOwnPropertyDescriptor(process.versions, 'napi');
+		Object.defineProperty(process.versions, 'napi', { ...descriptor, value: '9' });
+		try {
+			expect(() => (this.db = new Database(':memory:'))).to.throw(Error, 'requires Node-API 10');
+		} finally {
+			Object.defineProperty(process.versions, 'napi', descriptor);
+		}
+		this.db = new Database(':memory:');
+	});
 	it('should allow anonymous temporary databases to be created', function () {
 		for (const args of [[''], [], [null], [undefined], ['', { timeout: 2000 }]]) {
 			const db = this.db = new Database(...args);
